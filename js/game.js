@@ -54,10 +54,30 @@
       window.PR_AUDIO && window.PR_AUDIO.unlock();
       if (state.mode === 'title') window.PR_MUSIC && window.PR_MUSIC.play('title');
     };
-    document.getElementById('btn-new').addEventListener('click', () => { unlock(); startNewGame(); });
-    document.getElementById('btn-continue').addEventListener('click', () => { unlock(); continueGame(); });
+    const startFromTitle = (preferContinue) => {
+      if (state.mode !== 'title') return;
+      unlock();
+      if (preferContinue && window.PR_SAVE.exists()) continueGame();
+      else if (window.PR_SAVE.exists()) continueGame();
+      else startNewGame();
+    };
+    document.getElementById('btn-new').addEventListener('click', (e) => { e.stopPropagation(); unlock(); startNewGame(); });
+    document.getElementById('btn-continue').addEventListener('click', (e) => { e.stopPropagation(); unlock(); continueGame(); });
+    // Tap anywhere on the title overlay starts the game.
+    const titleEl = document.getElementById('title');
+    if (titleEl) titleEl.addEventListener('click', () => startFromTitle(true));
+    // Keyboard: Enter / Space / Z / X all start.
+    document.addEventListener('keydown', (e) => {
+      unlock();
+      if (state.mode === 'title') {
+        const k = e.key;
+        if (k === 'Enter' || k === ' ' || k === 'z' || k === 'Z' || k === 'x' || k === 'X') {
+          e.preventDefault();
+          startFromTitle(true);
+        }
+      }
+    });
     document.addEventListener('pointerdown', unlock, { once:false });
-    document.addEventListener('keydown', unlock, { once:false });
     requestAnimationFrame(loop);
   }
 
@@ -97,12 +117,22 @@
   }
 
   function update(dt) {
-    if (state.mode === 'intro') updateIntro(dt);
+    if (state.mode === 'title') updateTitle();
+    else if (state.mode === 'intro') updateIntro(dt);
     else if (state.mode === 'overworld') state.world.update(dt);
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'menu') updateMenu();
     else if (state.mode === 'starter') updateStarter();
+  }
+
+  function updateTitle() {
+    const I = window.PR_INPUT;
+    if (I.consumePressed('Enter') || I.consumePressed('z') || I.consumePressed('x')) {
+      window.PR_AUDIO && window.PR_AUDIO.unlock();
+      if (window.PR_SAVE.exists()) continueGame();
+      else startNewGame();
+    }
   }
 
   function render() {
