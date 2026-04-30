@@ -236,6 +236,12 @@
     }
     defender.hp = Math.max(0, defender.hp - totalDmg);
     if (who === 'me') this.shakeTimer = 0.3; else this.flashTimer = 0.2;
+    if (window.PR_SFX) {
+      if (result.crit) window.PR_SFX.play('crit');
+      else if (result.eff > 1) window.PR_SFX.play('super');
+      else if (result.eff < 1 && result.eff > 0) window.PR_SFX.play('weak');
+      else window.PR_SFX.play('hit');
+    }
     if (result.crit) this.queue('A critical hit!');
     if (result.eff > 1) this.queue("It's super effective!");
     else if (result.eff === 0) this.queue("It doesn't affect " + defender.nickname + '...');
@@ -296,6 +302,7 @@
 
     if (this.foe.hp <= 0 && this.faintAnim.foe >= 1 - 0.001) {
       this.faintAnim.foe = 1;
+      window.PR_SFX && window.PR_SFX.play('faint');
       this.queue('Foe ' + this.foe.nickname + ' fainted!');
       this.awardXp();
       // Trainer: next mon, otherwise win.
@@ -328,6 +335,7 @@
 
     if (this.me.hp <= 0 && this.faintAnim.me >= 1 - 0.001) {
       this.faintAnim.me = 1;
+      window.PR_SFX && window.PR_SFX.play('faint');
       this.queue(this.me.nickname + ' fainted!');
       const next = nextAlive(this.state.party, this.partyIdx);
       if (next >= 0) {
@@ -407,6 +415,7 @@
     if (this.trainer) { this.flashMsg("Can't catch a trainer's partner!"); return; }
     if ((this.state.player.balls|0) <= 0) { this.flashMsg('No ROD BALLS left!'); return; }
     this.state.player.balls--;
+    window.PR_SFX && window.PR_SFX.play('ball');
     this.queue('You threw a ROD BALL!');
     const sp = window.PR_DATA.CREATURES[this.foe.species];
     const rate = sp.catchRate || 45;
@@ -415,6 +424,7 @@
     const a = ((3 * this.foe.stats.hp - 2 * this.foe.hp) * rate * statusBonus) / (3 * this.foe.stats.hp);
     const shakes = a >= 255 ? 4 : Math.min(4, Math.floor(a / 60) + (Math.random() < 0.5 ? 1 : 0));
     if (shakes >= 4) {
+      window.PR_SFX && window.PR_SFX.play('catch');
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) this.state.party.push(this.foe);
       else this.queue('It was sent to your storage box.');
@@ -441,6 +451,7 @@
     let lv = window.PR_DATA.levelFromXp(this.me.xp);
     while (lv > this.me.level) {
       this.me.level++;
+      window.PR_SFX && window.PR_SFX.play('levelup');
       const sp = window.PR_DATA.CREATURES[this.me.species];
       const newStats = window.PR_DATA.computeStats(sp.baseStats, this.me.ivs, this.me.level);
       const dHp = newStats.hp - this.me.stats.hp;

@@ -27,7 +27,15 @@
   };
 
   // Wire callbacks the world will invoke.
-  state.onMapChange = () => {};
+  state.onMapChange = () => {
+    if (!window.PR_MUSIC) return;
+    const m = state.world && state.world.currentMap();
+    if (!m) return;
+    if (m.id === 'route1') window.PR_MUSIC.play('route');
+    else if (m.interior && (m.id === 'pokecenter' || m.id === 'mart')) window.PR_MUSIC.play('town');
+    else window.PR_MUSIC.play('town');
+    window.PR_SFX && window.PR_SFX.play('door');
+  };
   state.onWildEncounter = startWildEncounter;
   state.onNpcInteract = handleNpcInteract;
   state.onSign = (text) => openDialog([text]);
@@ -42,8 +50,14 @@
   function init() {
     const has = window.PR_SAVE.exists();
     if (has) document.getElementById('btn-continue').hidden = false;
-    document.getElementById('btn-new').addEventListener('click', () => startNewGame());
-    document.getElementById('btn-continue').addEventListener('click', () => continueGame());
+    const unlock = () => {
+      window.PR_AUDIO && window.PR_AUDIO.unlock();
+      if (state.mode === 'title') window.PR_MUSIC && window.PR_MUSIC.play('title');
+    };
+    document.getElementById('btn-new').addEventListener('click', () => { unlock(); startNewGame(); });
+    document.getElementById('btn-continue').addEventListener('click', () => { unlock(); continueGame(); });
+    document.addEventListener('pointerdown', unlock, { once:false });
+    document.addEventListener('keydown', unlock, { once:false });
     requestAnimationFrame(loop);
   }
 
@@ -109,6 +123,7 @@
   function updateDialog() {
     const d = state.dialog;
     if (window.PR_INPUT.consumePressed('z') || window.PR_INPUT.consumePressed('Enter')) {
+      window.PR_SFX && window.PR_SFX.play('page');
       d.index++;
       if (d.index >= d.lines.length) {
         const cb = d.onDone, src = d.source;
@@ -271,6 +286,8 @@
     if (!alive) return;
     const m = state.world.currentMap();
     if (!m.encounters || !m.encounters.length) return;
+    window.PR_SFX && window.PR_SFX.play('encounter');
+    window.PR_MUSIC && window.PR_MUSIC.play('battle');
     const total = m.encounters.reduce((a,e) => a + e.weight, 0);
     let r = Math.random() * total;
     let pick = m.encounters[0];
@@ -311,6 +328,8 @@
       }
       const lines = (npc.dialog || ['Battle!']).slice();
       openDialog(lines, () => {
+        window.PR_SFX && window.PR_SFX.play('encounter');
+        window.PR_MUSIC && window.PR_MUSIC.play('battle');
         const team = npc.trainer.team.map(([sp, lv]) => window.PR_DATA.makeMon(sp, lv));
         state.battle = new window.PR_BATTLE.Battle(state, {
           trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat },
@@ -325,6 +344,7 @@
 
   function healAtCenter() {
     openDialog(['Healing your team...','All set! Have a great day!'], () => {
+      window.PR_SFX && window.PR_SFX.play('heal');
       for (const m of state.party) {
         m.hp = m.stats.hp;
         m.status = null;
@@ -342,10 +362,11 @@
   }
   function updateStarter() {
     const I = window.PR_INPUT;
-    if (I.consumePressed('ArrowLeft'))  state.starterMenu.idx = (state.starterMenu.idx + 2) % 3;
-    if (I.consumePressed('ArrowRight')) state.starterMenu.idx = (state.starterMenu.idx + 1) % 3;
+    if (I.consumePressed('ArrowLeft'))  { state.starterMenu.idx = (state.starterMenu.idx + 2) % 3; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowRight')) { state.starterMenu.idx = (state.starterMenu.idx + 1) % 3; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('x')) { state.starterMenu = null; state.mode = 'overworld'; return; }
     if (I.consumePressed('z')) {
+      window.PR_SFX && window.PR_SFX.play('confirm');
       const sp = STARTERS[state.starterMenu.idx];
       const mon = window.PR_DATA.makeMon(sp, 5);
       state.party.push(mon);
@@ -461,5 +482,10 @@
     state.mode = 'overworld';
     state.world.justEntered = false;
     window.PR_SAVE.save(state);
+    if (window.PR_MUSIC) {
+      const m = state.world.currentMap();
+      if (m && m.id === 'route1') window.PR_MUSIC.play('route');
+      else window.PR_MUSIC.play('town');
+    }
   }
 })();

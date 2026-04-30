@@ -70,6 +70,7 @@
 
     if (!props || (!props.walk && props.walk !== 'south')) {
       this.frameTimer = 0; // bump
+      window.PR_SFX && window.PR_SFX.play('bump');
       return;
     }
     if (props.walk === 'south' && dir !== 'down') return;
