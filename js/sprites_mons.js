@@ -25,6 +25,17 @@
                    Math.ceil(gw*scale), Math.ceil(gh*scale));
     };
     drawShape(set, fillRect, d, isBack);
+    drawRedTuft(set, fillRect, d);
+  }
+
+  function drawRedTuft(set, rect, d) {
+    // Signature red tuft: a small flame-like crest on top of every creature.
+    const tx = d.tuftX !== undefined ? d.tuftX : 16;
+    const ty = d.tuftY !== undefined ? d.tuftY : (d.shape === 'caterpillar' ? 14 : 9);
+    rect(tx-2, ty+1, 5, 2, '#a82010');
+    rect(tx-2, ty,   5, 1, '#d83020');
+    rect(tx-1, ty-1, 3, 1, '#e84838');
+    rect(tx,   ty-2, 1, 1, '#f0a020');
   }
 
   function drawShape(set, rect, d, isBack) {

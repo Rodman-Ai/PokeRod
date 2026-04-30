@@ -24,7 +24,7 @@
 
   // Player sprite, facing down. 16x16. legs is 0 or 1 for walk frame.
   const PALETTE_PLAYER = {
-    k:'#000', s:'#f0c898', h:'#3a2410', S:'#1a1a1a',
+    k:'#000', s:'#f0c898', h:'#d83020', S:'#1a1a1a',
     r:'#d83838', R:'#a01818', b:'#3050a8', B:'#1a2860',
     w:'#fff', y:'#f0c020'
   };
@@ -105,15 +105,15 @@
 
   // Generic NPC sprite. Palette varies by type for visual variety.
   const NPC_PALETTES = {
-    npc_oak:   { k:'#000', s:'#f0c898', h:'#e0e0e0', r:'#fff', y:'#a0a0a0' },
-    npc_mom:   { k:'#000', s:'#f0c898', h:'#a83828', r:'#e0a0c0', y:'#a02858' },
-    npc_sis:   { k:'#000', s:'#f0c898', h:'#f0c020', r:'#5898d8', y:'#3060a0' },
-    npc_rival: { k:'#000', s:'#f0c898', h:'#702020', r:'#404040', y:'#202020' },
-    npc_girl:  { k:'#000', s:'#f0c898', h:'#a82878', r:'#f08080', y:'#c04040' },
-    npc_youth: { k:'#000', s:'#f0c898', h:'#3a2410', r:'#f0d020', y:'#a08818' },
-    npc_old:   { k:'#000', s:'#f0c898', h:'#c8c8c8', r:'#587858', y:'#283828' },
-    nurse:     { k:'#000', s:'#f0c898', h:'#e85a8a', r:'#fff', y:'#e8c8c8' },
-    clerk:     { k:'#000', s:'#f0c898', h:'#3a2410', r:'#3858c8', y:'#202858' },
+    npc_oak:   { k:'#000', s:'#f0c898', h:'#d83020', r:'#fff',    y:'#a0a0a0' },
+    npc_mom:   { k:'#000', s:'#f0c898', h:'#e84838', r:'#e0a0c0', y:'#a02858' },
+    npc_sis:   { k:'#000', s:'#f0c898', h:'#f04830', r:'#5898d8', y:'#3060a0' },
+    npc_rival: { k:'#000', s:'#f0c898', h:'#c02020', r:'#404040', y:'#202020' },
+    npc_girl:  { k:'#000', s:'#f0c898', h:'#e84030', r:'#f08080', y:'#c04040' },
+    npc_youth: { k:'#000', s:'#f0c898', h:'#d83020', r:'#f0d020', y:'#a08818' },
+    npc_old:   { k:'#000', s:'#f0c898', h:'#b03020', r:'#587858', y:'#283828' },
+    nurse:     { k:'#000', s:'#f0c898', h:'#e83040', r:'#fff',    y:'#e8c8c8' },
+    clerk:     { k:'#000', s:'#f0c898', h:'#d83020', r:'#3858c8', y:'#202858' },
     ball:      null
   };
 

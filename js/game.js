@@ -9,7 +9,7 @@
 
   // Game state container.
   const state = {
-    mode: 'title',        // title | overworld | battle | dialog | menu | starter
+    mode: 'title',        // title | intro | overworld | battle | dialog | menu | starter
     player: {
       name: 'YOU',
       map: 'rodport',
@@ -49,12 +49,13 @@
 
   function startNewGame() {
     window.PR_SAVE.clear();
-    state.player = { name:'YOU', map:'rodport', x:7, y:9, dir:'down', money:500, balls:5, steps:0 };
+    state.player = { name:'YOU', map:'rodport', x:4, y:5, dir:'down', money:500, balls:5, steps:0 };
     state.party = [];
     state.flags = { starterChosen:false };
     state.defeatedTrainers = new Set();
     state.world = new window.PR_WORLD.World(state);
-    state.mode = 'overworld';
+    state.intro = { page: 0, charT: 0 };
+    state.mode = 'intro';
     showOverlay(false);
   }
 
@@ -82,7 +83,8 @@
   }
 
   function update(dt) {
-    if (state.mode === 'overworld') state.world.update(dt);
+    if (state.mode === 'intro') updateIntro(dt);
+    else if (state.mode === 'overworld') state.world.update(dt);
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'menu') updateMenu();
@@ -91,6 +93,7 @@
 
   function render() {
     if (state.mode === 'title') return;
+    if (state.mode === 'intro') { drawIntro(); return; }
     if (state.mode === 'battle') { state.battle.render(ctx); return; }
     state.world.render(ctx);
     if (state.mode === 'dialog') drawDialog();
@@ -127,6 +130,139 @@
 
   // expose for further additions
   window.PR_GAME = { state };
+
+  // ---------- Intro ----------
+  const INTRO_PAGES = [
+    { kind:'prof', lines:[
+      'Hello there!',
+      'I am PROF. ROD, a researcher of POKEROD.'
+    ] },
+    { kind:'creature', species:'emberkit', lines:[
+      'These small marvels are POKEROD.',
+      'Some live wild; others walk with friends.'
+    ] },
+    { kind:'creature', species:'aquapup', lines:[
+      'They come in every shape and element.',
+      'Each one has its own quirks and skills.'
+    ] },
+    { kind:'creature', species:'sproutling', lines:[
+      'A trainer with a kind heart',
+      'can earn a partner for life.'
+    ] },
+    { kind:'prof', lines:[
+      'My grandkids set out years ago.',
+      'Today, the road calls to YOU.'
+    ] },
+    { kind:'player', lines:[
+      'Step out of your house in RODPORT.',
+      'Visit my lab. A partner is waiting.'
+    ] },
+    { kind:'player', lines:[
+      'The world of POKEROD awaits!',
+      'Press Z to begin.'
+    ] }
+  ];
+
+  function updateIntro(dt) {
+    const I = window.PR_INPUT;
+    state.intro.charT += dt * 60;
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      const page = INTRO_PAGES[state.intro.page];
+      const fullLen = page.lines.join('\n').length;
+      if (state.intro.charT < fullLen) {
+        state.intro.charT = fullLen + 999;
+        return;
+      }
+      state.intro.page++;
+      state.intro.charT = 0;
+      if (state.intro.page >= INTRO_PAGES.length) {
+        state.mode = 'overworld';
+        state.world.justEntered = true;
+      }
+    }
+    if (I.consumePressed('x')) {
+      // Skip intro entirely.
+      state.mode = 'overworld';
+      state.world.justEntered = true;
+    }
+  }
+
+  function drawIntro() {
+    const page = INTRO_PAGES[state.intro.page];
+    if (!page) return;
+    // Vignette background.
+    ctx.fillStyle = '#0a0810';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    // Gradient-ish top stripe.
+    for (let i = 0; i < 12; i++) {
+      ctx.fillStyle = 'rgba(216,48,32,' + (0.05 - i*0.004) + ')';
+      ctx.fillRect(0, i*2, VIEW_W, 2);
+    }
+
+    // Visual.
+    if (page.kind === 'creature') {
+      window.PR_MONS.drawCreature(ctx, page.species, (VIEW_W - 64)/2, 18, 64, false);
+    } else if (page.kind === 'prof') {
+      drawProfPortrait(ctx, (VIEW_W - 48)/2, 22);
+    } else if (page.kind === 'player') {
+      drawPlayerPortrait(ctx, (VIEW_W - 32)/2, 28);
+    }
+
+    // Title bar.
+    window.PR_UI.drawText(ctx, 'POKEROD', VIEW_W/2 - 21, 6, '#f0b03a');
+
+    // Text area at the bottom.
+    const x = 8, y = VIEW_H - 56, w = VIEW_W - 16, h = 50;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    const fullText = page.lines.join('\n');
+    const shown = fullText.slice(0, Math.min(fullText.length, state.intro.charT|0));
+    window.PR_UI.drawText(ctx, shown, x + 6, y + 6, '#202020');
+    // Page indicator.
+    window.PR_UI.drawText(ctx, (state.intro.page+1) + '/' + INTRO_PAGES.length,
+      x + w - 22, y + h - 10, '#808080');
+    if (state.intro.charT >= fullText.length) {
+      const t = (performance.now() / 250) | 0;
+      if (t % 2 === 0) {
+        ctx.fillStyle = '#202020';
+        ctx.fillRect(x + w - 8, y + h - 8, 4, 4);
+      }
+    }
+    window.PR_UI.drawText(ctx, 'X: SKIP', 6, VIEW_H - 8, '#606060');
+  }
+
+  function drawProfPortrait(ctx, x, y) {
+    // Head.
+    ctx.fillStyle = '#f0c898'; ctx.fillRect(x+12, y+10, 24, 20);
+    // Hair (red).
+    ctx.fillStyle = '#d83020'; ctx.fillRect(x+10, y+4, 28, 8);
+    ctx.fillStyle = '#a82010'; ctx.fillRect(x+10, y+4, 28, 2);
+    // Lab coat.
+    ctx.fillStyle = '#fff';    ctx.fillRect(x+8, y+30, 32, 18);
+    ctx.fillStyle = '#c8c8d0'; ctx.fillRect(x+8, y+30, 32, 2);
+    // Tie / collar.
+    ctx.fillStyle = '#a02828'; ctx.fillRect(x+22, y+30, 4, 8);
+    // Eyes & mouth.
+    ctx.fillStyle = '#000'; ctx.fillRect(x+18, y+18, 2, 2);
+    ctx.fillRect(x+28, y+18, 2, 2);
+    ctx.fillRect(x+22, y+24, 4, 1);
+    // Eye glints.
+    ctx.fillStyle = '#fff'; ctx.fillRect(x+18, y+18, 1, 1); ctx.fillRect(x+28, y+18, 1, 1);
+    // Beard hint.
+    ctx.fillStyle = '#c8b090'; ctx.fillRect(x+16, y+27, 16, 2);
+  }
+
+  function drawPlayerPortrait(ctx, x, y) {
+    ctx.fillStyle = '#d83020'; ctx.fillRect(x+4, y, 24, 8);
+    ctx.fillStyle = '#a82010'; ctx.fillRect(x+4, y, 24, 2);
+    ctx.fillStyle = '#f0c898'; ctx.fillRect(x+6, y+6, 20, 14);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x+11, y+12, 2, 2);
+    ctx.fillRect(x+19, y+12, 2, 2);
+    ctx.fillRect(x+13, y+17, 6, 1);
+    ctx.fillStyle = '#d83838'; ctx.fillRect(x+4, y+20, 24, 10);
+    ctx.fillStyle = '#a01818'; ctx.fillRect(x+4, y+20, 24, 2);
+    ctx.fillStyle = '#3050a8'; ctx.fillRect(x+8, y+30, 16, 12);
+  }
 
   // ---------- Encounters ----------
   function startWildEncounter() {

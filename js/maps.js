@@ -177,10 +177,17 @@ const MAPS = {
       '16,6': "ROUTE 1 — Tall grass hides wild creatures. Walk carefully."
     },
     encounters: [
-      { species:'nibblet', minL:2, maxL:4, weight:5 },
-      { species:'flitwing', minL:2, maxL:4, weight:4 },
-      { species:'crawlbug', minL:2, maxL:3, weight:3 },
-      { species:'zapret',   minL:3, maxL:5, weight:1 }
+      { species:'nibblet',     minL:2, maxL:4, weight:5 },
+      { species:'flitwing',    minL:2, maxL:4, weight:4 },
+      { species:'crawlbug',    minL:2, maxL:3, weight:3 },
+      { species:'zapret',      minL:3, maxL:5, weight:2 },
+      { species:'cinderpup',   minL:3, maxL:5, weight:2 },
+      { species:'fernsprout',  minL:3, maxL:5, weight:2 },
+      { species:'voltkit',     minL:3, maxL:5, weight:2 },
+      { species:'bumblesting', minL:2, maxL:4, weight:2 },
+      { species:'galewing',    minL:3, maxL:5, weight:2 },
+      { species:'glimkit',     minL:3, maxL:5, weight:1 },
+      { species:'geistmite',   minL:3, maxL:5, weight:1 }
     ],
     edges: {
       north: { y:0,  to:'rodport',  tx:7, ty:16 },

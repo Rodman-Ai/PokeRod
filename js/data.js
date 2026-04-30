@@ -181,6 +181,146 @@ const CREATURES = {
     learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'quickjab'],[11,'bite'],[17,'shimmer'] ],
     catchRate:45,
     design:{ palette:['#d8b878','#f0d8a8','#3a2210'], shape:'fox', accent:'tail' }
+  },
+  cinderpup: {
+    id:'cinderpup', name:'Cinderpup', dex:15, types:['FIRE'],
+    baseStats:{hp:50, atk:60, def:40, spa:55, spd:40, spe:75},
+    learnset:[ [1,'scratch'],[1,'tailwhip'],[6,'ember'],[12,'quickjab'],[18,'bite'],[24,'flamejet'] ],
+    evolves:{ to:'pyrohound', level:18 }, catchRate:120,
+    design:{ palette:['#e84020','#f8c850','#3a0e02'], shape:'fox', accent:'flame' }
+  },
+  pyrohound: {
+    id:'pyrohound', name:'Pyrohound', dex:16, types:['FIRE'],
+    baseStats:{hp:65, atk:80, def:55, spa:70, spd:55, spe:95},
+    learnset:[ [1,'scratch'],[1,'tailwhip'],[6,'ember'],[12,'quickjab'],[18,'bite'],[26,'flamejet'] ],
+    catchRate:60,
+    design:{ palette:['#c83018','#ffa030','#2a0602'], shape:'fox', accent:'flame', big:true }
+  },
+  mistfin: {
+    id:'mistfin', name:'Mistfin', dex:17, types:['WATER'],
+    baseStats:{hp:42, atk:40, def:42, spa:60, spd:50, spe:60},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[7,'bubble'],[13,'watergun'],[19,'freezewind'] ],
+    evolves:{ to:'tidalwhal', level:20 }, catchRate:180,
+    design:{ palette:['#5a98e0','#c0e8ff','#1a3868'], shape:'fish', accent:'fins' }
+  },
+  tidalwhal: {
+    id:'tidalwhal', name:'Tidalwhal', dex:18, types:['WATER','ICE'],
+    baseStats:{hp:75, atk:60, def:75, spa:85, spd:75, spe:55},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[7,'bubble'],[13,'watergun'],[20,'freezewind'] ],
+    catchRate:75,
+    design:{ palette:['#3868b8','#a0d0f0','#0a1a3a'], shape:'fish', accent:'fins' }
+  },
+  fernsprout: {
+    id:'fernsprout', name:'Fernsprout', dex:19, types:['GRASS'],
+    baseStats:{hp:50, atk:45, def:55, spa:60, spd:55, spe:50},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'vinelash'],[12,'leafcut'],[18,'acidspray'] ],
+    evolves:{ to:'bramblewood', level:18 }, catchRate:120,
+    design:{ palette:['#68c050','#f0c020','#244818'], shape:'plant', accent:'bud' }
+  },
+  bramblewood: {
+    id:'bramblewood', name:'Bramblewood', dex:20, types:['GRASS','ROCK'],
+    baseStats:{hp:70, atk:75, def:85, spa:65, spd:70, spe:45},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'vinelash'],[12,'leafcut'],[20,'rocktoss'] ],
+    catchRate:60,
+    design:{ palette:['#3a8030','#d8a020','#0e2c0e'], shape:'plant', accent:'bud', big:true }
+  },
+  voltkit: {
+    id:'voltkit', name:'Voltkit', dex:21, types:['ELECTRIC'],
+    baseStats:{hp:40, atk:50, def:35, spa:65, spd:50, spe:80},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[6,'spark'],[12,'quickjab'],[18,'zapburst'] ],
+    evolves:{ to:'voltlynx', level:20 }, catchRate:120,
+    design:{ palette:['#f0d018','#383018','#e85a5a'], shape:'fox', accent:'tail' }
+  },
+  voltlynx: {
+    id:'voltlynx', name:'Voltlynx', dex:22, types:['ELECTRIC'],
+    baseStats:{hp:60, atk:75, def:55, spa:90, spd:70, spe:115},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[6,'spark'],[12,'quickjab'],[20,'zapburst'] ],
+    catchRate:45,
+    design:{ palette:['#e8b818','#181810','#f08020'], shape:'fox', accent:'tail', big:true }
+  },
+  stoneworm: {
+    id:'stoneworm', name:'Stoneworm', dex:23, types:['GROUND'],
+    baseStats:{hp:60, atk:65, def:80, spa:25, spd:35, spe:30},
+    learnset:[ [1,'tackle'],[1,'growl'],[8,'rocktoss'],[14,'earthbump'] ],
+    evolves:{ to:'quakeworm', level:22 }, catchRate:90,
+    design:{ palette:['#a08858','#5a4830','#d8c098'], shape:'caterpillar', accent:'segments' }
+  },
+  quakeworm: {
+    id:'quakeworm', name:'Quakeworm', dex:24, types:['GROUND','ROCK'],
+    baseStats:{hp:85, atk:90, def:110, spa:35, spd:50, spe:40},
+    learnset:[ [1,'tackle'],[1,'growl'],[8,'rocktoss'],[14,'earthbump'],[24,'bite'] ],
+    catchRate:45,
+    design:{ palette:['#80684a','#403020','#a89070'], shape:'caterpillar', accent:'segments' }
+  },
+  bumblesting: {
+    id:'bumblesting', name:'Bumblesting', dex:25, types:['BUG','POISON'],
+    baseStats:{hp:40, atk:55, def:35, spa:30, spd:35, spe:75},
+    learnset:[ [1,'tackle'],[1,'poisonsting'],[7,'bugbite'],[13,'pinmissile'] ],
+    evolves:{ to:'hivequeen', level:20 }, catchRate:150,
+    design:{ palette:['#f0c020','#000000','#e85a18'], shape:'caterpillar', accent:'segments' }
+  },
+  hivequeen: {
+    id:'hivequeen', name:'Hivequeen', dex:26, types:['BUG','POISON'],
+    baseStats:{hp:65, atk:80, def:60, spa:65, spd:65, spe:95},
+    learnset:[ [1,'tackle'],[1,'poisonsting'],[7,'bugbite'],[13,'pinmissile'],[22,'acidspray'] ],
+    catchRate:60,
+    design:{ palette:['#d8a818','#181818','#e84030'], shape:'bat', accent:'wings' }
+  },
+  galewing: {
+    id:'galewing', name:'Galewing', dex:27, types:['NORMAL','FLYING'],
+    baseStats:{hp:55, atk:60, def:50, spa:50, spd:50, spe:90},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'gust'],[12,'quickjab'],[18,'airslash'] ],
+    catchRate:120,
+    design:{ palette:['#a0a0c8','#f0f0f0','#383850'], shape:'bird', accent:'wings' }
+  },
+  solarwing: {
+    id:'solarwing', name:'Solarwing', dex:28, types:['FIRE','FLYING'],
+    baseStats:{hp:75, atk:85, def:70, spa:90, spd:75, spe:100},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'gust'],[12,'ember'],[20,'airslash'],[28,'flamejet'] ],
+    catchRate:30,
+    design:{ palette:['#f0a020','#ffe060','#a02810'], shape:'bird', accent:'wings' }
+  },
+  frostpup: {
+    id:'frostpup', name:'Frostpup', dex:29, types:['ICE'],
+    baseStats:{hp:50, atk:55, def:50, spa:65, spd:55, spe:60},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'bite'],[12,'freezewind'] ],
+    evolves:{ to:'snowox', level:20 }, catchRate:120,
+    design:{ palette:['#e0f0ff','#88c8ff','#284868'], shape:'fox', accent:'tail' }
+  },
+  snowox: {
+    id:'snowox', name:'Snowox', dex:30, types:['ICE','NORMAL'],
+    baseStats:{hp:80, atk:85, def:80, spa:75, spd:75, spe:50},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'bite'],[12,'freezewind'],[24,'earthbump'] ],
+    catchRate:60,
+    design:{ palette:['#c8e0f0','#5898d0','#101830'], shape:'rock', accent:'pebble' }
+  },
+  crysthorn: {
+    id:'crysthorn', name:'Crysthorn', dex:31, types:['ROCK','PSYCHIC'],
+    baseStats:{hp:60, atk:60, def:90, spa:80, spd:75, spe:55},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[7,'rocktoss'],[14,'shimmer'] ],
+    catchRate:60,
+    design:{ palette:['#9870c8','#d8b8f0','#382048'], shape:'rock', accent:'pebble' }
+  },
+  geistmite: {
+    id:'geistmite', name:'Geistmite', dex:32, types:['DARK'],
+    baseStats:{hp:45, atk:50, def:40, spa:65, spd:50, spe:80},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'bite'],[12,'shimmer'] ],
+    evolves:{ to:'shadefox', level:22 }, catchRate:120,
+    design:{ palette:['#383848','#181820','#e85a5a'], shape:'bat', accent:'wings' }
+  },
+  shadefox: {
+    id:'shadefox', name:'Shadefox', dex:33, types:['DARK'],
+    baseStats:{hp:65, atk:80, def:60, spa:85, spd:70, spe:105},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'bite'],[12,'shimmer'],[24,'quickjab'] ],
+    catchRate:45,
+    design:{ palette:['#202028','#0a0a10','#e84838'], shape:'fox', accent:'tail', big:true }
+  },
+  dreamilly: {
+    id:'dreamilly', name:'Dreamilly', dex:34, types:['PSYCHIC','GRASS'],
+    baseStats:{hp:60, atk:35, def:50, spa:90, spd:90, spe:60},
+    learnset:[ [1,'growl'],[1,'tailwhip'],[6,'shimmer'],[12,'vinelash'],[20,'leafcut'] ],
+    catchRate:75,
+    design:{ palette:['#e8a8d8','#fff0f8','#a04878'], shape:'plant', accent:'bud' }
   }
 };
 
