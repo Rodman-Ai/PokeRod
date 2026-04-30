@@ -3,6 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
+  const VERSION = 'v0.5.0';
+  const BUILD = '2026.04.30-7';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -51,6 +53,8 @@
   }
 
   function init() {
+    const versionEl = document.getElementById('version');
+    if (versionEl) versionEl.textContent = VERSION + ' · ' + BUILD;
     const has = window.PR_SAVE.exists();
     if (has) document.getElementById('btn-continue').hidden = false;
     const unlock = () => {
@@ -133,6 +137,15 @@
   }
 
   function update(dt) {
+    // Global: Select toggles audio mute.
+    if (window.PR_INPUT.consumePressed('Shift')) {
+      const A = window.PR_AUDIO;
+      if (A) {
+        A.unlock();
+        A.setMuted(!A.isMuted());
+        showFlash(A.isMuted() ? 'MUTED' : 'AUDIO ON');
+      }
+    }
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
     else if (state.mode === 'overworld') state.world.update(dt);
@@ -141,6 +154,9 @@
     else if (state.mode === 'menu') updateMenu();
     else if (state.mode === 'starter') updateStarter();
   }
+
+  let flashText = null, flashTimer = 0;
+  function showFlash(text) { flashText = text; flashTimer = 1.4; }
 
   function updateTitle() {
     const I = window.PR_INPUT;
@@ -152,13 +168,23 @@
   }
 
   function render() {
-    if (state.mode === 'title') return;
-    if (state.mode === 'intro') { drawIntro(); return; }
-    if (state.mode === 'battle') { state.battle.render(ctx); return; }
+    if (state.mode === 'title') { drawFlash(); return; }
+    if (state.mode === 'intro') { drawIntro(); drawFlash(); return; }
+    if (state.mode === 'battle') { state.battle.render(ctx); drawFlash(); return; }
     state.world.render(ctx);
     if (state.mode === 'dialog') drawDialog();
     else if (state.mode === 'menu') drawMenu();
     else if (state.mode === 'starter') drawStarter();
+    drawFlash();
+  }
+
+  function drawFlash() {
+    if (flashTimer <= 0 || !flashText) return;
+    flashTimer -= 1/60;
+    const w = flashText.length * 6 + 16;
+    const x = (VIEW_W - w) / 2 | 0, y = 4;
+    window.PR_UI.box(ctx, x, y, w, 14, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, flashText, x + 8, y + 4, '#202020');
   }
 
   // ---------- Dialog ----------

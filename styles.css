@@ -30,20 +30,71 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 12px;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0;
+  background: linear-gradient(180deg, #c01818 0%, #8a0808 60%, #5a0404 100%);
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+#app::before {
+  content: 'POKEROD COLOR';
+  display: block;
+  width: 100%;
+  padding: 14px 20px 10px;
+  font-size: 11px;
+  letter-spacing: 6px;
+  color: #ffd060;
+  text-align: center;
+  text-shadow: 0 1px 0 #2a0604;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 14px, rgba(0,0,0,0.25) 14px 16px) 50% 100% / 60% 6px no-repeat,
+    linear-gradient(180deg, #d83020 0%, #a01818 100%);
+  border-bottom: 3px solid #2a0604;
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4);
+  flex: 0 0 auto;
+}
+
+#version {
+  position: fixed;
+  top: 6px; right: 8px;
+  z-index: 100;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgba(255,224,160,0.55);
+  background: rgba(0,0,0,0.3);
+  padding: 2px 6px;
+  border-radius: 3px;
+  pointer-events: none;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
 }
 
 #screen {
   position: relative;
-  width: min(100vmin, 720px);
+  width: min(92vw, 720px);
   aspect-ratio: 3 / 2;
-  background: #000;
-  border: 4px solid #2c2f38;
-  border-radius: 10px;
-  box-shadow: 0 8px 30px var(--shadow), inset 0 0 0 2px #000;
-  overflow: hidden;
+  margin: 18px auto 14px;
+  padding: 14px 14px 22px;
+  background: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
+  border-radius: 14px 14px 28px 14px;
+  box-shadow:
+    inset 0 0 0 3px #5a1810,
+    inset 0 6px 14px rgba(0,0,0,0.7),
+    0 6px 16px rgba(0,0,0,0.45);
+  overflow: visible;
+  flex: 0 0 auto;
+}
+#screen::after {
+  content: 'PR-DOT MATRIX';
+  position: absolute;
+  bottom: 5px; left: 0; right: 0;
+  text-align: center;
+  font-size: 7px;
+  letter-spacing: 3px;
+  color: #f0a020;
+  opacity: 0.6;
 }
 
 #game {
@@ -53,11 +104,17 @@ html, body {
   image-rendering: crisp-edges;
   display: block;
   background: #2c5d34;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #1a0204, 0 0 12px rgba(255,160,40,0.15) inset;
+}
+.overlay {
+  border-radius: 4px;
+  margin: 0 !important;
 }
 
 .overlay {
   position: absolute;
-  inset: 0;
+  top: 14px; right: 14px; bottom: 22px; left: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -266,13 +323,20 @@ html, body {
 }
 
 #touch {
-  display: none;
-  width: min(100vw, 720px);
-  justify-content: space-between;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: 'dpad startsel abuttons';
+  align-items: center;
+  justify-items: center;
   gap: 16px;
-  padding: 0 12px var(--pad);
+  width: min(96vw, 760px);
+  padding: 14px 18px var(--pad);
+  margin: 4px auto 0;
+  flex: 1 1 auto;
 }
+#dpad      { grid-area: dpad; }
+#startsel  { grid-area: startsel; display: flex; flex-direction: column; gap: 10px; transform: rotate(-8deg); }
+#abuttons  { grid-area: abuttons; }
 
 #dpad {
   display: grid;
@@ -323,215 +387,116 @@ html, body {
   align-self: flex-end;
 }
 
-@media (max-width: 900px), (pointer: coarse) {
-  #touch { display: flex; }
-  #screen { width: 100vw; max-width: 100vw; border-radius: 0; border-width: 0 0 2px 0; }
-  #app { padding: 0; gap: 4px; justify-content: space-between; }
+/* Universal handheld controls (desktop and mobile) */
+#dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(3, 44px);
+  gap: 0;
+  background: #1a0204;
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow:
+    0 4px 0 #2a0604,
+    inset 0 2px 4px rgba(0,0,0,0.6),
+    inset 0 0 0 2px #3a0a08;
 }
+#dpad .dbtn {
+  background: linear-gradient(180deg, #2a2a30 0%, #14141a 100%);
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 0 -2px 0 #050508, inset 0 2px 0 #4a4a55;
+  color: #f0e0c0;
+  font-size: 16px;
+  font-weight: bold;
+}
+#dpad .dbtn:nth-child(1) { grid-column: 2; grid-row: 1; border-radius: 6px 6px 0 0; }
+#dpad .dbtn:nth-child(2) { grid-column: 1; grid-row: 2; border-radius: 6px 0 0 6px; }
+#dpad .dbtn:nth-child(3) { grid-column: 3; grid-row: 2; border-radius: 0 6px 6px 0; }
+#dpad .dbtn:nth-child(4) { grid-column: 2; grid-row: 3; border-radius: 0 0 6px 6px; }
+#dpad .dbtn:active {
+  background: linear-gradient(180deg, #14141a 0%, #2a2a30 100%);
+  box-shadow: inset 0 0 0 #050508;
+  transform: none;
+}
+#dpad::before {
+  content: '';
+  grid-column: 2; grid-row: 2;
+  width: 18px; height: 18px;
+  align-self: center;
+  justify-self: center;
+  background: #1a1a1f;
+  border-radius: 50%;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+}
+
+#abuttons {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  transform: rotate(-22deg);
+  transform-origin: center;
+  gap: 14px;
+}
+.abtn {
+  position: relative;
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 900;
+  font-size: 22px;
+  border: 0;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+}
+.abtn[data-key="z"] {
+  background: radial-gradient(circle at 35% 30%, #ff8060 0%, #d83020 50%, #8a0808 100%);
+  box-shadow:
+    0 5px 0 #4a0808,
+    inset 0 -3px 6px rgba(0,0,0,0.4),
+    inset 0 3px 4px rgba(255,255,255,0.2);
+}
+.abtn[data-key="x"] {
+  background: radial-gradient(circle at 35% 30%, #ffb840 0%, #d8801a 50%, #6a3808 100%);
+  box-shadow:
+    0 5px 0 #3a1c04,
+    inset 0 -3px 6px rgba(0,0,0,0.4),
+    inset 0 3px 4px rgba(255,255,255,0.2);
+}
+.abtn:active { transform: translateY(3px); }
+.abtn[data-key="z"]::after,
+.abtn[data-key="x"]::after {
+  content: 'A';
+  position: absolute;
+  transform: translate(-50%, 36px);
+  left: 50%;
+  font-size: 10px;
+  color: #f0a020;
+  letter-spacing: 2px;
+  opacity: 0.7;
+  text-shadow: none;
+}
+.abtn[data-key="x"]::after { content: 'B'; }
+
+/* Start and Select pills */
+.ssbtn {
+  position: relative;
+  width: 84px; height: 18px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #3a0a08 0%, #1a0204 100%);
+  color: #f0c020;
+  border: 2px solid #5a1810;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  box-shadow: 0 3px 0 #2a0604, inset 0 1px 0 rgba(255,255,255,0.05);
+  cursor: pointer;
+}
+.ssbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #2a0604; }
 
 @media (orientation: landscape) and (max-height: 500px) {
-  #app { flex-direction: row; padding: 6px; }
-  #screen { width: auto; height: 100vh; }
-  #touch {
-    flex-direction: column;
-    width: auto;
-    height: 100vh;
-    justify-content: space-between;
-    align-items: stretch;
-  }
+  #app { padding: 0; }
+  #screen { width: auto; height: calc(100vh - 60px); margin: 6px auto; }
+  #touch  { padding: 4px 12px var(--pad); }
 }
 
-/* ----------- Handheld console skin (portrait mobile) ----------- */
-@media (orientation: portrait) and (pointer: coarse), (orientation: portrait) and (max-width: 720px) {
-  html, body {
-    background:
-      radial-gradient(ellipse at top, #4a0810 0%, #1a0204 60%, #000 100%);
-  }
-  #app {
-    padding: 0;
-    gap: 0;
-    justify-content: flex-start;
-    background: linear-gradient(180deg, #c01818 0%, #8a0808 60%, #5a0404 100%);
-    box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
-  }
-  /* Top brand strip with speaker holes. */
-  #app::before {
-    content: 'POKEROD COLOR';
-    display: block;
-    width: 100%;
-    padding: 14px 20px 10px;
-    font-size: 11px;
-    letter-spacing: 6px;
-    color: #ffd060;
-    text-align: center;
-    text-shadow: 0 1px 0 #2a0604;
-    background:
-      repeating-linear-gradient(90deg, transparent 0 14px, rgba(0,0,0,0.25) 14px 16px) 50% 100% / 60% 6px no-repeat,
-      linear-gradient(180deg, #d83020 0%, #a01818 100%);
-    border-bottom: 3px solid #2a0604;
-    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4);
-  }
-  /* Screen window: deep recessed bezel. */
-  #screen {
-    width: 88vw;
-    max-width: 420px;
-    margin: 18px auto 14px;
-    border-radius: 14px 14px 28px 14px;
-    border: 0;
-    padding: 14px 14px 22px;
-    background:
-      linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
-    box-shadow:
-      inset 0 0 0 3px #5a1810,
-      inset 0 6px 14px rgba(0,0,0,0.7),
-      0 6px 16px rgba(0,0,0,0.45);
-    position: relative;
-  }
-  #screen::after {
-    content: 'PR-DOT MATRIX';
-    position: absolute;
-    bottom: 5px; left: 0; right: 0;
-    text-align: center;
-    font-size: 7px;
-    letter-spacing: 3px;
-    color: #f0a020;
-    opacity: 0.6;
-  }
-  #game {
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px #1a0204, 0 0 12px rgba(255,160,40,0.15) inset;
-  }
-
-  /* Touch controls layout for the handheld. */
-  #touch {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
-    gap: 18px 10px;
-    width: 100%;
-    padding: 10px 18px var(--pad);
-    align-items: center;
-    justify-items: center;
-    background: linear-gradient(180deg, #8a0808 0%, #5a0404 100%);
-  }
-  /* D-pad on left. */
-  #dpad {
-    grid-column: 1; grid-row: 1;
-    grid-template-columns: repeat(3, 44px);
-    grid-template-rows: repeat(3, 44px);
-    gap: 0;
-    background: #1a0204;
-    border-radius: 12px;
-    padding: 4px;
-    box-shadow:
-      0 4px 0 #2a0604,
-      inset 0 2px 4px rgba(0,0,0,0.6),
-      inset 0 0 0 2px #3a0a08;
-  }
-  #dpad .dbtn {
-    background: linear-gradient(180deg, #2a2a30 0%, #14141a 100%);
-    border: 0;
-    border-radius: 0;
-    box-shadow: inset 0 -2px 0 #050508, inset 0 2px 0 #4a4a55;
-    color: #f0e0c0;
-    font-size: 16px;
-    font-weight: bold;
-  }
-  #dpad .dbtn:nth-child(1) { border-radius: 6px 6px 0 0; }
-  #dpad .dbtn:nth-child(2) { border-radius: 6px 0 0 6px; }
-  #dpad .dbtn:nth-child(3) { border-radius: 0 6px 6px 0; }
-  #dpad .dbtn:nth-child(4) { border-radius: 0 0 6px 6px; }
-  #dpad .dbtn:active {
-    background: linear-gradient(180deg, #14141a 0%, #2a2a30 100%);
-    box-shadow: inset 0 0 0 #050508;
-    transform: none;
-  }
-  /* Subtle pivot dot in the middle of D-pad. */
-  #dpad::before {
-    content: '';
-    grid-column: 2; grid-row: 2;
-    width: 18px; height: 18px;
-    align-self: center;
-    justify-self: center;
-    background: #1a1a1f;
-    border-radius: 50%;
-    box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
-  }
-
-  /* A/B buttons on right. */
-  #abuttons {
-    grid-column: 2; grid-row: 1;
-    flex-direction: row-reverse;
-    align-items: flex-end;
-    transform: rotate(-22deg);
-    transform-origin: center;
-    gap: 14px;
-    align-self: center;
-  }
-  .abtn {
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    color: #fff;
-    font-weight: 900;
-    font-size: 22px;
-    border: 0;
-    text-shadow: 0 1px 0 rgba(0,0,0,0.5);
-  }
-  .abtn[data-key="z"] {
-    background: radial-gradient(circle at 35% 30%, #ff8060 0%, #d83020 50%, #8a0808 100%);
-    box-shadow:
-      0 5px 0 #4a0808,
-      inset 0 -3px 6px rgba(0,0,0,0.4),
-      inset 0 3px 4px rgba(255,255,255,0.2);
-  }
-  .abtn[data-key="x"] {
-    background: radial-gradient(circle at 35% 30%, #ffb840 0%, #d8801a 50%, #6a3808 100%);
-    box-shadow:
-      0 5px 0 #3a1c04,
-      inset 0 -3px 6px rgba(0,0,0,0.4),
-      inset 0 3px 4px rgba(255,255,255,0.2);
-  }
-  .abtn:active { transform: translateY(3px); }
-
-  /* Start button below, full row. */
-  .sbtn {
-    grid-column: 1 / span 2; grid-row: 2;
-    width: 84px; height: 18px;
-    border-radius: 10px;
-    background: linear-gradient(180deg, #3a0a08 0%, #1a0204 100%);
-    color: #f0c020;
-    border: 2px solid #5a1810;
-    font-size: 10px;
-    letter-spacing: 3px;
-    box-shadow: 0 3px 0 #2a0604, inset 0 1px 0 rgba(255,255,255,0.05);
-    transform: rotate(-8deg);
-    align-self: start;
-  }
-  .sbtn::before {
-    content: 'START';
-    position: absolute;
-    transform: translate(-50%, 22px);
-    left: 50%;
-    font-size: 8px;
-    color: #f0a020;
-    letter-spacing: 2px;
-    opacity: 0.7;
-  }
-
-  /* Tiny labels under A/B. */
-  .abtn[data-key="z"]::after,
-  .abtn[data-key="x"]::after {
-    content: 'A';
-    position: absolute;
-    transform: translate(-50%, 36px);
-    left: 50%;
-    font-size: 10px;
-    color: #f0a020;
-    letter-spacing: 2px;
-    opacity: 0.7;
-    text-shadow: none;
-  }
-  .abtn[data-key="x"]::after { content: 'B'; }
-  .abtn { position: relative; }
-  .sbtn { position: relative; }
-}
