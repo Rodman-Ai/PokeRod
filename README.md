@@ -1,1 +1,62 @@
 # PokeRod
+
+A creature-collecting RPG that plays in the browser on desktop and mobile.
+Inspired by classic handheld monster-catching games, with all-original
+creatures, world, art, and music slots. No copyrighted assets.
+
+## Play
+
+Open `index.html` in any modern browser, or serve the folder with any
+static server:
+
+```
+python3 -m http.server 8000
+# then visit http://localhost:8000
+```
+
+On mobile, the on-screen D-pad and A/B buttons appear automatically.
+
+## Controls
+
+- Arrows / WASD: move
+- Z: A button (talk, confirm)
+- X: B button (cancel, back)
+- Enter: Start (open menu)
+
+## Features
+
+- Tile-based overworld with smooth movement and a follow camera
+- Two towns, a connecting route with tall-grass encounters, and interiors
+  (lab, houses, PokeRod Center, Mart)
+- Turn-based battles with a 13-type chart, STAB, crits, and accuracy
+- Status effects (burn, poison, paralysis), stat stages, and priority moves
+- Party of up to 6, level-up stat gains, move learning, and evolutions
+- Wild encounters and a trainer battle on Route 1
+- Catch wild creatures with ROD BALLs
+- Heal at the PokeRod Center, save/load to localStorage
+- Mobile touch controls and responsive layout
+- 14 original creatures with procedural pixel-art sprites
+
+## Project layout
+
+```
+index.html          Main page, mounts canvas and touch overlay
+styles.css          Layout, mobile controls, responsive scaling
+js/data.js          Types, moves, creatures, damage formulas
+js/maps.js          Tile maps, NPCs, doors, signs, encounters
+js/sprites.js       Tile rendering
+js/sprites_chars.js Player and NPC sprites (4 directions, 2-frame walk)
+js/sprites_mons.js  Procedural creature sprites
+js/input.js         Keyboard + touch input
+js/ui.js            Pixel font, dialog box, HP / XP bars
+js/world.js         Overworld state: movement, NPCs, transitions
+js/battle.js        Turn-based battle state and rendering
+js/save.js          localStorage save/load
+js/game.js          State machine, title screen, main loop
+```
+
+## Notes
+
+This project ships no third-party assets. Everything is drawn at runtime
+from JavaScript: tiles, characters, and creature sprites are all plain
+canvas pixels. No external fonts, images, or audio are loaded.

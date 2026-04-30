@@ -1,0 +1,631 @@
+// Turn-based battle state.
+'use strict';
+
+(function(){
+  const VIEW_W = 240, VIEW_H = 160;
+
+  function Battle(state, opts) {
+    this.state = state;
+    this.opts = opts || {};
+    this.wild = opts.wild || null;          // wild creature instance
+    this.trainer = opts.trainer || null;    // { team: [mon...], reward, defeat }
+    this.foeTeam = this.trainer ? this.trainer.team.slice() : [this.wild];
+    this.foeIdx = 0;
+    this.foe = this.foeTeam[0];
+    this.partyIdx = pickFirstAlive(state.party);
+    if (this.partyIdx < 0) this.partyIdx = 0;
+    this.me = state.party[this.partyIdx];
+    this.phase = 'intro';   // intro -> message -> menu -> ...
+    this.messages = [];
+    this.subPhase = null;
+    this.selection = 0;
+    this.subSelection = 0;
+    this.runs = 0;
+    this.timer = 0;
+    this.outcome = null;
+    this.flashTimer = 0;
+    this.shakeTimer = 0;
+    this.faintAnim = { foe: 0, me: 0 };
+    this.hpAnim = { foe: this.foe.hp, me: this.me.hp };
+    this.startIntroMessages();
+  }
+
+  function pickFirstAlive(party) {
+    for (let i = 0; i < party.length; i++) if (party[i].hp > 0) return i;
+    return -1;
+  }
+
+  Battle.prototype.startIntroMessages = function() {
+    if (this.trainer) {
+      this.queue('A trainer wants to battle!');
+      this.queue('Sent out ' + this.foe.nickname + '!');
+    } else {
+      this.queue('A wild ' + this.foe.nickname + ' appeared!');
+    }
+    this.queue('Go, ' + this.me.nickname + '!');
+    this.phase = 'message';
+    this.afterMessages = () => { this.phase = 'menu'; this.selection = 0; };
+  };
+
+  Battle.prototype.queue = function(msg) {
+    this.messages.push(msg);
+  };
+
+  Battle.prototype.currentMessage = function() {
+    return this.messages[0] || '';
+  };
+
+  Battle.prototype.update = function(dt) {
+    this.timer += dt;
+    if (this.flashTimer > 0) this.flashTimer -= dt;
+    if (this.shakeTimer > 0) this.shakeTimer -= dt;
+
+    // Animate hp bars toward target.
+    const tickHp = (cur, target) => {
+      if (cur < target) return Math.min(target, cur + 60*dt);
+      if (cur > target) return Math.max(target, cur - 60*dt);
+      return cur;
+    };
+    this.hpAnim.foe = tickHp(this.hpAnim.foe, this.foe.hp);
+    this.hpAnim.me  = tickHp(this.hpAnim.me,  this.me.hp);
+
+    if (this.phase === 'intro') return;
+
+    if (this.phase === 'message') {
+      if (window.PR_INPUT.consumePressed('z') || window.PR_INPUT.consumePressed('Enter')) {
+        if (this.hpAnim.foe !== this.foe.hp || this.hpAnim.me !== this.me.hp) return;
+        this.messages.shift();
+        if (!this.messages.length) {
+          if (this.afterMessages) { const f = this.afterMessages; this.afterMessages = null; f(); }
+        }
+      }
+      return;
+    }
+
+    if (this.phase === 'menu')   return this.updateMenu();
+    if (this.phase === 'fight')  return this.updateFight();
+    if (this.phase === 'party')  return this.updateParty();
+    if (this.phase === 'turn')   return this.updateTurn(dt);
+    if (this.phase === 'faint')  return this.updateFaint(dt);
+    if (this.phase === 'won')    return this.updateOutcome();
+    if (this.phase === 'lost')   return this.updateOutcome();
+    if (this.phase === 'ran')    return this.updateOutcome();
+    if (this.phase === 'caught') return this.updateOutcome();
+  };
+
+  Battle.prototype.updateMenu = function() {
+    const I = window.PR_INPUT;
+    if (I.consumePressed('ArrowRight')) this.selection = (this.selection + 1) & 3;
+    if (I.consumePressed('ArrowLeft'))  this.selection = (this.selection + 3) & 3;
+    if (I.consumePressed('ArrowDown'))  this.selection = (this.selection + 2) & 3;
+    if (I.consumePressed('ArrowUp'))    this.selection = (this.selection + 2) & 3;
+    if (I.consumePressed('z')) {
+      if (this.selection === 0) { this.phase = 'fight'; this.subSelection = 0; }
+      else if (this.selection === 1) { this.tryRun(); }
+      else if (this.selection === 2) { this.phase = 'party'; this.subSelection = 0; }
+      else if (this.selection === 3) { this.tryThrowBall(); }
+    }
+  };
+
+  Battle.prototype.updateFight = function() {
+    const I = window.PR_INPUT;
+    const moves = this.me.moves;
+    if (I.consumePressed('ArrowRight')) this.subSelection = Math.min(moves.length - 1, this.subSelection + 1);
+    if (I.consumePressed('ArrowLeft'))  this.subSelection = Math.max(0, this.subSelection - 1);
+    if (I.consumePressed('ArrowDown'))  this.subSelection = Math.min(moves.length - 1, this.subSelection + 2);
+    if (I.consumePressed('ArrowUp'))    this.subSelection = Math.max(0, this.subSelection - 2);
+    if (I.consumePressed('x')) { this.phase = 'menu'; return; }
+    if (I.consumePressed('z')) {
+      const m = moves[this.subSelection];
+      if (!m || m.pp <= 0) { this.flashMsg('No PP left for that move!'); return; }
+      this.queueTurn(m);
+    }
+  };
+
+  Battle.prototype.updateParty = function() {
+    const I = window.PR_INPUT;
+    const party = this.state.party;
+    if (I.consumePressed('ArrowDown')) this.subSelection = Math.min(party.length - 1, this.subSelection + 1);
+    if (I.consumePressed('ArrowUp'))   this.subSelection = Math.max(0, this.subSelection - 1);
+    if (I.consumePressed('x')) { this.phase = 'menu'; return; }
+    if (I.consumePressed('z')) {
+      const idx = this.subSelection;
+      if (idx === this.partyIdx) { this.flashMsg("It's already in battle!"); return; }
+      if (party[idx].hp <= 0) { this.flashMsg("That one has no strength left!"); return; }
+      this.swapTo(idx, false);
+    }
+  };
+
+  Battle.prototype.flashMsg = function(text) {
+    this.queue(text);
+    this.phase = 'message';
+    this.afterMessages = () => { this.phase = 'menu'; };
+  };
+
+  Battle.prototype.queueTurn = function(myMove) {
+    const foeMove = pickFoeMove(this.foe);
+    const myPriority = (window.PR_DATA.MOVES[myMove.id].priority || 0);
+    const foePriority = (window.PR_DATA.MOVES[foeMove.id].priority || 0);
+    const meSpeed = effectiveSpeed(this.me);
+    const foeSpeed = effectiveSpeed(this.foe);
+    let order;
+    if (myPriority !== foePriority) order = myPriority > foePriority ? ['me','foe'] : ['foe','me'];
+    else if (meSpeed === foeSpeed) order = Math.random() < 0.5 ? ['me','foe'] : ['foe','me'];
+    else order = meSpeed > foeSpeed ? ['me','foe'] : ['foe','me'];
+    this.turnOrder = order;
+    this.turnMoves = { me: myMove, foe: foeMove };
+    this.turnStep = 0;
+    this.phase = 'turn';
+  };
+
+  function effectiveSpeed(mon) {
+    let spe = mon.stats.spe;
+    const mult = stageMult(mon.statStages.spe || 0);
+    spe = Math.floor(spe * mult);
+    if (mon.status === 'paralyzed') spe = Math.floor(spe / 2);
+    return spe;
+  }
+  function stageMult(s) {
+    if (s >= 0) return (2 + s) / 2;
+    return 2 / (2 - s);
+  }
+
+  function pickFoeMove(foe) {
+    const usable = foe.moves.filter(m => m.pp > 0);
+    const pool = usable.length ? usable : foe.moves;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  Battle.prototype.updateTurn = function(dt) {
+    if (this.messages.length) {
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'turn'; };
+      return;
+    }
+    if (this.turnStep >= this.turnOrder.length) {
+      this.endOfTurn();
+      return;
+    }
+    const who = this.turnOrder[this.turnStep++];
+    const attacker = who === 'me' ? this.me : this.foe;
+    const defender = who === 'me' ? this.foe : this.me;
+    const move = this.turnMoves[who];
+    if (attacker.hp <= 0 || defender.hp <= 0) return;
+    this.executeMove(who, attacker, defender, move);
+  };
+
+  Battle.prototype.executeMove = function(who, attacker, defender, move) {
+    const def = window.PR_DATA.MOVES[move.id];
+    move.pp = Math.max(0, move.pp - 1);
+    this.queue(attacker.nickname + ' used ' + def.name + '!');
+
+    // Status check (paralysis, sleep) skipped for simplicity.
+    if (attacker.status === 'paralyzed' && Math.random() < 0.25) {
+      this.queue(attacker.nickname + ' is paralyzed and could not move!');
+      return;
+    }
+
+    // Accuracy.
+    if (def.accuracy && Math.random() * 100 > def.accuracy) {
+      this.queue(attacker.nickname + "'s attack missed!");
+      return;
+    }
+
+    if (def.kind === 'status') {
+      if (def.dud) { this.queue('But nothing happened!'); return; }
+      if (def.statChange) {
+        const target = def.statChange.target === 'foe' ? defender : attacker;
+        const stat = def.statChange.stat;
+        target.statStages[stat] = Math.max(-6, Math.min(6, (target.statStages[stat] || 0) + def.statChange.stages));
+        const verb = def.statChange.stages > 0 ? 'rose!' : 'fell!';
+        const owner = target === this.me ? this.me.nickname : 'Foe ' + this.foe.nickname;
+        this.queue(owner + "'s " + stat.toUpperCase() + ' ' + verb);
+      }
+      return;
+    }
+
+    // Damage move.
+    const isCrit = Math.random() < 1/16;
+    const result = window.PR_DATA.calcDamage(attacker, defender, def, isCrit);
+    let totalDmg = result.dmg;
+    if (def.multi) {
+      const [lo, hi] = def.multi;
+      const hits = lo + Math.floor(Math.random() * (hi - lo + 1));
+      totalDmg = result.dmg * hits;
+      this.queue('It hit ' + hits + ' times!');
+    }
+    defender.hp = Math.max(0, defender.hp - totalDmg);
+    if (who === 'me') this.shakeTimer = 0.3; else this.flashTimer = 0.2;
+    if (result.crit) this.queue('A critical hit!');
+    if (result.eff > 1) this.queue("It's super effective!");
+    else if (result.eff === 0) this.queue("It doesn't affect " + defender.nickname + '...');
+    else if (result.eff < 1) this.queue("It's not very effective...");
+
+    // Side-effect chances.
+    if (def.burnChance && defender.hp > 0 && Math.random() < def.burnChance) {
+      if (!defender.status && !window.PR_DATA.CREATURES[defender.species].types.includes('FIRE')) {
+        defender.status = 'burned';
+        this.queue(defender.nickname + ' was burned!');
+      }
+    }
+    if (def.paralyzeChance && defender.hp > 0 && Math.random() < def.paralyzeChance) {
+      if (!defender.status) {
+        defender.status = 'paralyzed';
+        this.queue(defender.nickname + ' was paralyzed!');
+      }
+    }
+    if (def.poisonChance && defender.hp > 0 && Math.random() < def.poisonChance) {
+      if (!defender.status && !window.PR_DATA.CREATURES[defender.species].types.includes('POISON')) {
+        defender.status = 'poisoned';
+        this.queue(defender.nickname + ' was poisoned!');
+      }
+    }
+  };
+
+  Battle.prototype.endOfTurn = function() {
+    // Status damage.
+    const tickStatus = (mon) => {
+      if (mon.hp <= 0) return;
+      if (mon.status === 'burned' || mon.status === 'poisoned') {
+        const dmg = Math.max(1, Math.floor(mon.stats.hp / 16));
+        mon.hp = Math.max(0, mon.hp - dmg);
+        this.queue(mon.nickname + ' was hurt by ' + mon.status + '!');
+      }
+    };
+    tickStatus(this.me);
+    tickStatus(this.foe);
+
+    if (this.foe.hp <= 0 || this.me.hp <= 0) {
+      this.phase = 'faint';
+      this.faintAnim = { foe: this.foe.hp <= 0 ? 0 : 1, me: this.me.hp <= 0 ? 0 : 1 };
+      return;
+    }
+    if (this.messages.length) {
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'menu'; this.selection = 0; };
+    } else {
+      this.phase = 'menu';
+      this.selection = 0;
+    }
+  };
+
+  Battle.prototype.updateFaint = function(dt) {
+    // Animate falling sprite.
+    if (this.foe.hp <= 0 && this.faintAnim.foe < 1) this.faintAnim.foe = Math.min(1, this.faintAnim.foe + dt * 2);
+    if (this.me.hp  <= 0 && this.faintAnim.me  < 1) this.faintAnim.me  = Math.min(1, this.faintAnim.me  + dt * 2);
+
+    if (this.foe.hp <= 0 && this.faintAnim.foe >= 1 - 0.001) {
+      this.faintAnim.foe = 1;
+      this.queue('Foe ' + this.foe.nickname + ' fainted!');
+      this.awardXp();
+      // Trainer: next mon, otherwise win.
+      if (this.trainer) {
+        this.foeIdx++;
+        if (this.foeIdx < this.foeTeam.length) {
+          this.foe = this.foeTeam[this.foeIdx];
+          this.hpAnim.foe = this.foe.hp;
+          this.faintAnim.foe = 1;
+          this.queue('Trainer sent out ' + this.foe.nickname + '!');
+          this.afterMessages = () => {
+            this.faintAnim.foe = 0; // reset slide-in next render
+            this.phase = 'menu'; this.selection = 0;
+          };
+          this.phase = 'message';
+          return;
+        }
+      }
+      this.phase = 'won';
+      this.afterMessages = null;
+      this.queue(this.trainer ? 'You won the battle!' : 'You won!');
+      if (this.trainer) {
+        this.queue('Got $' + this.trainer.reward + '!');
+        this.state.player.money += this.trainer.reward;
+      }
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'won'; };
+      return;
+    }
+
+    if (this.me.hp <= 0 && this.faintAnim.me >= 1 - 0.001) {
+      this.faintAnim.me = 1;
+      this.queue(this.me.nickname + ' fainted!');
+      const next = nextAlive(this.state.party, this.partyIdx);
+      if (next >= 0) {
+        // Force a switch.
+        this.queue('Choose a new partner!');
+        this.phase = 'message';
+        this.afterMessages = () => {
+          this.phase = 'party';
+          this.subSelection = next;
+          this.forcedSwap = true;
+        };
+      } else {
+        this.queue('You are out of partners...');
+        this.queue('You scurry back to safety.');
+        this.phase = 'message';
+        this.afterMessages = () => { this.phase = 'lost'; };
+      }
+    }
+  };
+
+  function nextAlive(party, exclude) {
+    for (let i = 0; i < party.length; i++) {
+      if (i !== exclude && party[i].hp > 0) return i;
+    }
+    return -1;
+  }
+
+  Battle.prototype.swapTo = function(idx, fainted) {
+    const old = this.me.nickname;
+    this.partyIdx = idx;
+    this.me = this.state.party[idx];
+    this.hpAnim.me = this.me.hp;
+    this.faintAnim.me = 1;
+    if (!fainted) this.queue('Come back, ' + old + '!');
+    this.queue('Go, ' + this.me.nickname + '!');
+    this.phase = 'message';
+    if (this.forcedSwap) {
+      this.forcedSwap = false;
+      this.afterMessages = () => { this.phase = 'menu'; this.selection = 0; };
+    } else {
+      // Foe gets a free turn after swap.
+      this.afterMessages = () => {
+        const foeMove = pickFoeMove(this.foe);
+        this.turnOrder = ['foe'];
+        this.turnMoves = { foe: foeMove };
+        this.turnStep = 0;
+        this.phase = 'turn';
+      };
+    }
+  };
+
+  Battle.prototype.tryRun = function() {
+    if (this.trainer) { this.flashMsg("Can't run from a trainer battle!"); return; }
+    this.runs++;
+    const meSpeed = effectiveSpeed(this.me);
+    const foeSpeed = effectiveSpeed(this.foe);
+    const odds = ((meSpeed * 32) / Math.max(1, Math.floor(foeSpeed / 4)) + 30 * this.runs) % 256;
+    if (Math.random() * 256 < odds) {
+      this.queue('Got away safely!');
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'ran'; };
+    } else {
+      this.queue("Couldn't escape!");
+      this.phase = 'message';
+      this.afterMessages = () => {
+        // Foe gets a free turn.
+        const foeMove = pickFoeMove(this.foe);
+        this.turnOrder = ['foe'];
+        this.turnMoves = { foe: foeMove };
+        this.turnStep = 0;
+        this.phase = 'turn';
+      };
+    }
+  };
+
+  Battle.prototype.tryThrowBall = function() {
+    if (this.trainer) { this.flashMsg("Can't catch a trainer's partner!"); return; }
+    if ((this.state.player.balls|0) <= 0) { this.flashMsg('No ROD BALLS left!'); return; }
+    this.state.player.balls--;
+    this.queue('You threw a ROD BALL!');
+    const sp = window.PR_DATA.CREATURES[this.foe.species];
+    const rate = sp.catchRate || 45;
+    const hpRatio = this.foe.hp / this.foe.stats.hp;
+    const statusBonus = this.foe.status ? 1.5 : 1;
+    const a = ((3 * this.foe.stats.hp - 2 * this.foe.hp) * rate * statusBonus) / (3 * this.foe.stats.hp);
+    const shakes = a >= 255 ? 4 : Math.min(4, Math.floor(a / 60) + (Math.random() < 0.5 ? 1 : 0));
+    if (shakes >= 4) {
+      this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
+      if (this.state.party.length < 6) this.state.party.push(this.foe);
+      else this.queue('It was sent to your storage box.');
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'caught'; };
+    } else {
+      const text = ['Oh no! It broke free!','Aww! It nearly had it!','Gah! So close!','Drat! Almost!'][shakes];
+      this.queue(text);
+      this.phase = 'message';
+      this.afterMessages = () => {
+        const foeMove = pickFoeMove(this.foe);
+        this.turnOrder = ['foe'];
+        this.turnMoves = { foe: foeMove };
+        this.turnStep = 0;
+        this.phase = 'turn';
+      };
+    }
+  };
+
+  Battle.prototype.awardXp = function() {
+    const yld = window.PR_DATA.xpYield(this.foe.species, this.foe.level);
+    this.me.xp += yld;
+    this.queue(this.me.nickname + ' gained ' + yld + ' XP!');
+    let lv = window.PR_DATA.levelFromXp(this.me.xp);
+    while (lv > this.me.level) {
+      this.me.level++;
+      const sp = window.PR_DATA.CREATURES[this.me.species];
+      const newStats = window.PR_DATA.computeStats(sp.baseStats, this.me.ivs, this.me.level);
+      const dHp = newStats.hp - this.me.stats.hp;
+      this.me.stats = newStats;
+      this.me.hp = Math.min(this.me.stats.hp, this.me.hp + Math.max(0, dHp));
+      this.queue(this.me.nickname + ' grew to LV. ' + this.me.level + '!');
+      // Learn moves.
+      for (const [reqLv, mvId] of sp.learnset) {
+        if (reqLv === this.me.level && !this.me.moves.find(m => m.id === mvId)) {
+          if (this.me.moves.length < 4) {
+            const m = window.PR_DATA.MOVES[mvId];
+            this.me.moves.push({ id: mvId, pp: m.pp, ppMax: m.pp });
+            this.queue(this.me.nickname + ' learned ' + m.name + '!');
+          } else {
+            this.queue(this.me.nickname + ' wants to learn ' + window.PR_DATA.MOVES[mvId].name + '...');
+            this.queue('But it already knows 4 moves. Skipped for now.');
+          }
+        }
+      }
+      // Evolve at level threshold.
+      if (sp.evolves && this.me.level >= sp.evolves.level) {
+        const evo = sp.evolves.to;
+        this.me.species = evo;
+        const evoSp = window.PR_DATA.CREATURES[evo];
+        this.me.stats = window.PR_DATA.computeStats(evoSp.baseStats, this.me.ivs, this.me.level);
+        if (this.me.nickname === sp.name) this.me.nickname = evoSp.name;
+        this.queue('What? ' + sp.name + ' is evolving!');
+        this.queue('It evolved into ' + evoSp.name + '!');
+      }
+      lv = window.PR_DATA.levelFromXp(this.me.xp);
+    }
+  };
+
+  Battle.prototype.updateOutcome = function() {
+    if (window.PR_INPUT.consumePressed('z') || window.PR_INPUT.consumePressed('Enter')) {
+      this.outcome = this.phase;
+      this.state.onBattleEnd(this.outcome, this);
+    }
+  };
+
+  // ----------- RENDERING -----------
+  Battle.prototype.render = function(ctx) {
+    let shakeX = 0;
+    if (this.shakeTimer > 0) shakeX = (Math.sin(this.timer * 80) * 2) | 0;
+
+    // Background sky/ground.
+    ctx.fillStyle = '#a8c0e8';
+    ctx.fillRect(0, 0, VIEW_W, 90);
+    ctx.fillStyle = '#5cae4c';
+    ctx.fillRect(0, 90, VIEW_W, VIEW_H - 90);
+    // Foe platform.
+    ctx.fillStyle = '#3a8030';
+    ctx.fillRect(140, 70, 90, 8);
+    ctx.fillStyle = '#2a6020';
+    ctx.fillRect(140, 78, 90, 2);
+    // Player platform.
+    ctx.fillStyle = '#3a8030';
+    ctx.fillRect(10, 110, 90, 8);
+    ctx.fillStyle = '#2a6020';
+    ctx.fillRect(10, 118, 90, 2);
+
+    // Foe sprite.
+    const foeFloat = (Math.sin(this.timer * 2) * 1) | 0;
+    const foeY = 30 + foeFloat - (this.faintAnim.foe * 30);
+    if (this.faintAnim.foe < 1 || this.foe.hp > 0) {
+      window.PR_MONS.drawCreature(ctx, this.foe.species, 160, foeY, 48, false);
+    }
+    // Player sprite (back-ish view).
+    const meY = 86 - (this.faintAnim.me * 30);
+    if (this.faintAnim.me < 1 || this.me.hp > 0) {
+      window.PR_MONS.drawCreature(ctx, this.me.species, 24 + shakeX, meY, 56, true);
+    }
+
+    // Damage flash.
+    if (this.flashTimer > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillRect(140, foeY, 64, 64);
+    }
+
+    this.drawFoeBox(ctx);
+    this.drawMeBox(ctx);
+
+    if (this.phase === 'message' || this.phase === 'turn' || this.phase === 'faint' ||
+        this.phase === 'won' || this.phase === 'lost' || this.phase === 'ran' || this.phase === 'caught') {
+      const lines = window.PR_UI.wrap(this.currentMessage(), 30);
+      window.PR_UI.drawDialog(ctx, lines.slice(0,3), VIEW_W, VIEW_H, this.phase === 'message' || this.phase === 'won' || this.phase === 'lost' || this.phase === 'ran' || this.phase === 'caught');
+    } else if (this.phase === 'menu') {
+      this.drawMenu(ctx);
+    } else if (this.phase === 'fight') {
+      this.drawFightMenu(ctx);
+    } else if (this.phase === 'party') {
+      this.drawPartyMenu(ctx);
+    }
+  };
+
+  Battle.prototype.drawFoeBox = function(ctx) {
+    const x = 8, y = 12, w = 100, h = 30;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, this.foe.nickname, x + 4, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'L' + this.foe.level, x + w - 22, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'HP', x + 4, y + 14, '#385890');
+    window.PR_UI.drawHpBar(ctx, x + 18, y + 16, w - 24, this.hpAnim.foe, this.foe.stats.hp);
+    if (this.foe.status) {
+      const tag = this.foe.status.slice(0,3).toUpperCase();
+      ctx.fillStyle = '#e83838'; ctx.fillRect(x + 4, y + 22, 16, 6);
+      window.PR_UI.drawText(ctx, tag, x + 5, y + 22, '#fff');
+    }
+  };
+
+  Battle.prototype.drawMeBox = function(ctx) {
+    const x = 132, y = 92, w = 100, h = 38;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, this.me.nickname, x + 4, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'L' + this.me.level, x + w - 22, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'HP', x + 4, y + 14, '#385890');
+    window.PR_UI.drawHpBar(ctx, x + 18, y + 16, w - 24, this.hpAnim.me, this.me.stats.hp);
+    window.PR_UI.drawText(ctx, Math.ceil(this.hpAnim.me) + '/' + this.me.stats.hp, x + w - 50, y + 22, '#202020');
+    // XP bar.
+    const lv = this.me.level;
+    const cur = this.me.xp - window.PR_DATA.xpForLevel(lv);
+    const need = window.PR_DATA.xpForLevel(lv+1) - window.PR_DATA.xpForLevel(lv);
+    window.PR_UI.drawXpBar(ctx, x + 4, y + h - 4, w - 8, Math.min(1, cur / Math.max(1, need)));
+    if (this.me.status) {
+      const tag = this.me.status.slice(0,3).toUpperCase();
+      ctx.fillStyle = '#e83838'; ctx.fillRect(x + 4, y + 22, 16, 6);
+      window.PR_UI.drawText(ctx, tag, x + 5, y + 22, '#fff');
+    }
+  };
+
+  Battle.prototype.drawMenu = function(ctx) {
+    const x = 6, y = VIEW_H - 48, w = VIEW_W - 12, h = 44;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    const opts = ['FIGHT','RUN','PARTY','BALL'];
+    for (let i = 0; i < 4; i++) {
+      const cx = x + 8 + (i % 2) * ((w - 16) / 2);
+      const cy = y + 6 + Math.floor(i / 2) * 18;
+      if (i === this.selection) window.PR_UI.drawText(ctx, '>', cx - 6, cy, '#e83838');
+      window.PR_UI.drawText(ctx, opts[i], cx, cy, '#202020');
+    }
+    // Show ball count.
+    window.PR_UI.drawText(ctx, 'x' + (this.state.player.balls|0), x + w - 28, y + 24, '#202020');
+  };
+
+  Battle.prototype.drawFightMenu = function(ctx) {
+    const x = 6, y = VIEW_H - 48, w = VIEW_W - 12, h = 44;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    const moves = this.me.moves;
+    for (let i = 0; i < moves.length; i++) {
+      const cx = x + 8 + (i % 2) * ((w - 16) / 2);
+      const cy = y + 6 + Math.floor(i / 2) * 18;
+      if (i === this.subSelection) window.PR_UI.drawText(ctx, '>', cx - 6, cy, '#e83838');
+      const def = window.PR_DATA.MOVES[moves[i].id];
+      window.PR_UI.drawText(ctx, def.name, cx, cy, '#202020');
+    }
+    // Detail.
+    const sel = moves[this.subSelection];
+    if (sel) {
+      const def = window.PR_DATA.MOVES[sel.id];
+      const tx = x + w - 60;
+      window.PR_UI.drawText(ctx, 'PP ' + sel.pp + '/' + sel.ppMax, tx, y + 6, '#202020');
+      const color = window.PR_DATA.TYPE_COLOR[def.type] || '#202020';
+      ctx.fillStyle = color; ctx.fillRect(tx, y + 18, 50, 8);
+      window.PR_UI.drawText(ctx, def.type.slice(0,4), tx + 2, y + 19, '#fff');
+    }
+  };
+
+  Battle.prototype.drawPartyMenu = function(ctx) {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#a8c0e8', '#202020');
+    window.PR_UI.drawText(ctx, 'CHOOSE PARTNER', x + 8, y + 6, '#202020');
+    const party = this.state.party;
+    for (let i = 0; i < party.length; i++) {
+      const m = party[i];
+      const cy = y + 22 + i * 20;
+      if (i === this.subSelection) {
+        ctx.fillStyle = '#f0c020';
+        ctx.fillRect(x + 4, cy - 2, w - 8, 18);
+      }
+      window.PR_MONS.drawCreature(ctx, m.species, x + 6, cy - 2, 18, false);
+      window.PR_UI.drawText(ctx, m.nickname, x + 28, cy, '#202020');
+      window.PR_UI.drawText(ctx, 'L' + m.level, x + 110, cy, '#202020');
+      window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, m.hp, m.stats.hp);
+      window.PR_UI.drawText(ctx, m.hp + '/' + m.stats.hp, x + w - 60, cy + 8, '#202020');
+      if (i === this.partyIdx) window.PR_UI.drawText(ctx, '*', x + w - 12, cy, '#e83838');
+    }
+    window.PR_UI.drawText(ctx, 'B: BACK', x + 8, y + h - 12, '#202020');
+  };
+})();

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>PokeRod</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="screen">
+      <canvas id="game" width="240" height="160"></canvas>
+      <div id="title" class="overlay">
+        <h1>PokeRod</h1>
+        <p class="sub">A creature-collecting adventure</p>
+        <button id="btn-new">New Game</button>
+        <button id="btn-continue" hidden>Continue</button>
+        <p class="hint">Arrows / WASD to move &middot; Z = A &middot; X = B &middot; Enter = Start</p>
+      </div>
+    </div>
+    <div id="touch" aria-hidden="true">
+      <div id="dpad">
+        <button class="dbtn" data-key="ArrowUp">▲</button>
+        <button class="dbtn" data-key="ArrowLeft">◀</button>
+        <button class="dbtn" data-key="ArrowRight">▶</button>
+        <button class="dbtn" data-key="ArrowDown">▼</button>
+      </div>
+      <div id="abuttons">
+        <button class="abtn" data-key="x">B</button>
+        <button class="abtn" data-key="z">A</button>
+        <button class="sbtn" data-key="Enter">≡</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/data.js"></script>
+  <script src="js/maps.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/sprites_chars.js"></script>
+  <script src="js/sprites_mons.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
