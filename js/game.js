@@ -44,7 +44,10 @@
   state.onBattleEnd = endBattle;
 
   function showOverlay(show) {
-    document.getElementById('title').hidden = !show;
+    const el = document.getElementById('title');
+    if (!el) return;
+    el.hidden = !show;
+    el.style.display = show ? '' : 'none';
   }
 
   function init() {
@@ -61,11 +64,24 @@
       else if (window.PR_SAVE.exists()) continueGame();
       else startNewGame();
     };
-    document.getElementById('btn-new').addEventListener('click', (e) => { e.stopPropagation(); unlock(); startNewGame(); });
-    document.getElementById('btn-continue').addEventListener('click', (e) => { e.stopPropagation(); unlock(); continueGame(); });
+    const bindStart = (el, handler) => {
+      if (!el) return;
+      let fired = false;
+      const trigger = (e) => {
+        if (fired) return;
+        fired = true; setTimeout(() => fired = false, 400);
+        if (e) { e.stopPropagation(); e.preventDefault(); }
+        handler();
+      };
+      el.addEventListener('click', trigger);
+      el.addEventListener('pointerup', trigger);
+      el.addEventListener('touchend', trigger, { passive:false });
+    };
+    bindStart(document.getElementById('btn-new'),      () => { unlock(); startNewGame(); });
+    bindStart(document.getElementById('btn-continue'), () => { unlock(); continueGame(); });
     // Tap anywhere on the title overlay starts the game.
     const titleEl = document.getElementById('title');
-    if (titleEl) titleEl.addEventListener('click', () => startFromTitle(true));
+    bindStart(titleEl, () => startFromTitle(true));
     // Keyboard: Enter / Space / Z / X all start.
     document.addEventListener('keydown', (e) => {
       unlock();

@@ -15,11 +15,14 @@ html, body {
   color: var(--ink);
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   overscroll-behavior: none;
-  touch-action: none;
+  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
+#screen, #touch, #game { touch-action: none; }
+.overlay, .overlay button, .overlay .cta { touch-action: manipulation; }
+.overlay button { cursor: pointer; }
 
 #app {
   position: fixed;
