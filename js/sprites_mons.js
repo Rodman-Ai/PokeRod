@@ -26,6 +26,26 @@
     };
     drawShape(set, fillRect, d, isBack);
     drawRedTuft(set, fillRect, d);
+    if (d.beard) drawRedBeard(set, fillRect, d);
+  }
+
+  function drawRedBeard(set, rect, d) {
+    const bx = d.beardX !== undefined ? d.beardX : 16;
+    const by = d.beardY !== undefined ? d.beardY : 22;
+    // Mustache.
+    rect(bx-4, by,   3, 1, '#a82010');
+    rect(bx+2, by,   3, 1, '#a82010');
+    rect(bx-3, by-1, 2, 1, '#d83020');
+    rect(bx+2, by-1, 2, 1, '#d83020');
+    // Bushy chin beard.
+    rect(bx-4, by+1, 9, 2, '#d83020');
+    rect(bx-3, by+3, 7, 2, '#a82010');
+    rect(bx-2, by+5, 5, 1, '#7a1408');
+    rect(bx-1, by+6, 3, 1, '#7a1408');
+    // Highlights.
+    rect(bx-2, by+1, 1, 1, '#f04030');
+    rect(bx+2, by+1, 1, 1, '#f04030');
+    rect(bx,   by+3, 1, 1, '#e84830');
   }
 
   function drawRedTuft(set, rect, d) {
