@@ -14,10 +14,21 @@
     <div id="screen">
       <canvas id="game" width="240" height="160"></canvas>
       <div id="title" class="overlay">
-        <h1>PokeRod</h1>
+        <div class="stars" aria-hidden="true"></div>
+        <div class="tufts" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="rays" aria-hidden="true"></div>
+        <h1 class="logo" aria-label="PokeRod">
+          <span style="--i:0">P</span><span style="--i:1">o</span><span style="--i:2">k</span><span style="--i:3">e</span><span class="rod"><span style="--i:4">R</span><span style="--i:5">o</span><span style="--i:6">d</span></span>
+        </h1>
         <p class="sub">A creature-collecting adventure</p>
-        <button id="btn-new">New Game</button>
-        <button id="btn-continue" hidden>Continue</button>
+        <div class="cta">
+          <button id="btn-new">NEW GAME</button>
+          <button id="btn-continue" hidden>CONTINUE</button>
+        </div>
+        <p class="press">- PRESS START -</p>
         <p class="hint">Arrows / WASD to move &middot; Z = A &middot; X = B &middot; Enter = Start</p>
       </div>
     </div>
