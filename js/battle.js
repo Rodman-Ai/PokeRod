@@ -86,10 +86,15 @@
         this.messages.shift();
         if (!this.messages.length) {
           if (this.afterMessages) { const f = this.afterMessages; this.afterMessages = null; f(); }
+          // If a 5th-move learn is pending, override and drop into learnmove.
+          if (this._pendingLearn && this._pendingLearn.length && this.phase !== 'learnmove') {
+            this._enterLearnMove();
+          }
         }
       }
       return;
     }
+    if (this.phase === 'learnmove') return this.updateLearnMove();
 
     try {
       if (this.phase === 'menu')   return this.updateMenu();
@@ -282,6 +287,57 @@
         defender.status = 'poisoned';
         this.queue(defender.nickname + ' was poisoned!');
       }
+    }
+  };
+
+  Battle.prototype._enterLearnMove = function() {
+    const newId = this._pendingLearn.shift();
+    if (!newId) return;
+    this._learnContext = { newId, slot: 0 };
+    this.phase = 'learnmove';
+  };
+
+  Battle.prototype.updateLearnMove = function() {
+    const I = window.PR_INPUT;
+    const c = this._learnContext;
+    const moves = this.me.moves;
+    if (I.consumePressed('ArrowRight')) c.slot = Math.min(4, c.slot + 1);
+    if (I.consumePressed('ArrowLeft'))  c.slot = Math.max(0, c.slot - 1);
+    if (I.consumePressed('ArrowDown'))  c.slot = Math.min(4, c.slot + 2);
+    if (I.consumePressed('ArrowUp'))    c.slot = Math.max(0, c.slot - 2);
+    if (I.consumePressed('x')) {
+      // Give up - skip this move.
+      this.queue(this.me.nickname + ' did not learn ' +
+        window.PR_DATA.MOVES[c.newId].name + '.');
+      this._learnContext = null;
+      this._afterLearn();
+      return;
+    }
+    if (I.consumePressed('z')) {
+      if (c.slot === 4) {
+        // Slot 4 is "GIVE UP".
+        this.queue(this.me.nickname + ' did not learn ' +
+          window.PR_DATA.MOVES[c.newId].name + '.');
+      } else {
+        const oldId = moves[c.slot] && moves[c.slot].id;
+        const m = window.PR_DATA.MOVES[c.newId];
+        moves[c.slot] = { id: c.newId, pp: m.pp, ppMax: m.pp };
+        if (oldId) this.queue('Forgot ' + window.PR_DATA.MOVES[oldId].name + '!');
+        this.queue(this.me.nickname + ' learned ' + m.name + '!');
+      }
+      this._learnContext = null;
+      this._afterLearn();
+    }
+  };
+
+  Battle.prototype._afterLearn = function() {
+    if (this._pendingLearn && this._pendingLearn.length) {
+      this.phase = 'message';
+      this.afterMessages = () => this._enterLearnMove();
+    } else {
+      // Resume whatever was next - menu by default.
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'menu'; this.selection = 0; };
     }
   };
 
@@ -483,8 +539,11 @@
             this.me.moves.push({ id: mvId, pp: m.pp, ppMax: m.pp });
             this.queue(this.me.nickname + ' learned ' + m.name + '!');
           } else {
-            this.queue(this.me.nickname + ' wants to learn ' + window.PR_DATA.MOVES[mvId].name + '...');
-            this.queue('But it already knows 4 moves. Skipped for now.');
+            const newMove = window.PR_DATA.MOVES[mvId];
+            this.queue(this.me.nickname + ' wants to learn ' + newMove.name + '...');
+            this.queue('But ' + this.me.nickname + ' already knows 4 moves.');
+            this._pendingLearn = this._pendingLearn || [];
+            this._pendingLearn.push(mvId);
           }
         }
       }
@@ -561,7 +620,31 @@
       this.drawFightMenu(ctx);
     } else if (this.phase === 'party') {
       this.drawPartyMenu(ctx);
+    } else if (this.phase === 'learnmove') {
+      this.drawLearnMove(ctx);
     }
+  };
+
+  Battle.prototype.drawLearnMove = function(ctx) {
+    const c = this._learnContext;
+    if (!c) return;
+    const x = 6, y = VIEW_H - 64, w = VIEW_W - 12, h = 60;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    const newName = window.PR_DATA.MOVES[c.newId].name;
+    window.PR_UI.drawText(ctx, 'LEARN ' + newName.toUpperCase() + '?', x + 6, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'FORGET WHICH MOVE?', x + 6, y + 14, '#385890');
+    const moves = this.me.moves;
+    for (let i = 0; i < 4; i++) {
+      const cx = x + 8 + (i % 2) * ((w - 16) / 2);
+      const cy = y + 26 + Math.floor(i / 2) * 12;
+      if (i === c.slot) window.PR_UI.drawText(ctx, '>', cx - 6, cy, '#e83838');
+      const label = moves[i] ? window.PR_DATA.MOVES[moves[i].id].name : '-';
+      window.PR_UI.drawText(ctx, label, cx, cy, '#202020');
+    }
+    // Slot 4 = give up.
+    const cy = y + h - 10;
+    if (c.slot === 4) window.PR_UI.drawText(ctx, '>', x + 2, cy, '#e83838');
+    window.PR_UI.drawText(ctx, 'GIVE UP   B:CANCEL', x + 8, cy, '#806040');
   };
 
   Battle.prototype.drawFoeBox = function(ctx) {
