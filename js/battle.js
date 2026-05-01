@@ -72,6 +72,10 @@
     this.timer += dt;
     if (this.flashTimer > 0) this.flashTimer -= dt;
     if (this.shakeTimer > 0) this.shakeTimer -= dt;
+    if (this.activeAnim) {
+      this.activeAnim.t += dt;
+      if (this.activeAnim.t >= this.activeAnim.duration) this.activeAnim = null;
+    }
 
     // Animate hp bars toward target.
     const tickHp = (cur, target) => {
@@ -332,6 +336,12 @@
       this.queue('It hit ' + hits + ' times!');
     }
     defender.hp = Math.max(0, defender.hp - totalDmg);
+    // Trigger move animation on the defender's side.
+    this.activeAnim = {
+      type: def.type,
+      target: who === 'me' ? 'foe' : 'me',
+      t: 0, duration: 0.45
+    };
     if (who === 'me') this.shakeTimer = 0.3; else this.flashTimer = 0.2;
     if (window.PR_SFX) {
       if (result.crit) window.PR_SFX.play('crit');
@@ -722,6 +732,31 @@
     if (this.flashTimer > 0) {
       ctx.fillStyle = 'rgba(255,255,255,0.4)';
       ctx.fillRect(140, foeY, 64, 64);
+    }
+
+    // Move animation: type-coloured particle burst on the target.
+    if (this.activeAnim) {
+      const a = this.activeAnim;
+      const p = Math.min(1, a.t / a.duration);
+      const cx = a.target === 'foe' ? 184 : 52;
+      const cy = a.target === 'foe' ? 54 : 110;
+      const color = (window.PR_DATA.TYPE_COLOR && window.PR_DATA.TYPE_COLOR[a.type]) || '#fff';
+      ctx.fillStyle = color;
+      // 14 deterministic particles based on phase + index.
+      for (let i = 0; i < 14; i++) {
+        const ang = (i / 14) * Math.PI * 2 + p * 1.5;
+        const r = 4 + p * 28;
+        const px = (cx + Math.cos(ang) * r) | 0;
+        const py = (cy + Math.sin(ang) * r) | 0;
+        const sz = (p < 0.7) ? 3 : 2;
+        ctx.fillRect(px, py, sz, sz);
+      }
+      // Center pop.
+      if (p < 0.4) {
+        ctx.fillStyle = '#fff';
+        const r = 2 + (0.4 - p) * 18;
+        ctx.fillRect((cx - r) | 0, (cy - r) | 0, (r * 2) | 0, (r * 2) | 0);
+      }
     }
 
     this.drawFoeBox(ctx);
