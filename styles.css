@@ -58,7 +58,7 @@ html, body {
 
 #version {
   position: fixed;
-  top: 6px; right: 8px;
+  bottom: calc(6px + env(safe-area-inset-bottom)); right: 8px;
   z-index: 100;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 9px;
