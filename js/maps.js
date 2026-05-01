@@ -595,7 +595,11 @@ const MAPS = {
       { x:6, y:8, dir:'right', sprite:'npc_youth', name:'SPELUNKER GUS',
         dialog:["I came down here looking for crystals.","Found a fight instead!"],
         trainer: { team:[['pebra',12],['geistmite',12]], reward:520,
-                   defeat:["Bah! The dark always wins, eventually."] } }
+                   defeat:["Bah! The dark always wins, eventually."] } },
+      { x:15, y:12, dir:'down', sprite:'ball', name:'',
+        legendary:true, species:'stormfangis', level:30,
+        dialog:["A faint thunder rolls deep in the dark..."],
+        afterDialog:["The thunder is gone now. Just stone."] }
     ],
     encounters: [
       { species:'pebra',     minL:10, maxL:14, weight:5 },

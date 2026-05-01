@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.13';
-  const BUILD = '2026.05.01-21';
+  const VERSION = 'v0.8.14';
+  const BUILD = '2026.05.01-22';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -502,6 +502,22 @@
 
   // ---------- NPC interaction ----------
   function handleNpcInteract(npc) {
+    if (npc.legendary) {
+      const key = state.player.map + ':leg:' + npc.x + ',' + npc.y;
+      if (state.defeatedTrainers.has(key)) {
+        openDialog(npc.afterDialog || ['It is gone.']);
+        return;
+      }
+      if (!state.party.length || !state.party.some(p => p.hp > 0)) {
+        openDialog(['Your team is in no shape for this!']);
+        return;
+      }
+      openDialog(npc.dialog || ['A roar echoes!'], () => {
+        startBattleAgainstWild(npc.species, npc.level);
+        state.defeatedTrainers.add(key);
+      });
+      return;
+    }
     if (npc.starter && !state.flags.starterChosen) {
       openStarterChoice();
       return;
