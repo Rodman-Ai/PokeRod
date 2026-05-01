@@ -99,10 +99,11 @@
     const props = window.PR_MAPS.TILE_PROPS[code];
     if (!props) return false;
     if (props.walk === true) {
-      // No NPC blocking?
       return !this.npcAt(x, y);
     }
     if (props.walk === 'south' && dir === 'down') return !this.npcAt(x, y);
+    // Water - walkable while surfing.
+    if (code === 'W' && this.state.player.surfing) return !this.npcAt(x, y);
     return false;
   };
 
@@ -134,12 +135,17 @@
       return;
     }
 
-    if (!props || (!props.walk && props.walk !== 'south')) {
+    const surfOK = (code === 'W' && this.state.player.surfing);
+    if (!surfOK && (!props || (!props.walk && props.walk !== 'south'))) {
       this.frameTimer = 0; // bump
       window.PR_SFX && window.PR_SFX.play('bump');
       return;
     }
-    if (props.walk === 'south' && dir !== 'down') return;
+    if (!surfOK && props.walk === 'south' && dir !== 'down') return;
+    // Auto-disembark when stepping from water onto land.
+    if (this.state.player.surfing && code !== 'W') {
+      this.state.player.surfing = false;
+    }
     if (this.npcAt(nx, ny)) return;
 
     // Ledge: jump 2 tiles south.
@@ -235,6 +241,22 @@
     if (code === 'H') {
       this.state.onHealer();
       return true;
+    }
+    // Water tile: surf toggle if you have a WATER-type ally.
+    if (code === 'W' && !this.state.player.surfing) {
+      const hasWater = (this.state.party || []).some(m => {
+        const sp = window.PR_DATA.CREATURES[m.species];
+        return sp && sp.types && sp.types.includes('WATER');
+      });
+      if (hasWater) {
+        this.state.player.surfing = true;
+        if (this.state.showFlash) this.state.showFlash('Hopped onto the water!');
+        if (window.PR_SFX) window.PR_SFX.play('confirm');
+        return true;
+      } else {
+        if (this.state.onSign) this.state.onSign('You need a WATER ally to surf.');
+        return true;
+      }
     }
     // Hidden item at this tile?
     if (m.hidden && this.state.onHidden) {

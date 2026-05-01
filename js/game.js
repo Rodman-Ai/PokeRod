@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.17';
-  const BUILD = '2026.05.01-25';
+  const VERSION = 'v0.8.18';
+  const BUILD = '2026.05.01-26';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -224,6 +224,7 @@
 
   let flashText = null, flashTimer = 0;
   function showFlash(text) { flashText = text; flashTimer = 1.4; }
+  state.showFlash = showFlash;
 
   function updateTitle() {
     const I = window.PR_INPUT;
