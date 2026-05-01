@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.7.1';
-  const BUILD = '2026.05.01-4';
+  const VERSION = 'v0.7.2';
+  const BUILD = '2026.05.01-5';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -64,7 +64,15 @@
 
   function init() {
     const versionEl = document.getElementById('version');
-    if (versionEl) versionEl.textContent = VERSION + ' · ' + BUILD;
+    if (versionEl) {
+      versionEl.textContent = VERSION + ' · ' + BUILD;
+      versionEl.style.pointerEvents = 'auto';
+      versionEl.style.cursor = 'pointer';
+      versionEl.addEventListener('click', () => {
+        if (lastErr) alert(String(lastErr.stack || lastErr.message || lastErr));
+        else alert(VERSION + ' · ' + BUILD + '\n(no error captured)');
+      });
+    }
     const has = window.PR_SAVE.exists();
     if (has) document.getElementById('btn-continue').hidden = false;
     const unlock = () => {
@@ -137,27 +145,28 @@
   }
 
   let lastT = performance.now();
+  let lastErr = null;
   function loop(now) {
     const dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
-    try {
-      update(dt);
-      render();
-    } catch (err) {
-      if (!state.errorLogged) {
-        state.errorLogged = true;
-        console.error('[PokeRod] frame error:', err);
-        try {
-          ctx.fillStyle = 'rgba(0,0,0,0.75)';
-          ctx.fillRect(0, VIEW_H - 24, VIEW_W, 24);
-          window.PR_UI && window.PR_UI.drawText &&
-            window.PR_UI.drawText(ctx, 'ERR: ' + (err && err.message || err),
-              4, VIEW_H - 18, '#f08080');
-          window.PR_UI && window.PR_UI.drawText &&
-            window.PR_UI.drawText(ctx, 'PRESS START TO RECOVER',
-              4, VIEW_H - 8, '#ffd060');
-        } catch (_) {}
-      }
+    let frameErr = null;
+    try { update(dt); }
+    catch (err) { frameErr = err; console.error('[PokeRod] update error:', err); }
+    try { render(); }
+    catch (err) { frameErr = frameErr || err; console.error('[PokeRod] render error:', err); }
+    if (frameErr) {
+      lastErr = frameErr;
+      try {
+        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+        ctx.fillRect(0, VIEW_H - 22, VIEW_W, 22);
+        const msg = String(frameErr && frameErr.message || frameErr);
+        if (window.PR_UI && window.PR_UI.drawText) {
+          window.PR_UI.drawText(ctx, ('ERR: ' + msg).slice(0, 38), 4, VIEW_H - 18, '#f08080');
+          window.PR_UI.drawText(ctx, 'TAP VERSION TO COPY DETAILS', 4, VIEW_H - 8, '#ffd060');
+        }
+      } catch (_) {}
+    } else {
+      lastErr = null;
     }
     window.PR_INPUT.frameEnd();
     requestAnimationFrame(loop);
@@ -234,7 +243,14 @@
         const cb = d.onDone, src = d.source;
         state.dialog = null;
         state.mode = 'overworld';
-        if (cb) cb(src);
+        if (cb) {
+          try { cb(src); }
+          catch (err) {
+            console.error('[PokeRod] dialog onDone error:', err);
+            // Surface a brief flash so we don't lose the user silently.
+            showFlash('CB ERR: ' + (err && err.message || err).toString().slice(0, 24));
+          }
+        }
       }
     }
   }

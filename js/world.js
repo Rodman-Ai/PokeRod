@@ -194,6 +194,7 @@
   };
 
   World.prototype._ambientAt = function(x, y, exclude) {
+    if (!this._ambient) this._ambient = [];
     for (const a of this._ambient) {
       if (a === exclude) continue;
       // Block both source and destination tiles while lerping.
@@ -268,7 +269,13 @@
     this.frameTimer += dt;
     this.npcFrameTimer += dt;
     if (this.npcFrameTimer > 0.5) { this.npcFrameTimer = 0; this.npcFrame ^= 1; }
-    this._updateAmbient(dt);
+    if (this._ambient && this._ambient.length) {
+      try { this._updateAmbient(dt); }
+      catch (err) {
+        console.error('[PokeRod] ambient tick error:', err);
+        this._ambient = [];
+      }
+    }
 
     if (this.anim.moving) {
       this.anim.t += dt;

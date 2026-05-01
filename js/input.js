@@ -47,18 +47,34 @@
     release(alias(normalize(e.key)));
   });
 
-  // Touch buttons.
+  // Touch buttons. iOS Safari emits synthesised mouse events after a
+  // touch sequence, so we track the last touch timestamp per button
+  // and ignore mouse events within 600ms to avoid double press/release
+  // for one tap (which would advance dialogs in the same frame they
+  // were opened).
   function bindTouch() {
     document.querySelectorAll('#touch button').forEach((b) => {
       const k = b.dataset.key;
-      const start = (e) => { e.preventDefault(); press(k); };
-      const end   = (e) => { e.preventDefault(); release(k); };
-      b.addEventListener('touchstart', start, { passive:false });
-      b.addEventListener('touchend',   end,   { passive:false });
-      b.addEventListener('touchcancel',end,   { passive:false });
-      b.addEventListener('mousedown',  start);
-      b.addEventListener('mouseup',    end);
-      b.addEventListener('mouseleave', end);
+      let lastTouch = 0;
+      const TOUCH_GHOST_MS = 600;
+      const start = (src) => (e) => {
+        e.preventDefault();
+        if (src === 'mouse' && Date.now() - lastTouch < TOUCH_GHOST_MS) return;
+        if (src === 'touch') lastTouch = Date.now();
+        press(k);
+      };
+      const end = (src) => (e) => {
+        e.preventDefault();
+        if (src === 'mouse' && Date.now() - lastTouch < TOUCH_GHOST_MS) return;
+        if (src === 'touch') lastTouch = Date.now();
+        release(k);
+      };
+      b.addEventListener('touchstart', start('touch'), { passive:false });
+      b.addEventListener('touchend',   end('touch'),   { passive:false });
+      b.addEventListener('touchcancel',end('touch'),   { passive:false });
+      b.addEventListener('mousedown',  start('mouse'));
+      b.addEventListener('mouseup',    end('mouse'));
+      b.addEventListener('mouseleave', end('mouse'));
     });
   }
   if (document.readyState === 'loading') {
