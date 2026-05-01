@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.7.0';
-  const BUILD = '2026.05.01-3';
+  const VERSION = 'v0.7.1';
+  const BUILD = '2026.05.01-4';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -46,6 +46,12 @@
   state.onNpcInteract = handleNpcInteract;
   state.onSign = (text) => openDialog([text]);
   state.onHealer = healAtCenter;
+  state.onAmbient = (amb) => {
+    const sp = window.PR_DATA.CREATURES[amb.species];
+    const name = (sp && sp.name) || 'Creature';
+    const line = window.PR_CHATTER ? window.PR_CHATTER.chatterFor(amb.species) : '...';
+    openDialog([name + ':', line]);
+  };
   state.onPause = openPauseMenu;
   state.onBattleEnd = endBattle;
 

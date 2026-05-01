@@ -169,6 +169,17 @@
       this.state.onNpcInteract(npc);
       return true;
     }
+    // Ambient creature on the facing tile (or its lerp destination).
+    const amb = this._ambientAt && this._ambientAt(ix, iy, null);
+    if (amb && this.state.onAmbient) {
+      const opp2 = { up:'down', down:'up', left:'right', right:'left' };
+      amb.dir = opp2[p.dir] || amb.dir;
+      // Pause this ambient briefly so it stays put for the chat.
+      amb.moveTimer = 0;
+      amb.nextDelay = 1.5 + Math.random() * 1.5;
+      this.state.onAmbient(amb);
+      return true;
+    }
     const m = this.currentMap();
     const code = this.tileAt(ix, iy);
     if (code === 'S' && m.signs) {
