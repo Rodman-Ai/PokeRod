@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.16';
-  const BUILD = '2026.05.01-24';
+  const VERSION = 'v0.8.17';
+  const BUILD = '2026.05.01-25';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -129,6 +129,14 @@
       }
     });
     document.addEventListener('pointerdown', unlock, { once:false });
+    // Register the service worker for offline play.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./js/sw.js').catch((e) => {
+          console.warn('SW register failed:', e);
+        });
+      });
+    }
     requestAnimationFrame(loop);
   }
 
