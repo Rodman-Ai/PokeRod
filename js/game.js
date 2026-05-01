@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.7.2';
-  const BUILD = '2026.05.01-5';
+  const VERSION = 'v0.7.3';
+  const BUILD = '2026.05.01-6';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -407,17 +407,68 @@
     if (!alive) return;
     const m = state.world.currentMap();
     if (!m.encounters || !m.encounters.length) return;
-    window.PR_SFX && window.PR_SFX.play('encounter');
-    window.PR_MUSIC && window.PR_MUSIC.play('battle');
     const total = m.encounters.reduce((a,e) => a + e.weight, 0);
     let r = Math.random() * total;
     let pick = m.encounters[0];
     for (const e of m.encounters) { r -= e.weight; if (r <= 0) { pick = e; break; } }
     const lvl = pick.minL + Math.floor(Math.random() * (pick.maxL - pick.minL + 1));
-    const wild = window.PR_DATA.makeMon(pick.species, lvl);
-    state.battle = new window.PR_BATTLE.Battle(state, { wild });
-    state.mode = 'battle';
-    state.world.encounterCooldown = 6;
+    startBattleAgainstWild(pick.species, lvl);
+  }
+
+  // ---------- Battle setup helpers ----------
+  // Each step is logged on failure so we can pinpoint which line threw.
+  function startBattleAgainstTrainer(npc, trainerKey) {
+    let step = 'init';
+    try {
+      step = 'sfx-play';
+      if (window.PR_SFX) window.PR_SFX.play('encounter');
+      step = 'music-play';
+      if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
+      step = 'check-data';
+      if (!window.PR_DATA || !window.PR_DATA.makeMon) throw new Error('PR_DATA missing');
+      step = 'check-battle';
+      if (!window.PR_BATTLE || !window.PR_BATTLE.Battle) throw new Error('PR_BATTLE missing');
+      step = 'check-trainer';
+      if (!npc || !npc.trainer || !Array.isArray(npc.trainer.team)) throw new Error('trainer team missing');
+      step = 'build-team';
+      const team = npc.trainer.team.map(([sp, lv]) => window.PR_DATA.makeMon(sp, lv));
+      step = 'construct-battle';
+      state.battle = new window.PR_BATTLE.Battle(state, {
+        trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat },
+        npcKey: trainerKey
+      });
+      step = 'set-mode';
+      state.mode = 'battle';
+    } catch (err) {
+      console.error('[PokeRod] trainer battle failed at step:', step, err);
+      const msg = (err && err.message) || String(err);
+      showFlash('TRAINER ' + step + ': ' + msg.slice(0, 22));
+    }
+  }
+
+  function startBattleAgainstWild(species, level) {
+    let step = 'init';
+    try {
+      step = 'sfx-play';
+      if (window.PR_SFX) window.PR_SFX.play('encounter');
+      step = 'music-play';
+      if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
+      step = 'check-data';
+      if (!window.PR_DATA || !window.PR_DATA.makeMon) throw new Error('PR_DATA missing');
+      step = 'check-battle';
+      if (!window.PR_BATTLE || !window.PR_BATTLE.Battle) throw new Error('PR_BATTLE missing');
+      step = 'make-mon';
+      const wild = window.PR_DATA.makeMon(species, level);
+      step = 'construct-battle';
+      state.battle = new window.PR_BATTLE.Battle(state, { wild });
+      step = 'set-mode';
+      state.mode = 'battle';
+      state.world.encounterCooldown = 6;
+    } catch (err) {
+      console.error('[PokeRod] wild battle failed at step:', step, err);
+      const msg = (err && err.message) || String(err);
+      showFlash('WILD ' + step + ': ' + msg.slice(0, 24));
+    }
   }
 
   // ---------- NPC interaction ----------
@@ -449,14 +500,7 @@
       }
       const lines = (npc.dialog || ['Battle!']).slice();
       openDialog(lines, () => {
-        window.PR_SFX && window.PR_SFX.play('encounter');
-        window.PR_MUSIC && window.PR_MUSIC.play('battle');
-        const team = npc.trainer.team.map(([sp, lv]) => window.PR_DATA.makeMon(sp, lv));
-        state.battle = new window.PR_BATTLE.Battle(state, {
-          trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat },
-          npcKey: trainerKey
-        });
-        state.mode = 'battle';
+        startBattleAgainstTrainer(npc, trainerKey);
       });
       return;
     }
