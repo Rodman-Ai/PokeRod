@@ -7,6 +7,19 @@
   const VIEW_TX = VIEW_W / TS; // 15
   const VIEW_TY = VIEW_H / TS; // 10
 
+  // Day -> Dusk -> Night -> Dawn -> Day. ~80 steps per phase.
+  const PHASES = [
+    { name:'day',   tint:null },
+    { name:'dusk',  tint:'rgba(240,140,40,0.20)' },
+    { name:'night', tint:'rgba(20,30,80,0.40)' },
+    { name:'dawn',  tint:'rgba(255,180,140,0.18)' }
+  ];
+  function phaseForSteps(s) { return PHASES[(Math.floor(s / 80)) % PHASES.length]; }
+  window.PR_TIME = { phaseForSteps, current: () => {
+    const s = window.PR_GAME && window.PR_GAME.state && window.PR_GAME.state.player.steps || 0;
+    return phaseForSteps(s).name;
+  }};
+
   function World(state) {
     this.state = state;
     this.player = state.player;
@@ -384,6 +397,16 @@
       walkFrame = this.frame ^ (p > 0.5 ? 1 : 0);
     }
     window.PR_CHARS.drawPlayer(ctx, px.x - camX, (px.y - camY) + bobY, this.player.dir, walkFrame);
+
+    // Day/night tint overlay.
+    const cur = this.currentMap();
+    if (!cur || !cur.interior) {
+      const phase = phaseForSteps(this.player.steps || 0);
+      if (phase.tint) {
+        ctx.fillStyle = phase.tint;
+        ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      }
+    }
 
     // Map name banner on entry.
     if (this.justEntered) {
