@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.6.1';
-  const BUILD = '2026.05.01-2';
+  const VERSION = 'v0.7.0';
+  const BUILD = '2026.05.01-3';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -177,6 +177,7 @@
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'menu') updateMenu();
+    else if (state.mode === 'map') updateWorldMap();
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -199,6 +200,7 @@
     state.world.render(ctx);
     if (state.mode === 'dialog') drawDialog();
     else if (state.mode === 'menu') drawMenu();
+    else if (state.mode === 'map') drawWorldMap();
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -502,7 +504,7 @@
 
   // ---------- Pause menu ----------
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['PARTY','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','PARTY','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
@@ -522,6 +524,8 @@
         state.mode = 'overworld';
       } else if (opt === 'PARTY') {
         m.viewing = 'party';
+      } else if (opt === 'MAP') {
+        openWorldMap();
       }
     }
   }
@@ -544,6 +548,111 @@
     }
     window.PR_UI.drawText(ctx, '$' + state.player.money, x + 4, y + h - 10, '#202020');
   }
+  // ---------- World map + warp ----------
+  // Linear chain of towns with their connecting routes. Spawn coords
+  // are tiles already known walkable from each town's south-side door.
+  const TOWNS = [
+    { id:'rodport',    name:'RODPORT',    spawn:{x:4,  y:5,  dir:'down'} },
+    { id:'brindale',   name:'BRINDALE',   spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'woodfall',   name:'WOODFALL',   spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'crestrock',  name:'CRESTROCK',  spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'frostmere',  name:'FROSTMERE',  spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'harborside', name:'HARBORSIDE', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'summitvale', name:'SUMMITVALE', spawn:{x:7,  y:6,  dir:'down'} }
+  ];
+  const ROUTES_BETWEEN = [
+    'ROUTE 1','ROUTE 2','PEBBLEWOOD','GLIMCAVERN','FROSTPEAK','SEAROUTE'
+  ];
+
+  function openWorldMap() {
+    let idx = TOWNS.findIndex(t => t.id === state.player.map);
+    if (idx < 0) idx = 0;
+    state.map = { idx };
+    state.mode = 'map';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+
+  function updateWorldMap() {
+    const I = window.PR_INPUT;
+    const m = state.map;
+    if (I.consumePressed('ArrowDown')) {
+      m.idx = (m.idx + 1) % TOWNS.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowUp')) {
+      m.idx = (m.idx + TOWNS.length - 1) % TOWNS.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('x')) {
+      state.map = null;
+      state.mode = 'menu';
+      return;
+    }
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      const target = TOWNS[m.idx];
+      if (target.id === state.player.map) {
+        // Already there - just close.
+        state.map = null;
+        state.mode = 'overworld';
+        return;
+      }
+      warpTo(target);
+    }
+  }
+
+  function warpTo(town) {
+    // Free heal + warp.
+    for (const mon of state.party) {
+      mon.hp = mon.stats.hp;
+      mon.status = null;
+      for (const mv of mon.moves) mv.pp = mv.ppMax;
+    }
+    state.player.map = town.id;
+    state.player.x   = town.spawn.x;
+    state.player.y   = town.spawn.y;
+    state.player.dir = town.spawn.dir;
+    state.world = new window.PR_WORLD.World(state);
+    state.map = null;
+    state.menu = null;
+    state.mode = 'overworld';
+    state.world.justEntered = true;
+    window.PR_SFX && window.PR_SFX.play('heal');
+    if (state.onMapChange) state.onMapChange();
+    window.PR_SAVE.save(state);
+  }
+
+  function drawWorldMap() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#1a0204', '#f0c020');
+    window.PR_UI.drawText(ctx, 'WORLD MAP', x + 8, y + 4, '#f0c020');
+    window.PR_UI.drawText(ctx, 'A:WARP  B:BACK', x + w - 86, y + 4, '#806040');
+
+    // Two-column compact layout: town pills with route labels between.
+    const colX = x + 12;
+    const startY = y + 16;
+    const rowH = 18; // 12 for pill + 6 for route gap
+    for (let i = 0; i < TOWNS.length; i++) {
+      const t = TOWNS[i];
+      const cy = startY + i * rowH;
+      const isHere = (t.id === state.player.map);
+      const isSel  = (i === state.map.idx);
+      // Pill.
+      const pillW = w - 24, pillH = 12;
+      ctx.fillStyle = isSel ? '#f0c020' : '#3a0a08';
+      ctx.fillRect(colX, cy, pillW, pillH);
+      ctx.fillStyle = isSel ? '#1a0204' : '#5a1810';
+      ctx.fillRect(colX, cy + pillH - 2, pillW, 2);
+      const textColor = isSel ? '#1a0204' : '#ffd060';
+      window.PR_UI.drawText(ctx, t.name, colX + 8, cy + 3, textColor);
+      if (isHere) window.PR_UI.drawText(ctx, '*', colX + pillW - 10, cy + 3, isSel ? '#a01818' : '#e83838');
+      // Route label between this town and the next.
+      if (i < ROUTES_BETWEEN.length) {
+        const rcy = cy + pillH + 1;
+        window.PR_UI.drawText(ctx, '| ' + ROUTES_BETWEEN[i], colX + 8, rcy, '#806040');
+      }
+    }
+  }
+
   function drawPartyView() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
     window.PR_UI.box(ctx, x, y, w, h, '#a8c0e8', '#202020');

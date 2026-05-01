@@ -17,7 +17,28 @@
     this.npcFrame = 0;
     this.encounterCooldown = 0;
     this.justEntered = true;
+    this._ambient = [];
+    this._initAmbient();
   }
+
+  World.prototype._initAmbient = function() {
+    const m = this.currentMap();
+    this._ambient = [];
+    if (!m || !m.ambient) return;
+    for (const a of m.ambient) {
+      this._ambient.push({
+        species: a.species,
+        x: a.x, y: a.y,
+        homeX: a.x, homeY: a.y,
+        range: a.range || 2,
+        dir: 'down',
+        anim: { moving:false, t:0, duration:0.4, fromX:a.x, fromY:a.y, toX:a.x, toY:a.y },
+        moveTimer: Math.random() * 2,
+        nextDelay: 1.5 + Math.random() * 2,
+        frame: 0, frameTimer: 0
+      });
+    }
+  };
 
   World.prototype.currentMap = function() {
     return window.PR_MAPS.MAPS[this.player.map];
@@ -128,6 +149,7 @@
     this.player.y = y;
     this.anim.moving = false;
     this.justEntered = true;
+    this._initAmbient();
     if (this.state.onMapChange) this.state.onMapChange();
   };
 
@@ -160,10 +182,82 @@
     return false;
   };
 
+  World.prototype._ambientAt = function(x, y, exclude) {
+    for (const a of this._ambient) {
+      if (a === exclude) continue;
+      // Block both source and destination tiles while lerping.
+      if ((a.x === x && a.y === y) ||
+          (a.anim.moving && a.anim.toX === x && a.anim.toY === y)) return a;
+    }
+    return null;
+  };
+
+  World.prototype._isAmbientWalkable = function(x, y, a) {
+    const code = this.tileAt(x, y);
+    const props = window.PR_MAPS.TILE_PROPS[code];
+    if (!props || props.walk !== true) return false;
+    if (this.npcAt(x, y)) return false;
+    if (this.player.x === x && this.player.y === y) return false;
+    if (this.anim.moving && this.anim.toX === x && this.anim.toY === y) return false;
+    if (this._ambientAt(x, y, a)) return false;
+    return true;
+  };
+
+  World.prototype._updateAmbient = function(dt) {
+    for (const a of this._ambient) {
+      a.frameTimer += dt;
+      if (a.frameTimer > 0.35) { a.frameTimer = 0; a.frame ^= 1; }
+      if (a.anim.moving) {
+        a.anim.t += dt;
+        if (a.anim.t >= a.anim.duration) {
+          a.x = a.anim.toX; a.y = a.anim.toY;
+          a.anim.moving = false;
+          a.moveTimer = 0;
+          a.nextDelay = 1.5 + Math.random() * 2;
+        }
+        continue;
+      }
+      a.moveTimer += dt;
+      if (a.moveTimer < a.nextDelay) continue;
+      // Try a random cardinal step within range from home.
+      const dirs = ['up','down','left','right'];
+      // Shuffle so we don't bias direction.
+      for (let i = dirs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = dirs[i]; dirs[i] = dirs[j]; dirs[j] = t;
+      }
+      let moved = false;
+      for (const d of dirs) {
+        let nx = a.x, ny = a.y;
+        if (d === 'up') ny--;
+        else if (d === 'down') ny++;
+        else if (d === 'left') nx--;
+        else if (d === 'right') nx++;
+        if (Math.abs(nx - a.homeX) > a.range) continue;
+        if (Math.abs(ny - a.homeY) > a.range) continue;
+        if (!this._isAmbientWalkable(nx, ny, a)) continue;
+        a.dir = d;
+        a.anim.moving = true;
+        a.anim.t = 0;
+        a.anim.fromX = a.x; a.anim.fromY = a.y;
+        a.anim.toX = nx;    a.anim.toY = ny;
+        moved = true;
+        break;
+      }
+      if (!moved) {
+        // Idle - look around occasionally.
+        a.dir = dirs[0];
+        a.moveTimer = 0;
+        a.nextDelay = 1.0 + Math.random() * 1.5;
+      }
+    }
+  };
+
   World.prototype.update = function(dt) {
     this.frameTimer += dt;
     this.npcFrameTimer += dt;
     if (this.npcFrameTimer > 0.5) { this.npcFrameTimer = 0; this.npcFrame ^= 1; }
+    this._updateAmbient(dt);
 
     if (this.anim.moving) {
       this.anim.t += dt;
@@ -232,6 +326,23 @@
       }
     }
 
+    // Ambient roaming creatures (drawn under NPCs/player).
+    for (const a of this._ambient) {
+      let ax = a.x, ay = a.y;
+      if (a.anim.moving) {
+        const k = Math.min(1, a.anim.t / a.anim.duration);
+        ax = a.anim.fromX + (a.anim.toX - a.anim.fromX) * k;
+        ay = a.anim.fromY + (a.anim.toY - a.anim.fromY) * k;
+      }
+      const sx = ax * TS - camX;
+      const sy = ay * TS - camY;
+      if (sx < -TS || sx > VIEW_W || sy < -TS || sy > VIEW_H) continue;
+      const bob = a.anim.moving
+        ? -Math.round(Math.sin(Math.min(1, a.anim.t / a.anim.duration) * Math.PI))
+        : (a.frame ? -1 : 0);
+      window.PR_MONS.drawCreature(ctx, a.species, sx - 2, sy - 4 + bob, 20, false);
+    }
+
     // NPCs
     if (m.npcs) {
       for (const n of m.npcs) {
@@ -246,8 +357,14 @@
       }
     }
 
-    // Player
-    window.PR_CHARS.drawPlayer(ctx, px.x - camX, px.y - camY, this.player.dir, this.anim.moving ? this.frame : 0);
+    // Player (with mid-step bob + half-step leg swap for a 4-pose walk).
+    let bobY = 0, walkFrame = 0;
+    if (this.anim.moving) {
+      const p = Math.min(1, this.anim.t / this.anim.duration);
+      bobY = -Math.round(Math.sin(p * Math.PI));
+      walkFrame = this.frame ^ (p > 0.5 ? 1 : 0);
+    }
+    window.PR_CHARS.drawPlayer(ctx, px.x - camX, (px.y - camY) + bobY, this.player.dir, walkFrame);
 
     // Map name banner on entry.
     if (this.justEntered) {

@@ -64,6 +64,11 @@ const MAPS = {
       { x:14, y:6, dir:'down', sprite:'npc_girl', name:'LILA',
         dialog:["The tall grass north of town is full of wild creatures.","Be careful out there!"] }
     ],
+    ambient: [
+      { species:'nibblet',  x:8,  y:6,  range:2 },
+      { species:'flitwing', x:15, y:11, range:2 },
+      { species:'glimkit',  x:6,  y:12, range:2 }
+    ],
     signs: {
       '3,11': "RODPORT TOWN — Where every adventure begins.",
     },
@@ -221,6 +226,11 @@ const MAPS = {
       { x:14, y:7, dir:'down', sprite:'npc_girl', name:'TOWNSFOLK',
         dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left heals your team for free.","The MART on the right sells useful items."] }
     ],
+    ambient: [
+      { species:'glimkit',    x:8,  y:7,  range:2 },
+      { species:'splashfin',  x:15, y:13, range:2 },
+      { species:'nibblet',    x:5,  y:14, range:2 }
+    ],
     signs: {
       '3,12': "BRINDALE TOWN - Gateway to the highlands."
     },
@@ -367,6 +377,11 @@ const MAPS = {
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
         dialog:["Welcome to WOODFALL.","South of here, the trees thicken into PEBBLEWOOD.","Bring a torch... or a creature with bright eyes!"] }
     ],
+    ambient: [
+      { species:'sproutling', x:7,  y:9,  range:2 },
+      { species:'crawlbug',   x:14, y:11, range:2 },
+      { species:'fernsprout', x:5,  y:13, range:2 }
+    ],
     signs: {
       '3,8': "WOODFALL VILLAGE - Where the woods begin."
     },
@@ -486,6 +501,11 @@ const MAPS = {
       { x:14, y:8, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
         dialog:["Welcome to CRESTROCK.","South of here lies GLIMCAVERN.","Bring along an electric or fire creature - the dark inside is no joke."] }
     ],
+    ambient: [
+      { species:'pebra',     x:8,  y:9,  range:2 },
+      { species:'geistmite', x:13, y:11, range:2 },
+      { species:'voltkit',   x:5,  y:13, range:2 }
+    ],
     signs: {
       '3,8': "CRESTROCK TOWN - Mountain gateway."
     },
@@ -603,6 +623,11 @@ const MAPS = {
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
         dialog:["FROSTMERE is built around a frozen lake.","Beyond, the FROSTPEAK rises into white silence."] }
+    ],
+    ambient: [
+      { species:'frostpup', x:7,  y:8,  range:2 },
+      { species:'snowox',   x:14, y:13, range:2 },
+      { species:'glimkit',  x:5,  y:11, range:2 }
     ],
     signs: {
       '3,8': "FROSTMERE TOWN - The lake never thaws."
@@ -722,6 +747,11 @@ const MAPS = {
       { x:9, y:9, dir:'right', sprite:'npc_youth', name:'DOCKHAND TEO',
         dialog:["HARBORSIDE - last stop before the SEAROUTE.","If your creatures love the water, you'll fit right in."] }
     ],
+    ambient: [
+      { species:'aquapup',   x:8,  y:7,  range:2 },
+      { species:'splashfin', x:12, y:13, range:2 },
+      { species:'mistfin',   x:5,  y:11, range:2 }
+    ],
     signs: {
       '3,8': "HARBORSIDE TOWN - The salt never sleeps."
     },
@@ -839,6 +869,11 @@ const MAPS = {
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_oak', name:'CHAMPION ROWE',
         dialog:["You climbed all the way to SUMMITVALE!","Few trainers make it this far. Rest, and tell me your tale."] }
+    ],
+    ambient: [
+      { species:'emberkit', x:8,  y:7,  range:2 },
+      { species:'voltkit',  x:5,  y:13, range:2 },
+      { species:'glimkit',  x:15, y:14, range:2 }
     ],
     signs: {
       '3,8': "SUMMITVALE - The road's end, for now."
