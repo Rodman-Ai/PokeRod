@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.1';
-  const BUILD = '2026.05.01-9';
+  const VERSION = 'v0.8.2';
+  const BUILD = '2026.05.01-10';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -127,6 +127,7 @@
     state.party = [];
     state.flags = { starterChosen:false };
     state.defeatedTrainers = new Set();
+    state.dex = { seen: new Set(), caught: new Set() };
     state.world = new window.PR_WORLD.World(state);
     state.intro = { page: 0, charT: 0 };
     state.mode = 'intro';
@@ -144,6 +145,8 @@
     if (data.settings) state.settings = Object.assign({}, SETTINGS_DEFAULTS, data.settings);
     ensureSettings();
     applySettings();
+    state.dex = { seen: new Set(data.dexSeen || []), caught: new Set(data.dexCaught || []) };
+    ensureDex();
     state.world = new window.PR_WORLD.World(state);
     state.mode = 'overworld';
     showOverlay(false);
@@ -199,6 +202,7 @@
     else if (state.mode === 'menu') updateMenu();
     else if (state.mode === 'map') updateWorldMap();
     else if (state.mode === 'settings') updateSettings();
+    else if (state.mode === 'dex') updateDex();
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -223,6 +227,7 @@
     else if (state.mode === 'menu') drawMenu();
     else if (state.mode === 'map') drawWorldMap();
     else if (state.mode === 'settings') drawSettings();
+    else if (state.mode === 'dex') drawDex();
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -577,7 +582,7 @@
 
   // ---------- Pause menu ----------
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','PARTY','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','PARTY','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
@@ -601,6 +606,8 @@
         openWorldMap();
       } else if (opt === 'SETTINGS') {
         openSettings();
+      } else if (opt === 'DEX') {
+        openDex();
       }
     }
   }
@@ -705,6 +712,97 @@
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 78, cy, '#385890');
     }
     window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
+  }
+
+  // ---------- Pokedex ----------
+  function ensureDex() {
+    if (!state.dex) state.dex = { seen: new Set(), caught: new Set() };
+    if (!(state.dex.seen instanceof Set))   state.dex.seen   = new Set(state.dex.seen   || []);
+    if (!(state.dex.caught instanceof Set)) state.dex.caught = new Set(state.dex.caught || []);
+  }
+  function dexMarkSeen(speciesId) { ensureDex(); state.dex.seen.add(speciesId); }
+  function dexMarkCaught(speciesId) { ensureDex(); state.dex.seen.add(speciesId); state.dex.caught.add(speciesId); }
+  window.PR_DEX = { markSeen: dexMarkSeen, markCaught: dexMarkCaught };
+
+  function openDex() {
+    ensureDex();
+    state.dexView = { idx: 0, scroll: 0 };
+    state.mode = 'dex';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+
+  function dexEntries() {
+    const C = window.PR_DATA.CREATURES;
+    const ids = Object.keys(C).sort((a,b) => (C[a].dex|0) - (C[b].dex|0));
+    return ids;
+  }
+
+  function updateDex() {
+    const I = window.PR_INPUT;
+    const v = state.dexView;
+    const ids = dexEntries();
+    const max = ids.length;
+    if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowRight')) { v.idx = Math.min(max - 1, v.idx + 6); }
+    if (I.consumePressed('ArrowLeft'))  { v.idx = Math.max(0, v.idx - 6); }
+    if (I.consumePressed('x')) { state.dexView = null; state.mode = 'menu'; return; }
+    // Keep selection visible.
+    const visibleRows = 8;
+    if (v.idx < v.scroll) v.scroll = v.idx;
+    if (v.idx >= v.scroll + visibleRows) v.scroll = v.idx - visibleRows + 1;
+  }
+
+  function drawDex() {
+    ensureDex();
+    const ids = dexEntries();
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    const seenN = state.dex.seen.size, caughtN = state.dex.caught.size;
+    window.PR_UI.drawText(ctx, 'POKEDEX', x + 6, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'SEEN ' + seenN + ' CAUGHT ' + caughtN, x + 60, y + 4, '#385890');
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+
+    // Left: scrollable list (8 rows).
+    const listX = x + 4, listY = y + 14, rowH = 12;
+    const rows = 8;
+    const v = state.dexView;
+    for (let r = 0; r < rows; r++) {
+      const i = v.scroll + r;
+      if (i >= ids.length) break;
+      const id = ids[i];
+      const sp = window.PR_DATA.CREATURES[id];
+      const cy = listY + r * rowH;
+      if (i === v.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(listX, cy - 1, 100, 11); }
+      const num = String(sp.dex).padStart(3, '0');
+      const seen = state.dex.seen.has(id);
+      const caught = state.dex.caught.has(id);
+      const mark = caught ? '*' : seen ? '.' : ' ';
+      const name = seen ? sp.name : '???';
+      window.PR_UI.drawText(ctx, mark + num + ' ' + name, listX + 2, cy, '#202020');
+    }
+
+    // Right: detail of selected.
+    const selId = ids[v.idx];
+    const sp = window.PR_DATA.CREATURES[selId];
+    const seen = state.dex.seen.has(selId);
+    const dx = x + 110, dy = y + 14, dw = w - 116, dh = h - 18;
+    window.PR_UI.box(ctx, dx, dy, dw, dh, '#a8c0e8', '#202020');
+    if (seen) {
+      window.PR_MONS.drawCreature(ctx, selId, dx + 4, dy + 4, 32, false);
+      window.PR_UI.drawText(ctx, sp.name, dx + 40, dy + 4, '#202020');
+      window.PR_UI.drawText(ctx, sp.types.join('/'), dx + 40, dy + 14, '#385890');
+      window.PR_UI.drawText(ctx, 'HP ' + sp.baseStats.hp, dx + 4, dy + 40, '#202020');
+      window.PR_UI.drawText(ctx, 'AT ' + sp.baseStats.atk, dx + 40, dy + 40, '#202020');
+      window.PR_UI.drawText(ctx, 'DF ' + sp.baseStats.def, dx + 76, dy + 40, '#202020');
+      window.PR_UI.drawText(ctx, 'SP ' + sp.baseStats.spe, dx + 4, dy + 50, '#202020');
+      window.PR_UI.drawText(ctx, 'SA ' + sp.baseStats.spa, dx + 40, dy + 50, '#202020');
+      window.PR_UI.drawText(ctx, 'SD ' + sp.baseStats.spd, dx + 76, dy + 50, '#202020');
+      if (sp.evolves) window.PR_UI.drawText(ctx, '> LV ' + sp.evolves.level, dx + 4, dy + 62, '#a02828');
+    } else {
+      window.PR_UI.drawText(ctx, '???', dx + 4, dy + 4, '#202020');
+      window.PR_UI.drawText(ctx, 'Not yet seen.', dx + 4, dy + 16, '#806040');
+    }
   }
 
   // ---------- World map + warp ----------

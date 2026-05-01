@@ -21,7 +21,9 @@
         party: state.party,
         flags: state.flags,
         settings: state.settings,
-        defeatedTrainers: Array.from(state.defeatedTrainers || [])
+        defeatedTrainers: Array.from(state.defeatedTrainers || []),
+        dexSeen: state.dex ? Array.from(state.dex.seen || []) : [],
+        dexCaught: state.dex ? Array.from(state.dex.caught || []) : []
       };
       localStorage.setItem(KEY, JSON.stringify(data));
       return true;

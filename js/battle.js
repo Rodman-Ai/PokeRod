@@ -36,6 +36,10 @@
       return;
     }
     this.hpAnim = { foe: this.foe.hp, me: this.me.hp };
+    // Pokedex: mark every foe in this battle as seen.
+    if (window.PR_DEX) {
+      for (const f of this.foeTeam) if (f && f.species) window.PR_DEX.markSeen(f.species);
+    }
     this.startIntroMessages();
   }
 
@@ -498,6 +502,7 @@
     const shakes = a >= 255 ? 4 : Math.min(4, Math.floor(a / 60) + (Math.random() < 0.5 ? 1 : 0));
     if (shakes >= 4) {
       window.PR_SFX && window.PR_SFX.play('catch');
+      if (window.PR_DEX) window.PR_DEX.markCaught(this.foe.species);
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) this.state.party.push(this.foe);
       else this.queue('It was sent to your storage box.');
