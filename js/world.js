@@ -15,6 +15,38 @@
     { name:'dawn',  tint:'rgba(255,180,140,0.18)' }
   ];
   function phaseForSteps(s) { return PHASES[(Math.floor(s / 80)) % PHASES.length]; }
+
+  // Tile -> minimap color.
+  const MINI_COLOR = {
+    'T':'#1c4818', '.':'#5cae4c', ',':'#d8b878', ':':'#3a8030',
+    'W':'#4878d8', 's':'#e8d090', 'F':'#d8c098', 'B':'#a08068',
+    'R':'#c84848', 'P':'#e070a0', 'M':'#4878d8', 'C':'#c89858',
+    'H':'#e8a8c8', 'D':'#604028', 'S':'#604028', 'L':'#604028',
+    'X':'#000000'
+  };
+  function drawMinimap(ctx, m, px, py) {
+    if (!m.tiles || !m.tiles.length) return;
+    const cols = m.tiles[0].length, rows = m.tiles.length;
+    const cell = 2;
+    const w = cols * cell, h = rows * cell;
+    const x = 4, y = 4;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
+    for (let ry = 0; ry < rows; ry++) {
+      const row = m.tiles[ry];
+      for (let rx = 0; rx < cols; rx++) {
+        const c = row[rx];
+        ctx.fillStyle = MINI_COLOR[c] || '#3a3a3a';
+        ctx.fillRect(x + rx * cell, y + ry * cell, cell, cell);
+      }
+    }
+    // Player pip blink.
+    const blink = (Math.floor(performance.now() / 250) & 1);
+    if (blink) {
+      ctx.fillStyle = '#ffd060';
+      ctx.fillRect(x + px * cell - 1, y + py * cell - 1, cell + 2, cell + 2);
+    }
+  }
   window.PR_TIME = { phaseForSteps, current: () => {
     const s = window.PR_GAME && window.PR_GAME.state && window.PR_GAME.state.player.steps || 0;
     return phaseForSteps(s).name;
@@ -418,6 +450,9 @@
         ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       }
     }
+
+    // Minimap pip (small overview top-left).
+    if (!cur.interior) drawMinimap(ctx, cur, this.player.x, this.player.y);
 
     // Map name banner on entry.
     if (this.justEntered) {
