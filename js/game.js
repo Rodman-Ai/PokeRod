@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.12';
-  const BUILD = '2026.05.01-20';
+  const VERSION = 'v0.8.13';
+  const BUILD = '2026.05.01-21';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -463,7 +463,8 @@
       step = 'construct-battle';
       state.battle = new window.PR_BATTLE.Battle(state, {
         trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat },
-        npcKey: trainerKey
+        npcKey: trainerKey,
+        badge: npc.badge || null
       });
       step = 'set-mode';
       state.mode = 'battle';
@@ -521,6 +522,15 @@
       if (state.defeatedTrainers.has(trainerKey)) {
         openDialog(npc.trainer.defeat || ['You already beat me!']);
         return;
+      }
+      // Gym requirement gating.
+      if (npc.gym && npc.gymRequirement) {
+        ensureDex();
+        const caughtCount = state.dex.caught.size;
+        if (npc.gymRequirement.minCaught && caughtCount < npc.gymRequirement.minCaught) {
+          openDialog(npc.gymLocked || ['You are not ready yet.']);
+          return;
+        }
       }
       if (!state.party.length || !state.party.some(p => p.hp > 0)) {
         openDialog(['You have no able partners!','Heal up before challenging me.']);
@@ -1320,6 +1330,13 @@
       state.player.x = 4; state.player.y = 5; state.player.dir = 'down';
     }
     if (battle.opts && battle.opts.npcKey) state.defeatedTrainers.add(battle.opts.npcKey);
+    if (outcome === 'won' && battle.opts && battle.opts.badge) {
+      if (!Array.isArray(state.player.badges)) state.player.badges = [];
+      if (!state.player.badges.includes(battle.opts.badge)) {
+        state.player.badges.push(battle.opts.badge);
+        showFlash('GOT THE ' + battle.opts.badge + ' BADGE!');
+      }
+    }
     state.battle = null;
     state.mode = 'overworld';
     state.world.justEntered = false;

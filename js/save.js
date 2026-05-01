@@ -18,7 +18,8 @@
         dir: state.player.dir,
         money: state.player.money,
         balls: state.player.balls,
-        steps: state.player.steps
+        steps: state.player.steps,
+        badges: state.player.badges || []
       },
       party: state.party,
       flags: state.flags,

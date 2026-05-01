@@ -229,7 +229,14 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:7, dir:'down', sprite:'npc_girl', name:'TOWNSFOLK',
-        dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left heals your team for free.","The MART on the right sells useful items."] }
+        dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left heals your team for free.","The MART on the right sells useful items."] },
+      { x:7, y:13, dir:'down', sprite:'npc_old', name:'GYM LEADER WAVE',
+        gym: true, badge:'WAVE',
+        dialog:["I am WAVE, leader of the BRINDALE GYM.","Show me you are ready and we shall battle!"],
+        gymRequirement:{ minCaught:3 },
+        gymLocked:["Catch a few more creatures first.","Come back when you have at least three!"],
+        trainer: { team:[['mistfin',12],['aquapup',13]], reward:600,
+                   defeat:["A fine showing! Take this WAVE BADGE."] } }
     ],
     ambient: [
       { species:'glimkit',    x:8,  y:7,  range:2 },
