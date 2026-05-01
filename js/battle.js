@@ -656,4 +656,6 @@
     }
     window.PR_UI.drawText(ctx, 'B: BACK', x + 8, y + h - 12, '#202020');
   };
+
+  window.PR_BATTLE = { Battle };
 })();
