@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.2';
-  const BUILD = '2026.05.01-10';
+  const VERSION = 'v0.8.3';
+  const BUILD = '2026.05.01-11';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -137,17 +137,7 @@
   function continueGame() {
     const data = window.PR_SAVE.load();
     if (!data) { startNewGame(); return; }
-    Object.assign(state.player, data.player);
-    if (state.player.balls === undefined) state.player.balls = 5;
-    state.party = data.party || [];
-    state.flags = data.flags || { starterChosen:false };
-    state.defeatedTrainers = new Set(data.defeatedTrainers || []);
-    if (data.settings) state.settings = Object.assign({}, SETTINGS_DEFAULTS, data.settings);
-    ensureSettings();
-    applySettings();
-    state.dex = { seen: new Set(data.dexSeen || []), caught: new Set(data.dexCaught || []) };
-    ensureDex();
-    state.world = new window.PR_WORLD.World(state);
+    applySaveData(data);
     state.mode = 'overworld';
     showOverlay(false);
   }
@@ -203,6 +193,7 @@
     else if (state.mode === 'map') updateWorldMap();
     else if (state.mode === 'settings') updateSettings();
     else if (state.mode === 'dex') updateDex();
+    else if (state.mode === 'slots') updateSlotPicker();
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -228,6 +219,7 @@
     else if (state.mode === 'map') drawWorldMap();
     else if (state.mode === 'settings') drawSettings();
     else if (state.mode === 'dex') drawDex();
+    else if (state.mode === 'slots') drawSlotPicker();
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -594,9 +586,7 @@
     if (I.consumePressed('z')) {
       const opt = m.options[m.idx];
       if (opt === 'SAVE') {
-        window.PR_SAVE.save(state);
-        m.flash = 'Game saved!';
-        m.flashTimer = 1.0;
+        openSlotPicker('save');
       } else if (opt === 'EXIT') {
         state.menu = null;
         state.mode = 'overworld';
@@ -712,6 +702,86 @@
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 78, cy, '#385890');
     }
     window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
+  }
+
+  // ---------- Save slot picker ----------
+  function openSlotPicker(action) {
+    state.slotPicker = { idx: state.activeSlot|0, action: action || 'save' };
+    state.mode = 'slots';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+
+  function updateSlotPicker() {
+    const I = window.PR_INPUT;
+    const v = state.slotPicker;
+    if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % 3; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + 2) % 3; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('x')) {
+      state.slotPicker = null;
+      state.mode = state.menu ? 'menu' : 'overworld';
+      return;
+    }
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      const slot = v.idx;
+      if (v.action === 'save') {
+        state.activeSlot = slot;
+        const ok = window.PR_SAVE.save(state, slot);
+        showFlash(ok ? ('SAVED TO SLOT ' + (slot + 1)) : 'SAVE FAILED');
+      } else if (v.action === 'load') {
+        const data = window.PR_SAVE.load(slot);
+        if (!data) { showFlash('SLOT EMPTY'); return; }
+        applySaveData(data);
+        state.slotPicker = null;
+        state.mode = 'overworld';
+        showOverlay(false);
+        if (state.onMapChange) state.onMapChange();
+        return;
+      }
+      state.slotPicker = null;
+      state.mode = state.menu ? 'menu' : 'overworld';
+    }
+  }
+
+  function drawSlotPicker() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    const v = state.slotPicker;
+    const title = v.action === 'save' ? 'SAVE TO WHICH SLOT?' : 'LOAD WHICH SLOT?';
+    window.PR_UI.drawText(ctx, title, x + 6, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    const info = window.PR_SAVE.slotInfo();
+    const last = window.PR_SAVE.lastSlot();
+    for (let i = 0; i < 3; i++) {
+      const cy = y + 22 + i * 32;
+      const slot = info[i];
+      if (i === v.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 2, w - 8, 28); }
+      window.PR_UI.drawText(ctx, 'SLOT ' + (i + 1) + (i === last ? ' *' : ''), x + 8, cy, '#202020');
+      if (slot.empty) {
+        window.PR_UI.drawText(ctx, '-- EMPTY --', x + 60, cy, '#806040');
+      } else {
+        const m = slot.map ? slot.map.toUpperCase().slice(0, 10) : '?';
+        window.PR_UI.drawText(ctx, 'PARTY ' + slot.partyCount + '  $' + (slot.money|0), x + 60, cy, '#202020');
+        window.PR_UI.drawText(ctx, m, x + 60, cy + 10, '#385890');
+        window.PR_UI.drawText(ctx, 'DEX ' + slot.dexCaught, x + 130, cy + 10, '#385890');
+        if (slot.firstSpecies) window.PR_MONS.drawCreature(ctx, slot.firstSpecies, x + w - 28, cy - 4, 22, false);
+      }
+    }
+    window.PR_UI.drawText(ctx, 'A: CONFIRM', x + 8, y + h - 12, '#806040');
+  }
+
+  function applySaveData(data) {
+    Object.assign(state.player, data.player);
+    if (state.player.balls === undefined) state.player.balls = 5;
+    state.party = data.party || [];
+    state.flags = data.flags || { starterChosen:false };
+    state.defeatedTrainers = new Set(data.defeatedTrainers || []);
+    if (data.settings) state.settings = Object.assign({}, SETTINGS_DEFAULTS, data.settings);
+    ensureSettings();
+    applySettings();
+    state.dex = { seen: new Set(data.dexSeen || []), caught: new Set(data.dexCaught || []) };
+    ensureDex();
+    state.activeSlot = (data._slot|0) || 0;
+    state.world = new window.PR_WORLD.World(state);
   }
 
   // ---------- Pokedex ----------
