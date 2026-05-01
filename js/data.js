@@ -59,8 +59,11 @@ const MOVES = {
   acidspray: { name:'Acid Spray',type:'POISON',   power:40, accuracy:100, kind:'special',  pp:20 },
   rocktoss:  { name:'Rock Toss', type:'ROCK',     power:50, accuracy:90,  kind:'physical', pp:15 },
   earthbump: { name:'Earth Bump',type:'GROUND',   power:55, accuracy:100, kind:'physical', pp:20 },
-  shimmer:   { name:'Shimmer',   type:'PSYCHIC',  power:50, accuracy:100, kind:'special',  pp:25 },
-  freezewind:{ name:'Freeze Wind',type:'ICE',     power:55, accuracy:95,  kind:'special',  pp:20 },
+  shimmer:   { name:'Shimmer',   type:'PSYCHIC',  power:50, accuracy:100, kind:'special',  pp:25, confuseChance:0.1 },
+  dazzle:    { name:'Dazzle',    type:'PSYCHIC',  power:0,  accuracy:90,  kind:'status',   pp:15, confuseChance:1.0 },
+  freezewind:{ name:'Freeze Wind',type:'ICE',     power:55, accuracy:95,  kind:'special',  pp:20, freezeChance:0.1 },
+  lullaby:   { name:'Lullaby',   type:'NORMAL',   power:0,  accuracy:75,  kind:'status',   pp:15, sleepChance:1.0 },
+  hypnoray:  { name:'Hypnoray',  type:'PSYCHIC',  power:0,  accuracy:60,  kind:'status',   pp:20, sleepChance:1.0 },
   splash:    { name:'Splash',    type:'NORMAL',   power:0,  accuracy:100, kind:'status',   pp:40, dud:true }
 };
 

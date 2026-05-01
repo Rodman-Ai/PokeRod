@@ -229,10 +229,41 @@
     move.pp = Math.max(0, move.pp - 1);
     this.queue(attacker.nickname + ' used ' + def.name + '!');
 
-    // Status check (paralysis, sleep) skipped for simplicity.
+    // Pre-move status checks.
     if (attacker.status === 'paralyzed' && Math.random() < 0.25) {
       this.queue(attacker.nickname + ' is paralyzed and could not move!');
       return;
+    }
+    if (attacker.status === 'asleep') {
+      attacker.sleepTurns = (attacker.sleepTurns || 0) - 1;
+      if (attacker.sleepTurns > 0 && Math.random() > 0.25) {
+        this.queue(attacker.nickname + ' is fast asleep!');
+        return;
+      }
+      attacker.status = null;
+      attacker.sleepTurns = 0;
+      this.queue(attacker.nickname + ' woke up!');
+    }
+    if (attacker.status === 'frozen') {
+      if (Math.random() > 0.20) {
+        this.queue(attacker.nickname + ' is frozen solid!');
+        return;
+      }
+      attacker.status = null;
+      this.queue(attacker.nickname + ' thawed out!');
+    }
+    if (attacker.confusionTurns > 0) {
+      attacker.confusionTurns--;
+      this.queue(attacker.nickname + ' is confused...');
+      if (Math.random() < 0.5) {
+        // Hit itself.
+        const self = Math.max(1, Math.floor(attacker.stats.atk / 4));
+        attacker.hp = Math.max(0, attacker.hp - self);
+        this.queue(attacker.nickname + ' hurt itself in confusion!');
+        if (attacker === this.me) this.shakeTimer = 0.2; else this.flashTimer = 0.2;
+        return;
+      }
+      if (attacker.confusionTurns === 0) this.queue(attacker.nickname + ' snapped out of confusion!');
     }
 
     // Accuracy.
@@ -294,6 +325,25 @@
       if (!defender.status && !window.PR_DATA.CREATURES[defender.species].types.includes('POISON')) {
         defender.status = 'poisoned';
         this.queue(defender.nickname + ' was poisoned!');
+      }
+    }
+    if (def.freezeChance && defender.hp > 0 && Math.random() < def.freezeChance) {
+      if (!defender.status && !window.PR_DATA.CREATURES[defender.species].types.includes('ICE')) {
+        defender.status = 'frozen';
+        this.queue(defender.nickname + ' was frozen solid!');
+      }
+    }
+    if (def.sleepChance && defender.hp > 0 && Math.random() < def.sleepChance) {
+      if (!defender.status) {
+        defender.status = 'asleep';
+        defender.sleepTurns = 1 + Math.floor(Math.random() * 3);
+        this.queue(defender.nickname + ' fell asleep!');
+      }
+    }
+    if (def.confuseChance && defender.hp > 0 && Math.random() < def.confuseChance) {
+      if (!defender.confusionTurns) {
+        defender.confusionTurns = 2 + Math.floor(Math.random() * 3);
+        this.queue(defender.nickname + ' became confused!');
       }
     }
   };
