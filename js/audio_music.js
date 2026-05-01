@@ -167,6 +167,7 @@
     const t = def();
     if (!t) return;
     const ctx = A.ctx;
+    if (!ctx) return;
     const dest = A.musicGain;
     let nextStart = ctx.currentTime + 0.05;
     let stopped = false;
@@ -174,15 +175,7 @@
     const beatsPerBar = 4;
     const totalBeats = t.bars * beatsPerBar;
     const loopSec = totalBeats * t.beat;
-
-    function scheduleLoop(t0) {
-      // Lead.
-      let t = t0;
-      for (const [p,b] of t.lead || []) {
-        if (p) A.tone(A.noteHz(p), t, b * t.beat * 0.85, { type:'square', gain:0.10, dest });
-        t += b * t.beat;
-      }
-    }
+    if (!isFinite(loopSec) || loopSec <= 0) return;
 
     function schedule(t0) {
       // Lead.
@@ -209,7 +202,17 @@
 
     function loop() {
       if (stopped) return;
-      schedule(nextStart);
+      // If audio is suspended (iOS still gating it), skip scheduling
+      // and try again shortly after the next user gesture.
+      if (ctx.state !== 'running') {
+        stopFn._t = setTimeout(loop, 250);
+        return;
+      }
+      // Don't let nextStart drift into the past, which would cause
+      // a tight setTimeout(0) loop and freeze the main thread.
+      if (nextStart < ctx.currentTime) nextStart = ctx.currentTime + 0.05;
+      try { schedule(nextStart); }
+      catch (err) { console.error('[PokeRod] music schedule error:', err); stopped = true; return; }
       nextStart += loopSec;
       const ms = Math.max(50, (nextStart - ctx.currentTime - 0.5) * 1000);
       stopFn._t = setTimeout(loop, ms);

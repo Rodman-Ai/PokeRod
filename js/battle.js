@@ -26,6 +26,15 @@
     this.flashTimer = 0;
     this.shakeTimer = 0;
     this.faintAnim = { foe: 0, me: 0 };
+    // Guard against missing party / foe so a corrupted save can't freeze
+    // the game on battle start. We bail out cleanly instead of throwing.
+    if (!this.me || !this.foe) {
+      this.hpAnim = { foe: 0, me: 0 };
+      this.phase = 'message';
+      this.messages.push('Something went wrong... fleeing!');
+      this.afterMessages = () => { this.phase = 'ran'; };
+      return;
+    }
     this.hpAnim = { foe: this.foe.hp, me: this.me.hp };
     this.startIntroMessages();
   }
@@ -82,15 +91,23 @@
       return;
     }
 
-    if (this.phase === 'menu')   return this.updateMenu();
-    if (this.phase === 'fight')  return this.updateFight();
-    if (this.phase === 'party')  return this.updateParty();
-    if (this.phase === 'turn')   return this.updateTurn(dt);
-    if (this.phase === 'faint')  return this.updateFaint(dt);
-    if (this.phase === 'won')    return this.updateOutcome();
-    if (this.phase === 'lost')   return this.updateOutcome();
-    if (this.phase === 'ran')    return this.updateOutcome();
-    if (this.phase === 'caught') return this.updateOutcome();
+    try {
+      if (this.phase === 'menu')   return this.updateMenu();
+      if (this.phase === 'fight')  return this.updateFight();
+      if (this.phase === 'party')  return this.updateParty();
+      if (this.phase === 'turn')   return this.updateTurn(dt);
+      if (this.phase === 'faint')  return this.updateFaint(dt);
+      if (this.phase === 'won')    return this.updateOutcome();
+      if (this.phase === 'lost')   return this.updateOutcome();
+      if (this.phase === 'ran')    return this.updateOutcome();
+      if (this.phase === 'caught') return this.updateOutcome();
+    } catch (err) {
+      console.error('[PokeRod] battle update error:', err);
+      this.messages.length = 0;
+      this.queue('A glitch interrupted the battle!');
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'ran'; };
+    }
   };
 
   Battle.prototype.updateMenu = function() {

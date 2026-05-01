@@ -130,13 +130,34 @@
   function loop(now) {
     const dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
-    update(dt);
-    render();
+    try {
+      update(dt);
+      render();
+    } catch (err) {
+      if (!state.errorLogged) {
+        state.errorLogged = true;
+        console.error('[PokeRod] frame error:', err);
+        try {
+          ctx.fillStyle = 'rgba(0,0,0,0.75)';
+          ctx.fillRect(0, VIEW_H - 24, VIEW_W, 24);
+          window.PR_UI && window.PR_UI.drawText &&
+            window.PR_UI.drawText(ctx, 'ERR: ' + (err && err.message || err),
+              4, VIEW_H - 18, '#f08080');
+          window.PR_UI && window.PR_UI.drawText &&
+            window.PR_UI.drawText(ctx, 'PRESS START TO RECOVER',
+              4, VIEW_H - 8, '#ffd060');
+        } catch (_) {}
+      }
+    }
     window.PR_INPUT.frameEnd();
     requestAnimationFrame(loop);
   }
 
   function update(dt) {
+    if (state._prevMode !== state.mode) {
+      state._prevMode = state.mode;
+      state.errorLogged = false;
+    }
     // Global: Select toggles audio mute.
     if (window.PR_INPUT.consumePressed('Shift')) {
       const A = window.PR_AUDIO;
