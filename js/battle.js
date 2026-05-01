@@ -129,7 +129,11 @@
       if (this.selection === 0) { this.phase = 'fight'; this.subSelection = 0; }
       else if (this.selection === 1) { this.tryRun(); }
       else if (this.selection === 2) { this.phase = 'party'; this.subSelection = 0; }
-      else if (this.selection === 3) { this.tryThrowBall(); }
+      else if (this.selection === 3) {
+        // Open bag instead of directly throwing.
+        if (window.PR_GAME && window.PR_GAME.openBagFromBattle) window.PR_GAME.openBagFromBattle();
+        else this.tryThrowBall();
+      }
     }
   };
 

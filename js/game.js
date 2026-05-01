@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.3';
-  const BUILD = '2026.05.01-11';
+  const VERSION = 'v0.8.4';
+  const BUILD = '2026.05.01-12';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -123,11 +123,13 @@
 
   function startNewGame() {
     window.PR_SAVE.clear();
-    state.player = { name:'YOU', map:'rodport', x:4, y:5, dir:'down', money:500, balls:5, steps:0 };
+    state.player = { name:'YOU', map:'rodport', x:4, y:5, dir:'down', money:500, balls:5, steps:0,
+                     bag: { rodball:5, potion:3, antidote:1 } };
     state.party = [];
     state.flags = { starterChosen:false };
     state.defeatedTrainers = new Set();
     state.dex = { seen: new Set(), caught: new Set() };
+    if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
     state.world = new window.PR_WORLD.World(state);
     state.intro = { page: 0, charT: 0 };
     state.mode = 'intro';
@@ -194,6 +196,8 @@
     else if (state.mode === 'settings') updateSettings();
     else if (state.mode === 'dex') updateDex();
     else if (state.mode === 'slots') updateSlotPicker();
+    else if (state.mode === 'bag') updateBag();
+    else if (state.mode === 'bagtarget') updateBagTarget();
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -220,6 +224,8 @@
     else if (state.mode === 'settings') drawSettings();
     else if (state.mode === 'dex') drawDex();
     else if (state.mode === 'slots') drawSlotPicker();
+    else if (state.mode === 'bag') drawBag();
+    else if (state.mode === 'bagtarget') drawBagTarget();
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -269,7 +275,10 @@
   if (document.readyState !== 'loading') init();
 
   // expose for further additions
-  window.PR_GAME = { state };
+  window.PR_GAME = {
+    state,
+    openBagFromBattle: () => openBag('battle')
+  };
 
   // ---------- Intro ----------
   const INTRO_PAGES = [
@@ -574,7 +583,7 @@
 
   // ---------- Pause menu ----------
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','PARTY','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
@@ -598,6 +607,8 @@
         openSettings();
       } else if (opt === 'DEX') {
         openDex();
+      } else if (opt === 'BAG') {
+        openBag('overworld');
       }
     }
   }
@@ -704,6 +715,147 @@
     window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
   }
 
+  // ---------- Bag ----------
+  function openBag(returnTo) {
+    window.PR_ITEMS && window.PR_ITEMS.ensureBag(state);
+    state.bagView = { idx: 0, scroll: 0, returnTo: returnTo || 'overworld' };
+    state.mode = 'bag';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+
+  function bagItems() {
+    return window.PR_ITEMS ? window.PR_ITEMS.listOwned(state) : [];
+  }
+
+  function updateBag() {
+    const I = window.PR_INPUT;
+    const v = state.bagView;
+    const items = bagItems();
+    const max = items.length;
+    if (max === 0) {
+      if (I.consumePressed('x') || I.consumePressed('z')) {
+        state.bagView = null;
+        state.mode = v.returnTo === 'battle' ? 'battle' : 'menu';
+      }
+      return;
+    }
+    if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('x')) { state.bagView = null; state.mode = v.returnTo === 'battle' ? 'battle' : 'menu'; return; }
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      const it = items[v.idx];
+      if (!it) return;
+      const def = it.def;
+      if (v.returnTo === 'battle') {
+        if (def.kind === 'ball') {
+          // Hand back to battle to throw ball.
+          state.bagView = null;
+          state.mode = 'battle';
+          if (state.battle) state.battle.tryThrowBall();
+          return;
+        }
+        // For heal/status/revive, ask for a target.
+        state.bagTarget = { itemId: it.id, def, idx: 0, returnTo:'battle' };
+        state.mode = 'bagtarget';
+        return;
+      }
+      // Overworld: only target items make sense (not balls).
+      if (def.battleOnly) { showFlash('Use in battle.'); return; }
+      state.bagTarget = { itemId: it.id, def, idx: 0, returnTo:'menu' };
+      state.mode = 'bagtarget';
+    }
+  }
+
+  function drawBag() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, 'BAG', x + 6, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    const items = bagItems();
+    if (!items.length) {
+      window.PR_UI.drawText(ctx, 'Bag is empty.', x + 8, y + 30, '#806040');
+      return;
+    }
+    const v = state.bagView;
+    const rows = 8, rowH = 12;
+    const startY = y + 18;
+    const start = Math.max(0, Math.min(items.length - rows, v.idx - 3));
+    for (let r = 0; r < rows; r++) {
+      const i = start + r;
+      if (i >= items.length) break;
+      const cy = startY + r * rowH;
+      const it = items[i];
+      if (i === v.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 1, w - 8, 11); }
+      window.PR_UI.drawText(ctx, it.def.name, x + 8, cy, '#202020');
+      window.PR_UI.drawText(ctx, 'x' + it.count, x + w - 32, cy, '#385890');
+    }
+    const sel = items[v.idx];
+    if (sel) {
+      window.PR_UI.drawText(ctx, sel.def.desc.slice(0, 38), x + 8, y + h - 12, '#806040');
+    }
+  }
+
+  function updateBagTarget() {
+    const I = window.PR_INPUT;
+    const t = state.bagTarget;
+    const party = state.party;
+    if (I.consumePressed('ArrowDown')) { t.idx = (t.idx + 1) % party.length; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowUp'))   { t.idx = (t.idx + party.length - 1) % party.length; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('x')) {
+      state.bagTarget = null;
+      state.mode = 'bag';
+      return;
+    }
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      const target = party[t.idx];
+      const result = window.PR_ITEMS.apply(t.itemId, target);
+      if (!result.ok) { showFlash(result.message); return; }
+      window.PR_ITEMS.take(state, t.itemId, 1);
+      window.PR_SFX && window.PR_SFX.play('heal');
+      // Mirror the change into the active battle creature if it's the one in play.
+      if (state.battle && (state.battle.me === target)) {
+        state.battle.hpAnim.me = target.hp;
+      }
+      state.bagTarget = null;
+      if (t.returnTo === 'battle' && state.battle) {
+        // Item use takes the player's turn.
+        const f = state.battle;
+        f.queue('Used ' + window.PR_ITEMS.ITEMS[t.itemId].name + '! ' + result.message);
+        f.phase = 'message';
+        f.afterMessages = () => {
+          // Foe gets a free turn after item use (similar to swap).
+          const foeMove = f.foe.moves[Math.floor(Math.random() * f.foe.moves.length)];
+          f.turnOrder = ['foe'];
+          f.turnMoves = { foe: foeMove };
+          f.turnStep = 0;
+          f.phase = 'turn';
+        };
+        state.mode = 'battle';
+      } else {
+        showFlash(result.message);
+        state.mode = 'bag';
+      }
+    }
+  }
+
+  function drawBagTarget() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#a8c0e8', '#202020');
+    window.PR_UI.drawText(ctx, 'USE ' + state.bagTarget.def.name + ' ON?', x + 6, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    const t = state.bagTarget;
+    for (let i = 0; i < state.party.length; i++) {
+      const mon = state.party[i];
+      const cy = y + 22 + i * 20;
+      if (i === t.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 2, w - 8, 18); }
+      window.PR_MONS.drawCreature(ctx, mon.species, x + 6, cy - 2, 18, false);
+      window.PR_UI.drawText(ctx, mon.nickname, x + 28, cy, '#202020');
+      window.PR_UI.drawText(ctx, 'L' + mon.level, x + 110, cy, '#202020');
+      window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, mon.hp, mon.stats.hp);
+      window.PR_UI.drawText(ctx, mon.hp + '/' + mon.stats.hp, x + w - 60, cy + 8, '#202020');
+    }
+  }
+
   // ---------- Save slot picker ----------
   function openSlotPicker(action) {
     state.slotPicker = { idx: state.activeSlot|0, action: action || 'save' };
@@ -772,6 +924,7 @@
   function applySaveData(data) {
     Object.assign(state.player, data.player);
     if (state.player.balls === undefined) state.player.balls = 5;
+    if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
     state.party = data.party || [];
     state.flags = data.flags || { starterChosen:false };
     state.defeatedTrainers = new Set(data.defeatedTrainers || []);
