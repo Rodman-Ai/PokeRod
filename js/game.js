@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.18';
-  const BUILD = '2026.05.01-26';
+  const VERSION = 'v0.9.0';
+  const BUILD = '2026.05.01-27';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -634,7 +634,7 @@
 
   // ---------- Pause menu ----------
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','BOX','QUEST','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
@@ -664,6 +664,8 @@
         openBox();
       } else if (opt === 'QUEST') {
         openQuests();
+      } else if (opt === 'PVP') {
+        startRivalDuel();
       }
     }
   }
@@ -768,6 +770,30 @@
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 78, cy, '#385890');
     }
     window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
+  }
+
+  // ---------- Rival duel (PvP-style mirror match) ----------
+  function startRivalDuel() {
+    if (!state.party || !state.party.length) {
+      showFlash('No party!');
+      return;
+    }
+    state.menu = null;
+    state.mode = 'overworld';
+    // Build a mirror team: same species at level + 1.
+    const team = state.party.slice(0, 3).map(mon =>
+      [mon.species, Math.min(100, (mon.level|0) + 1)]
+    );
+    const trainerNpc = {
+      x:-1, y:-1,
+      name:'RIVAL BLAINE',
+      dialog:["So we meet again!","Show me how far you have come!"],
+      trainer: { team, reward: 800, defeat:["Tch! I'll be back stronger."] }
+    };
+    const trainerKey = 'pvp:rival:' + Date.now();
+    openDialog(trainerNpc.dialog, () => {
+      startBattleAgainstTrainer(trainerNpc, trainerKey);
+    });
   }
 
   // ---------- Quests ----------
