@@ -203,6 +203,16 @@
       this.state.onHealer();
       return true;
     }
+    // Hidden item at this tile?
+    if (m.hidden && this.state.onHidden) {
+      const key = ix + ',' + iy;
+      const found = this.state.player && this.state.player.foundItems;
+      const id = m.id + ':' + key;
+      if (m.hidden[key] && !(found && found.has(id))) {
+        this.state.onHidden(m.hidden[key], id);
+        return true;
+      }
+    }
     return false;
   };
 

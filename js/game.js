@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.5';
-  const BUILD = '2026.05.01-13';
+  const VERSION = 'v0.8.6';
+  const BUILD = '2026.05.01-14';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -46,6 +46,17 @@
   state.onNpcInteract = handleNpcInteract;
   state.onSign = (text) => openDialog([text]);
   state.onHealer = healAtCenter;
+  state.onHidden = (entry, id) => {
+    const it = window.PR_ITEMS && window.PR_ITEMS.ITEMS[entry.item];
+    if (!it) return;
+    if (window.PR_ITEMS) window.PR_ITEMS.add(state, entry.item, entry.count || 1);
+    if (!state.player.foundItems) state.player.foundItems = new Set();
+    state.player.foundItems.add(id);
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    openDialog(['You found ' + (entry.count || 1) + ' ' + it.name + '!'], () => {
+      window.PR_SAVE.save && window.PR_SAVE.save(state);
+    });
+  };
   state.onAmbient = (amb) => {
     const sp = window.PR_DATA.CREATURES[amb.species];
     const name = (sp && sp.name) || 'Creature';
@@ -933,6 +944,7 @@
     applySettings();
     state.dex = { seen: new Set(data.dexSeen || []), caught: new Set(data.dexCaught || []) };
     ensureDex();
+    state.player.foundItems = new Set(data.foundItems || []);
     state.activeSlot = (data._slot|0) || 0;
     state.world = new window.PR_WORLD.World(state);
   }

@@ -194,6 +194,11 @@ const MAPS = {
       { species:'glimkit',     minL:3, maxL:5, weight:1 },
       { species:'geistmite',   minL:3, maxL:5, weight:1 }
     ],
+    hidden: {
+      '14,14': { item:'potion',     count:1 },
+      '15,2':  { item:'rodball',    count:2 },
+      '4,11':  { item:'antidote',   count:1 }
+    },
     edges: {
       north: { y:0,  to:'rodport',  tx:7, ty:16 },
       south: { y:16, to:'brindale', tx:7, ty:1 }
