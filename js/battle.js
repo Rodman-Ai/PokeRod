@@ -173,7 +173,20 @@
   };
 
   Battle.prototype.queueTurn = function(myMove) {
-    const foeMove = pickFoeMove(this.foe);
+    // Trainer AI: spend one super-potion when foe is below 30% HP.
+    if (this.trainer && !this._trainerItemUsed && this.foe.hp > 0
+        && (this.foe.hp / this.foe.stats.hp) < 0.30) {
+      this._trainerItemUsed = true;
+      const heal = Math.min(this.foe.stats.hp, this.foe.hp + 50);
+      const before = this.foe.hp;
+      this.foe.hp = heal;
+      this.queue('Trainer used SUPER POTION!');
+      this.queue('Foe ' + this.foe.nickname + ' recovered ' + (heal - before) + ' HP.');
+      this.phase = 'message';
+      this.afterMessages = () => { this.phase = 'menu'; this.selection = 0; };
+      return;
+    }
+    const foeMove = pickFoeMove(this.foe, this.me);
     const myPriority = (window.PR_DATA.MOVES[myMove.id].priority || 0);
     const foePriority = (window.PR_DATA.MOVES[foeMove.id].priority || 0);
     const meSpeed = effectiveSpeed(this.me);
@@ -200,10 +213,33 @@
     return 2 / (2 - s);
   }
 
-  function pickFoeMove(foe) {
+  function pickFoeMove(foe, defender) {
     const usable = foe.moves.filter(m => m.pp > 0);
     const pool = usable.length ? usable : foe.moves;
-    return pool[Math.floor(Math.random() * pool.length)];
+    if (!defender || Math.random() < 0.15) {
+      // 15% pure-random for variety / wild creatures.
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    // Score every move by best-case damage (or status utility).
+    let best = pool[0], bestScore = -1;
+    for (const m of pool) {
+      const def = window.PR_DATA.MOVES[m.id];
+      if (!def) continue;
+      let score = 0;
+      if (def.kind === 'status') {
+        // Status moves are useful early and against full-health targets.
+        score = (defender.hp === defender.stats.hp) ? 35 : 5;
+        if (def.sleepChance && !defender.status) score += 25;
+        if (def.confuseChance && !defender.confusionTurns) score += 20;
+      } else {
+        const r = window.PR_DATA.calcDamage(foe, defender, def, false);
+        score = r ? r.dmg : 0;
+        if (r && r.eff > 1) score += 10;
+        if (r && r.eff < 1) score -= 5;
+      }
+      if (score > bestScore) { bestScore = score; best = m; }
+    }
+    return best;
   }
 
   Battle.prototype.updateTurn = function(dt) {
@@ -531,7 +567,7 @@
     } else {
       // Foe gets a free turn after swap.
       this.afterMessages = () => {
-        const foeMove = pickFoeMove(this.foe);
+        const foeMove = pickFoeMove(this.foe, this.me);
         this.turnOrder = ['foe'];
         this.turnMoves = { foe: foeMove };
         this.turnStep = 0;
@@ -555,7 +591,7 @@
       this.phase = 'message';
       this.afterMessages = () => {
         // Foe gets a free turn.
-        const foeMove = pickFoeMove(this.foe);
+        const foeMove = pickFoeMove(this.foe, this.me);
         this.turnOrder = ['foe'];
         this.turnMoves = { foe: foeMove };
         this.turnStep = 0;
@@ -589,7 +625,7 @@
       this.queue(text);
       this.phase = 'message';
       this.afterMessages = () => {
-        const foeMove = pickFoeMove(this.foe);
+        const foeMove = pickFoeMove(this.foe, this.me);
         this.turnOrder = ['foe'];
         this.turnMoves = { foe: foeMove };
         this.turnStep = 0;
