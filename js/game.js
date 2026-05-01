@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.0';
-  const BUILD = '2026.05.01-8';
+  const VERSION = 'v0.8.1';
+  const BUILD = '2026.05.01-9';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -73,10 +73,12 @@
         else alert(VERSION + ' · ' + BUILD + '\n(no error captured)');
       });
     }
+    ensureSettings();
     const has = window.PR_SAVE.exists();
     if (has) document.getElementById('btn-continue').hidden = false;
     const unlock = () => {
       window.PR_AUDIO && window.PR_AUDIO.unlock();
+      applySettings();
       if (state.mode === 'title') window.PR_MUSIC && window.PR_MUSIC.play('title');
     };
     const startFromTitle = (preferContinue) => {
@@ -139,6 +141,9 @@
     state.party = data.party || [];
     state.flags = data.flags || { starterChosen:false };
     state.defeatedTrainers = new Set(data.defeatedTrainers || []);
+    if (data.settings) state.settings = Object.assign({}, SETTINGS_DEFAULTS, data.settings);
+    ensureSettings();
+    applySettings();
     state.world = new window.PR_WORLD.World(state);
     state.mode = 'overworld';
     showOverlay(false);
@@ -193,6 +198,7 @@
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'menu') updateMenu();
     else if (state.mode === 'map') updateWorldMap();
+    else if (state.mode === 'settings') updateSettings();
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -216,6 +222,7 @@
     if (state.mode === 'dialog') drawDialog();
     else if (state.mode === 'menu') drawMenu();
     else if (state.mode === 'map') drawWorldMap();
+    else if (state.mode === 'settings') drawSettings();
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -570,7 +577,7 @@
 
   // ---------- Pause menu ----------
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','PARTY','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','PARTY','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
@@ -592,6 +599,8 @@
         m.viewing = 'party';
       } else if (opt === 'MAP') {
         openWorldMap();
+      } else if (opt === 'SETTINGS') {
+        openSettings();
       }
     }
   }
@@ -614,6 +623,90 @@
     }
     window.PR_UI.drawText(ctx, '$' + state.player.money, x + 4, y + h - 10, '#202020');
   }
+  // ---------- Settings ----------
+  const SETTINGS_DEFAULTS = {
+    sfxVol: 'med',     // off | low | med | high
+    musicVol: 'med',
+    textSpeed: 'normal', // slow | normal | fast
+    reducedMotion: false,
+    colorblind: false
+  };
+  const VOL_STEPS = ['off','low','med','high'];
+  const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
+  const TEXT_SPEED_STEPS = ['slow','normal','fast'];
+
+  function ensureSettings() {
+    if (!state.settings) state.settings = Object.assign({}, SETTINGS_DEFAULTS);
+    for (const k of Object.keys(SETTINGS_DEFAULTS)) {
+      if (state.settings[k] === undefined) state.settings[k] = SETTINGS_DEFAULTS[k];
+    }
+  }
+
+  function applySettings() {
+    ensureSettings();
+    const A = window.PR_AUDIO && window.PR_AUDIO._internal;
+    if (A) {
+      if (A.sfxGain)   A.sfxGain.gain.value   = VOL_VALUES[state.settings.sfxVol];
+      if (A.musicGain) A.musicGain.gain.value = VOL_VALUES[state.settings.musicVol] * 0.6;
+    }
+    window.PR_SETTINGS = state.settings;
+  }
+
+  function openSettings() {
+    ensureSettings();
+    state.settingsView = { idx: 0 };
+    state.mode = 'settings';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+
+  const SETTINGS_ROWS = [
+    { key:'sfxVol',        label:'SFX VOLUME',   type:'enum', steps:VOL_STEPS },
+    { key:'musicVol',      label:'MUSIC VOLUME', type:'enum', steps:VOL_STEPS },
+    { key:'textSpeed',     label:'TEXT SPEED',   type:'enum', steps:TEXT_SPEED_STEPS },
+    { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
+    { key:'colorblind',    label:'COLOR-BLIND', type:'bool' }
+  ];
+
+  function updateSettings() {
+    const I = window.PR_INPUT;
+    const v = state.settingsView;
+    if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % SETTINGS_ROWS.length; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + SETTINGS_ROWS.length - 1) % SETTINGS_ROWS.length; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('x')) { state.settingsView = null; state.mode = 'menu'; return; }
+    const row = SETTINGS_ROWS[v.idx];
+    const cycle = (delta) => {
+      if (row.type === 'bool') state.settings[row.key] = !state.settings[row.key];
+      else {
+        const i = row.steps.indexOf(state.settings[row.key]);
+        const next = (i + delta + row.steps.length) % row.steps.length;
+        state.settings[row.key] = row.steps[next];
+      }
+      applySettings();
+      window.PR_SAVE.save && window.PR_SAVE.save(state);
+      window.PR_SFX && window.PR_SFX.play('confirm');
+    };
+    if (I.consumePressed('ArrowRight') || I.consumePressed('z')) cycle(1);
+    if (I.consumePressed('ArrowLeft'))  cycle(-1);
+  }
+
+  function drawSettings() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, 'SETTINGS', x + 8, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    for (let i = 0; i < SETTINGS_ROWS.length; i++) {
+      const row = SETTINGS_ROWS[i];
+      const cy = y + 22 + i * 16;
+      if (i === state.settingsView.idx) window.PR_UI.drawText(ctx, '>', x + 4, cy, '#e83838');
+      window.PR_UI.drawText(ctx, row.label, x + 12, cy, '#202020');
+      let val;
+      if (row.type === 'bool') val = state.settings[row.key] ? 'ON' : 'OFF';
+      else val = (state.settings[row.key] || '').toUpperCase();
+      window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 78, cy, '#385890');
+    }
+    window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
+  }
+
   // ---------- World map + warp ----------
   // Linear chain of towns with their connecting routes. Spawn coords
   // are tiles already known walkable from each town's south-side door.

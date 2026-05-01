@@ -20,6 +20,7 @@
         },
         party: state.party,
         flags: state.flags,
+        settings: state.settings,
         defeatedTrainers: Array.from(state.defeatedTrainers || [])
       };
       localStorage.setItem(KEY, JSON.stringify(data));

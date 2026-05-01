@@ -379,7 +379,8 @@
     let bobY = 0, walkFrame = 0;
     if (this.anim.moving) {
       const p = Math.min(1, this.anim.t / this.anim.duration);
-      bobY = -Math.round(Math.sin(p * Math.PI));
+      const reduced = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+      bobY = reduced ? 0 : -Math.round(Math.sin(p * Math.PI));
       walkFrame = this.frame ^ (p > 0.5 ? 1 : 0);
     }
     window.PR_CHARS.drawPlayer(ctx, px.x - camX, (px.y - camY) + bobY, this.player.dir, walkFrame);
