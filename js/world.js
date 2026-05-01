@@ -164,6 +164,7 @@
     this.justEntered = true;
     this._initAmbient();
     if (this.state.onMapChange) this.state.onMapChange();
+    if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('mapchange');
   };
 
   World.prototype.tryInteract = function() {

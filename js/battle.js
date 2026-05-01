@@ -625,6 +625,7 @@
     if (shakes >= 4) {
       window.PR_SFX && window.PR_SFX.play('catch');
       if (window.PR_DEX) window.PR_DEX.markCaught(this.foe.species);
+      if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('catch');
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) {
         this.state.party.push(this.foe);

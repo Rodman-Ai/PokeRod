@@ -27,7 +27,8 @@
       dexSeen: state.dex ? Array.from(state.dex.seen || []) : [],
       dexCaught: state.dex ? Array.from(state.dex.caught || []) : [],
       foundItems: state.player.foundItems ? Array.from(state.player.foundItems) : [],
-      box: state.box || []
+      box: state.box || [],
+      quests: state.quests || {}
     };
   }
 

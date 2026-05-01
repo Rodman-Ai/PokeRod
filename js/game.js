@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.11';
-  const BUILD = '2026.05.01-19';
+  const VERSION = 'v0.8.12';
+  const BUILD = '2026.05.01-20';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -210,6 +210,7 @@
     else if (state.mode === 'bag') updateBag();
     else if (state.mode === 'bagtarget') updateBagTarget();
     else if (state.mode === 'box') updateBox();
+    else if (state.mode === 'quests') updateQuests();
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -239,6 +240,7 @@
     else if (state.mode === 'bag') drawBag();
     else if (state.mode === 'bagtarget') drawBagTarget();
     else if (state.mode === 'box') drawBox();
+    else if (state.mode === 'quests') drawQuests();
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -597,7 +599,7 @@
 
   // ---------- Pause menu ----------
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','BOX','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','BOX','QUEST','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
@@ -625,6 +627,8 @@
         openBag('overworld');
       } else if (opt === 'BOX') {
         openBox();
+      } else if (opt === 'QUEST') {
+        openQuests();
       }
     }
   }
@@ -730,6 +734,59 @@
     }
     window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
   }
+
+  // ---------- Quests ----------
+  function openQuests() {
+    if (window.PR_QUESTS) window.PR_QUESTS.ensure(state);
+    state.questsView = { idx: 0 };
+    state.mode = 'quests';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+  function updateQuests() {
+    const I = window.PR_INPUT;
+    const v = state.questsView;
+    const list = window.PR_QUESTS ? window.PR_QUESTS.list(state) : [];
+    if (I.consumePressed('ArrowDown') && list.length) v.idx = (v.idx + 1) % list.length;
+    if (I.consumePressed('ArrowUp')   && list.length) v.idx = (v.idx + list.length - 1) % list.length;
+    if (I.consumePressed('x')) { state.questsView = null; state.mode = 'menu'; }
+  }
+  function drawQuests() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, 'QUESTS', x + 6, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    const list = window.PR_QUESTS ? window.PR_QUESTS.list(state) : [];
+    if (!list.length) {
+      window.PR_UI.drawText(ctx, 'No quests yet.', x + 8, y + 30, '#806040');
+      return;
+    }
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i];
+      const cy = y + 22 + i * 18;
+      if (i === state.questsView.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 2, w - 8, 18); }
+      const mark = e.status === 'done' ? '*' : '.';
+      window.PR_UI.drawText(ctx, mark + ' ' + e.def.name, x + 8, cy, e.status === 'done' ? '#208830' : '#202020');
+      window.PR_UI.drawText(ctx, e.def.desc.slice(0, 36), x + 8, cy + 8, '#806040');
+    }
+  }
+
+  function tickQuests(triggerName) {
+    if (!window.PR_QUESTS) return;
+    const completed = window.PR_QUESTS.tick(state);
+    for (const q of completed) {
+      window.PR_SFX && window.PR_SFX.play('levelup');
+      if (q.reward && window.PR_ITEMS) {
+        window.PR_ITEMS.add(state, q.reward.item, q.reward.count || 1);
+      }
+      const rewardName = q.reward && window.PR_ITEMS && window.PR_ITEMS.ITEMS[q.reward.item]
+        ? window.PR_ITEMS.ITEMS[q.reward.item].name : '';
+      const lines = ['QUEST CLEARED: ' + q.name];
+      if (rewardName) lines.push('Got ' + (q.reward.count || 1) + ' ' + rewardName + '!');
+      openDialog(lines, () => window.PR_SAVE.save && window.PR_SAVE.save(state));
+    }
+  }
+  window.PR_GAME = window.PR_GAME || {};
+  window.PR_GAME.tickQuests = tickQuests;
 
   // ---------- PC storage box ----------
   function ensureBox() {
@@ -1030,6 +1087,8 @@
     ensureDex();
     state.player.foundItems = new Set(data.foundItems || []);
     state.box = data.box || [];
+    state.quests = data.quests || {};
+    if (window.PR_QUESTS) window.PR_QUESTS.ensure(state);
     state.activeSlot = (data._slot|0) || 0;
     state.world = new window.PR_WORLD.World(state);
   }
