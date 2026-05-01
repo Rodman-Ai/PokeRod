@@ -168,14 +168,25 @@
     if (!t) return;
     const ctx = A.ctx;
     if (!ctx) return;
-    const dest = A.musicGain;
+    // Route this session's tones through a per-session gain so we can
+    // instantly silence already-scheduled oscillators when switching
+    // tracks. Without this, the old track's queued tones keep playing
+    // for up to a full loop length after stop(), producing two-track
+    // overlap.
+    const sessionGain = ctx.createGain();
+    sessionGain.gain.value = 1;
+    sessionGain.connect(A.musicGain);
+    const dest = sessionGain;
     let nextStart = ctx.currentTime + 0.05;
     let stopped = false;
 
     const beatsPerBar = 4;
     const totalBeats = t.bars * beatsPerBar;
     const loopSec = totalBeats * t.beat;
-    if (!isFinite(loopSec) || loopSec <= 0) return;
+    if (!isFinite(loopSec) || loopSec <= 0) {
+      try { sessionGain.disconnect(); } catch (_) {}
+      return;
+    }
 
     function schedule(t0) {
       // Lead.
@@ -202,14 +213,10 @@
 
     function loop() {
       if (stopped) return;
-      // If audio is suspended (iOS still gating it), skip scheduling
-      // and try again shortly after the next user gesture.
       if (ctx.state !== 'running') {
         stopFn._t = setTimeout(loop, 250);
         return;
       }
-      // Don't let nextStart drift into the past, which would cause
-      // a tight setTimeout(0) loop and freeze the main thread.
       if (nextStart < ctx.currentTime) nextStart = ctx.currentTime + 0.05;
       try { schedule(nextStart); }
       catch (err) { console.error('[PokeRod] music schedule error:', err); stopped = true; return; }
@@ -218,7 +225,21 @@
       stopFn._t = setTimeout(loop, ms);
     }
 
-    stopFn = function(){ stopped = true; if (stopFn._t) clearTimeout(stopFn._t); };
+    stopFn = function(){
+      stopped = true;
+      if (stopFn._t) clearTimeout(stopFn._t);
+      // Fade the session out fast (40 ms) then disconnect so any
+      // already-scheduled oscillators that haven't fired stop being
+      // audible. We can't cancel queued osc.start() events directly,
+      // but cutting the gain silences them.
+      try {
+        const now = ctx.currentTime;
+        sessionGain.gain.cancelScheduledValues(now);
+        sessionGain.gain.setValueAtTime(sessionGain.gain.value, now);
+        sessionGain.gain.linearRampToValueAtTime(0, now + 0.04);
+        setTimeout(() => { try { sessionGain.disconnect(); } catch (_) {} }, 200);
+      } catch (_) {}
+    };
     loop();
     activeTrack = name;
   }
