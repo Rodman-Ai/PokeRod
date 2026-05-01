@@ -210,18 +210,19 @@ const MAPS = {
       'T..,...RRR........,T',
       'T..,...BDB........,T',
       'T..,...,,,........,T',
-      'T..S..............,T',
-      'T..,..............,T',
-      'T..,..............,T',
-      'T..,,,,,,,,,,,,,,,,T',
-      'TTTTTTTTTTTTTTTTTTTT'
+      'T..S..,,,,,,,,,,,,,T',
+      'T..,..,...........,T',
+      'T..,..,...........,T',
+      'T..,,,,...........,T',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
       { x:14, y:7, dir:'down', sprite:'npc_girl', name:'TOWNSFOLK',
         dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left heals your team for free.","The MART on the right sells useful items."] }
     ],
     signs: {
-      '3,12': "BRINDALE TOWN — Gateway to the highlands."
+      '3,12': "BRINDALE TOWN - Gateway to the highlands."
     },
     doors: {
       '5,5':  { to:'pokecenter', x:4, y:6 },
@@ -229,7 +230,8 @@ const MAPS = {
       '8,10': { to:'townhouse',  x:3, y:6 }
     },
     edges: {
-      north: { y:0, to:'route1', tx:7, ty:16 }
+      north: { y:0,  to:'route1', tx:7, ty:16 },
+      south: { y:17, to:'route2', tx:7, ty:1 }
     }
   },
 
@@ -294,6 +296,618 @@ const MAPS = {
     doors: {
       '3,6': { to:'brindale', x:8, y:11 }
     }
+  },
+
+  route2: {
+    id:'route2', name:'Route 2',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T......,,..........T',
+      'T...:::,,:::.......T',
+      'T..::::,,::::....S.T',
+      'T...:::,,:::.......T',
+      'T..::::,,::::......T',
+      'T...:::,,:::.......T',
+      'T..::::,,:::.......T',
+      'T...:::,,:::.......T',
+      'T....::,,::........T',
+      'T...:::,,:::.......T',
+      'T..::::,,:::.......T',
+      'T...:::,,:::.......T',
+      'T......,,..........T',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:6, y:8, dir:'right', sprite:'npc_youth', name:'CAMPER MEL',
+        dialog:["Heading north already?","Not before you battle me!"],
+        trainer: { team:[['cinderpup',6],['fernsprout',6]], reward:280,
+                   defeat:["Whew, you're tough.","Good luck up the path!"] } }
+    ],
+    signs: {
+      '16,4': "ROUTE 2 - The grass thickens. Keep your team ready."
+    },
+    encounters: [
+      { species:'flitwing',    minL:4, maxL:7, weight:4 },
+      { species:'nibblet',     minL:4, maxL:7, weight:4 },
+      { species:'cinderpup',   minL:5, maxL:8, weight:2 },
+      { species:'fernsprout',  minL:5, maxL:8, weight:2 },
+      { species:'bumblesting', minL:4, maxL:7, weight:3 }
+    ],
+    edges: {
+      north: { y:0,  to:'brindale', tx:7, ty:16 },
+      south: { y:16, to:'woodfall', tx:7, ty:1 }
+    }
+  },
+
+  woodfall: {
+    id:'woodfall', name:'Woodfall Village',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T......,,..........T',
+      'T..PPPP...MMMM.....T',
+      'T..PPPP...MMMM.....T',
+      'T..BBDB...BBDB.....T',
+      'T..,,,,...,,,,.....T',
+      'T..,..............,T',
+      'T..S..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,,,,,,,,,,,,,,,,T',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:14, y:8, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
+        dialog:["Welcome to WOODFALL.","South of here, the trees thicken into PEBBLEWOOD.","Bring a torch... or a creature with bright eyes!"] }
+    ],
+    signs: {
+      '3,8': "WOODFALL VILLAGE - Where the woods begin."
+    },
+    doors: {
+      '5,5':  { to:'woodfall_center', x:4, y:6 },
+      '12,5': { to:'woodfall_mart',   x:4, y:6 }
+    },
+    edges: {
+      north: { y:0,  to:'route2',     tx:7, ty:15 },
+      south: { y:17, to:'pebblewood', tx:7, ty:1 }
+    }
+  },
+
+  woodfall_center: {
+    id:'woodfall_center', name:'PokeRod Center', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCHCFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE PIPPA',
+        dialog:["Welcome to the WOODFALL CENTER!","Step up and I'll heal your team."],
+        healer:true }
+    ],
+    doors: { '4,7': { to:'woodfall', x:5, y:6 } }
+  },
+
+  woodfall_mart: {
+    id:'woodfall_mart', name:'PokeRod Mart', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCCFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+        dialog:["Welcome to the MART!","We're still stocking shelves - come back later."] }
+    ],
+    doors: { '4,7': { to:'woodfall', x:12, y:6 } }
+  },
+
+  pebblewood: {
+    id:'pebblewood', name:'Pebblewood Forest',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T:::T:T,,T:T::T::TTT',
+      'T::::TT,,TT::T:::TTT',
+      'T:T:::T,,T::::T:::TT',
+      'T::::TT,,TT::T:::TTT',
+      'T:::T:T,,T::::::T:TT',
+      'T::T:TT,,TT:T:::::TT',
+      'T:::::T,,T::::T:::TT',
+      'T::T::T,,T:T::::T::T',
+      'T::::TT,,TT::T:T:::T',
+      'T:T:::T,,T::T:::::TT',
+      'T::::TT,,TT::T:::T:T',
+      'T::T::T,,T:T::T:T::T',
+      'T:::::T,,T::::::T::T',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:14, y:6, dir:'left', sprite:'npc_youth', name:'BUG-FAN ARI',
+        dialog:["Bugs are the BEST POKEROD.","I'll prove it in battle!"],
+        trainer: { team:[['crawlbug',8],['bumblesting',8]], reward:360,
+                   defeat:["Bugs are still the best though!","...probably."] } }
+    ],
+    signs: {},
+    encounters: [
+      { species:'crawlbug',    minL:6, maxL:9,  weight:5 },
+      { species:'bumblesting', minL:7, maxL:10, weight:4 },
+      { species:'sproutling',  minL:6, maxL:9,  weight:3 },
+      { species:'fernsprout',  minL:7, maxL:10, weight:3 },
+      { species:'glimkit',     minL:8, maxL:11, weight:1 }
+    ],
+    edges: {
+      north: { y:0,  to:'woodfall',  tx:7, ty:16 },
+      south: { y:16, to:'crestrock', tx:7, ty:1 }
+    }
+  },
+
+  crestrock: {
+    id:'crestrock', name:'Crestrock Town',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T......,,..........T',
+      'T..PPPP...MMMM.....T',
+      'T..PPPP...MMMM.....T',
+      'T..BBDB...BBDB.....T',
+      'T..,,,,...,,,,.....T',
+      'T..,..............,T',
+      'T..S..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,,,,,,,,,,,,,,,,T',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:14, y:8, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
+        dialog:["Welcome to CRESTROCK.","South of here lies GLIMCAVERN.","Bring along an electric or fire creature - the dark inside is no joke."] }
+    ],
+    signs: {
+      '3,8': "CRESTROCK TOWN - Mountain gateway."
+    },
+    doors: {
+      '5,5':  { to:'crestrock_center', x:4, y:6 },
+      '12,5': { to:'crestrock_mart',   x:4, y:6 }
+    },
+    edges: {
+      north: { y:0,  to:'pebblewood', tx:7, ty:15 },
+      south: { y:17, to:'glimcavern', tx:7, ty:1 }
+    }
+  },
+
+  crestrock_center: {
+    id:'crestrock_center', name:'PokeRod Center', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCHCFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE QUILL',
+        dialog:["CRESTROCK CENTER welcomes you.","Let me look after your team."],
+        healer:true }
+    ],
+    doors: { '4,7': { to:'crestrock', x:5, y:6 } }
+  },
+
+  crestrock_mart: {
+    id:'crestrock_mart', name:'PokeRod Mart', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCCFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+        dialog:["Climbing the highlands?","Stock up next time we have shelves."] }
+    ],
+    doors: { '4,7': { to:'crestrock', x:12, y:6 } }
+  },
+
+  glimcavern: {
+    id:'glimcavern', name:'Glimcavern',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'TssssssTssTsssssssTT',
+      'Ts:::sTsssTs::ssssTT',
+      'Tss::ssssssss::sssTT',
+      'TssssTsTssTsssTsssTT',
+      'Ts::ssssssssss::ssTT',
+      'TssssTsssTsssssssTTT',
+      'Ts::sssTssss:::sssTT',
+      'TsssssTssssTsssssTTT',
+      'Ts::ssssssss:::ssTTT',
+      'TssssTsTssTsssssssTT',
+      'Ts:::ssssss::ssssTTT',
+      'TssssTssssTssTsssTTT',
+      'TssssssTssTsssssssTT',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:6, y:8, dir:'right', sprite:'npc_youth', name:'SPELUNKER GUS',
+        dialog:["I came down here looking for crystals.","Found a fight instead!"],
+        trainer: { team:[['pebra',12],['geistmite',12]], reward:520,
+                   defeat:["Bah! The dark always wins, eventually."] } }
+    ],
+    encounters: [
+      { species:'pebra',     minL:10, maxL:14, weight:5 },
+      { species:'geistmite', minL:10, maxL:14, weight:4 },
+      { species:'cavewing',  minL:10, maxL:14, weight:4 },
+      { species:'stoneworm', minL:11, maxL:15, weight:3 },
+      { species:'crysthorn', minL:12, maxL:15, weight:1 }
+    ],
+    edges: {
+      north: { y:0,  to:'crestrock', tx:7, ty:16 },
+      south: { y:16, to:'frostmere', tx:7, ty:1 }
+    }
+  },
+
+  frostmere: {
+    id:'frostmere', name:'Frostmere Town',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T......,,..........T',
+      'T..PPPP...MMMM.....T',
+      'T..PPPP...MMMM.....T',
+      'T..BBDB...BBDB.....T',
+      'T..,,,,...,,,,.....T',
+      'T..,..............,T',
+      'T..S..............,T',
+      'T..,......WWWW....,T',
+      'T..,......WWWW....,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,,,,,,,,,,,,,,,,T',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:14, y:8, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
+        dialog:["FROSTMERE is built around a frozen lake.","Beyond, the FROSTPEAK rises into white silence."] }
+    ],
+    signs: {
+      '3,8': "FROSTMERE TOWN - The lake never thaws."
+    },
+    doors: {
+      '5,5':  { to:'frostmere_center', x:4, y:6 },
+      '12,5': { to:'frostmere_mart',   x:4, y:6 }
+    },
+    edges: {
+      north: { y:0,  to:'glimcavern', tx:7, ty:15 },
+      south: { y:17, to:'frostpeak',  tx:7, ty:1 }
+    }
+  },
+
+  frostmere_center: {
+    id:'frostmere_center', name:'PokeRod Center', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCHCFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE FERN',
+        dialog:["FROSTMERE CENTER, at your service.","A warm corner for cold travelers."],
+        healer:true }
+    ],
+    doors: { '4,7': { to:'frostmere', x:5, y:6 } }
+  },
+
+  frostmere_mart: {
+    id:'frostmere_mart', name:'PokeRod Mart', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCCFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+        dialog:["Bundle up. The mountain past here is unforgiving."] }
+    ],
+    doors: { '4,7': { to:'frostmere', x:12, y:6 } }
+  },
+
+  frostpeak: {
+    id:'frostpeak', name:'Frostpeak',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T:::::T,,T::::::::TT',
+      'T:::TTT,,T:::::TT::T',
+      'T:::::T,,T:T::::::TT',
+      'T:T:::T,,T::::TT::TT',
+      'T:::::T,,T::T::::::T',
+      'T:::TTT,,T:::::::TTT',
+      'T:::::T,,T:T:::::::T',
+      'T:T:::T,,T::::TT:::T',
+      'T:::::T,,T::T::::TTT',
+      'T:::TTT,,T:::::::TTT',
+      'T:::::T,,T:T::::::TT',
+      'T:T:::T,,T::::TT:::T',
+      'T:::::T,,T::::::::TT',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:14, y:6, dir:'left', sprite:'npc_old', name:'CLIMBER VAL',
+        dialog:["The wind up here cuts to the bone.","Show me your strongest!"],
+        trainer: { team:[['frostpup',16],['snowox',16]], reward:760,
+                   defeat:["Aye... the slope respects your team."] } }
+    ],
+    encounters: [
+      { species:'frostpup',  minL:14, maxL:18, weight:5 },
+      { species:'snowox',    minL:14, maxL:18, weight:3 },
+      { species:'glimkit',   minL:14, maxL:18, weight:3 },
+      { species:'crysthorn', minL:15, maxL:19, weight:2 },
+      { species:'galewing',  minL:14, maxL:18, weight:3 }
+    ],
+    edges: {
+      north: { y:0,  to:'frostmere',  tx:7, ty:16 },
+      south: { y:16, to:'harborside', tx:7, ty:1 }
+    }
+  },
+
+  harborside: {
+    id:'harborside', name:'Harborside Town',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T......,,..........T',
+      'T..PPPP...MMMM.....T',
+      'T..PPPP...MMMM.....T',
+      'T..BBDB...BBDB.....T',
+      'T..,,,,...,,,,.....T',
+      'T..,...........WWWWW',
+      'T..S...........WWWWW',
+      'T..,...........WWWWW',
+      'T..,...........WWWWW',
+      'T..,...........WWWWW',
+      'T..,...........WWWWW',
+      'T..,...........WWWWW',
+      'T..,...........WWWWW',
+      'T..,,,,,,,,,,,,,,,,T',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:9, y:9, dir:'right', sprite:'npc_youth', name:'DOCKHAND TEO',
+        dialog:["HARBORSIDE - last stop before the SEAROUTE.","If your creatures love the water, you'll fit right in."] }
+    ],
+    signs: {
+      '3,8': "HARBORSIDE TOWN - The salt never sleeps."
+    },
+    doors: {
+      '5,5':  { to:'harborside_center', x:4, y:6 },
+      '12,5': { to:'harborside_mart',   x:4, y:6 }
+    },
+    edges: {
+      north: { y:0,  to:'frostpeak', tx:7, ty:15 },
+      south: { y:17, to:'searoute',  tx:7, ty:1 }
+    }
+  },
+
+  harborside_center: {
+    id:'harborside_center', name:'PokeRod Center', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCHCFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE MARLO',
+        dialog:["HARBORSIDE CENTER.","Tides come and go - but healing is always free."],
+        healer:true }
+    ],
+    doors: { '4,7': { to:'harborside', x:5, y:6 } }
+  },
+
+  harborside_mart: {
+    id:'harborside_mart', name:'PokeRod Mart', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCCFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+        dialog:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."] }
+    ],
+    doors: { '4,7': { to:'harborside', x:12, y:6 } }
+  },
+
+  searoute: {
+    id:'searoute', name:'Searoute',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'WWWWWWW,,WWWWWWWWWWW',
+      'Wsssss,,,,sssssssWWW',
+      'Wss::s,,,,sss::sssWW',
+      'Wsssss,,,,ssssssssWW',
+      'Ws::ss,,,,sss::ssWWW',
+      'Wsssss,,,,sssssssWWW',
+      'Wss::s,,,,ssssssssWW',
+      'Wsssss,,,,sss::ssWWW',
+      'Wss::s,,,,sssssssWWW',
+      'Wsssss,,,,ssssssssWW',
+      'Ws::ss,,,,sss::ssWWW',
+      'Wsssss,,,,sssssssWWW',
+      'Wss::s,,,,ssssssssWW',
+      'Wsssss,,,,sss::ssWWW',
+      'WWWWWWW,,WWWWWWWWWWW',
+      'XXXXXXX,,XXXXXXXXXXX'
+    ],
+    npcs: [
+      { x:14, y:8, dir:'left', sprite:'npc_youth', name:'FISHER LIL',
+        dialog:["Hey there, traveler!","Care to test the salty waves?"],
+        trainer: { team:[['mistfin',20],['aquapup',20],['splashfin',20]], reward:1100,
+                   defeat:["The tide always returns. So will I."] } }
+    ],
+    encounters: [
+      { species:'splashfin', minL:18, maxL:22, weight:5 },
+      { species:'mistfin',   minL:18, maxL:22, weight:4 },
+      { species:'aquapup',   minL:18, maxL:22, weight:3 },
+      { species:'galewing',  minL:18, maxL:22, weight:2 },
+      { species:'cavewing',  minL:18, maxL:22, weight:2 }
+    ],
+    edges: {
+      north: { y:0,  to:'harborside', tx:7, ty:16 },
+      south: { y:16, to:'summitvale', tx:7, ty:1 }
+    }
+  },
+
+  summitvale: {
+    id:'summitvale', name:'Summitvale',
+    tiles: [
+      'XXXXXXX,,XXXXXXXXXXX',
+      'TTTTTTT,,TTTTTTTTTTT',
+      'T......,,..........T',
+      'T..PPPP...MMMM.....T',
+      'T..PPPP...MMMM.....T',
+      'T..BBDB...BBDB.....T',
+      'T..,,,,...,,,,.....T',
+      'T..,..............,T',
+      'T..S..............,T',
+      'T..,......RRRR....,T',
+      'T..,......RRRR....,T',
+      'T..,......BBDB....,T',
+      'T..,......,,,,....,T',
+      'T..,..............,T',
+      'T..,..............,T',
+      'T..,,,,,,,,,,,,,,,,T',
+      'TTTTTTTTTTTTTTTTTTTT',
+      'TTTTTTTTTTTTTTTTTTTT'
+    ],
+    npcs: [
+      { x:14, y:8, dir:'down', sprite:'npc_oak', name:'CHAMPION ROWE',
+        dialog:["You climbed all the way to SUMMITVALE!","Few trainers make it this far. Rest, and tell me your tale."] }
+    ],
+    signs: {
+      '3,8': "SUMMITVALE - The road's end, for now."
+    },
+    doors: {
+      '5,5':  { to:'summitvale_center', x:4, y:6 },
+      '12,5': { to:'summitvale_mart',   x:4, y:6 },
+      '12,11':{ to:'summitvale_house',  x:3, y:6 }
+    },
+    edges: {
+      north: { y:0, to:'searoute', tx:7, ty:15 }
+    }
+  },
+
+  summitvale_center: {
+    id:'summitvale_center', name:'PokeRod Center', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCHCFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE EMBER',
+        dialog:["SUMMITVALE CENTER welcomes the brave.","Let me restore your team to peak form."],
+        healer:true }
+    ],
+    doors: { '4,7': { to:'summitvale', x:5, y:6 } }
+  },
+
+  summitvale_mart: {
+    id:'summitvale_mart', name:'PokeRod Mart', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFCCFFFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+        dialog:["You made it to the top!","One day we'll have legendary gear in stock for you."] }
+    ],
+    doors: { '4,7': { to:'summitvale', x:12, y:6 } }
+  },
+
+  summitvale_house: {
+    id:'summitvale_house', name:'House', interior:true,
+    tiles: [
+      'BBBBBBB',
+      'BFFFFFB',
+      'BFrrFFB',
+      'BFrrFFB',
+      'BFFFFFB',
+      'BFFFFFB',
+      'BBBDBBB'
+    ],
+    npcs: [
+      { x:4, y:2, dir:'down', sprite:'npc_girl', name:'TRAVELER NIA',
+        dialog:["I came from RODPORT too!","Funny how the road home is always longer than you remember."] }
+    ],
+    doors: { '3,6': { to:'summitvale', x:11, y:12 } }
   }
 };
 

@@ -26,16 +26,25 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 ## Features
 
 - Tile-based overworld with smooth movement and a follow camera
-- Two towns, a connecting route with tall-grass encounters, and interiors
-  (lab, houses, PokeRod Center, Mart)
+- Seven towns and six routes/zones from Rodport to Summitvale, with
+  interiors for lab, houses, every PokeRod Center, and every Mart
 - Turn-based battles with a 13-type chart, STAB, crits, and accuracy
 - Status effects (burn, poison, paralysis), stat stages, and priority moves
 - Party of up to 6, level-up stat gains, move learning, and evolutions
-- Wild encounters and a trainer battle on Route 1
+- Wild encounters scaled by zone and trainer battles on every route
 - Catch wild creatures with ROD BALLs
 - Heal at the PokeRod Center, save/load to localStorage
-- Mobile touch controls and responsive layout
-- 14 original creatures with procedural pixel-art sprites
+- Mobile touch controls and a handheld console skin (desktop and portrait)
+- 57 original creatures with procedural pixel-art sprites
+- Procedural Web Audio music and SFX, no audio files shipped
+
+## World
+
+```
+rodport - route1 - brindale - route2 - woodfall - pebblewood -
+crestrock - glimcavern - frostmere - frostpeak - harborside -
+searoute - summitvale
+```
 
 ## Project layout
 

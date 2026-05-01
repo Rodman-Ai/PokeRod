@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.5.0';
-  const BUILD = '2026.04.30-7';
+  const VERSION = 'v0.6.0';
+  const BUILD = '2026.05.01-1';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -28,13 +28,17 @@
     starterMenu: null
   };
 
+  // Maps that use the route (action) music. Anything else plays town.
+  const ROUTE_MAPS = new Set([
+    'route1','route2','pebblewood','glimcavern','frostpeak','searoute'
+  ]);
+
   // Wire callbacks the world will invoke.
   state.onMapChange = () => {
     if (!window.PR_MUSIC) return;
     const m = state.world && state.world.currentMap();
     if (!m) return;
-    if (m.id === 'route1') window.PR_MUSIC.play('route');
-    else if (m.interior && (m.id === 'pokecenter' || m.id === 'mart')) window.PR_MUSIC.play('town');
+    if (ROUTE_MAPS.has(m.id)) window.PR_MUSIC.play('route');
     else window.PR_MUSIC.play('town');
     window.PR_SFX && window.PR_SFX.play('door');
   };
@@ -577,7 +581,7 @@
     window.PR_SAVE.save(state);
     if (window.PR_MUSIC) {
       const m = state.world.currentMap();
-      if (m && m.id === 'route1') window.PR_MUSIC.play('route');
+      if (m && ROUTE_MAPS.has(m.id)) window.PR_MUSIC.play('route');
       else window.PR_MUSIC.play('town');
     }
   }
