@@ -581,7 +581,7 @@ const MAPS = {
       'TssssTsTssTsssTsssTT',
       'Ts::ssssssssss::ssTT',
       'TssssTsssTsssssssTTT',
-      'Ts::sssTssss:::sssTT',
+      'Ts::sssTssDs:::sssTT',
       'TsssssTssssTsssssTTT',
       'Ts::ssssssss:::ssTTT',
       'TssssTsTssTsssssssTT',
@@ -608,9 +608,49 @@ const MAPS = {
       { species:'stoneworm', minL:11, maxL:15, weight:3 },
       { species:'crysthorn', minL:12, maxL:15, weight:1 }
     ],
+    doors: {
+      '10,8': { to:'glimcavern_b1', x:10, y:1 }
+    },
     edges: {
       north: { y:0,  to:'crestrock', tx:7, ty:16 },
       south: { y:16, to:'frostmere', tx:7, ty:1 }
+    }
+  },
+
+  glimcavern_b1: {
+    id:'glimcavern_b1', name:'Glimcavern B1', interior:true,
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTT',
+      'TssssssTssDsssssssTT',
+      'Ts:::sTsssss::ssssTT',
+      'Tss:::ssssssss:sssTT',
+      'TssssTsTssTsssTsssTT',
+      'Ts::ssssssssss::ssTT',
+      'TssssTsssTsssssssTTT',
+      'Ts::sssTssss:::sssTT',
+      'TsssssTssssTsssssTTT',
+      'Ts::ssssssss:::ssTTT',
+      'TssssTsTssTsssssssTT',
+      'Ts:::ssssss::ssssTTT',
+      'TssssTssssTssTsssTTT',
+      'TssssssTssTsssssssTT',
+      'TTTTTTTTTTTTTTTTTTTT'
+    ],
+    npcs: [
+      { x:14, y:11, dir:'down', sprite:'ball', name:'',
+        legendary:true, species:'shadefox', level:28,
+        dialog:["Glowing eyes flicker in the gloom..."],
+        afterDialog:["Whatever was here is long gone."] }
+    ],
+    encounters: [
+      { species:'pebra',     minL:14, maxL:18, weight:4 },
+      { species:'geistmite', minL:14, maxL:18, weight:5 },
+      { species:'cavewing',  minL:14, maxL:18, weight:4 },
+      { species:'stoneworm', minL:14, maxL:18, weight:3 },
+      { species:'crysthorn', minL:15, maxL:19, weight:2 }
+    ],
+    doors: {
+      '10,1': { to:'glimcavern', x:10, y:9 }
     }
   },
 
