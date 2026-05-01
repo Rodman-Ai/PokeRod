@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.10';
-  const BUILD = '2026.05.01-18';
+  const VERSION = 'v0.8.11';
+  const BUILD = '2026.05.01-19';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -209,6 +209,7 @@
     else if (state.mode === 'slots') updateSlotPicker();
     else if (state.mode === 'bag') updateBag();
     else if (state.mode === 'bagtarget') updateBagTarget();
+    else if (state.mode === 'box') updateBox();
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -237,6 +238,7 @@
     else if (state.mode === 'slots') drawSlotPicker();
     else if (state.mode === 'bag') drawBag();
     else if (state.mode === 'bagtarget') drawBagTarget();
+    else if (state.mode === 'box') drawBox();
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -595,7 +597,7 @@
 
   // ---------- Pause menu ----------
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','BOX','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
@@ -621,6 +623,8 @@
         openDex();
       } else if (opt === 'BAG') {
         openBag('overworld');
+      } else if (opt === 'BOX') {
+        openBox();
       }
     }
   }
@@ -725,6 +729,85 @@
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 78, cy, '#385890');
     }
     window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
+  }
+
+  // ---------- PC storage box ----------
+  function ensureBox() {
+    if (!Array.isArray(state.box)) state.box = [];
+  }
+  // Hook battle to deposit overflow catches.
+  window.PR_BOX = {
+    deposit: (mon) => { ensureBox(); state.box.push(mon); },
+    list:    () => { ensureBox(); return state.box; }
+  };
+
+  function openBox() {
+    ensureBox();
+    state.boxView = { idx: 0, side: 'box' /* or 'party' */, action: null };
+    state.mode = 'box';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+
+  function updateBox() {
+    const I = window.PR_INPUT;
+    const v = state.boxView;
+    const list = v.side === 'box' ? state.box : state.party;
+    if (I.consumePressed('ArrowDown')) { if (list.length) v.idx = (v.idx + 1) % list.length; }
+    if (I.consumePressed('ArrowUp'))   { if (list.length) v.idx = (v.idx + list.length - 1) % list.length; }
+    if (I.consumePressed('ArrowRight') || I.consumePressed('ArrowLeft')) {
+      v.side = v.side === 'box' ? 'party' : 'box';
+      v.idx = 0;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('x')) { state.boxView = null; state.mode = 'menu'; return; }
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      // Swap selected with the first available slot on the other side.
+      if (v.side === 'box') {
+        if (state.party.length >= 6) { showFlash('PARTY FULL'); return; }
+        if (!state.box.length) return;
+        const mon = state.box.splice(v.idx, 1)[0];
+        state.party.push(mon);
+        if (v.idx >= state.box.length) v.idx = Math.max(0, state.box.length - 1);
+        showFlash('Withdrew ' + mon.nickname);
+      } else {
+        if (state.party.length <= 1) { showFlash('NEED 1 PARTY MEMBER'); return; }
+        const mon = state.party.splice(v.idx, 1)[0];
+        state.box.push(mon);
+        if (v.idx >= state.party.length) v.idx = Math.max(0, state.party.length - 1);
+        showFlash('Deposited ' + mon.nickname);
+      }
+      window.PR_SAVE.save && window.PR_SAVE.save(state);
+    }
+  }
+
+  function drawBox() {
+    ensureBox();
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, 'PC STORAGE', x + 6, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'B:BACK  L/R:SIDE', x + w - 90, y + 4, '#806040');
+
+    // Two columns: BOX | PARTY
+    const colW = (w - 16) / 2;
+    const drawList = (label, list, sx, isActive) => {
+      window.PR_UI.drawText(ctx, label + ' (' + list.length + ')', sx + 4, y + 16, isActive ? '#e83838' : '#385890');
+      for (let i = 0; i < Math.min(list.length, 6); i++) {
+        const mon = list[i];
+        const cy = y + 28 + i * 16;
+        if (isActive && i === state.boxView.idx) {
+          ctx.fillStyle = '#f0c020'; ctx.fillRect(sx, cy - 2, colW, 14);
+        }
+        if (mon) {
+          window.PR_MONS.drawCreature(ctx, mon.species, sx + 2, cy - 2, 14, false);
+          window.PR_UI.drawText(ctx, mon.nickname.slice(0, 10), sx + 18, cy, '#202020');
+          window.PR_UI.drawText(ctx, 'L' + mon.level, sx + colW - 18, cy, '#202020');
+        }
+      }
+      if (!list.length) window.PR_UI.drawText(ctx, '(empty)', sx + 4, y + 32, '#806040');
+    };
+    drawList('BOX',   state.box,   x + 6,           state.boxView.side === 'box');
+    drawList('PARTY', state.party, x + 12 + colW,   state.boxView.side === 'party');
+    window.PR_UI.drawText(ctx, 'A: SWAP', x + 8, y + h - 12, '#806040');
   }
 
   // ---------- Bag ----------
@@ -946,6 +1029,7 @@
     state.dex = { seen: new Set(data.dexSeen || []), caught: new Set(data.dexCaught || []) };
     ensureDex();
     state.player.foundItems = new Set(data.foundItems || []);
+    state.box = data.box || [];
     state.activeSlot = (data._slot|0) || 0;
     state.world = new window.PR_WORLD.World(state);
   }

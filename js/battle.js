@@ -626,8 +626,12 @@
       window.PR_SFX && window.PR_SFX.play('catch');
       if (window.PR_DEX) window.PR_DEX.markCaught(this.foe.species);
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
-      if (this.state.party.length < 6) this.state.party.push(this.foe);
-      else this.queue('It was sent to your storage box.');
+      if (this.state.party.length < 6) {
+        this.state.party.push(this.foe);
+      } else {
+        if (window.PR_BOX) window.PR_BOX.deposit(this.foe);
+        this.queue('Sent to PC STORAGE.');
+      }
       this.phase = 'message';
       this.afterMessages = () => { this.phase = 'caught'; };
     } else {

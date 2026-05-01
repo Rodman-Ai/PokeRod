@@ -26,7 +26,8 @@
       defeatedTrainers: Array.from(state.defeatedTrainers || []),
       dexSeen: state.dex ? Array.from(state.dex.seen || []) : [],
       dexCaught: state.dex ? Array.from(state.dex.caught || []) : [],
-      foundItems: state.player.foundItems ? Array.from(state.player.foundItems) : []
+      foundItems: state.player.foundItems ? Array.from(state.player.foundItems) : [],
+      box: state.box || []
     };
   }
 
