@@ -362,6 +362,28 @@
     tickStatus(this.me);
     tickStatus(this.foe);
 
+    // Held berry triggers.
+    const tickBerry = (mon) => {
+      if (!mon || mon.hp <= 0 || !mon.held) return;
+      const I = window.PR_ITEMS && window.PR_ITEMS.ITEMS[mon.held];
+      if (!I || !I.berry) return;
+      let triggered = false;
+      if (I.heal && mon.hp / mon.stats.hp < I.atRatio) {
+        const before = mon.hp;
+        mon.hp = Math.min(mon.stats.hp, mon.hp + I.heal);
+        this.queue(mon.nickname + ' ate its ' + I.name + '!');
+        this.queue('Restored ' + (mon.hp - before) + ' HP.');
+        triggered = true;
+      } else if (I.cures && mon.status && I.cures.includes(mon.status)) {
+        mon.status = null;
+        this.queue(mon.nickname + "'s " + I.name + ' cured its status!');
+        triggered = true;
+      }
+      if (triggered) mon.held = null;
+    };
+    tickBerry(this.me);
+    tickBerry(this.foe);
+
     if (this.foe.hp <= 0 || this.me.hp <= 0) {
       this.phase = 'faint';
       this.faintAnim = { foe: this.foe.hp <= 0 ? 0 : 1, me: this.me.hp <= 0 ? 0 : 1 };

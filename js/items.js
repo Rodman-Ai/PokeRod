@@ -42,6 +42,18 @@
     revive: {
       id:'revive', name:'REVIVE', desc:'Revives a fainted ally to half HP.',
       kind:'revive', ratio:0.5, target:'fainted'
+    },
+    oranberry: {
+      id:'oranberry', name:'ORAN BERRY', desc:'Held item. Restores 20 HP at <50% HP.',
+      kind:'berry', berry:true, heal:20, atRatio:0.5, holdable:true
+    },
+    sitrusberry: {
+      id:'sitrusberry', name:'SITRUS BERRY', desc:'Held item. Restores 50 HP at <25% HP.',
+      kind:'berry', berry:true, heal:50, atRatio:0.25, holdable:true
+    },
+    pechaberry: {
+      id:'pechaberry', name:'PECHA BERRY', desc:'Held item. Cures poison automatically.',
+      kind:'berry', berry:true, cures:['poisoned'], holdable:true
     }
   };
 

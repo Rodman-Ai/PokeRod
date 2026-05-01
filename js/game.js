@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.8.6';
-  const BUILD = '2026.05.01-14';
+  const VERSION = 'v0.8.7';
+  const BUILD = '2026.05.01-15';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -135,7 +135,7 @@
   function startNewGame() {
     window.PR_SAVE.clear();
     state.player = { name:'YOU', map:'rodport', x:4, y:5, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1 } };
+                     bag: { rodball:5, potion:3, antidote:1, oranberry:1 } };
     state.party = [];
     state.flags = { starterChosen:false };
     state.defeatedTrainers = new Set();
@@ -558,6 +558,7 @@
       window.PR_SFX && window.PR_SFX.play('confirm');
       const sp = STARTERS[state.starterMenu.idx];
       const mon = window.PR_DATA.makeMon(sp, 5);
+      mon.held = 'oranberry';
       state.party.push(mon);
       state.flags.starterChosen = true;
       state.starterMenu = null;
