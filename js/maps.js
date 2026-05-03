@@ -228,23 +228,28 @@ const MAPS = {
   route1: {
     id:'route1', name:'Route 1',
     tiles: [
-      'XXXXXXX,,XXXXXXXXXXX',
-      'YYYYYYY,,YYYYYYYYYYY',
-      'Y......,,..........Y',
-      'Y...c..,,..........Y',
-      'Y..:::1,,..........Y',
-      'Y...:::,,..........Y',
-      'Y..::::,,::::...S..Y',
-      'Y..:::::,,,........Y',
-      'Y..::::::,,,.......Y',
-      'Y..::::::,,,,......Y',
-      'Y..:::e::,,,,......Y',
-      'Y..:::::,,,........Y',
-      'Y..::::::,,,.......Y',
-      'Y...::::,,,........Y',
-      'Y......,,..........Y',
-      'YYYYYYY,,YYYYYYYYYYY',
-      'XXXXXXX,,XXXXXXXXXXX'
+      'XXXXXXX,,XXXXXXXXXXXXXXXX',
+      'YYYYYYY,,YYYYYYYYYYYYYYYY',
+      'Yc:c:Y:,,:::::Y:Y:E:e:1:Y',
+      'Y::::Y:,,E:e:1:c:c:Y::::Y',
+      'Y:e:1:c,,:Y::::::::Y:Y:EY',
+      'YY:::::,,:Y:Y:E:e:1:c:c:Y',
+      'YY:Y:E:,,1:c:c::::::::::Y',
+      'Y:c,,,,,,::::::Y:Y:E:e:1Y',
+      'Y::,:::,,:E:e:1:c:c:Y:::Y',
+      'YE:,,1:c:c:Y::::::::Y:Y:Y',
+      'Y:Y,,::::::Y:Y:E:e:1:c:cY',
+      'Y:Y,,:E:e:1:c:c:Y:::::::Y',
+      'Y1:,,,,,,:::::::Y:Y:E:e:Y',
+      'Y::,,,,,,Y:E:e:1:c:c:Y::Y',
+      'Y:E:e:1,,:c:Y::::::::Y:YY',
+      'Yc:Y:::,,:::Y:Y:E:e:1:c:Y',
+      'Y::Y:Y:,,e:1:c:c:Y::::::Y',
+      'Y:1:c:c,,::::::::Y:Y:E:eY',
+      'Y::::::,,:Y:E:e:1:c:c:Y:Y',
+      'YY:E:e:,,c:c:Y::::::::Y:Y',
+      'YYYYYYY,,YYYYYYYYYYYYYYYY',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
     ],
     npcs: [
       { x:5, y:8, dir:'right', sprite:'npc_youth', name:'YOUNGSTER JOE',
@@ -275,7 +280,7 @@ const MAPS = {
     },
     edges: {
       north: { y:0,  to:'rodport',  tx:7, ty:16 },
-      south: { y:16, to:'brindale', tx:7, ty:1 }
+      south: { y:21, to:'brindale', tx:7, ty:1 }
     }
   },
 
@@ -326,7 +331,7 @@ const MAPS = {
       '8,10': { to:'townhouse',  x:3, y:6 }
     },
     edges: {
-      north: { y:0,  to:'route1', tx:7, ty:16 },
+      north: { y:0,  to:'route1', tx:7, ty:20 },
       south: { y:17, to:'route2', tx:7, ty:1 }
     }
   },
@@ -397,23 +402,28 @@ const MAPS = {
   route2: {
     id:'route2', name:'Route 2',
     tiles: [
-      'XXXXXXX,,XXXXXXXXXXX',
-      'KKKKKKK,,KKKKKKKKKKK',
-      'K......,,..........K',
-      'K..1c..,,..........K',
-      'K..::::,,.......S..K',
-      'K..:::::,,,........K',
-      'K..::::::,,,.......K',
-      'K...::::,,,........K',
-      'K..::::::,,,.......K',
-      'K..:e::::,,,.......K',
-      'K...:::::,,,.......K',
-      'K..::::::,,,.......K',
-      'K..::::,,,.........K',
-      'K..::::,,..........K',
-      'K......,,..........K',
-      'KKKKKKK,,KKKKKKKKKKK',
-      'XXXXXXX,,XXXXXXXXXXX'
+      'XXXXXXX,,XXXXXXXXXXXXXXXX',
+      'KKKKKKK,,KKKKKKKKKKKKKKKK',
+      'Km:c:K:,,:::::::K:K:K:1:K',
+      'K::::::,,K:K:1:m:c:K::::K',
+      'K:K:1:m,,:K::::::::::K:KK',
+      'KK:::::,,:::K:K:K:1:m:c:K',
+      'K::K:K:,,,,,,,,,,:::::::K',
+      'K:m:c:K,,,,,,,,,,K:K:K:1K',
+      'K:::::::K:K:K:1,,:c:K:::K',
+      'KK:K:1:m:c:K:::,,:::::K:K',
+      'K:K::::::::::K:,,K:1:m:cK',
+      'K:::K:K:K:1:m:c,,:::::::K',
+      'K1:m:c:K:::::::,,:K:K:K:K',
+      'K::::::,,,,,,,,,,m:c:K::K',
+      'K:K:K:1,,,,,,,,,,::::::KK',
+      'Kc:K:::,,:::::K:K:K:1:m:K',
+      'K::::K:,,K:1:m:c:K::::::K',
+      'K:1:m:c,,::::::::::K:K:KK',
+      'K::::::,,:K:K:K:1:m:c:K:K',
+      'KK:K:K:,,m:c:K::::::::::K',
+      'KKKKKKK,,KKKKKKKKKKKKKKKK',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
     ],
     npcs: [
       { x:6, y:8, dir:'right', sprite:'npc_youth', name:'CAMPER MEL',
@@ -433,7 +443,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'brindale', tx:7, ty:16 },
-      south: { y:16, to:'woodfall', tx:7, ty:1 }
+      south: { y:21, to:'woodfall', tx:7, ty:1 }
     }
   },
 
@@ -476,7 +486,7 @@ const MAPS = {
       '12,5': { to:'woodfall_mart',   x:4, y:6 }
     },
     edges: {
-      north: { y:0,  to:'route2',     tx:7, ty:15 },
+      north: { y:0,  to:'route2',     tx:7, ty:20 },
       south: { y:17, to:'pebblewood', tx:7, ty:1 }
     }
   },
@@ -819,23 +829,28 @@ const MAPS = {
   frostpeak: {
     id:'frostpeak', name:'Frostpeak',
     tiles: [
-      'XXXXXXX,,XXXXXXXXXXX',
-      'QQQQQQQ,,QQQQQQQQQQQ',
-      'Q:::::Q,,Q::::::::QQ',
-      'Q:::QQQ,,Q:::::QQ::Q',
-      'Q:::::Q,,Q:Q::::::QQ',
-      'Q:Q:::Q,,Q::::QQ::QQ',
-      'Q:::::Q,,Q::Q::::::Q',
-      'Q:::QQQ,,Q:::::::QQQ',
-      'Q:::::Q,,Q:Q:::::::Q',
-      'Q:Q:::Q,,Q::::QQ:::Q',
-      'Q:::::Q,,Q::Q::::QQQ',
-      'Q:::QQQ,,Q:::::::QQQ',
-      'Q:::::Q,,Q:Q::::::QQ',
-      'Q:Q:::Q,,Q::::QQ:::Q',
-      'Q:::::Q,,Q::::::::QQ',
-      'QQQQQQQ,,QQQQQQQQQQQ',
-      'XXXXXXX,,XXXXXXXXXXX'
+      'XXXXXXX,,XXXXXXXXXXXXXXXX',
+      'QQQQQQQ,,QQQQQQQQQQQQQQQQ',
+      'QQ:k:Q:,,:::::::::Q:Q:k:Q',
+      'Q::::::,,Q:Q:k:Q:k:Q::::Q',
+      'Q:Q:k:Q,,:Q::::::::::::QQ',
+      'QQ:::::,,,,,,:Q:Q:k:Q:k:Q',
+      'Q::::Q:,,,,,,:::::::::::Q',
+      'Q:Q:k:Q::::,,::::::Q:Q:kQ',
+      'Q:::::::::Q,,:k:Q:k:Q:::Q',
+      'QQ:Q:k:Q:k:,,:::::::::::Q',
+      'Q:Q::::::::,,,,,,,,k:Q:kQ',
+      'Q:::::Q:Q:k,,,,,,,,:::::Q',
+      'Qk:Q:k:Q:::::::::,,:Q:Q:Q',
+      'Q::::::::::Q:Q:k:,,k:Q::Q',
+      'Q:Q:Q:k:Q:k:Q::::,,:::::Q',
+      'Qk:Q:::,,,,,,,,,,,,:k:Q:Q',
+      'Q::::::,,,,,,,,,,,,:::::Q',
+      'Q:k:Q:k,,::::::::::::Q:QQ',
+      'Q::::::,,:::Q:Q:k:Q:k:Q:Q',
+      'Q::Q:Q:,,Q:k:Q::::::::::Q',
+      'QQQQQQQ,,QQQQQQQQQQQQQQQQ',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
     ],
     npcs: [
       { x:14, y:6, dir:'left', sprite:'npc_old', name:'CLIMBER VAL',
@@ -852,7 +867,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'frostmere',  tx:7, ty:16 },
-      south: { y:16, to:'harborside', tx:7, ty:1 }
+      south: { y:21, to:'harborside', tx:7, ty:1 }
     }
   },
 
@@ -895,7 +910,7 @@ const MAPS = {
       '12,5': { to:'harborside_mart',   x:4, y:6 }
     },
     edges: {
-      north: { y:0,  to:'frostpeak', tx:7, ty:15 },
+      north: { y:0,  to:'frostpeak', tx:7, ty:20 },
       south: { y:17, to:'searoute',  tx:7, ty:1 }
     }
   },
@@ -942,23 +957,28 @@ const MAPS = {
   searoute: {
     id:'searoute', name:'Searoute',
     tiles: [
-      'XXXXXXX,,XXXXXXXXXXX',
-      'WWWWWWW,,WWWWWWWWWWW',
-      'Wsssss,,,,sssssssWWW',
-      'Wss::s,,,,sss::sssWW',
-      'Wsssss,,,,ssssssssWW',
-      'Ws::ss,,,,sss::ssWWW',
-      'Wsssss,,,,sssssssWWW',
-      'Wss::s,,,,ssssssssWW',
-      'Wsssss,,,,sss::ssWWW',
-      'Wss::s,,,,sssssssWWW',
-      'Wsssss,,,,ssssssssWW',
-      'Ws::ss,,,,sss::ssWWW',
-      'Wsssss,,,,sssssssWWW',
-      'Wss::s,,,,ssssssssWW',
-      'Wsssss,,,,sss::ssWWW',
-      'WWWWWWW,,WWWWWWWWWWW',
-      'XXXXXXX,,XXXXXXXXXXX'
+      'XXXXXXX,,XXXXXXXXXXXXXXXX',
+      'OOOOOOO,,OOOOOOOOOOOOOOOO',
+      'OO:s:O:,,:::::::::O:3:s:O',
+      'O::::::,,O:3:s:O:s:O::::O',
+      'O:3:s:O,,:O::::::::::::OO',
+      'OO:::::,,:::::O:3:s:O:s:O',
+      'O::::O:,,s:O:s:O::::::::O',
+      'O:O:s:O,,::::::::::O:3:sO',
+      'O::::::,,,,,,:::O:s:O:::O',
+      'OO:3:s:,,,,,,,,:::::::::O',
+      'O:O::::::::::,,O:3:s:O:sO',
+      'O:::::O:3:s:O,,:O:::::::O',
+      'Os:O:s:O:::::,,:::::O:3:O',
+      'O::::::::::O:,,s:O:s:O::O',
+      'O:O:3:s,,,,,,,,:::::::::O',
+      'Os:O:::,,,,,,,,:O:3:s:O:O',
+      'O::::::,,3:s:O:s:O::::::O',
+      'O:s:O:s,,::::::::::::O:3O',
+      'O::::::,,:::O:3:s:O:s:O:O',
+      'O::O:3:,,O:s:O::::::::::O',
+      'OOOOOOO,,OOOOOOOOOOOOOOOO',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
     ],
     npcs: [
       { x:14, y:8, dir:'left', sprite:'npc_youth', name:'FISHER LIL',
@@ -975,7 +995,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'harborside', tx:7, ty:16 },
-      south: { y:16, to:'summitvale', tx:7, ty:1 }
+      south: { y:21, to:'summitvale', tx:7, ty:1 }
     }
   },
 
@@ -1019,7 +1039,7 @@ const MAPS = {
       '12,11':{ to:'summitvale_house',  x:3, y:6 }
     },
     edges: {
-      north: { y:0, to:'searoute', tx:7, ty:15 }
+      north: { y:0, to:'searoute', tx:7, ty:20 }
     }
   },
 
