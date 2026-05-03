@@ -9,8 +9,12 @@
 
   function spriteKey(kindPrefix, dir, frame) {
     const f = (frame | 0) & 1;
-    const d = (dir === 'right') ? 'right'
-            : (dir === 'left')  ? 'left'
+    // Atlas was generated with the side-view sprite facing right-by-default,
+    // so the keys ending in `_left_*` are actually the right-facing pose
+    // and `_right_*` are the flipped (left-facing) pose. Swap at lookup so
+    // we don't have to regenerate the atlas.
+    const d = (dir === 'right') ? 'left'
+            : (dir === 'left')  ? 'right'
             : (dir === 'up')    ? 'up'
             : 'down';
     return kindPrefix + '_' + d + '_' + f;
