@@ -18,6 +18,7 @@
         dir: state.player.dir,
         money: state.player.money,
         balls: state.player.balls,
+        bag: state.player.bag || {},
         steps: state.player.steps,
         badges: state.player.badges || []
       },
