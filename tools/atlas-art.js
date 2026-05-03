@@ -1516,6 +1516,38 @@
     px(c, x + 18, y + 7, 3, 1, '#a8d878');
   });
 
+  // Gardenbed (apostrophe '): tilled-soil patch with sprout rows. Used by
+  // maps.js as a walkable decorative tile alongside flower pots. Without
+  // this registration the runtime atlas falls back to plain grass.
+  regTile("'", 'gardenbed', TILE, TILE, (c, x, y) => {
+    // Surrounding grass margin so the bed sits on a green tile context.
+    grassBase(c, x, y);
+    // Tilled-soil rectangle.
+    px(c, x + 2,  y + 4,  TILE - 4, TILE - 8, '#7a4824');
+    // Bevel: lighter top + left edge, darker bottom + right.
+    px(c, x + 2,  y + 4,  TILE - 4, 1, '#a8683a');
+    px(c, x + 2,  y + 4,  1, TILE - 8, '#a8683a');
+    px(c, x + 2,  y + TILE - 5, TILE - 4, 1, '#3a2410');
+    px(c, x + TILE - 3, y + 4, 1, TILE - 8, '#3a2410');
+    // Soil texture stipple.
+    stipple(c, x + 3, y + 5, TILE - 6, TILE - 10, '#5a3818', 14, x * 11 + y * 7);
+    stipple(c, x + 3, y + 5, TILE - 6, TILE - 10, '#a8683a', 8,  x * 7  + y * 11);
+    // Sprout rows: three columns of small leaf clusters across two rows.
+    const sproutXs = [8, 16, 24];
+    const sproutYs = [10, 20];
+    for (const sy of sproutYs) {
+      for (const sx of sproutXs) {
+        // Stem.
+        px(c, x + sx,     y + sy,     1, 3, '#3a8030');
+        // Pair of leaves.
+        px(c, x + sx - 2, y + sy,     2, 1, '#5cae4c');
+        px(c, x + sx + 1, y + sy,     2, 1, '#5cae4c');
+        // Highlight.
+        px(c, x + sx - 1, y + sy - 1, 1, 1, '#a8d878');
+      }
+    }
+  });
+
   // ------------------------------------------------------------------
   // === CHARACTERS ===================================================
   // 32x32 trainer-style sprites with outlined silhouette, multi-tone

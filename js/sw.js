@@ -1,7 +1,7 @@
 // PokeRod service worker - caches the app shell for offline play.
 'use strict';
 
-const CACHE = 'pokerod-shell-v33';
+const CACHE = 'pokerod-shell-v34';
 const ASSETS = [
   './',
   './index.html',
@@ -24,9 +24,12 @@ const ASSETS = [
   './js/chatter.js',
   './js/items.js',
   './js/quests.js',
+  './js/shop.js',
   './js/game.js',
   './assets/atlas.png',
-  './assets/atlas.json'
+  './assets/atlas.json',
+  './assets/icon-192.png',
+  './assets/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {

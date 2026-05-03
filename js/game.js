@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.16.0';
-  const BUILD = '2026.05.03-60';
+  const VERSION = 'v0.16.1';
+  const BUILD = '2026.05.03-61';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1037,10 +1037,10 @@
       const def = it.def;
       if (v.returnTo === 'battle') {
         if (def.kind === 'ball') {
-          // Hand back to battle to throw ball.
+          // Hand back to battle to throw the *selected* ball.
           state.bagView = null;
           state.mode = 'battle';
-          if (state.battle) state.battle.tryThrowBall();
+          if (state.battle) state.battle.tryThrowBall(it.id);
           return;
         }
         // For heal/status/revive, ask for a target.

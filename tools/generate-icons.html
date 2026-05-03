@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PokeRod Icon Generator</title>
+<style>
+  body { font-family: ui-monospace, Menlo, monospace; background: #1a1a1a; color: #e0e0e0; padding: 16px; }
+  canvas { background: #2a2a2a; image-rendering: pixelated; image-rendering: crisp-edges; border: 1px solid #444; margin: 8px; }
+  button { background: #3060a0; color: white; border: 0; padding: 8px 14px; cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body>
+
+<h1 style="font-size:14px;">PokeRod PWA Icons</h1>
+<p style="color:#aaa;font-size:12px;">Renders a Pokerod-themed icon (top-half red, bottom-half white, black equator + central button, "PR" wordmark) at 512x512 and 192x192. Click each link to download.</p>
+
+<div>
+  <canvas id="c512" width="512" height="512"></canvas>
+  <canvas id="c192" width="192" height="192"></canvas>
+</div>
+<div>
+  <button id="run">Render</button>
+  <a id="dl-512" href="#" download="icon-512.png">Download 512</a>
+  &nbsp;|&nbsp;
+  <a id="dl-192" href="#" download="icon-192.png">Download 192</a>
+</div>
+
+<script>
+'use strict';
+
+// Single render routine, scaled to whatever size canvas it's given.
+function renderIcon(canvas) {
+  const ctx = canvas.getContext('2d');
+  const S = canvas.width;
+  ctx.imageSmoothingEnabled = false;
+
+  // Background: dark vignette (matches the GBA-shell theme).
+  const bg = ctx.createRadialGradient(S/2, S/2, S*0.05, S/2, S/2, S*0.55);
+  bg.addColorStop(0, '#241010');
+  bg.addColorStop(1, '#0a0204');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, S, S);
+
+  // Pokeball (centered, ~78% of canvas).
+  const cx = S / 2, cy = S / 2;
+  const R  = S * 0.39;       // outer radius
+  const r2 = R - S * 0.04;   // body radius (after the black outline ring)
+  const eqH = Math.max(2, S * 0.07);  // equator band height
+  const buttonR = S * 0.085;
+  const innerButtonR = S * 0.038;
+
+  // Black outline.
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+
+  // White lower hemisphere (full circle, then red top will overlay).
+  ctx.fillStyle = '#f0f0f0';
+  ctx.beginPath(); ctx.arc(cx, cy, r2, 0, Math.PI * 2); ctx.fill();
+
+  // Red top hemisphere.
+  ctx.fillStyle = '#e83838';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r2, Math.PI, 0, false);
+  ctx.lineTo(cx + r2, cy);
+  ctx.lineTo(cx - r2, cy);
+  ctx.closePath();
+  ctx.fill();
+
+  // Lighter red highlight on top-left of the red half.
+  ctx.fillStyle = '#f86060';
+  ctx.beginPath();
+  ctx.ellipse(cx - r2 * 0.35, cy - r2 * 0.45, r2 * 0.32, r2 * 0.18, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Equator band (black).
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(cx - r2, cy - eqH / 2, r2 * 2, eqH);
+
+  // Center button: outer black, white ring, inner black, tiny shine.
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(cx, cy, buttonR, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f0f0f0';
+  ctx.beginPath(); ctx.arc(cx, cy, buttonR * 0.78, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(cx, cy, innerButtonR, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(cx - innerButtonR * 0.35, cy - innerButtonR * 0.35, innerButtonR * 0.25, 0, Math.PI * 2); ctx.fill();
+
+  // PR wordmark in the lower-right white field.
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = 'bold ' + Math.round(S * 0.13) + 'px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('PR', cx + r2 * 0.42, cy + r2 * 0.55);
+}
+
+function dataUrl(c) { return c.toDataURL('image/png'); }
+
+function renderAll() {
+  const c512 = document.getElementById('c512');
+  const c192 = document.getElementById('c192');
+  renderIcon(c512);
+  renderIcon(c192);
+  document.getElementById('dl-512').href = dataUrl(c512);
+  document.getElementById('dl-192').href = dataUrl(c192);
+}
+
+document.getElementById('run').addEventListener('click', renderAll);
+
+// Headless API for tools/run-icons-generator.js.
+window.__pokerodGenerateIcons = async function () {
+  renderAll();
+  return {
+    icon512: dataUrl(document.getElementById('c512')),
+    icon192: dataUrl(document.getElementById('c192'))
+  };
+};
+</script>
+
+</body>
+</html>

@@ -573,6 +573,8 @@ function calcDamage(attacker, defender, move, isCrit) {
   const D = move.kind === 'physical' ? defender.stats.def : defender.stats.spd;
   const stab = (CREATURES[attacker.species].types.includes(move.type)) ? 1.5 : 1;
   const eff = effectiveness(move.type, CREATURES[defender.species].types);
+  // Type immunity short-circuit: 0 damage means 0 damage, not 1.
+  if (eff === 0) return { dmg: 0, eff: 0, stab, crit: isCrit };
   const crit = isCrit ? 1.5 : 1;
   const rand = 0.85 + Math.random() * 0.15;
   const base = (((2*attacker.level/5 + 2) * move.power * (A/Math.max(1,D))) / 50) + 2;

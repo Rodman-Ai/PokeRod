@@ -322,6 +322,8 @@
         const owner = target === this.me ? this.me.nickname : 'Foe ' + this.foe.nickname;
         this.queue(owner + "'s " + stat.toUpperCase() + ' ' + verb);
       }
+      // Status moves can also carry sleep / confuse / poison / etc. chances.
+      this._applyMoveSideEffects(def, defender);
       return;
     }
 
@@ -354,39 +356,48 @@
     else if (result.eff === 0) this.queue("It doesn't affect " + defender.nickname + '...');
     else if (result.eff < 1) this.queue("It's not very effective...");
 
-    // Side-effect chances.
-    if (def.burnChance && defender.hp > 0 && Math.random() < def.burnChance) {
-      if (!defender.status && !window.PR_DATA.CREATURES[defender.species].types.includes('FIRE')) {
+    // Side-effect chances (status moves use the same helper above).
+    this._applyMoveSideEffects(def, defender);
+  };
+
+  // Apply any chance-based status side-effects defined on the move def
+  // (burn / paralyze / poison / freeze / sleep / confuse). Skips if the
+  // defender has already fainted from this hit.
+  Battle.prototype._applyMoveSideEffects = function(def, defender) {
+    if (defender.hp <= 0) return;
+    const types = window.PR_DATA.CREATURES[defender.species].types;
+    if (def.burnChance && Math.random() < def.burnChance) {
+      if (!defender.status && !types.includes('FIRE')) {
         defender.status = 'burned';
         this.queue(defender.nickname + ' was burned!');
       }
     }
-    if (def.paralyzeChance && defender.hp > 0 && Math.random() < def.paralyzeChance) {
+    if (def.paralyzeChance && Math.random() < def.paralyzeChance) {
       if (!defender.status) {
         defender.status = 'paralyzed';
         this.queue(defender.nickname + ' was paralyzed!');
       }
     }
-    if (def.poisonChance && defender.hp > 0 && Math.random() < def.poisonChance) {
-      if (!defender.status && !window.PR_DATA.CREATURES[defender.species].types.includes('POISON')) {
+    if (def.poisonChance && Math.random() < def.poisonChance) {
+      if (!defender.status && !types.includes('POISON')) {
         defender.status = 'poisoned';
         this.queue(defender.nickname + ' was poisoned!');
       }
     }
-    if (def.freezeChance && defender.hp > 0 && Math.random() < def.freezeChance) {
-      if (!defender.status && !window.PR_DATA.CREATURES[defender.species].types.includes('ICE')) {
+    if (def.freezeChance && Math.random() < def.freezeChance) {
+      if (!defender.status && !types.includes('ICE')) {
         defender.status = 'frozen';
         this.queue(defender.nickname + ' was frozen solid!');
       }
     }
-    if (def.sleepChance && defender.hp > 0 && Math.random() < def.sleepChance) {
+    if (def.sleepChance && Math.random() < def.sleepChance) {
       if (!defender.status) {
         defender.status = 'asleep';
         defender.sleepTurns = 1 + Math.floor(Math.random() * 3);
         this.queue(defender.nickname + ' fell asleep!');
       }
     }
-    if (def.confuseChance && defender.hp > 0 && Math.random() < def.confuseChance) {
+    if (def.confuseChance && Math.random() < def.confuseChance) {
       if (!defender.confusionTurns) {
         defender.confusionTurns = 2 + Math.floor(Math.random() * 3);
         this.queue(defender.nickname + ' became confused!');
@@ -615,17 +626,25 @@
     }
   };
 
-  Battle.prototype.tryThrowBall = function() {
+  Battle.prototype.tryThrowBall = function(ballId) {
     if (this.trainer) { this.flashMsg("Can't catch a trainer's partner!"); return; }
-    if ((this.state.player.balls|0) <= 0) { this.flashMsg('No ROD BALLS left!'); return; }
-    this.state.player.balls--;
+    ballId = ballId || 'rodball';
+    const items = window.PR_ITEMS;
+    const def = (items && items.byId(ballId)) || null;
+    const ballName = (def && def.name) || 'BALL';
+    const owned = (this.state.player.bag && (this.state.player.bag[ballId] | 0)) || 0;
+    if (owned <= 0) { this.flashMsg('No ' + ballName + ' left!'); return; }
+    if (items) items.take(this.state, ballId, 1);
+    else this.state.player.balls--; // fallback if items module is missing
     window.PR_SFX && window.PR_SFX.play('ball');
-    this.queue('You threw a ROD BALL!');
+    this.queue('You threw a ' + ballName + '!');
     const sp = window.PR_DATA.CREATURES[this.foe.species];
     const rate = sp.catchRate || 45;
     const hpRatio = this.foe.hp / this.foe.stats.hp;
     const statusBonus = this.foe.status ? 1.5 : 1;
-    const a = ((3 * this.foe.stats.hp - 2 * this.foe.hp) * rate * statusBonus) / (3 * this.foe.stats.hp);
+    const ballBonus = (def && def.catchBonus) || 1;
+    const a = ((3 * this.foe.stats.hp - 2 * this.foe.hp) * rate * statusBonus * ballBonus)
+              / (3 * this.foe.stats.hp);
     const shakes = a >= 255 ? 4 : Math.min(4, Math.floor(a / 60) + (Math.random() < 0.5 ? 1 : 0));
     if (shakes >= 4) {
       window.PR_SFX && window.PR_SFX.play('catch');

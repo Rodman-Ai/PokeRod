@@ -612,6 +612,12 @@
       "w": 32,
       "h": 32
     },
+    "tile_gardenbed": {
+      "x": 192,
+      "y": 192,
+      "w": 32,
+      "h": 32
+    },
     "player_down_0": {
       "x": 0,
       "y": 224,
@@ -1537,6 +1543,7 @@
     "\"": "tile_fence_v",
     "\\": "tile_mailbox",
     "/": "tile_pc_terminal",
-    "}": "tile_potted_plant"
+    "}": "tile_potted_plant",
+    "'": "tile_gardenbed"
   }
 }
