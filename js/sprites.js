@@ -354,6 +354,8 @@ function drawAncientTree(ctx, x, y) {
   px(ctx, x+4, y+4, 2, 2, '#3a8030');
   px(ctx, x+10, y+5, 2, 2, '#3a8030');
 }
+
+function drawSnowyPine(ctx, x, y) {
   // Triangle pine with white snow caps.
   px(ctx, x+7, y+13, 2, 3, '#5a3818');
   px(ctx, x+7, y+1, 2, 1, '#1c4818');
