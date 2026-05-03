@@ -415,7 +415,7 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'pokecenter', x:4, y:6 },
-      '12,5': { to:'mart',       x:4, y:6 },
+      '12,5': { to:'mart',       x:5, y:9 },
       '8,10': { to:'townhouse',  x:3, y:6 }
     },
     edges: {
@@ -449,21 +449,24 @@ const MAPS = {
   mart: {
     id:'mart', name:'PokeRod Mart', interior:true,
     tiles: [
-      'BBBBBBBBB',
-      'BF>>F>>FB',
-      'BFFFFFFFB',
-      'BF>FFF>FB',
-      'BFCCFFFFB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
-      'BBBBDBBBB'
+      'BBBBBBBBBBB',
+      'B>>>>>>>>>B',
+      'B>>>>F>>>>B',
+      'BFFFFFFFFFB',
+      'BFCCCCCCCFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'B{rrrrrrr{B',
+      'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
         dialog:["Welcome to the MART!","We're still stocking shelves — come back later."] }
     ],
     doors: {
-      '4,7': { to:'brindale', x:12, y:6 }
+      '5,10': { to:'brindale', x:12, y:6 }
     }
   },
 
@@ -589,7 +592,7 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'woodfall_center', x:4, y:6 },
-      '12,5': { to:'woodfall_mart',   x:4, y:6 }
+      '12,5': { to:'woodfall_mart',   x:5, y:9 }
     },
     edges: {
       north: { y:0,  to:'route2',     tx:7, ty:20 },
@@ -620,20 +623,23 @@ const MAPS = {
   woodfall_mart: {
     id:'woodfall_mart', name:'PokeRod Mart', interior:true,
     tiles: [
-      'BBBBBBBBB',
-      'BF>>F>>FB',
-      'BFFFFFFFB',
-      'BF>FFF>FB',
-      'BFCCFFFFB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
-      'BBBBDBBBB'
+      'BBBBBBBBBBB',
+      'B>>>>>>>>>B',
+      'B>>>>F>>>>B',
+      'BFFFFFFFFFB',
+      'BFCCCCCCCFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'B{rrrrrrr{B',
+      'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
         dialog:["Welcome to the MART!","We're still stocking shelves - come back later."] }
     ],
-    doors: { '4,7': { to:'woodfall', x:12, y:6 } }
+    doors: { '5,10': { to:'woodfall', x:12, y:6 } }
   },
 
   pebblewood: {
@@ -764,7 +770,7 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'crestrock_center', x:4, y:6 },
-      '12,5': { to:'crestrock_mart',   x:4, y:6 }
+      '12,5': { to:'crestrock_mart',   x:5, y:9 }
     },
     edges: {
       north: { y:0,  to:'pebblewood', tx:7, ty:20 },
@@ -795,20 +801,23 @@ const MAPS = {
   crestrock_mart: {
     id:'crestrock_mart', name:'PokeRod Mart', interior:true,
     tiles: [
-      'BBBBBBBBB',
-      'BF>>F>>FB',
-      'BFFFFFFFB',
-      'BF>FFF>FB',
-      'BFCCFFFFB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
-      'BBBBDBBBB'
+      'BBBBBBBBBBB',
+      'B>>>>>>>>>B',
+      'B>>>>F>>>>B',
+      'BFFFFFFFFFB',
+      'BFCCCCCCCFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'B{rrrrrrr{B',
+      'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
         dialog:["Climbing the highlands?","Stock up next time we have shelves."] }
     ],
-    doors: { '4,7': { to:'crestrock', x:12, y:6 } }
+    doors: { '5,10': { to:'crestrock', x:12, y:6 } }
   },
 
   glimcavern: {
@@ -969,7 +978,7 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'frostmere_center', x:4, y:6 },
-      '12,5': { to:'frostmere_mart',   x:4, y:6 }
+      '12,5': { to:'frostmere_mart',   x:5, y:9 }
     },
     edges: {
       north: { y:0,  to:'glimcavern', tx:7, ty:15 },
@@ -1000,20 +1009,23 @@ const MAPS = {
   frostmere_mart: {
     id:'frostmere_mart', name:'PokeRod Mart', interior:true,
     tiles: [
-      'BBBBBBBBB',
-      'BF>>F>>FB',
-      'BFFFFFFFB',
-      'BF>FFF>FB',
-      'BFCCFFFFB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
-      'BBBBDBBBB'
+      'BBBBBBBBBBB',
+      'B>>>>>>>>>B',
+      'B>>>>F>>>>B',
+      'BFFFFFFFFFB',
+      'BFCCCCCCCFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'B{rrrrrrr{B',
+      'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
         dialog:["Bundle up. The mountain past here is unforgiving."] }
     ],
-    doors: { '4,7': { to:'frostmere', x:12, y:6 } }
+    doors: { '5,10': { to:'frostmere', x:12, y:6 } }
   },
 
   frostpeak: {
@@ -1107,7 +1119,7 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'harborside_center', x:4, y:6 },
-      '12,5': { to:'harborside_mart',   x:4, y:6 }
+      '12,5': { to:'harborside_mart',   x:5, y:9 }
     },
     edges: {
       north: { y:0,  to:'frostpeak', tx:7, ty:20 },
@@ -1138,20 +1150,23 @@ const MAPS = {
   harborside_mart: {
     id:'harborside_mart', name:'PokeRod Mart', interior:true,
     tiles: [
-      'BBBBBBBBB',
-      'BF>>F>>FB',
-      'BFFFFFFFB',
-      'BF>FFF>FB',
-      'BFCCFFFFB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
-      'BBBBDBBBB'
+      'BBBBBBBBBBB',
+      'B>>>>>>>>>B',
+      'B>>>>F>>>>B',
+      'BFFFFFFFFFB',
+      'BFCCCCCCCFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'B{rrrrrrr{B',
+      'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
         dialog:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."] }
     ],
-    doors: { '4,7': { to:'harborside', x:12, y:6 } }
+    doors: { '5,10': { to:'harborside', x:12, y:6 } }
   },
 
   searoute: {
@@ -1267,7 +1282,7 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'summitvale_center', x:4, y:6 },
-      '12,5': { to:'summitvale_mart',   x:4, y:6 },
+      '12,5': { to:'summitvale_mart',   x:5, y:9 },
       '12,11':{ to:'summitvale_house',  x:3, y:6 }
     },
     edges: {
@@ -1298,20 +1313,23 @@ const MAPS = {
   summitvale_mart: {
     id:'summitvale_mart', name:'PokeRod Mart', interior:true,
     tiles: [
-      'BBBBBBBBB',
-      'BF>>F>>FB',
-      'BFFFFFFFB',
-      'BF>FFF>FB',
-      'BFCCFFFFB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
-      'BBBBDBBBB'
+      'BBBBBBBBBBB',
+      'B>>>>>>>>>B',
+      'B>>>>F>>>>B',
+      'BFFFFFFFFFB',
+      'BFCCCCCCCFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'BFFFFFFFFFB',
+      'BF>>FF>>FFB',
+      'B{rrrrrrr{B',
+      'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:3, y:4, dir:'down', sprite:'clerk', name:'CLERK',
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
         dialog:["You made it to the top!","One day we'll have legendary gear in stock for you."] }
     ],
-    doors: { '4,7': { to:'summitvale', x:12, y:6 } }
+    doors: { '5,10': { to:'summitvale', x:12, y:6 } }
   },
 
   summitvale_house: {
