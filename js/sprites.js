@@ -100,16 +100,20 @@ function drawTile(ctx, code, sx, sy) {
     case '{': drawFlowerPot(ctx, x, y); break;
     case '>': drawShelf(ctx, x, y); break;
     case 'W': drawWater(ctx, x, y); break;
-    case 'R': px(ctx, x, y, TS, TS, '#c84848'); px(ctx, x, y, TS, 4, '#a02828'); break;
-    case 'B': px(ctx, x, y, TS, TS, '#a08068'); px(ctx, x, y+TS-3, TS, 3, '#705038'); break;
-    case 'P': px(ctx, x, y, TS, TS, '#e070a0'); px(ctx, x, y, TS, 4, '#b04878'); break;
-    case 'M': px(ctx, x, y, TS, TS, '#4878d8'); px(ctx, x, y, TS, 4, '#3050a8'); break;
-    case 'C': px(ctx, x, y, TS, TS, '#c89858'); px(ctx, x, y, TS, 3, '#604028'); break;
-    case 'H': px(ctx, x, y, TS, TS, '#e8a8c8'); px(ctx, x+4, y+4, 8, 8, '#fff'); px(ctx,x+6,y+5,4,6,'#e85a5a'); px(ctx,x+5,y+7,6,2,'#e85a5a'); break;
+    case 'R': drawHouseRoof(ctx, x, y, sx, sy); break;
+    case 'B': drawHouseWall(ctx, x, y, sx, sy); break;
+    case 'P': drawCenterRoof(ctx, x, y, sx, sy); break;
+    case 'M': drawMartRoof(ctx, x, y, sx, sy); break;
+    case 'C': drawCounter(ctx, x, y); break;
+    case 'H': drawHealPad(ctx, x, y); break;
     case 'S': drawSign(ctx, x, y); break;
     case 'L': drawGrass(ctx,x,y); px(ctx,x,y+TS-3,TS,3,'#604028'); px(ctx,x,y+TS-2,TS,2,'#3a2a1a'); break;
-    case 'D': px(ctx, x, y, TS, TS, '#604028'); px(ctx, x+3, y+2, TS-6, TS-3, '#a86838'); px(ctx,x+TS-6,y+TS/2,2,2,'#f0d030'); break;
+    case 'D': drawHouseDoor(ctx, x, y); break;
     case 'X': drawGrass(ctx, x, y); break;
+    case '`': drawFenceH(ctx, x, y); break;
+    case '"': drawFenceV(ctx, x, y); break;
+    case "'": drawGardenBed(ctx, x, y); break;
+    case '\\': drawMailbox(ctx, x, y); break;
     default: drawGrass(ctx, x, y);
   }
 }
@@ -1037,6 +1041,218 @@ function drawSign(ctx, x, y) {
   px(ctx, x+9, y+6, 1, 1, '#fff');
   px(ctx, x+5, y+8, 5, 1, '#fff');
   px(ctx, x+7, y+11, 2, 4, '#604028');
+}
+
+// === Building tiles ============================================
+// House roof slice (R). Draws a sloped shingled roof that tiles
+// horizontally; sx/sy used for shingle phase so adjacent tiles
+// stagger nicely.
+function drawHouseRoof(ctx, x, y, sx, sy) {
+  const tx = (sx / TS) | 0;
+  // sky behind the roof line
+  drawGrass(ctx, x, y);
+  // dark ridge (top 2px) and eave shadow (bottom 2px)
+  px(ctx, x, y, TS, 2, '#7a1f1f');
+  // main roof body
+  px(ctx, x, y+2, TS, 11, '#c84848');
+  // highlight band just under ridge
+  px(ctx, x, y+2, TS, 1, '#e06868');
+  // shingle texture: 3 rows of 4 staggered tabs
+  for (let row = 0; row < 3; row++) {
+    const oy = y + 4 + row * 3;
+    const off = ((tx + row) & 1) * 2;
+    for (let i = 0; i < 4; i++) {
+      px(ctx, x + i*4 + off, oy, 3, 1, '#a02828');
+    }
+  }
+  // eave overhang and shadow
+  px(ctx, x, y+13, TS, 1, '#5a1010');
+  px(ctx, x, y+14, TS, 2, '#3a0a0a');
+}
+
+// House wall slice (B). Cream plaster with subtle siding and trim.
+function drawHouseWall(ctx, x, y, sx, sy) {
+  // base
+  px(ctx, x, y, TS, TS, '#e8d8b0');
+  // horizontal siding lines
+  px(ctx, x, y+4, TS, 1, '#c8b888');
+  px(ctx, x, y+9, TS, 1, '#c8b888');
+  // subtle shading on right edge for depth
+  px(ctx, x+TS-1, y, 1, TS, '#b8a878');
+  // baseboard
+  px(ctx, x, y+TS-2, TS, 2, '#705038');
+}
+
+// House door (D). Recessed paneled door with handle and stoop.
+function drawHouseDoor(ctx, x, y) {
+  // wall background
+  px(ctx, x, y, TS, TS, '#e8d8b0');
+  px(ctx, x, y+4, TS, 1, '#c8b888');
+  // door frame
+  px(ctx, x+3, y+3, 10, 12, '#3a2010');
+  // door body
+  px(ctx, x+4, y+4, 8, 10, '#a86838');
+  // panel split
+  px(ctx, x+4, y+9, 8, 1, '#5a3818');
+  // top panel highlight
+  px(ctx, x+5, y+5, 6, 3, '#c88858');
+  // bottom panel
+  px(ctx, x+5, y+10, 6, 3, '#c88858');
+  // brass knob
+  px(ctx, x+10, y+9, 2, 2, '#f0d030');
+  // baseboard / stoop
+  px(ctx, x, y+TS-2, TS, 2, '#705038');
+  px(ctx, x+2, y+TS-2, TS-4, 1, '#a89060');
+}
+
+// PokeRod Center roof (P). Pink/red roof with white horizontal stripe.
+function drawCenterRoof(ctx, x, y, sx, sy) {
+  const tx = (sx / TS) | 0;
+  drawGrass(ctx, x, y);
+  // ridge
+  px(ctx, x, y, TS, 2, '#902850');
+  // body
+  px(ctx, x, y+2, TS, 11, '#e85a8a');
+  // stripe
+  px(ctx, x, y+6, TS, 2, '#ffffff');
+  // shingle dabs above and below stripe
+  for (let i = 0; i < 4; i++) {
+    px(ctx, x + i*4 + ((tx & 1)*2), y+4, 2, 1, '#b03868');
+    px(ctx, x + i*4 + ((tx & 1)*2), y+10, 2, 1, '#b03868');
+  }
+  // eave
+  px(ctx, x, y+13, TS, 1, '#5a1830');
+  px(ctx, x, y+14, TS, 2, '#3a0820');
+}
+
+// PokeRod Mart roof (M). Blue roof with white sign band.
+function drawMartRoof(ctx, x, y, sx, sy) {
+  const tx = (sx / TS) | 0;
+  drawGrass(ctx, x, y);
+  // ridge
+  px(ctx, x, y, TS, 2, '#1a3878');
+  // body
+  px(ctx, x, y+2, TS, 11, '#5a90e0');
+  // sign band
+  px(ctx, x, y+6, TS, 3, '#ffffff');
+  // tiny shop letters dot pattern (decorative noise)
+  px(ctx, x+3, y+7, 2, 1, '#5a90e0');
+  px(ctx, x+8, y+7, 2, 1, '#5a90e0');
+  px(ctx, x+12, y+7, 2, 1, '#5a90e0');
+  // shingle dabs
+  for (let i = 0; i < 4; i++) {
+    px(ctx, x + i*4 + ((tx & 1)*2), y+4, 2, 1, '#3868b0');
+    px(ctx, x + i*4 + ((tx & 1)*2), y+11, 2, 1, '#3868b0');
+  }
+  // eave
+  px(ctx, x, y+13, TS, 1, '#1a2858');
+  px(ctx, x, y+14, TS, 2, '#0a1838');
+}
+
+// Shop counter (C). Wooden counter with grain and brass trim.
+function drawCounter(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#a86838');
+  // top brass trim
+  px(ctx, x, y, TS, 2, '#d8a848');
+  px(ctx, x, y+1, TS, 1, '#f0c868');
+  // grain lines
+  px(ctx, x, y+5, TS, 1, '#7a4818');
+  px(ctx, x, y+10, TS, 1, '#7a4818');
+  // baseboard
+  px(ctx, x, y+TS-2, TS, 2, '#5a3010');
+}
+
+// Healing pad (H). Pink machine with red cross panel.
+function drawHealPad(ctx, x, y) {
+  drawFloor(ctx, x, y);
+  // casing
+  px(ctx, x+2, y+2, 12, 12, '#e8a8c8');
+  px(ctx, x+2, y+2, 12, 1, '#b06888');
+  px(ctx, x+13, y+3, 1, 11, '#b06888');
+  // screen
+  px(ctx, x+4, y+4, 8, 6, '#ffffff');
+  // red cross
+  px(ctx, x+7, y+5, 2, 4, '#e02828');
+  px(ctx, x+6, y+6, 4, 2, '#e02828');
+  // base lights
+  px(ctx, x+4, y+11, 2, 2, '#48d068');
+  px(ctx, x+10, y+11, 2, 2, '#48d068');
+}
+
+// Horizontal fence segment (`).
+function drawFenceH(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // top rail
+  px(ctx, x, y+5, TS, 2, '#f0e8d0');
+  px(ctx, x, y+5, TS, 1, '#ffffff');
+  // bottom rail
+  px(ctx, x, y+10, TS, 2, '#f0e8d0');
+  // posts
+  px(ctx, x+2,  y+3, 2, 11, '#d8c8a0');
+  px(ctx, x+8,  y+3, 2, 11, '#d8c8a0');
+  px(ctx, x+14, y+3, 2, 11, '#d8c8a0');
+  // post caps
+  px(ctx, x+2,  y+3, 2, 1, '#ffffff');
+  px(ctx, x+8,  y+3, 2, 1, '#ffffff');
+  px(ctx, x+14, y+3, 2, 1, '#ffffff');
+}
+
+// Vertical fence segment (").
+function drawFenceV(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // single post centered
+  px(ctx, x+6, y, 4, TS, '#d8c8a0');
+  px(ctx, x+6, y, 4, 1, '#ffffff');
+  px(ctx, x+6, y+TS-1, 4, 1, '#a89060');
+  // crossbeam stubs
+  px(ctx, x, y+5, TS, 2, '#f0e8d0');
+  px(ctx, x, y+10, TS, 2, '#f0e8d0');
+}
+
+// Garden bed (') — dirt patch with mixed flowers.
+function drawGardenBed(ctx, x, y) {
+  // dark soil base
+  px(ctx, x, y, TS, TS, '#5a3818');
+  px(ctx, x+1, y+1, TS-2, TS-2, '#7a4828');
+  // soil flecks
+  px(ctx, x+3, y+10, 1, 1, '#3a2008');
+  px(ctx, x+11, y+12, 1, 1, '#3a2008');
+  // flowers (red, yellow, blue) with green stems
+  // red flower
+  px(ctx, x+3, y+5, 2, 2, '#e02828');
+  px(ctx, x+3, y+4, 1, 1, '#ff6868');
+  px(ctx, x+3, y+7, 1, 3, '#48a048');
+  // yellow flower
+  px(ctx, x+8, y+3, 2, 2, '#f0d030');
+  px(ctx, x+8, y+2, 1, 1, '#fff088');
+  px(ctx, x+8, y+5, 1, 5, '#48a048');
+  // blue flower
+  px(ctx, x+12, y+6, 2, 2, '#5878e8');
+  px(ctx, x+12, y+5, 1, 1, '#a8b8ff');
+  px(ctx, x+12, y+8, 1, 3, '#48a048');
+  // small leaves
+  px(ctx, x+4, y+8, 1, 1, '#68c068');
+  px(ctx, x+9, y+6, 1, 1, '#68c068');
+  px(ctx, x+13, y+9, 1, 1, '#68c068');
+}
+
+// Mailbox (\) — small post with red box on top.
+function drawMailbox(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // post
+  px(ctx, x+7, y+8, 2, 7, '#705038');
+  px(ctx, x+7, y+8, 1, 7, '#a08068');
+  // box body
+  px(ctx, x+4, y+3, 9, 6, '#c84848');
+  px(ctx, x+4, y+3, 9, 1, '#e06868');
+  px(ctx, x+12, y+4, 1, 5, '#7a1f1f');
+  // door slot
+  px(ctx, x+5, y+5, 6, 2, '#3a0a0a');
+  // tiny flag
+  px(ctx, x+13, y+4, 1, 3, '#f0d030');
+  // address number
+  px(ctx, x+6, y+6, 1, 1, '#ffffff');
+  px(ctx, x+8, y+6, 1, 1, '#ffffff');
 }
 
 window.PR_TILES = { drawTile, TS, px };
