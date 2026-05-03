@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.10.1';
-  const BUILD = '2026.05.01-38';
+  const VERSION = 'v0.10.2';
+  const BUILD = '2026.05.01-39';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -30,7 +30,8 @@
 
   // Maps that use the route (action) music. Anything else plays town.
   const ROUTE_MAPS = new Set([
-    'route1','route2','pebblewood','glimcavern','frostpeak','searoute'
+    'route1','route2','pebblewood','glimcavern','glimcavern_b1',
+    'frostpeak','searoute','desert','beach','mountain'
   ]);
 
   // Wire callbacks the world will invoke.
@@ -1261,10 +1262,14 @@
     { id:'crestrock',  name:'CRESTROCK',  spawn:{x:7,  y:6,  dir:'down'} },
     { id:'frostmere',  name:'FROSTMERE',  spawn:{x:7,  y:6,  dir:'down'} },
     { id:'harborside', name:'HARBORSIDE', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'summitvale', name:'SUMMITVALE', spawn:{x:7,  y:6,  dir:'down'} }
+    { id:'summitvale', name:'SUMMITVALE', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'mountain',   name:'HIGHSPIRE',  spawn:{x:7,  y:2,  dir:'down'} },
+    { id:'beach',      name:'BEACH',      spawn:{x:7,  y:2,  dir:'down'} },
+    { id:'desert',     name:'DESERT',     spawn:{x:7,  y:2,  dir:'down'} }
   ];
   const ROUTES_BETWEEN = [
-    'ROUTE 1','ROUTE 2','PEBBLEWOOD','GLIMCAVERN','FROSTPEAK','SEAROUTE'
+    'ROUTE 1','ROUTE 2','PEBBLEWOOD','GLIMCAVERN','FROSTPEAK','SEAROUTE',
+    '(branch from CRESTROCK)','(branch from HARBORSIDE)','(branch from SUMMITVALE)'
   ];
 
   function openWorldMap() {

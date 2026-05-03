@@ -701,7 +701,7 @@ const MAPS = {
       '10,8': { to:'glimcavern_b1', x:10, y:1 }
     },
     edges: {
-      north: { y:0,  to:'crestrock', tx:7, ty:16 },
+      north: { y:0,  to:'crestrock', tx:7, ty:6 },
       south: { y:16, to:'frostmere', tx:7, ty:1 }
     }
   },
@@ -994,7 +994,7 @@ const MAPS = {
       { species:'cavewing',  minL:18, maxL:22, weight:2 }
     ],
     edges: {
-      north: { y:0,  to:'harborside', tx:7, ty:16 },
+      north: { y:0,  to:'harborside', tx:7, ty:6 },
       south: { y:21, to:'summitvale', tx:7, ty:1 }
     }
   },
@@ -1098,6 +1098,123 @@ const MAPS = {
         dialog:["I came from RODPORT too!","Funny how the road home is always longer than you remember."] }
     ],
     doors: { '3,6': { to:'summitvale', x:11, y:12 } }
+  }
+,
+desert: {
+    id:'desert', name:'Sunbleach Desert',
+    tiles: [
+      'JJJJJJJJJJJJJJJJJJJJJJJJJ',
+      'J:::J:J,,:3:O:J:::::::::J',
+      'J3:O:J:,,:::::::::J:J:5:J',
+      'J::::::,,J:J:5:3:O:J::::J',
+      'J:J:5:3,,:J::::::::::::JJ',
+      'JJ:::::,,:::::J:J:5:3:O:J',
+      'J::::J:,,,,,,,,J::::::::J',
+      'J:3:O:J,,,,,,,,::::J:J:5J',
+      'J:::::::::J:J,,:3:O:J:::J',
+      'JJ:J:5:3:O:J:,,:::::::::J',
+      'J:J::::::::::,,J:J:5:3:OJ',
+      'J:::::J:J:5:3,,:J:::::::J',
+      'J5:3:O:,,,,,,,,:::::J:J:J',
+      'J::::::,,,,,,,,5:3:O:J::J',
+      'J:J:J:5,,:O:J:::::::::::J',
+      'JO:J:::,,:::::::J:J:5:3:J',
+      'J::::::,,J:5:3:O:J::::::J',
+      'J:5:3:O,,::::::::::::J:JJ',
+      'J::::::,,:::J:J:5:3:O:J:J',
+      'J::J:J:,,3:O:J::::::::::J',
+      'J:O:J::,,::::::::J:J:5:3J',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
+    ],
+    npcs: [],
+    encounters: [
+      { species:'zapret',    minL:14, maxL:18, weight:4 },
+      { species:'pebra',     minL:14, maxL:18, weight:5 },
+      { species:'stoneworm', minL:14, maxL:18, weight:3 },
+      { species:'cinderpup', minL:15, maxL:18, weight:3 },
+      { species:'geistmite', minL:14, maxL:18, weight:2 }
+    ],
+    edges: {
+      south: { y:21, to:'summitvale', tx:7, ty:6 }
+    }
+  },
+
+  beach: {
+    id:'beach', name:'Sunkissed Beach',
+    tiles: [
+      'OOOOOOOOOOOOOOOOOOOOOOOOO',
+      'O:::3:O,,:W:s:O:::::::::O',
+      'OW:s:O:,,:::::::::3:O:WWO',
+      'O::::::,,3:O:t:W:s:O::WWO',
+      'O:O:t:W,,:O:::::::::::WWO',
+      'OO:::::,,:::::3:O:t:W:WWO',
+      'O::::3:,,t:W:s:O::::::WWO',
+      'O:W:s:O,,,,,,::::::3:OWWO',
+      'O::::::,,,,,,:t:W:s:O:WWO',
+      'O3:O:t:W:s:,,:::::::::WWO',
+      'O:O::::::::,,::3:O:t:WWWO',
+      'O:::::3:O:t,,:s:O:::::WWO',
+      'Ot:W:s:O:::,,:::::::3:WWO',
+      'O::::::,,,,,,O:t:W:s:OWWO',
+      'O:3:O:t,,,,,,:::::::::WWO',
+      'Os:O:::,,:::::::3:O:t:WWO',
+      'O::::::,,O:t:W:s:O::::WWO',
+      'O:t:W:s,,::::::::::::3WWO',
+      'O::::::,,:::3:O:t:W:s:WWO',
+      'O::3:O:,,W:s:O::::::::WWO',
+      'O:s:O::,,::::::::3:O:t:WO',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
+    ],
+    npcs: [],
+    encounters: [
+      { species:'splashfin', minL:14, maxL:18, weight:5 },
+      { species:'aquapup',   minL:14, maxL:18, weight:4 },
+      { species:'mistfin',   minL:14, maxL:18, weight:3 },
+      { species:'cavewing',  minL:14, maxL:18, weight:2 },
+      { species:'galewing',  minL:14, maxL:18, weight:3 }
+    ],
+    edges: {
+      south: { y:21, to:'harborside', tx:7, ty:16 }
+    }
+  },
+
+  mountain: {
+    id:'mountain', name:'Highspire Mountain',
+    tiles: [
+      'GGGGGGGGGGGGGGGGGGGGGGGGG',
+      'G:::#:G,,:v:#:G:::::::::G',
+      'Gv:#:G:,,:::::::::#:G:G:G',
+      'G::::::,,#:G:G:v:#:G::::G',
+      'G:G:G:v,,:G::::::::::::#G',
+      'GG:::::,,,,,,,,,,:G:v:#:G',
+      'G::::#:,,,,,,,,,,:::::::G',
+      'G:v:#:G::::::::,,::#:G:GG',
+      'G:::::::::#:G:G,,:#:G:::G',
+      'G#:G:G:v:#:G:::,,:::::::G',
+      'G:G::::::::::::,,G:G:v:#G',
+      'G:::::#,,,,,,,,,,:::::::G',
+      'GG:v:#:,,,,,,,,,,:::#:G:G',
+      'G::::::,,::#:G:G:v:#:G::G',
+      'G:#:G:G,,:#:G:::::::::::G',
+      'G#:G:::,,:::::::#:G:G:v:G',
+      'G:::,,,,,G:G:v:#:G::::::G',
+      'G:G,,,,,,::::::::::::#:GG',
+      'G::,,:::::::#:G:G:v:#:G:G',
+      'G::,,G:G:v:#:G::::::::::G',
+      'G:#:G::,,::::::::#:G:G:vG',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
+    ],
+    npcs: [],
+    encounters: [
+      { species:'pebra',     minL:16, maxL:20, weight:5 },
+      { species:'stoneworm', minL:16, maxL:20, weight:4 },
+      { species:'crysthorn', minL:18, maxL:22, weight:2 },
+      { species:'geistmite', minL:16, maxL:20, weight:2 },
+      { species:'snowox',    minL:18, maxL:22, weight:2 }
+    ],
+    edges: {
+      south: { y:21, to:'crestrock', tx:7, ty:16 }
+    }
   }
 };
 
