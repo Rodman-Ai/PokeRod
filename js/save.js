@@ -20,7 +20,8 @@
         balls: state.player.balls,
         bag: state.player.bag || {},
         steps: state.player.steps,
-        badges: state.player.badges || []
+        badges: state.player.badges || [],
+        equipment: state.player.equipment || { trinket: null }
       },
       party: state.party,
       flags: state.flags,

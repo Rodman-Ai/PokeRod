@@ -542,6 +542,30 @@ function xpYield(loserSpecies, loserLevel) {
   return Math.max(1, Math.floor(loserLevel * 7));
 }
 
+// XP share ratio for a party member: full for the active battler, half
+// for bench mons (standard exp-share-on behaviour).
+function xpShareRatio(isActive) { return isActive ? 1.0 : 0.5; }
+
+// Combined XP multiplier from the player's worn trinket and this mon's
+// held item (e.g. Lucky Egg). Each contributes its own xpMult; missing
+// items / unknown ids are treated as 1.0. PR_ITEMS may not be loaded
+// during early bootstrap so it's looked up lazily.
+function xpMultiplier(state, mon) {
+  let m = 1.0;
+  const items = window.PR_ITEMS;
+  if (!items || !state || !state.player) return m;
+  const eq = state.player.equipment || null;
+  if (eq && eq.trinket) {
+    const def = items.byId(eq.trinket);
+    if (def && def.xpMult) m *= def.xpMult;
+  }
+  if (mon && mon.held) {
+    const def = items.byId(mon.held);
+    if (def && def.xpMult) m *= def.xpMult;
+  }
+  return m;
+}
+
 // Damage calc (simplified Gen 5+ style).
 function calcDamage(attacker, defender, move, isCrit) {
   if (move.kind === 'status' || (move.power|0) === 0) return 0;
@@ -555,4 +579,4 @@ function calcDamage(attacker, defender, move, isCrit) {
   return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand)), eff, stab, crit:isCrit };
 }
 
-window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, calcDamage };
+window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };

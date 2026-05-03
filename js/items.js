@@ -74,6 +74,33 @@
     pokeflute: {
       id:'pokeflute', name:'POKE FLUTE', desc:'A flute that wakes any sleeping creature.',
       kind:'key', key:true, price:0
+    },
+    // ---- Trainer equipment (worn by the player; one per slot) ----
+    lucky_charm: {
+      id:'lucky_charm', name:'LUCKY CHARM',
+      desc:'Worn trinket. All party Pokerod gain 10% more XP.',
+      kind:'trainer_gear', slot:'trinket', xpMult:1.10, price:1500
+    },
+    scholars_glasses: {
+      id:'scholars_glasses', name:'SCHOLAR GLASS',
+      desc:'Worn trinket. All party Pokerod gain 25% more XP.',
+      kind:'trainer_gear', slot:'trinket', xpMult:1.25, price:5000
+    },
+    masters_pendant: {
+      id:'masters_pendant', name:'MASTER PENDANT',
+      desc:'Worn trinket. All party Pokerod gain 50% more XP.',
+      kind:'trainer_gear', slot:'trinket', xpMult:1.50, price:15000
+    },
+    // ---- Pokerod held equipment (one per creature; shares mon.held slot) ----
+    soothe_bell: {
+      id:'soothe_bell', name:'SOOTHE BELL',
+      desc:'Held item. Holder gains 10% more XP from battles.',
+      kind:'held_gear', holdable:true, xpMult:1.10, price:1200
+    },
+    lucky_egg: {
+      id:'lucky_egg', name:'LUCKY EGG',
+      desc:'Held item. Holder gains 50% more XP from battles.',
+      kind:'held_gear', holdable:true, xpMult:1.50, price:4000
     }
   };
 
@@ -142,21 +169,25 @@
       out.push({ id, count: state.player.bag[id], def: it });
     }
     // Stable order roughly by category.
-    const order = ['rodball','greatball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','pokeflute'];
+    const order = ['rodball','greatball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','pokeflute'];
     out.sort((a,b) => order.indexOf(a.id) - order.indexOf(b.id));
     return out;
   }
+
+  // Look up an item def by id. Returns null if unknown so callers can
+  // safely chain `(byId(x) || {}).xpMult` style patterns.
+  function byId(id) { return ITEMS[id] || null; }
 
   // Shop inventory tiered by player badge count. tier:N rows unlock
   // once the player has N badges (so tier:0 is available from the start).
   const SHOP_TIERS = [
     { tier:0, items:['rodball','potion','antidote'] },
     { tier:1, items:['superpotion','paralyzeheal','awakening'] },
-    { tier:2, items:['burnheal','oranberry'] },
+    { tier:2, items:['burnheal','oranberry','lucky_charm','soothe_bell'] },
     { tier:3, items:['greatball','sitrusberry'] },
-    { tier:4, items:['hyperpotion','revive','pechaberry'] },
+    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg'] },
     { tier:5, items:['ultraball','fullheal'] },
-    { tier:6, items:['maxpotion'] },
+    { tier:6, items:['maxpotion','masters_pendant'] },
     { tier:7, items:['maxrevive'] }
   ];
 
@@ -188,6 +219,6 @@
     return out;
   }
 
-  window.PR_ITEMS = { ITEMS, apply, add, take, listOwned, ensureBag,
+  window.PR_ITEMS = { ITEMS, apply, add, take, listOwned, ensureBag, byId,
                       SHOP_TIERS, computeShopInventory };
 })();

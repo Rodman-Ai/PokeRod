@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.15.2';
-  const BUILD = '2026.05.03-59';
+  const VERSION = 'v0.16.0';
+  const BUILD = '2026.05.03-60';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -144,7 +144,8 @@
   function startNewGame() {
     window.PR_SAVE.clear();
     state.player = { name:'YOU', map:'rodport', x:4, y:5, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1, oranberry:1 } };
+                     bag: { rodball:5, potion:3, antidote:1, oranberry:1 },
+                     equipment: { trinket: null } };
     state.party = [];
     state.flags = { starterChosen:false };
     state.defeatedTrainers = new Set();
@@ -736,7 +737,8 @@
       drawPartyView(); return;
     }
     const w = 92;
-    const h = m.options.length * 12 + 22;
+    // +12 below options for the equipped-gear line.
+    const h = m.options.length * 12 + 22 + 12;
     const x = VIEW_W - w - 6, y = 6;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
     // Money chip at the top so it never collides with entries.
@@ -749,6 +751,13 @@
       if (i === m.idx) window.PR_UI.drawText(ctx, '>', x + 4, cy, '#e83838');
       window.PR_UI.drawText(ctx, m.options[i], x + 12, cy, '#202020');
     }
+    // Currently equipped trinket (if any), shown beneath the menu list.
+    const eq = state.player.equipment;
+    const trinket = eq && eq.trinket;
+    const tDef = trinket && window.PR_ITEMS && window.PR_ITEMS.byId(trinket);
+    const gearY = y + h - 10;
+    window.PR_UI.drawText(ctx, 'GEAR:' + (tDef ? tDef.name.slice(0, 10) : '(none)'),
+                          x + 4, gearY, '#806040');
     if (m.flashTimer > 0) {
       m.flashTimer -= 1/60;
       window.PR_UI.box(ctx, 40, 70, 160, 20, '#fff', '#202020');
@@ -1041,6 +1050,21 @@
       }
       // Overworld: only target items make sense (not balls).
       if (def.battleOnly) { showFlash('Use in battle.'); return; }
+      // Trainer equipment: equip directly into the slot, swap any
+      // currently-equipped item back into the bag.
+      if (def.kind === 'trainer_gear') {
+        if (!state.player.equipment) state.player.equipment = { trinket: null };
+        const slot = def.slot || 'trinket';
+        const prev = state.player.equipment[slot];
+        if (prev === it.id) { showFlash(def.name + ' already worn.'); return; }
+        if (prev) window.PR_ITEMS.add(state, prev, 1);
+        window.PR_ITEMS.take(state, it.id, 1);
+        state.player.equipment[slot] = it.id;
+        window.PR_SFX && window.PR_SFX.play('confirm');
+        showFlash('Equipped ' + def.name + '!');
+        return;
+      }
+      // Held-item gear (and berries): use bagtarget to choose a mon.
       state.bagTarget = { itemId: it.id, def, idx: 0, returnTo:'menu' };
       state.mode = 'bagtarget';
     }
@@ -1088,6 +1112,18 @@
     }
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
       const target = party[t.idx];
+      // Held-item gear: assign to mon.held, swap any prior held back into bag.
+      if (t.def && t.def.kind === 'held_gear') {
+        if (target.held === t.itemId) { showFlash(target.nickname + ' already holds it.'); return; }
+        if (target.held) window.PR_ITEMS.add(state, target.held, 1);
+        target.held = t.itemId;
+        window.PR_ITEMS.take(state, t.itemId, 1);
+        window.PR_SFX && window.PR_SFX.play('confirm');
+        showFlash(target.nickname + ' holds ' + t.def.name + '.');
+        state.bagTarget = null;
+        state.mode = 'bag';
+        return;
+      }
       const result = window.PR_ITEMS.apply(t.itemId, target);
       if (!result.ok) { showFlash(result.message); return; }
       window.PR_ITEMS.take(state, t.itemId, 1);
@@ -1204,8 +1240,12 @@
   function applySaveData(data) {
     Object.assign(state.player, data.player);
     if (state.player.balls === undefined) state.player.balls = 5;
+    if (!state.player.equipment) state.player.equipment = { trinket: null };
+    if (state.player.equipment.trinket === undefined) state.player.equipment.trinket = null;
     if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
     state.party = data.party || [];
+    // Default missing held slot on each party member (pre-feature saves).
+    for (const m of state.party) if (m && m.held === undefined) m.held = null;
     state.flags = data.flags || { starterChosen:false };
     state.defeatedTrainers = new Set(data.defeatedTrainers || []);
     if (data.settings) state.settings = Object.assign({}, SETTINGS_DEFAULTS, data.settings);
@@ -1436,6 +1476,18 @@
       window.PR_UI.drawText(ctx, 'L' + mon.level, x + 110, cy, '#202020');
       window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, mon.hp, mon.stats.hp);
       window.PR_UI.drawText(ctx, mon.hp + '/' + mon.stats.hp, x + w - 60, cy + 8, '#202020');
+      // Held item indicator: small coloured chip + abbreviated name beneath the HP.
+      if (mon.held) {
+        const heldDef = window.PR_ITEMS && window.PR_ITEMS.byId(mon.held);
+        if (heldDef) {
+          const isXpGear = !!heldDef.xpMult;
+          ctx.fillStyle = isXpGear ? '#f0c020' : '#88c0f0';
+          ctx.fillRect(x + 28, cy + 9, 4, 4);
+          ctx.fillStyle = '#202020';
+          ctx.fillRect(x + 28, cy + 9, 4, 1);
+          window.PR_UI.drawText(ctx, '@' + heldDef.name.slice(0, 9), x + 36, cy + 9, '#385890');
+        }
+      }
     }
     window.PR_UI.drawText(ctx, 'B: BACK', x + 8, y + h - 12, '#202020');
     if (window.PR_INPUT.consumePressed('x') || window.PR_INPUT.consumePressed('Enter')) {

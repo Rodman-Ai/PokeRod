@@ -395,23 +395,28 @@
   };
 
   Battle.prototype._enterLearnMove = function() {
-    const newId = this._pendingLearn.shift();
-    if (!newId) return;
-    this._learnContext = { newId, slot: 0 };
+    const entry = this._pendingLearn.shift();
+    if (!entry) return;
+    // Backwards compatible: accept either a bare moveId (old shape) or
+    // an { mvId, target } object (new shape from party-wide XP).
+    const newId  = (typeof entry === 'string') ? entry : entry.mvId;
+    const target = (typeof entry === 'string') ? this.me : entry.target;
+    this._learnContext = { newId, slot: 0, target };
     this.phase = 'learnmove';
   };
 
   Battle.prototype.updateLearnMove = function() {
     const I = window.PR_INPUT;
     const c = this._learnContext;
-    const moves = this.me.moves;
+    const target = c.target || this.me;
+    const moves = target.moves;
     if (I.consumePressed('ArrowRight')) c.slot = Math.min(4, c.slot + 1);
     if (I.consumePressed('ArrowLeft'))  c.slot = Math.max(0, c.slot - 1);
     if (I.consumePressed('ArrowDown'))  c.slot = Math.min(4, c.slot + 2);
     if (I.consumePressed('ArrowUp'))    c.slot = Math.max(0, c.slot - 2);
     if (I.consumePressed('x')) {
       // Give up - skip this move.
-      this.queue(this.me.nickname + ' did not learn ' +
+      this.queue(target.nickname + ' did not learn ' +
         window.PR_DATA.MOVES[c.newId].name + '.');
       this._learnContext = null;
       this._afterLearn();
@@ -420,14 +425,14 @@
     if (I.consumePressed('z')) {
       if (c.slot === 4) {
         // Slot 4 is "GIVE UP".
-        this.queue(this.me.nickname + ' did not learn ' +
+        this.queue(target.nickname + ' did not learn ' +
           window.PR_DATA.MOVES[c.newId].name + '.');
       } else {
         const oldId = moves[c.slot] && moves[c.slot].id;
         const m = window.PR_DATA.MOVES[c.newId];
         moves[c.slot] = { id: c.newId, pp: m.pp, ppMax: m.pp };
         if (oldId) this.queue('Forgot ' + window.PR_DATA.MOVES[oldId].name + '!');
-        this.queue(this.me.nickname + ' learned ' + m.name + '!');
+        this.queue(target.nickname + ' learned ' + m.name + '!');
       }
       this._learnContext = null;
       this._afterLearn();
@@ -649,47 +654,69 @@
     }
   };
 
-  Battle.prototype.awardXp = function() {
-    const yld = window.PR_DATA.xpYield(this.foe.species, this.foe.level);
-    this.me.xp += yld;
-    this.queue(this.me.nickname + ' gained ' + yld + ' XP!');
-    let lv = window.PR_DATA.levelFromXp(this.me.xp);
-    while (lv > this.me.level) {
-      this.me.level++;
+  // Apply XP to a single party member, running the level-up loop and
+  // queueing battle messages. Used for both the active battler and bench
+  // mons (party-wide XP / exp-share-on behaviour).
+  Battle.prototype.applyXpToMon = function(mon, gain) {
+    if (!mon || mon.hp <= 0 || mon.level >= 100 || gain <= 0) return;
+    mon.xp += gain;
+    this.queue(mon.nickname + ' gained ' + gain + ' XP!');
+    let lv = window.PR_DATA.levelFromXp(mon.xp);
+    while (lv > mon.level && mon.level < 100) {
+      mon.level++;
       window.PR_SFX && window.PR_SFX.play('levelup');
-      const sp = window.PR_DATA.CREATURES[this.me.species];
-      const newStats = window.PR_DATA.computeStats(sp.baseStats, this.me.ivs, this.me.level);
-      const dHp = newStats.hp - this.me.stats.hp;
-      this.me.stats = newStats;
-      this.me.hp = Math.min(this.me.stats.hp, this.me.hp + Math.max(0, dHp));
-      this.queue(this.me.nickname + ' grew to LV. ' + this.me.level + '!');
+      let sp = window.PR_DATA.CREATURES[mon.species];
+      const newStats = window.PR_DATA.computeStats(sp.baseStats, mon.ivs, mon.level);
+      const dHp = newStats.hp - mon.stats.hp;
+      mon.stats = newStats;
+      mon.hp = Math.min(mon.stats.hp, mon.hp + Math.max(0, dHp));
+      this.queue(mon.nickname + ' grew to LV. ' + mon.level + '!');
       // Learn moves.
       for (const [reqLv, mvId] of sp.learnset) {
-        if (reqLv === this.me.level && !this.me.moves.find(m => m.id === mvId)) {
-          if (this.me.moves.length < 4) {
+        if (reqLv === mon.level && !mon.moves.find(m => m.id === mvId)) {
+          if (mon.moves.length < 4) {
             const m = window.PR_DATA.MOVES[mvId];
-            this.me.moves.push({ id: mvId, pp: m.pp, ppMax: m.pp });
-            this.queue(this.me.nickname + ' learned ' + m.name + '!');
+            mon.moves.push({ id: mvId, pp: m.pp, ppMax: m.pp });
+            this.queue(mon.nickname + ' learned ' + m.name + '!');
           } else {
             const newMove = window.PR_DATA.MOVES[mvId];
-            this.queue(this.me.nickname + ' wants to learn ' + newMove.name + '...');
-            this.queue('But ' + this.me.nickname + ' already knows 4 moves.');
+            this.queue(mon.nickname + ' wants to learn ' + newMove.name + '...');
+            this.queue('But ' + mon.nickname + ' already knows 4 moves.');
             this._pendingLearn = this._pendingLearn || [];
-            this._pendingLearn.push(mvId);
+            // Tag the entry with the target mon so the move-learn UI can
+            // route to the right creature, not just the active battler.
+            this._pendingLearn.push({ mvId, target: mon });
           }
         }
       }
       // Evolve at level threshold.
-      if (sp.evolves && this.me.level >= sp.evolves.level) {
+      if (sp.evolves && mon.level >= sp.evolves.level) {
         const evo = sp.evolves.to;
-        this.me.species = evo;
+        mon.species = evo;
         const evoSp = window.PR_DATA.CREATURES[evo];
-        this.me.stats = window.PR_DATA.computeStats(evoSp.baseStats, this.me.ivs, this.me.level);
-        if (this.me.nickname === sp.name) this.me.nickname = evoSp.name;
+        mon.stats = window.PR_DATA.computeStats(evoSp.baseStats, mon.ivs, mon.level);
+        if (mon.nickname === sp.name) mon.nickname = evoSp.name;
         this.queue('What? ' + sp.name + ' is evolving!');
         this.queue('It evolved into ' + evoSp.name + '!');
+        sp = evoSp; // continue learning checks against new species in next iter
       }
-      lv = window.PR_DATA.levelFromXp(this.me.xp);
+      lv = window.PR_DATA.levelFromXp(mon.xp);
+    }
+  };
+
+  Battle.prototype.awardXp = function() {
+    const base = window.PR_DATA.xpYield(this.foe.species, this.foe.level);
+    const party = (this.state && this.state.party) ? this.state.party : [this.me];
+    // Apply to the active battler first so its level-up text comes out
+    // ahead of bench updates.
+    const order = party.slice().sort((a, b) => (a === this.me ? -1 : b === this.me ? 1 : 0));
+    for (const mon of order) {
+      if (!mon || mon.hp <= 0) continue;
+      const isActive = (mon === this.me);
+      const ratio = window.PR_DATA.xpShareRatio(isActive);
+      const mult = window.PR_DATA.xpMultiplier(this.state, mon);
+      const gain = Math.max(1, Math.floor(base * ratio * mult));
+      this.applyXpToMon(mon, gain);
     }
   };
 
@@ -787,10 +814,12 @@
     if (!c) return;
     const x = 6, y = VIEW_H - 64, w = VIEW_W - 12, h = 60;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    const target = c.target || this.me;
     const newName = window.PR_DATA.MOVES[c.newId].name;
-    window.PR_UI.drawText(ctx, 'LEARN ' + newName.toUpperCase() + '?', x + 6, y + 4, '#202020');
+    const who = target === this.me ? 'LEARN' : (target.nickname.toUpperCase() + ': LEARN');
+    window.PR_UI.drawText(ctx, who + ' ' + newName.toUpperCase() + '?', x + 6, y + 4, '#202020');
     window.PR_UI.drawText(ctx, 'FORGET WHICH MOVE?', x + 6, y + 14, '#385890');
-    const moves = this.me.moves;
+    const moves = target.moves;
     for (let i = 0; i < 4; i++) {
       const cx = x + 8 + (i % 2) * ((w - 16) / 2);
       const cy = y + 26 + Math.floor(i / 2) * 12;
