@@ -111,7 +111,11 @@
     const m = this.currentMap();
     if (!m.npcs) return null;
     for (const n of m.npcs) {
-      if (n.x === x && n.y === y) return n;
+      if (n.x !== x || n.y !== y) continue;
+      // Gate NPC vanishes once its conditions are met.
+      if (n.gate && this.state.gateConditionsMet
+          && this.state.gateConditionsMet(n.gate)) continue;
+      return n;
     }
     return null;
   };
@@ -148,7 +152,18 @@
     if (this.state.player.surfing && code !== 'W') {
       this.state.player.surfing = false;
     }
-    if (this.npcAt(nx, ny)) return;
+    {
+      const blocker = this.npcAt(nx, ny);
+      if (blocker) {
+        if (blocker.gate && this.state.gateConditionsMet
+            && !this.state.gateConditionsMet(blocker.gate)
+            && this.state.onSign) {
+          const msg = blocker.gate.message;
+          this.state.onSign(Array.isArray(msg) ? msg[0] : (msg || 'The way is blocked.'));
+        }
+        return;
+      }
+    }
 
     // Ledge: jump 2 tiles south.
     if (code === 'L') {

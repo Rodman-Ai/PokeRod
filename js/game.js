@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.13.1';
-  const BUILD = '2026.05.03-51';
+  const VERSION = 'v0.13.2';
+  const BUILD = '2026.05.03-52';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -513,7 +513,29 @@
   }
 
   // ---------- NPC interaction ----------
+  function gateConditionsMet(gate) {
+    if (!gate) return true;
+    const badges = state.player.badges || [];
+    if (gate.badges && !gate.badges.every(b => badges.includes(b))) return false;
+    if (gate.minBadges && badges.length < gate.minBadges) return false;
+    if (gate.items && state.player.bag) {
+      if (!gate.items.every(it => (state.player.bag[it] | 0) > 0)) return false;
+    }
+    if (gate.flag && !(state.flags || {})[gate.flag]) return false;
+    return true;
+  }
+
+  function handleGateNpc(npc) {
+    if (!npc.gate) return false;
+    if (gateConditionsMet(npc.gate)) return false; // npc has already vanished
+    const msg = npc.gate.message || ['The way is blocked.'];
+    openDialog(Array.isArray(msg) ? msg : [msg]);
+    return true;
+  }
+  state.gateConditionsMet = gateConditionsMet;
+
   function handleNpcInteract(npc) {
+    if (handleGateNpc(npc)) return;
     if (npc.legendary) {
       const key = state.player.map + ':leg:' + npc.x + ',' + npc.y;
       if (state.defeatedTrainers.has(key)) {
@@ -563,9 +585,22 @@
       // Gym requirement gating.
       if (npc.gym && npc.gymRequirement) {
         ensureDex();
-        const caughtCount = state.dex.caught.size;
-        if (npc.gymRequirement.minCaught && caughtCount < npc.gymRequirement.minCaught) {
+        const r = npc.gymRequirement;
+        const badges = state.player.badges || [];
+        if (r.minCaught && state.dex.caught.size < r.minCaught) {
           openDialog(npc.gymLocked || ['You are not ready yet.']);
+          return;
+        }
+        if (r.minBadges && badges.length < r.minBadges) {
+          openDialog(npc.gymLocked || ['Earn ' + r.minBadges + ' badges first.']);
+          return;
+        }
+        if (r.badges && !r.badges.every(b => badges.includes(b))) {
+          openDialog(npc.gymLocked || ['You need more badges before challenging me.']);
+          return;
+        }
+        if (r.minPartyLevel && !state.party.some(m => (m.level|0) >= r.minPartyLevel)) {
+          openDialog(npc.gymLocked || ['Train your team to lv ' + r.minPartyLevel + ' first.']);
           return;
         }
       }
