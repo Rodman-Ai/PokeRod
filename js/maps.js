@@ -1196,7 +1196,16 @@ desert: {
       'J:O:J::,,::::::::J:J:5:3J',
       'XXXXXXX,,XXXXXXXXXXXXXXXX'
     ],
-    npcs: [],
+    npcs: [
+      { x:12, y:6, dir:'down', sprite:'npc_old', name:'GYM LEADER MIRE',
+        gym:true, badge:'DUNE',
+        dialog:["I am MIRE, leader of the SUNBLEACH GYM.","The dunes test only the worthy. Do you have what it takes?"],
+        gymRequirement:{ minBadges:5 },
+        gymLocked:["The desert respects only the seasoned.","Earn at least five BADGES first."],
+        trainer:{ team:[['stoneworm',32],['boulderon',33],['quakeworm',35]],
+                  reward:2800,
+                  defeat:["Magnificent! The DUNE BADGE is yours."] } }
+    ],
     encounters: [
       { species:'zapret',    minL:14, maxL:18, weight:4 },
       { species:'pebra',     minL:14, maxL:18, weight:5 },
@@ -1274,7 +1283,16 @@ desert: {
       'G:#:G::,,::::::::#:G:G:vG',
       'XXXXXXX,,XXXXXXXXXXXXXXXX'
     ],
-    npcs: [],
+    npcs: [
+      { x:12, y:6, dir:'down', sprite:'npc_youth', name:'GYM LEADER VOLTA',
+        gym:true, badge:'SPARK',
+        dialog:["I am VOLTA, leader of the HIGHSPIRE GYM.","The mountain crackles with electric storms — and so does my team!"],
+        gymRequirement:{ minBadges:3 },
+        gymLocked:["The path here is steep — earn at least three BADGES first.","Then we'll see if you can ride the lightning."],
+        trainer:{ team:[['voltkit',24],['zapret',26],['voltlynx',28]],
+                  reward:2000,
+                  defeat:["A shocking win! The SPARK BADGE is yours."] } }
+    ],
     encounters: [
       { species:'pebra',     minL:16, maxL:20, weight:5 },
       { species:'stoneworm', minL:16, maxL:20, weight:4 },
