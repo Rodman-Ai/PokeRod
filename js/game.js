@@ -177,6 +177,8 @@
     if (frameErr) {
       lastErr = frameErr;
       try {
+        ctx.save();
+        ctx.scale(2, 2);
         ctx.fillStyle = 'rgba(0,0,0,0.85)';
         ctx.fillRect(0, VIEW_H - 22, VIEW_W, 22);
         const msg = String(frameErr && frameErr.message || frameErr);
@@ -184,6 +186,7 @@
           window.PR_UI.drawText(ctx, ('ERR: ' + msg).slice(0, 38), 4, VIEW_H - 18, '#f08080');
           window.PR_UI.drawText(ctx, 'TAP VERSION TO COPY DETAILS', 4, VIEW_H - 8, '#ffd060');
         }
+        ctx.restore();
       } catch (_) {}
     } else {
       lastErr = null;
@@ -236,23 +239,34 @@
     }
   }
 
+  // The canvas is 480x320 native, but most UI / battle / intro art was
+  // authored for 240x160 logical coordinates. We render UI scaled 2x and
+  // let the world renderer draw natively at 480x320 (TS=32).
+  function withScale2(fn) {
+    ctx.save();
+    ctx.scale(2, 2);
+    try { fn(); }
+    finally { ctx.restore(); }
+  }
   function render() {
-    if (state.mode === 'title') { drawFlash(); return; }
-    if (state.mode === 'intro') { drawIntro(); drawFlash(); return; }
-    if (state.mode === 'battle') { state.battle.render(ctx); drawFlash(); return; }
+    if (state.mode === 'title') { withScale2(drawFlash); return; }
+    if (state.mode === 'intro') { withScale2(() => { drawIntro(); drawFlash(); }); return; }
+    if (state.mode === 'battle') { withScale2(() => { state.battle.render(ctx); drawFlash(); }); return; }
     state.world.render(ctx);
-    if (state.mode === 'dialog') drawDialog();
-    else if (state.mode === 'menu') drawMenu();
-    else if (state.mode === 'map') drawWorldMap();
-    else if (state.mode === 'settings') drawSettings();
-    else if (state.mode === 'dex') drawDex();
-    else if (state.mode === 'slots') drawSlotPicker();
-    else if (state.mode === 'bag') drawBag();
-    else if (state.mode === 'bagtarget') drawBagTarget();
-    else if (state.mode === 'box') drawBox();
-    else if (state.mode === 'quests') drawQuests();
-    else if (state.mode === 'starter') drawStarter();
-    drawFlash();
+    withScale2(() => {
+      if (state.mode === 'dialog') drawDialog();
+      else if (state.mode === 'menu') drawMenu();
+      else if (state.mode === 'map') drawWorldMap();
+      else if (state.mode === 'settings') drawSettings();
+      else if (state.mode === 'dex') drawDex();
+      else if (state.mode === 'slots') drawSlotPicker();
+      else if (state.mode === 'bag') drawBag();
+      else if (state.mode === 'bagtarget') drawBagTarget();
+      else if (state.mode === 'box') drawBox();
+      else if (state.mode === 'quests') drawQuests();
+      else if (state.mode === 'starter') drawStarter();
+      drawFlash();
+    });
   }
 
   function drawFlash() {
