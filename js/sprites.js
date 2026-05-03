@@ -70,8 +70,8 @@ function drawTile(ctx, code, sx, sy) {
     case 'f': drawDoorShop(ctx, x, y); break;
     case '[': drawWindowL(ctx, x, y); break;
     case ']': drawWindowR(ctx, x, y); break;
-    case '(': drawChimney(ctx, x, y); break;
-    case ')': drawSmokestack(ctx, x, y); break;
+    case '(': drawSmallRock(ctx, x, y); break;
+    case ')': drawLargeRock(ctx, x, y); break;
     // Paths (20).
     case '_': drawPathCobble(ctx, x, y); break;
     case '^': drawPathDirt(ctx, x, y); break;
@@ -1344,6 +1344,42 @@ function drawPottedPlant(ctx, x, y) {
   px(ctx, x+10, y+11, 1, 4, '#702808');
   // soil peeking
   px(ctx, x+6, y+9, 4, 1, '#3a2008');
+}
+
+// Small rock — pebble cluster, walkable. Player steps over it.
+function drawSmallRock(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // 3 small rounded pebbles
+  px(ctx, x+3, y+10, 4, 3, '#787068');
+  px(ctx, x+3, y+10, 4, 1, '#a89888');
+  px(ctx, x+8, y+11, 3, 2, '#605850');
+  px(ctx, x+8, y+11, 3, 1, '#988878');
+  px(ctx, x+11, y+9, 3, 3, '#787068');
+  px(ctx, x+11, y+9, 3, 1, '#a89888');
+  // tiny grass tufts between
+  px(ctx, x+7, y+12, 1, 1, '#48a048');
+}
+
+// Large rock — boulder, blocking. Tall and obviously impassable.
+function drawLargeRock(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // base shadow on grass
+  px(ctx, x+2, y+TS-2, TS-4, 2, '#2a4a28');
+  // boulder body
+  px(ctx, x+2, y+5, 12, 9, '#605850');
+  // top-left highlight
+  px(ctx, x+3, y+4, 8, 1, '#787068');
+  px(ctx, x+2, y+5, 1, 7, '#787068');
+  px(ctx, x+3, y+5, 6, 1, '#988878');
+  // wider midsection
+  px(ctx, x+1, y+8, 14, 5, '#605850');
+  px(ctx, x+1, y+8, 1, 4, '#484038');
+  px(ctx, x+TS-2, y+8, 1, 5, '#484038');
+  // crack
+  px(ctx, x+8, y+7, 1, 5, '#383028');
+  px(ctx, x+9, y+10, 1, 2, '#383028');
+  // base ring
+  px(ctx, x+1, y+13, 14, 1, '#383028');
 }
 
 window.PR_TILES = { drawTile, TS, px };
