@@ -482,7 +482,15 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
-        dialog:["Welcome to WOODFALL.","South of here, the trees thicken into PEBBLEWOOD.","Bring a torch... or a creature with bright eyes!"] }
+        dialog:["Welcome to WOODFALL.","South of here, the trees thicken into PEBBLEWOOD.","Bring a torch... or a creature with bright eyes!"] },
+      { x:10, y:12, dir:'down', sprite:'npc_girl', name:'GYM LEADER FERN',
+        gym:true, badge:'VERDE',
+        dialog:["I am FERN, leader of the WOODFALL GYM.","My GRASS team will tangle yours up!"],
+        gymRequirement:{ badges:['WAVE'] },
+        gymLocked:["You need the WAVE BADGE before challenging me.","Try the BRINDALE GYM first!"],
+        trainer:{ team:[['fernsprout',16],['sproutling',16],['bramblewood',18]],
+                  reward:900,
+                  defeat:["A clean win! The VERDE BADGE is yours."] } }
     ],
     ambient: [
       { species:'sproutling', x:7,  y:9,  range:2 },
@@ -615,7 +623,15 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
-        dialog:["Welcome to CRESTROCK.","South of here lies GLIMCAVERN.","Bring along an electric or fire creature - the dark inside is no joke."] }
+        dialog:["Welcome to CRESTROCK.","South of here lies GLIMCAVERN.","Bring along an electric or fire creature - the dark inside is no joke."] },
+      { x:10, y:12, dir:'down', sprite:'npc_old', name:'GYM LEADER BOULDER',
+        gym:true, badge:'CRAG',
+        dialog:["I am BOULDER, leader of the CRESTROCK GYM.","My ROCK team won't move easily!"],
+        gymRequirement:{ badges:['WAVE','VERDE'] },
+        gymLocked:["You'll need the WAVE and VERDE BADGES first.","Brindale and Woodfall are your training grounds."],
+        trainer:{ team:[['pebra',22],['stoneworm',23],['boulderon',26]],
+                  reward:1300,
+                  defeat:["A solid win! The CRAG BADGE is yours."] } }
     ],
     ambient: [
       { species:'pebra',     x:8,  y:9,  range:2 },
@@ -786,7 +802,15 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
-        dialog:["FROSTMERE is built around a frozen lake.","Beyond, the FROSTPEAK rises into white silence."] }
+        dialog:["FROSTMERE is built around a frozen lake.","Beyond, the FROSTPEAK rises into white silence."] },
+      { x:10, y:12, dir:'down', sprite:'npc_girl', name:'GYM LEADER RIME',
+        gym:true, badge:'CHILL',
+        dialog:["I am RIME, leader of the FROSTMERE GYM.","My ICE team will freeze your hopes!"],
+        gymRequirement:{ badges:['WAVE','VERDE','CRAG'] },
+        gymLocked:["You'll need the first three BADGES first.","WAVE, VERDE, and CRAG."],
+        trainer:{ team:[['frostpup',26],['glacierock',27],['snowox',28]],
+                  reward:1700,
+                  defeat:["A flawless win! The CHILL BADGE is yours."] } }
     ],
     ambient: [
       { species:'frostpup', x:7,  y:8,  range:2 },
@@ -918,7 +942,15 @@ const MAPS = {
     ],
     npcs: [
       { x:9, y:9, dir:'right', sprite:'npc_youth', name:'DOCKHAND TEO',
-        dialog:["HARBORSIDE - last stop before the SEAROUTE.","If your creatures love the water, you'll fit right in."] }
+        dialog:["HARBORSIDE - last stop before the SEAROUTE.","If your creatures love the water, you'll fit right in."] },
+      { x:10, y:12, dir:'down', sprite:'npc_youth', name:'GYM LEADER GALE',
+        gym:true, badge:'GUST',
+        dialog:["I am GALE, leader of the HARBORSIDE GYM.","My FLYING team will sweep yours from the sky!"],
+        gymRequirement:{ badges:['WAVE','VERDE','CRAG','CHILL'] },
+        gymLocked:["You'll need four BADGES before challenging me.","Earn WAVE, VERDE, CRAG, and CHILL first."],
+        trainer:{ team:[['flitwing',30],['skylordan',31],['galewing',33]],
+                  reward:2200,
+                  defeat:["A clean sweep! The GUST BADGE is yours."] } }
     ],
     ambient: [
       { species:'aquapup',   x:8,  y:7,  range:2 },
@@ -1050,7 +1082,13 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_oak', name:'CHAMPION ROWE',
-        dialog:["You climbed all the way to SUMMITVALE!","Few trainers make it this far. Rest, and tell me your tale."] }
+        gym:true, badge:'CINDER',
+        dialog:["You climbed all the way to SUMMITVALE!","I am ROWE — the FIRE-typed CHAMPION.","If you've earned every other BADGE, I'll grant you the CINDER BADGE. If you can take it."],
+        gymRequirement:{ minBadges:7 },
+        gymLocked:["Earn all seven other BADGES first.","Only then will I face you."],
+        trainer:{ team:[['emberkit',38],['flarebound',40],['magmaron',42],['infernarok',46]],
+                  reward:5000,
+                  defeat:["Magnificent! The CINDER BADGE — and the title of CHAMPION — are yours."] } }
     ],
     ambient: [
       { species:'emberkit', x:8,  y:7,  range:2 },
