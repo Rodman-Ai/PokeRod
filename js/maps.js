@@ -307,22 +307,15 @@ const MAPS = {
       'K..,...$D$........,K',
       'K..,...___......~.,K',
       'K..S..,,,,,,,,,,,,,K',
-      'K.\'.\'.,...........,K',
-      'K..,..,......1c...,K',
+      'K.\'.\'.,.....&&&...,K',
+      'K..,..,.....BDB...,K',
       'K.|,,,,...........,K',
       'KKKKKKK,,KKKKKKKKKKK',
       'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
       { x:14, y:7, dir:'down', sprite:'npc_girl', name:'TOWNSFOLK',
-        dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left heals your team for free.","The MART on the right sells useful items."] },
-      { x:7, y:13, dir:'down', sprite:'npc_old', name:'GYM LEADER WAVE',
-        gym: true, badge:'WAVE',
-        dialog:["I am WAVE, leader of the BRINDALE GYM.","Show me you are ready and we shall battle!"],
-        gymRequirement:{ minCaught:3 },
-        gymLocked:["Catch a few more creatures first.","Come back when you have at least three!"],
-        trainer: { team:[['mistfin',12],['aquapup',13]], reward:600,
-                   defeat:["A fine showing! Take this WAVE BADGE."] } }
+        dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left heals your team for free.","The MART on the right sells useful items.","The slate-roofed building south is the BRINDALE GYM."] }
     ],
     ambient: [
       { species:'glimkit',    x:8,  y:7,  range:2 },
@@ -333,15 +326,42 @@ const MAPS = {
       '3,12': "BRINDALE TOWN - Gateway to the highlands."
     },
     doors: {
-      '5,5':  { to:'pokecenter', x:4, y:6 },
-      '12,5': { to:'mart',       x:5, y:9 },
-      '8,10': { to:'townhouse',  x:3, y:6 }
+      '5,5':  { to:'pokecenter',   x:4, y:6 },
+      '12,5': { to:'mart',         x:5, y:9 },
+      '8,10': { to:'townhouse',    x:3, y:6 },
+      '13,14':{ to:'brindale_gym', x:4, y:7 }
     },
     edges: {
       north: { y:0,  to:'route1', tx:7, ty:20 },
       south: { y:17, to:'route2', tx:7, ty:1 }
     }
   },
+
+  brindale_gym: {
+    id:'brindale_gym', name:'Brindale Gym', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFCCCFFB',
+      'BFFCHCFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'B{FFFFF{B',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:4, y:4, dir:'down', sprite:'npc_old', name:'GYM LEADER WAVE',
+        gym:true, badge:'WAVE',
+        dialog:["I am WAVE, leader of the BRINDALE GYM.","Show me you are ready and we shall battle!"],
+        gymRequirement:{ minCaught:3 },
+        gymLocked:["Catch a few more creatures first.","Come back when you have at least three!"],
+        trainer:{ team:[['mistfin',12],['aquapup',13]], reward:600,
+                  defeat:["A fine showing! Take this WAVE BADGE."] } }
+    ],
+    doors: { '4,8': { to:'brindale', x:13, y:15 } }
+  },
+
 
   pokecenter: {
     id:'pokecenter', name:'PokeRod Center', interior:true,
@@ -472,8 +492,8 @@ const MAPS = {
       'G..S....c.....1...,G',
       'G..,..\'...........,G',
       'G..,......1.......,G',
-      'G..,...|........~.,G',
-      'G..,........c.....,G',
+      'G..,...|.&&&...~..,G',
+      'G..,.....BDB.c....,G',
       'G..,...4..........,G',
       'G.\'...4.4.........,G',
       'G..,,,,,,,,,,,,,,,,G',
@@ -482,15 +502,7 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
-        dialog:["Welcome to WOODFALL.","South of here, the trees thicken into PEBBLEWOOD.","Bring a torch... or a creature with bright eyes!"] },
-      { x:10, y:12, dir:'down', sprite:'npc_girl', name:'GYM LEADER FERN',
-        gym:true, badge:'VERDE',
-        dialog:["I am FERN, leader of the WOODFALL GYM.","My GRASS team will tangle yours up!"],
-        gymRequirement:{ badges:['WAVE'] },
-        gymLocked:["You need the WAVE BADGE before challenging me.","Try the BRINDALE GYM first!"],
-        trainer:{ team:[['fernsprout',16],['sproutling',16],['bramblewood',18]],
-                  reward:900,
-                  defeat:["A clean win! The VERDE BADGE is yours."] } }
+        dialog:["Welcome to WOODFALL.","The slate-roofed building south is the WOODFALL GYM.","South of town, the trees thicken into PEBBLEWOOD."] }
     ],
     ambient: [
       { species:'sproutling', x:7,  y:9,  range:2 },
@@ -502,12 +514,39 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'woodfall_center', x:4, y:6 },
-      '12,5': { to:'woodfall_mart',   x:5, y:9 }
+      '12,5': { to:'woodfall_mart',   x:5, y:9 },
+      '10,12':{ to:'woodfall_gym',    x:4, y:7 }
     },
     edges: {
       north: { y:0,  to:'route2',     tx:7, ty:20 },
       south: { y:17, to:'pebblewood', tx:7, ty:1 }
     }
+  },
+
+  woodfall_gym: {
+    id:'woodfall_gym', name:'Woodfall Gym', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFCCCFFB',
+      'BFFCHCFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'B{FFFFF{B',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:4, y:4, dir:'down', sprite:'npc_girl', name:'GYM LEADER FERN',
+        gym:true, badge:'VERDE',
+        dialog:["I am FERN, leader of the WOODFALL GYM.","My GRASS team will tangle yours up!"],
+        gymRequirement:{ badges:['WAVE'] },
+        gymLocked:["You need the WAVE BADGE before challenging me.","Try the BRINDALE GYM first!"],
+        trainer:{ team:[['fernsprout',16],['sproutling',16],['bramblewood',18]],
+                  reward:900,
+                  defeat:["A clean win! The VERDE BADGE is yours."] } }
+    ],
+    doors: { '4,8': { to:'woodfall', x:10, y:13 } }
   },
 
   woodfall_center: {
@@ -613,8 +652,8 @@ const MAPS = {
       'V..S..............,V',
       'V..,..\'..2........,V',
       'V..,..............,V',
-      'V..,...|........~.,V',
-      'V..,..........2...,V',
+      'V..,...|.&&&....~.,V',
+      'V..,.....BDB..2...,V',
       'V..,..\'...........,V',
       'V.|,..............,V',
       'V..,,,,,,,,,,,,,,,,V',
@@ -623,15 +662,7 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
-        dialog:["Welcome to CRESTROCK.","South of here lies GLIMCAVERN.","Bring along an electric or fire creature - the dark inside is no joke."] },
-      { x:10, y:12, dir:'down', sprite:'npc_old', name:'GYM LEADER BOULDER',
-        gym:true, badge:'CRAG',
-        dialog:["I am BOULDER, leader of the CRESTROCK GYM.","My ROCK team won't move easily!"],
-        gymRequirement:{ badges:['WAVE','VERDE'] },
-        gymLocked:["You'll need the WAVE and VERDE BADGES first.","Brindale and Woodfall are your training grounds."],
-        trainer:{ team:[['pebra',22],['stoneworm',23],['boulderon',26]],
-                  reward:1300,
-                  defeat:["A solid win! The CRAG BADGE is yours."] } }
+        dialog:["Welcome to CRESTROCK.","The slate-roofed building south is the CRESTROCK GYM.","South of town lies GLIMCAVERN."] }
     ],
     ambient: [
       { species:'pebra',     x:8,  y:9,  range:2 },
@@ -643,12 +674,39 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'crestrock_center', x:4, y:6 },
-      '12,5': { to:'crestrock_mart',   x:5, y:9 }
+      '12,5': { to:'crestrock_mart',   x:5, y:9 },
+      '10,12':{ to:'crestrock_gym',    x:4, y:7 }
     },
     edges: {
       north: { y:0,  to:'pebblewood', tx:7, ty:20 },
       south: { y:17, to:'glimcavern', tx:7, ty:1 }
     }
+  },
+
+  crestrock_gym: {
+    id:'crestrock_gym', name:'Crestrock Gym', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFCCCFFB',
+      'BFFCHCFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'B{FFFFF{B',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:4, y:4, dir:'down', sprite:'npc_old', name:'GYM LEADER BOULDER',
+        gym:true, badge:'CRAG',
+        dialog:["I am BOULDER, leader of the CRESTROCK GYM.","My ROCK team won't move easily!"],
+        gymRequirement:{ badges:['WAVE','VERDE'] },
+        gymLocked:["You'll need the WAVE and VERDE BADGES first.","Brindale and Woodfall are your training grounds."],
+        trainer:{ team:[['pebra',22],['stoneworm',23],['boulderon',26]],
+                  reward:1300,
+                  defeat:["A solid win! The CRAG BADGE is yours."] } }
+    ],
+    doors: { '4,8': { to:'crestrock', x:10, y:13 } }
   },
 
   crestrock_center: {
@@ -792,8 +850,8 @@ const MAPS = {
       'Q..S......k.......,Q',
       'Q..,......WWWW....,Q',
       'Q..,......WWWW.k..,Q',
-      'Q..,...|........~.,Q',
-      'Q..,..............,Q',
+      'Q..,...|.&&&....~.,Q',
+      'Q..,.....BDB......,Q',
       'Q..,..............,Q',
       'Q.k,...k.k........,Q',
       'Q.|,,,,,,,,,,,,,,,,Q',
@@ -802,15 +860,7 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
-        dialog:["FROSTMERE is built around a frozen lake.","Beyond, the FROSTPEAK rises into white silence."] },
-      { x:10, y:12, dir:'down', sprite:'npc_girl', name:'GYM LEADER RIME',
-        gym:true, badge:'CHILL',
-        dialog:["I am RIME, leader of the FROSTMERE GYM.","My ICE team will freeze your hopes!"],
-        gymRequirement:{ badges:['WAVE','VERDE','CRAG'] },
-        gymLocked:["You'll need the first three BADGES first.","WAVE, VERDE, and CRAG."],
-        trainer:{ team:[['frostpup',26],['glacierock',27],['snowox',28]],
-                  reward:1700,
-                  defeat:["A flawless win! The CHILL BADGE is yours."] } }
+        dialog:["FROSTMERE is built around a frozen lake.","The slate-roofed building south is the FROSTMERE GYM.","Beyond town, the FROSTPEAK rises into white silence."] }
     ],
     ambient: [
       { species:'frostpup', x:7,  y:8,  range:2 },
@@ -822,12 +872,39 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'frostmere_center', x:4, y:6 },
-      '12,5': { to:'frostmere_mart',   x:5, y:9 }
+      '12,5': { to:'frostmere_mart',   x:5, y:9 },
+      '10,12':{ to:'frostmere_gym',    x:4, y:7 }
     },
     edges: {
       north: { y:0,  to:'glimcavern', tx:7, ty:15 },
       south: { y:17, to:'frostpeak',  tx:7, ty:1 }
     }
+  },
+
+  frostmere_gym: {
+    id:'frostmere_gym', name:'Frostmere Gym', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFCCCFFB',
+      'BFFCHCFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'B{FFFFF{B',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:4, y:4, dir:'down', sprite:'npc_girl', name:'GYM LEADER RIME',
+        gym:true, badge:'CHILL',
+        dialog:["I am RIME, leader of the FROSTMERE GYM.","My ICE team will freeze your hopes!"],
+        gymRequirement:{ badges:['WAVE','VERDE','CRAG'] },
+        gymLocked:["You'll need the first three BADGES first.","WAVE, VERDE, and CRAG."],
+        trainer:{ team:[['frostpup',26],['glacierock',27],['snowox',28]],
+                  reward:1700,
+                  defeat:["A flawless win! The CHILL BADGE is yours."] } }
+    ],
+    doors: { '4,8': { to:'frostmere', x:10, y:13 } }
   },
 
   frostmere_center: {
@@ -931,8 +1008,8 @@ const MAPS = {
       'O..,|........~.WWWWW',
       'O..S.....{.....WWWWW',
       'O..,......1....WWWWW',
-      'O..,...........WWWWW',
-      'O..,.....<...|.WWWWW',
+      'O..,......&&&..WWWWW',
+      'O..,.....<BDB|.WWWWW',
       'O..,..1........WWWWW',
       'O.\'............WWWWW',
       'O..,......1c...WWWWW',
@@ -942,15 +1019,7 @@ const MAPS = {
     ],
     npcs: [
       { x:9, y:9, dir:'right', sprite:'npc_youth', name:'DOCKHAND TEO',
-        dialog:["HARBORSIDE - last stop before the SEAROUTE.","If your creatures love the water, you'll fit right in."] },
-      { x:10, y:12, dir:'down', sprite:'npc_youth', name:'GYM LEADER GALE',
-        gym:true, badge:'GUST',
-        dialog:["I am GALE, leader of the HARBORSIDE GYM.","My FLYING team will sweep yours from the sky!"],
-        gymRequirement:{ badges:['WAVE','VERDE','CRAG','CHILL'] },
-        gymLocked:["You'll need four BADGES before challenging me.","Earn WAVE, VERDE, CRAG, and CHILL first."],
-        trainer:{ team:[['flitwing',30],['skylordan',31],['galewing',33]],
-                  reward:2200,
-                  defeat:["A clean sweep! The GUST BADGE is yours."] } }
+        dialog:["HARBORSIDE - last stop before the SEAROUTE.","The slate-roofed building south is the HARBORSIDE GYM.","If your creatures love the water, you'll fit right in."] }
     ],
     ambient: [
       { species:'aquapup',   x:8,  y:7,  range:2 },
@@ -962,12 +1031,39 @@ const MAPS = {
     },
     doors: {
       '5,5':  { to:'harborside_center', x:4, y:6 },
-      '12,5': { to:'harborside_mart',   x:5, y:9 }
+      '12,5': { to:'harborside_mart',   x:5, y:9 },
+      '11,11':{ to:'harborside_gym',    x:4, y:7 }
     },
     edges: {
       north: { y:0,  to:'frostpeak', tx:7, ty:20 },
       south: { y:17, to:'searoute',  tx:7, ty:1 }
     }
+  },
+
+  harborside_gym: {
+    id:'harborside_gym', name:'Harborside Gym', interior:true,
+    tiles: [
+      'BBBBBBBBB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'BFFCCCFFB',
+      'BFFCHCFFB',
+      'BFFFFFFFB',
+      'BFFFFFFFB',
+      'B{FFFFF{B',
+      'BBBBDBBBB'
+    ],
+    npcs: [
+      { x:4, y:4, dir:'down', sprite:'npc_youth', name:'GYM LEADER GALE',
+        gym:true, badge:'GUST',
+        dialog:["I am GALE, leader of the HARBORSIDE GYM.","My FLYING team will sweep yours from the sky!"],
+        gymRequirement:{ badges:['WAVE','VERDE','CRAG','CHILL'] },
+        gymLocked:["You'll need four BADGES before challenging me.","Earn WAVE, VERDE, CRAG, and CHILL first."],
+        trainer:{ team:[['flitwing',30],['skylordan',31],['galewing',33]],
+                  reward:2200,
+                  defeat:["A clean sweep! The GUST BADGE is yours."] } }
+    ],
+    doors: { '4,8': { to:'harborside', x:11, y:12 } }
   },
 
   harborside_center: {
