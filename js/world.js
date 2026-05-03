@@ -436,7 +436,10 @@
     const camX = Math.max(0, Math.min(m.tiles[0].length * TS - VIEW_W, px.x - VIEW_W/2 + TS/2));
     const camY = Math.max(0, Math.min(m.tiles.length * TS - VIEW_H, px.y - VIEW_H/2 + TS/2));
 
-    ctx.fillStyle = '#000';
+    // Clear to grass green rather than black so the 1-px gap that the
+    // foliage sway leaves behind blends in instead of showing as a black
+    // seam alongside trees and bushes.
+    ctx.fillStyle = '#5cae4c';
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
 
     const startTx = Math.floor(camX / TS);

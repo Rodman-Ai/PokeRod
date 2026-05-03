@@ -11,7 +11,10 @@ function px(ctx, x, y, w, h, color) {
 }
 
 // Draw a single tile at (sx, sy) in destination ctx. Foliage / object
-// tiles get a subtle horizontal sway so neighbours don't move in unison.
+// tiles get a subtle horizontal sway (+/-1 px) so neighbours don't move
+// in unison. The 1-px column the tile vacates would reveal whatever the
+// world layer cleared to underneath - world.js now clears to grass green
+// so the gap blends in instead of showing as a black seam.
 const FOLIAGE_CODES = 'TYOKJQNUVEGbceghjklmn';
 function drawTile(ctx, code, sx, sy) {
   const x = sx | 0, y = sy | 0;

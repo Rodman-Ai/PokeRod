@@ -1,7 +1,7 @@
 // PokeRod service worker - caches the app shell for offline play.
 'use strict';
 
-const CACHE = 'pokerod-shell-v31';
+const CACHE = 'pokerod-shell-v32';
 const ASSETS = [
   './',
   './index.html',
