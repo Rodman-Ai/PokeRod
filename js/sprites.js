@@ -11,6 +11,12 @@ function px(ctx, x, y, w, h, color) {
 // Draw a single tile at (sx, sy) in destination ctx.
 function drawTile(ctx, code, sx, sy) {
   const x = sx|0, y = sy|0;
+  // Per-tile foliage sway: -1 / 0 / +1 px each frame, phase offset by
+  // tile coords so neighbours don't sway in unison.
+  const swayX = Math.round(Math.sin(
+    (performance.now() + sx * 7 + sy * 11) / 700
+  ));
+  const fx = x + swayX;
   switch (code) {
     case '.': drawGrass(ctx, x, y); break;
     case ',': drawPath(ctx, x, y); break;
@@ -18,27 +24,27 @@ function drawTile(ctx, code, sx, sy) {
     case 's': px(ctx, x, y, TS, TS, '#e8d090'); break;
     case 'r': px(ctx, x, y, TS, TS, '#a04848'); px(ctx,x+1,y+1,TS-2,TS-2,'#c05858'); break;
     case 'F': drawFloor(ctx, x, y); break;
-    case 'T': drawTree(ctx, x, y); break;
-    case 'Y': drawOakTree(ctx, x, y); break;
-    case 'O': drawPalmTree(ctx, x, y); break;
-    case 'K': drawCherryTree(ctx, x, y); break;
-    case 'J': drawDeadTree(ctx, x, y); break;
-    case 'Q': drawSnowyPine(ctx, x, y); break;
-    case 'N': drawBirchTree(ctx, x, y); break;
-    case 'U': drawMushroomTree(ctx, x, y); break;
-    case 'V': drawWillowTree(ctx, x, y); break;
-    case 'E': drawAutumnTree(ctx, x, y); break;
-    case 'G': drawAncientTree(ctx, x, y); break;
-    case 'b': drawBush(ctx, x, y); break;
-    case 'c': drawFlowerBush(ctx, x, y); break;
-    case 'e': drawBerryBush(ctx, x, y); break;
-    case 'g': drawThornBush(ctx, x, y); break;
-    case 'h': drawHedge(ctx, x, y); break;
-    case 'j': drawAutumnBush(ctx, x, y); break;
-    case 'k': drawSnowyBush(ctx, x, y); break;
-    case 'l': drawBlueFlowerBush(ctx, x, y); break;
-    case 'm': drawPurpleFlowerBush(ctx, x, y); break;
-    case 'n': drawThornCluster(ctx, x, y); break;
+    case 'T': drawTree(ctx, fx, y); break;
+    case 'Y': drawOakTree(ctx, fx, y); break;
+    case 'O': drawPalmTree(ctx, fx, y); break;
+    case 'K': drawCherryTree(ctx, fx, y); break;
+    case 'J': drawDeadTree(ctx, fx, y); break;
+    case 'Q': drawSnowyPine(ctx, fx, y); break;
+    case 'N': drawBirchTree(ctx, fx, y); break;
+    case 'U': drawMushroomTree(ctx, fx, y); break;
+    case 'V': drawWillowTree(ctx, fx, y); break;
+    case 'E': drawAutumnTree(ctx, fx, y); break;
+    case 'G': drawAncientTree(ctx, fx, y); break;
+    case 'b': drawBush(ctx, fx, y); break;
+    case 'c': drawFlowerBush(ctx, fx, y); break;
+    case 'e': drawBerryBush(ctx, fx, y); break;
+    case 'g': drawThornBush(ctx, fx, y); break;
+    case 'h': drawHedge(ctx, fx, y); break;
+    case 'j': drawAutumnBush(ctx, fx, y); break;
+    case 'k': drawSnowyBush(ctx, fx, y); break;
+    case 'l': drawBlueFlowerBush(ctx, fx, y); break;
+    case 'm': drawPurpleFlowerBush(ctx, fx, y); break;
+    case 'n': drawThornCluster(ctx, fx, y); break;
     case '1': drawFlowerGrass(ctx, x, y); break;
     case '2': drawLightGrass(ctx, x, y); break;
     case '3': drawDryGrass(ctx, x, y); break;
@@ -87,6 +93,12 @@ function drawTile(ctx, code, sx, sy) {
     case 'I': drawPathLantern(ctx, x, y); break;
     case '5': drawPathDesert(ctx, x, y); break;
     case '6': drawPathSnow(ctx, x, y); break;
+    // Decorations.
+    case '<': drawBench(ctx, x, y); break;
+    case '|': drawStreetLamp(ctx, x, y); break;
+    case '~': drawHydrant(ctx, x, y); break;
+    case '{': drawFlowerPot(ctx, x, y); break;
+    case '>': drawShelf(ctx, x, y); break;
     case 'W': drawWater(ctx, x, y); break;
     case 'R': px(ctx, x, y, TS, TS, '#c84848'); px(ctx, x, y, TS, 4, '#a02828'); break;
     case 'B': px(ctx, x, y, TS, TS, '#a08068'); px(ctx, x, y+TS-3, TS, 3, '#705038'); break;
@@ -355,6 +367,113 @@ function drawPathSnow(ctx, x, y) {
   px(ctx, x+1, y+2, 3, 1, '#d8e0f0');
   px(ctx, x+11, y+3, 3, 1, '#d8e0f0');
   px(ctx, x+7, y+10, 3, 1, '#d8e0f0');
+}
+
+function drawBench(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // Plank.
+  px(ctx, x+1, y+7, TS-2, 3, '#806038');
+  px(ctx, x+1, y+7, TS-2, 1, '#a08858');
+  px(ctx, x+1, y+9, TS-2, 1, '#382008');
+  // Backrest slats.
+  px(ctx, x+2, y+4, 1, 4, '#806038');
+  px(ctx, x+13, y+4, 1, 4, '#806038');
+  px(ctx, x+1, y+5, TS-2, 1, '#806038');
+  // Stone legs.
+  px(ctx, x+2, y+10, 2, 4, '#88807a');
+  px(ctx, x+12, y+10, 2, 4, '#88807a');
+  px(ctx, x+2, y+10, 2, 1, '#c8c0b8');
+  px(ctx, x+12, y+10, 2, 1, '#c8c0b8');
+}
+
+function drawStreetLamp(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // Post.
+  px(ctx, x+7, y+6, 2, 9, '#383028');
+  px(ctx, x+7, y+15, 2, 1, '#1a1410');
+  // Base.
+  px(ctx, x+5, y+14, 6, 2, '#383028');
+  px(ctx, x+5, y+14, 6, 1, '#585048');
+  // Lamp head.
+  px(ctx, x+5, y+1, 6, 5, '#383028');
+  px(ctx, x+6, y+2, 4, 3, '#f8e040');
+  px(ctx, x+7, y+3, 2, 1, '#fff8a0');
+  // Cap.
+  px(ctx, x+4, y, 8, 2, '#1a1410');
+  px(ctx, x+5, y, 6, 1, '#383028');
+}
+
+function drawHydrant(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // Body.
+  px(ctx, x+5, y+5, 6, 9, '#c01818');
+  px(ctx, x+4, y+7, 8, 5, '#c01818');
+  px(ctx, x+5, y+5, 6, 1, '#5a0808');
+  px(ctx, x+5, y+13, 6, 1, '#5a0808');
+  // Top dome.
+  px(ctx, x+6, y+3, 4, 2, '#c01818');
+  px(ctx, x+5, y+4, 6, 1, '#a01010');
+  px(ctx, x+7, y+2, 2, 1, '#a01010');
+  // Side caps.
+  px(ctx, x+3, y+8, 1, 3, '#a01010');
+  px(ctx, x+12, y+8, 1, 3, '#a01010');
+  px(ctx, x+3, y+9, 1, 1, '#f8d030');
+  px(ctx, x+12, y+9, 1, 1, '#f8d030');
+  // Highlight.
+  px(ctx, x+6, y+6, 1, 4, '#e84030');
+}
+
+function drawFlowerPot(ctx, x, y) {
+  drawGrass(ctx, x, y);
+  // Pot.
+  px(ctx, x+4, y+9, 8, 6, '#a04830');
+  px(ctx, x+3, y+9, 10, 2, '#a04830');
+  px(ctx, x+3, y+9, 10, 1, '#5a2818');
+  px(ctx, x+5, y+11, 6, 1, '#c87038');
+  // Soil.
+  px(ctx, x+5, y+8, 6, 1, '#3a2410');
+  // Stems.
+  px(ctx, x+6, y+5, 1, 3, '#3a8830');
+  px(ctx, x+9, y+4, 1, 4, '#3a8830');
+  px(ctx, x+7, y+6, 1, 2, '#3a8830');
+  // Blossoms.
+  px(ctx, x+5, y+4, 2, 2, '#e83838');
+  px(ctx, x+6, y+3, 1, 1, '#f8a8a8');
+  px(ctx, x+8, y+2, 2, 2, '#f8d030');
+  px(ctx, x+9, y+1, 1, 1, '#fff080');
+  px(ctx, x+10, y+5, 1, 1, '#a040c0');
+}
+
+function drawShelf(ctx, x, y) {
+  // Floor base showing through underneath.
+  drawFloor(ctx, x, y);
+  // Shelf frame.
+  px(ctx, x+1, y+1, TS-2, TS-2, '#a06840');
+  px(ctx, x+1, y+1, TS-2, 1, '#604018');
+  px(ctx, x+1, y+TS-2, TS-2, 1, '#604018');
+  px(ctx, x+1, y+1, 1, TS-2, '#604018');
+  px(ctx, x+TS-2, y+1, 1, TS-2, '#604018');
+  // Shelf rails.
+  px(ctx, x+2, y+6, TS-4, 1, '#604018');
+  px(ctx, x+2, y+11, TS-4, 1, '#604018');
+  // Items on top shelf - colored bottles.
+  px(ctx, x+3, y+3, 2, 3, '#3050a8');
+  px(ctx, x+6, y+3, 2, 3, '#a02828');
+  px(ctx, x+9, y+3, 2, 3, '#48a838');
+  px(ctx, x+12, y+3, 2, 3, '#f0c020');
+  // Items on middle shelf - red balls.
+  px(ctx, x+3, y+8, 2, 2, '#e83838');
+  px(ctx, x+6, y+8, 2, 2, '#e83838');
+  px(ctx, x+9, y+8, 2, 2, '#e83838');
+  px(ctx, x+12, y+8, 2, 2, '#e83838');
+  px(ctx, x+3, y+9, 2, 1, '#fff');
+  px(ctx, x+6, y+9, 2, 1, '#fff');
+  px(ctx, x+9, y+9, 2, 1, '#fff');
+  px(ctx, x+12, y+9, 2, 1, '#fff');
+  // Items on bottom - boxes.
+  px(ctx, x+3, y+13, 3, 2, '#806838');
+  px(ctx, x+8, y+13, 3, 2, '#806838');
+  px(ctx, x+12, y+13, 2, 2, '#806838');
 }
 
 function drawFlowerGrass(ctx, x, y) {

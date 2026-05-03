@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.9.7';
-  const BUILD = '2026.05.01-34';
+  const VERSION = 'v0.9.8';
+  const BUILD = '2026.05.01-35';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -674,10 +674,17 @@
     if (m.viewing === 'party') {
       drawPartyView(); return;
     }
-    const w = 80, h = 60, x = VIEW_W - w - 6, y = 6;
+    const w = 92;
+    const h = m.options.length * 12 + 22;
+    const x = VIEW_W - w - 6, y = 6;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    // Money chip at the top so it never collides with entries.
+    window.PR_UI.drawText(ctx, '$' + state.player.money, x + 4, y + 4, '#385890');
+    // Separator line.
+    ctx.fillStyle = '#202020';
+    ctx.fillRect(x + 4, y + 13, w - 8, 1);
     for (let i = 0; i < m.options.length; i++) {
-      const cy = y + 8 + i * 12;
+      const cy = y + 17 + i * 12;
       if (i === m.idx) window.PR_UI.drawText(ctx, '>', x + 4, cy, '#e83838');
       window.PR_UI.drawText(ctx, m.options[i], x + 12, cy, '#202020');
     }
@@ -686,7 +693,6 @@
       window.PR_UI.box(ctx, 40, 70, 160, 20, '#fff', '#202020');
       window.PR_UI.drawText(ctx, m.flash, 50, 76, '#202020');
     }
-    window.PR_UI.drawText(ctx, '$' + state.player.money, x + 4, y + h - 10, '#202020');
   }
   // ---------- Settings ----------
   const SETTINGS_DEFAULTS = {
