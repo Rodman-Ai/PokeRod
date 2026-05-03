@@ -381,8 +381,9 @@ const MAPS = {
       'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
-        dialog:["Welcome to the MART!","We're still stocking shelves — come back later."] }
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'BRINDALE MART',
+        dialog:["Welcome to the BRINDALE MART!"],
+        shop:{ greeting:["Welcome to the BRINDALE MART!","How can I help you?"] } }
     ],
     doors: {
       '5,10': { to:'brindale', x:12, y:6 }
@@ -537,8 +538,9 @@ const MAPS = {
       'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
-        dialog:["Welcome to the MART!","We're still stocking shelves - come back later."] }
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'WOODFALL MART',
+        dialog:["Welcome to the WOODFALL MART!"],
+        shop:{ greeting:["Welcome to the WOODFALL MART!","How can I help you?"] } }
     ],
     doors: { '5,10': { to:'woodfall', x:12, y:6 } }
   },
@@ -669,8 +671,9 @@ const MAPS = {
       'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
-        dialog:["Climbing the highlands?","Stock up next time we have shelves."] }
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'CRESTROCK MART',
+        dialog:["Climbing the highlands?","Stock up before you go!"],
+        shop:{ greeting:["Climbing the highlands?","Stock up before you go!"] } }
     ],
     doors: { '5,10': { to:'crestrock', x:12, y:6 } }
   },
@@ -839,8 +842,9 @@ const MAPS = {
       'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
-        dialog:["Bundle up. The mountain past here is unforgiving."] }
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'FROSTMERE MART',
+        dialog:["Bundle up. The mountain past here is unforgiving."],
+        shop:{ greeting:["Bundle up.","The mountain past here is unforgiving."] } }
     ],
     doors: { '5,10': { to:'frostmere', x:12, y:6 } }
   },
@@ -970,8 +974,9 @@ const MAPS = {
       'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
-        dialog:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."] }
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'HARBORSIDE MART',
+        dialog:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."],
+        shop:{ greeting:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."] } }
     ],
     doors: { '5,10': { to:'harborside', x:12, y:6 } }
   },
@@ -1101,8 +1106,10 @@ const MAPS = {
       'BBBBBDBBBBB'
     ],
     npcs: [
-      { x:5, y:4, dir:'down', sprite:'clerk', name:'CLERK',
-        dialog:["You made it to the top!","One day we'll have legendary gear in stock for you."] }
+      { x:5, y:4, dir:'down', sprite:'clerk', name:'SUMMITVALE MART',
+        dialog:["You made it to the top!","Our shelves carry the finest gear."],
+        shop:{ greeting:["Welcome to SUMMITVALE MART!","Our shelves carry the finest gear."],
+               bonusTier:1 } }
     ],
     doors: { '5,10': { to:'summitvale', x:12, y:6 } }
   },

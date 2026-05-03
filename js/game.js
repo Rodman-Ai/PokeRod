@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.13.0';
-  const BUILD = '2026.05.03-50';
+  const VERSION = 'v0.13.1';
+  const BUILD = '2026.05.03-51';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -220,6 +220,7 @@
     else if (state.mode === 'bagtarget') updateBagTarget();
     else if (state.mode === 'box') updateBox();
     else if (state.mode === 'quests') updateQuests();
+    else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.update(state);
     else if (state.mode === 'starter') updateStarter();
   }
 
@@ -251,6 +252,7 @@
     else if (state.mode === 'bagtarget') drawBagTarget();
     else if (state.mode === 'box') drawBox();
     else if (state.mode === 'quests') drawQuests();
+    else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.draw(ctx, state, VIEW_W, VIEW_H);
     else if (state.mode === 'starter') drawStarter();
     drawFlash();
   }
@@ -541,6 +543,15 @@
         npc.dialog ? npc.dialog[0] : 'Welcome!',
         'Shall I heal your team?'
       ], () => healAtCenter());
+      return;
+    }
+    if (npc.shop) {
+      const greet = (npc.shop.greeting && npc.shop.greeting.length)
+        ? npc.shop.greeting
+        : (npc.dialog && npc.dialog.length ? [npc.dialog[0]] : ['Welcome to the MART!']);
+      openDialog(greet, () => {
+        if (window.PR_SHOP) window.PR_SHOP.open(state, npc);
+      });
       return;
     }
     if (npc.trainer) {

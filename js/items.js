@@ -147,5 +147,47 @@
     return out;
   }
 
-  window.PR_ITEMS = { ITEMS, apply, add, take, listOwned, ensureBag };
+  // Shop inventory tiered by player badge count. tier:N rows unlock
+  // once the player has N badges (so tier:0 is available from the start).
+  const SHOP_TIERS = [
+    { tier:0, items:['rodball','potion','antidote'] },
+    { tier:1, items:['superpotion','paralyzeheal','awakening'] },
+    { tier:2, items:['burnheal','oranberry'] },
+    { tier:3, items:['greatball','sitrusberry'] },
+    { tier:4, items:['hyperpotion','revive','pechaberry'] },
+    { tier:5, items:['ultraball','fullheal'] },
+    { tier:6, items:['maxpotion'] },
+    { tier:7, items:['maxrevive'] }
+  ];
+
+  // Compute the visible shop list for an NPC given player state. The
+  // `shop` def may pin extra items (`extraItems`) or grant a bonus
+  // tier (`bonusTier`) so a particular town can stock something early.
+  function computeShopInventory(shop, state) {
+    const badgeCount = (state && state.player && state.player.badges
+                        ? state.player.badges.length : 0);
+    const tierCap = badgeCount + ((shop && shop.bonusTier) || 0);
+    const seen = new Set();
+    const out = [];
+    for (const row of SHOP_TIERS) {
+      if (row.tier > tierCap) continue;
+      for (const id of row.items) {
+        if (seen.has(id)) continue;
+        if (!ITEMS[id]) continue;
+        seen.add(id);
+        out.push(id);
+      }
+    }
+    if (shop && Array.isArray(shop.extraItems)) {
+      for (const id of shop.extraItems) {
+        if (seen.has(id) || !ITEMS[id]) continue;
+        seen.add(id);
+        out.push(id);
+      }
+    }
+    return out;
+  }
+
+  window.PR_ITEMS = { ITEMS, apply, add, take, listOwned, ensureBag,
+                      SHOP_TIERS, computeShopInventory };
 })();
