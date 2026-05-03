@@ -523,23 +523,28 @@ const MAPS = {
   pebblewood: {
     id:'pebblewood', name:'Pebblewood Forest',
     tiles: [
-      'XXXXXXX,,XXXXXXXXXXX',
-      'GGGGGGG,,GGGGGGGGGGG',
-      'G:::G:V,,G:Gg:G::GGG',
-      'N::::GG,,GG::G:::GGG',
-      'G:G:::G,,U::::G:::GG',
-      'G::::GG,,GG::V:::GGG',
-      'G:::G:G,,G::::::G:GG',
-      'G::G:GV,,GG:Gg::::GG',
-      'U:::::G,,G::::G:::GG',
-      'Gg:G::G,,N:G::::G::G',
-      'G::::GG,,GG::V:G:::G',
-      'G:V:::G,,G::G:::::GG',
-      'G::::GU,,GG::Gg::G:G',
-      'V::G::G,,G:G::G:G::G',
-      'G:g:::G,,V::::::G::G',
-      'GGGGGGG,,GGGGGGGGGGG',
-      'XXXXXXX,,XXXXXXXXXXX'
+      'XXXXXXX,,XXXXXXXXXXXXXXXX',
+      'GGGGGGG,,GGGGGGGGGGGGGGGG',
+      'G:::::G,,::::::gN::::::GG',
+      'G:gN:::,,:GVU::::::gN:::G',
+      'G:::::g,,:::::GVU::::::gG',
+      'GGVU:::,,:gN::::::GVU:::G',
+      'G::::GV,,:::::::::::::GVG',
+      'GgN::::,,,,,,,,,::gN::::G',
+      'G::::gN,,,,,,,,,::::::gNG',
+      'GVU::::::gN:::,,:GVU::::G',
+      'G:::GVU::::::g,,:::::GVUG',
+      'GN::::::GVU:::,,:gN:::::G',
+      'G:::gN:,,,,,,,,,:::::gN:G',
+      'GU:::::,,,,,,,,,GVU:::::G',
+      'G::GVU:,,:::gN::::::GVU:G',
+      'G::::::,,U::::::gN::::::G',
+      'G::gN::,,::GVU::::::gN::G',
+      'G::::::,,::::::GVU::::::G',
+      'G:GVU::,,::gN::::::GVU::G',
+      'G:::::G,,::::::gN::::::GG',
+      'GGGGGGG,,GGGGGGGGGGGGGGGG',
+      'XXXXXXX,,XXXXXXXXXXXXXXXX'
     ],
     npcs: [
       { x:14, y:6, dir:'left', sprite:'npc_youth', name:'BUG-FAN ARI',
@@ -557,7 +562,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'woodfall',  tx:7, ty:16 },
-      south: { y:16, to:'crestrock', tx:7, ty:1 }
+      south: { y:21, to:'crestrock', tx:7, ty:1 }
     }
   },
 
@@ -600,7 +605,7 @@ const MAPS = {
       '12,5': { to:'crestrock_mart',   x:4, y:6 }
     },
     edges: {
-      north: { y:0,  to:'pebblewood', tx:7, ty:15 },
+      north: { y:0,  to:'pebblewood', tx:7, ty:20 },
       south: { y:17, to:'glimcavern', tx:7, ty:1 }
     }
   },

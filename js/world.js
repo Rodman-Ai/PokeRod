@@ -129,8 +129,10 @@
     const code = this.tileAt(nx, ny);
     const props = window.PR_MAPS.TILE_PROPS[code];
 
-    // Edge transition
-    if (code === 'X') {
+    // Edge transition: either the destination tile is the X edge marker,
+    // OR we walked off the side of the map onto an edge boundary even if
+    // a path tile cuts through the X row.
+    if (code === 'X' || this._atMapEdge(nx, ny)) {
       this.tryEdgeTransition(nx, ny);
       return;
     }
@@ -167,6 +169,19 @@
     this.anim.toX = tx;   this.anim.toY = ty;
     this.anim.t = 0;
     this.anim.duration = dur || 0.16;
+  };
+
+  World.prototype._atMapEdge = function(nx, ny) {
+    const m = this.currentMap();
+    if (!m || !m.edges) return false;
+    for (const side of Object.keys(m.edges)) {
+      const e = m.edges[side];
+      if (side === 'north' && ny <= e.y) return true;
+      if (side === 'south' && ny >= e.y) return true;
+      if (side === 'east'  && nx >= e.y) return true;
+      if (side === 'west'  && nx <= e.y) return true;
+    }
+    return false;
   };
 
   World.prototype.tryEdgeTransition = function(nx, ny) {
@@ -367,7 +382,10 @@
         this.frame ^= 1;
         // Check for door / encounter / edge after step.
         const code = this.tileAt(this.player.x, this.player.y);
-        if (code === 'X') { this.tryEdgeTransition(this.player.x, this.player.y); return; }
+        if (code === 'X' || this._atMapEdge(this.player.x, this.player.y)) {
+          this.tryEdgeTransition(this.player.x, this.player.y);
+          return;
+        }
         if (this.tryDoorAt(this.player.x, this.player.y)) return;
 
         const props = window.PR_MAPS.TILE_PROPS[code];
