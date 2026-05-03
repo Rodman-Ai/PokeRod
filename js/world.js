@@ -2,8 +2,8 @@
 'use strict';
 
 (function(){
-  const TS = 16;
-  const VIEW_W = 240, VIEW_H = 160;
+  const TS = 32;
+  const VIEW_W = 480, VIEW_H = 320;
   const VIEW_TX = VIEW_W / TS; // 15
   const VIEW_TY = VIEW_H / TS; // 10
 

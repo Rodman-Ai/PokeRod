@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PokeRod Atlas Generator</title>
+<style>
+  body { font-family: ui-monospace, Menlo, monospace; background: #1a1a1a; color: #e0e0e0; padding: 16px; }
+  h1 { font-size: 16px; margin: 0 0 12px; }
+  .row { display: flex; gap: 12px; margin: 8px 0; flex-wrap: wrap; align-items: center; }
+  button { background: #3060a0; color: white; border: 0; padding: 8px 14px; cursor: pointer; font-family: inherit; }
+  button:hover { background: #4080d0; }
+  button:disabled { background: #555; }
+  pre { background: #0e0e0e; padding: 8px; overflow: auto; max-height: 240px; font-size: 11px; }
+  canvas#atlas { background: #2a2a2a; image-rendering: pixelated; image-rendering: crisp-edges; border: 1px solid #444; max-width: 100%; }
+  .note { color: #aaa; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>PokeRod Atlas Generator</h1>
+<p class="note">Renders every tile, character frame, and creature into a packed PNG sheet plus a JSON layout, and emits per-asset PNGs for individual editing/regeneration.</p>
+
+<div class="row">
+  <button id="run">Generate</button>
+  <button id="dl-atlas" disabled>Download atlas.png</button>
+  <button id="dl-json" disabled>Download atlas.json</button>
+  <button id="dl-zip" disabled>Download per-asset PNGs (.zip-like text manifest)</button>
+  <span id="status">Idle.</span>
+</div>
+
+<canvas id="atlas" width="512" height="1024"></canvas>
+
+<h2 style="font-size:14px;">atlas.json (preview)</h2>
+<pre id="json-preview">(generate to populate)</pre>
+
+<!-- Game data + the ORIGINAL procedural creature renderer (saved as
+     tools/_sprites_mons_proc.js). We bypass the runtime sprites.js /
+     sprites_chars.js / sprites_mons.js because those now delegate to the
+     atlas we're building - chicken-and-egg. The atlas-art.js module is
+     fully self-contained for tile + character rendering. -->
+<script src="../js/data.js"></script>
+<script src="_sprites_mons_proc.js"></script>
+
+<!-- The atlas art module (this defines window.PR_ATLAS_ART). -->
+<script src="atlas-art.js"></script>
+
+<script>
+'use strict';
+
+// Atlas layout: a fixed-width grid that's easy for image generators to
+// preserve. Tiles in 32px cells, characters in 32px cells, creatures in
+// 64px cells. Sections are stacked vertically.
+const COLS = 16; // 16 cells across
+const TILE_PX = 32;
+const CREATURE_PX = 64;
+
+const out = {
+  frames: {},
+  image: 'atlas.png',
+  tile_size: TILE_PX,
+  creature_size: CREATURE_PX
+};
+
+// Per-asset data URLs collected during generation (for individual export).
+const perAssetPNGs = {};
+
+function setStatus(s) { document.getElementById('status').textContent = s; }
+
+function drawSection(items, cellW, cellH, colsPerRow, startY, ctx, headlessSnapshots) {
+  let i = 0;
+  let y = startY;
+  for (const item of items) {
+    const col = i % colsPerRow;
+    const row = (i / colsPerRow) | 0;
+    const px = col * cellW;
+    const py = startY + row * cellH;
+    item.draw(ctx, px, py);
+    out.frames[item.key] = { x: px, y: py, w: cellW, h: cellH };
+    if (headlessSnapshots) {
+      // Snapshot into a small canvas for individual export.
+      const off = document.createElement('canvas');
+      off.width = cellW; off.height = cellH;
+      off.getContext('2d').drawImage(ctx.canvas, px, py, cellW, cellH, 0, 0, cellW, cellH);
+      perAssetPNGs[item.key] = off.toDataURL('image/png');
+    }
+    i++;
+  }
+  // Return the y position right after this section.
+  const rowsUsed = Math.ceil(items.length / colsPerRow);
+  return startY + rowsUsed * cellH;
+}
+
+async function generate(headlessSnapshots) {
+  setStatus('Generating...');
+  const A = window.PR_ATLAS_ART;
+  // Register characters + creatures (creatures need PR_DATA already loaded).
+  A.registerCharacters();
+  A.registerCreatures();
+
+  // Compute total height needed.
+  const tileRows = Math.ceil(A.TILES.length / COLS);
+  const charRows = Math.ceil(A.CHARS.length / COLS);
+  const creatureCols = 8;
+  const creatureRows = Math.ceil(A.CREATURES.length / creatureCols);
+  const totalH = tileRows * TILE_PX + charRows * TILE_PX + creatureRows * CREATURE_PX;
+  const totalW = Math.max(COLS * TILE_PX, creatureCols * CREATURE_PX);
+
+  const canvas = document.getElementById('atlas');
+  canvas.width = totalW;
+  canvas.height = totalH;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, totalW, totalH);
+
+  // Reset frames.
+  out.frames = {};
+
+  // Section 1: TILES (32x32, 16 across).
+  let y = 0;
+  y = drawSection(A.TILES, TILE_PX, TILE_PX, COLS, y, ctx, headlessSnapshots);
+  // Section 2: CHARACTERS (32x32, 16 across).
+  y = drawSection(A.CHARS, TILE_PX, TILE_PX, COLS, y, ctx, headlessSnapshots);
+  // Section 3: CREATURES (64x64, 8 across).
+  y = drawSection(A.CREATURES, CREATURE_PX, CREATURE_PX, creatureCols, y, ctx, headlessSnapshots);
+
+  // Also inject a code->key map for tiles so the runtime can resolve tile codes.
+  const tileCodeMap = {};
+  for (const t of A.TILES) tileCodeMap[t.code] = t.key;
+  out.tile_code_to_key = tileCodeMap;
+
+  document.getElementById('json-preview').textContent =
+    JSON.stringify(out, null, 2).slice(0, 3500) + '\n... (truncated for preview)';
+
+  document.getElementById('dl-atlas').disabled = false;
+  document.getElementById('dl-json').disabled = false;
+  document.getElementById('dl-zip').disabled = false;
+
+  setStatus('Generated. Tiles=' + A.TILES.length + '  Chars=' + A.CHARS.length + '  Creatures=' + A.CREATURES.length + '  AtlasSize=' + totalW + 'x' + totalH);
+  return { canvas, json: out, perAssetPNGs };
+}
+
+function download(name, dataUrl) {
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+document.getElementById('run').addEventListener('click', () => generate(true));
+document.getElementById('dl-atlas').addEventListener('click', () => {
+  download('atlas.png', document.getElementById('atlas').toDataURL('image/png'));
+});
+document.getElementById('dl-json').addEventListener('click', () => {
+  download('atlas.json', 'data:application/json,' + encodeURIComponent(JSON.stringify(out, null, 2)));
+});
+document.getElementById('dl-zip').addEventListener('click', () => {
+  // Emit a manifest of base64 PNGs the user can split externally.
+  let manifest = '';
+  for (const [k, v] of Object.entries(perAssetPNGs)) manifest += k + '\t' + v + '\n';
+  download('atlas-sprites.txt', 'data:text/plain,' + encodeURIComponent(manifest));
+});
+
+// Headless API: window.__pokerodGenerate() resolves with all artifacts
+// as data URLs / strings. Used by tools/run-generator.js (Playwright).
+window.__pokerodGenerate = async function () {
+  const r = await generate(true);
+  return {
+    atlasPng: r.canvas.toDataURL('image/png'),
+    atlasJson: JSON.stringify(r.json, null, 2),
+    perAssetPNGs: r.perAssetPNGs,
+    width: r.canvas.width,
+    height: r.canvas.height,
+    counts: {
+      tiles: r.json && Object.keys(r.json.tile_code_to_key || {}).length,
+      total: r.json && Object.keys(r.json.frames || {}).length
+    }
+  };
+};
+</script>
+
+</body>
+</html>
