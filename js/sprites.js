@@ -43,6 +43,50 @@ function drawTile(ctx, code, sx, sy) {
     case '2': drawLightGrass(ctx, x, y); break;
     case '3': drawDryGrass(ctx, x, y); break;
     case '4': drawLushGrass(ctx, x, y); break;
+    // House roofs (8).
+    case '+': drawRoofBlue(ctx, x, y); break;
+    case '-': drawRoofThatched(ctx, x, y); break;
+    case '=': drawRoofTerracotta(ctx, x, y); break;
+    case '*': drawRoofDome(ctx, x, y); break;
+    case '%': drawRoofSnow(ctx, x, y); break;
+    case '&': drawRoofSlate(ctx, x, y); break;
+    case '7': drawRoofMoss(ctx, x, y); break;
+    case '8': drawRoofLeaf(ctx, x, y); break;
+    // House walls (6).
+    case '#': drawWallStone(ctx, x, y); break;
+    case '@': drawWallTimber(ctx, x, y); break;
+    case '$': drawWallBrick(ctx, x, y); break;
+    case '?': drawWallLog(ctx, x, y); break;
+    case '!': drawWallWhite(ctx, x, y); break;
+    case '0': drawWallLattice(ctx, x, y); break;
+    // Doors / windows / chimneys (6).
+    case 'd': drawDoorBlue(ctx, x, y); break;
+    case 'f': drawDoorShop(ctx, x, y); break;
+    case '[': drawWindowL(ctx, x, y); break;
+    case ']': drawWindowR(ctx, x, y); break;
+    case '(': drawChimney(ctx, x, y); break;
+    case ')': drawSmokestack(ctx, x, y); break;
+    // Paths (20).
+    case '_': drawPathCobble(ctx, x, y); break;
+    case '^': drawPathDirt(ctx, x, y); break;
+    case 'o': drawPathStepStone(ctx, x, y); break;
+    case ';': drawPathGravel(ctx, x, y); break;
+    case 'i': drawPathRedBrick(ctx, x, y); break;
+    case 'p': drawPathPark(ctx, x, y); break;
+    case 'q': drawPathMosaic(ctx, x, y); break;
+    case 't': drawPathBoardwalk(ctx, x, y); break;
+    case 'u': drawPathSand(ctx, x, y); break;
+    case 'v': drawPathRocky(ctx, x, y); break;
+    case 'w': drawPathWetStone(ctx, x, y); break;
+    case 'x': drawPathCrossroads(ctx, x, y); break;
+    case 'y': drawPathYellowBrick(ctx, x, y); break;
+    case 'z': drawPathMoss(ctx, x, y); break;
+    case 'a': drawPathAutumn(ctx, x, y); break;
+    case 'A': drawPathBridge(ctx, x, y); break;
+    case 'Z': drawPathZen(ctx, x, y); break;
+    case 'I': drawPathLantern(ctx, x, y); break;
+    case '5': drawPathDesert(ctx, x, y); break;
+    case '6': drawPathSnow(ctx, x, y); break;
     case 'W': drawWater(ctx, x, y); break;
     case 'R': px(ctx, x, y, TS, TS, '#c84848'); px(ctx, x, y, TS, 4, '#a02828'); break;
     case 'B': px(ctx, x, y, TS, TS, '#a08068'); px(ctx, x, y+TS-3, TS, 3, '#705038'); break;
@@ -71,6 +115,246 @@ function drawPath(ctx, x, y) {
   px(ctx, x+3, y+5, 1, 1, '#b89858');
   px(ctx, x+11, y+10, 1, 1, '#b89858');
   px(ctx, x+7, y+2, 1, 1, '#f0d098');
+}
+
+function drawPathCobble(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#a09890');
+  for (let r = 0; r < TS; r += 4) {
+    for (let c = (r % 8 === 0 ? 0 : 4); c < TS; c += 8) {
+      px(ctx, x+c+1, y+r+1, 5, 2, '#c8c0b8');
+      px(ctx, x+c, y+r, 1, 4, '#605850');
+      px(ctx, x+c, y+r+3, 8, 1, '#605850');
+    }
+  }
+}
+
+function drawPathDirt(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#9a6838');
+  px(ctx, x+2, y+3, 1, 1, '#603810');
+  px(ctx, x+8, y+5, 1, 1, '#603810');
+  px(ctx, x+12, y+9, 1, 1, '#603810');
+  px(ctx, x+5, y+11, 1, 1, '#603810');
+  px(ctx, x+10, y+13, 1, 1, '#c08858');
+  px(ctx, x+4, y+8, 1, 1, '#c08858');
+}
+
+function drawPathStepStone(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#9a6838');
+  px(ctx, x+2, y+2, 4, 4, '#a8a098');
+  px(ctx, x+1, y+3, 6, 2, '#a8a098');
+  px(ctx, x+9, y+5, 4, 4, '#a8a098');
+  px(ctx, x+8, y+6, 6, 2, '#a8a098');
+  px(ctx, x+5, y+11, 4, 4, '#a8a098');
+  px(ctx, x+4, y+12, 6, 2, '#a8a098');
+  px(ctx, x+3, y+3, 1, 1, '#d8d0c8');
+  px(ctx, x+10, y+6, 1, 1, '#d8d0c8');
+  px(ctx, x+6, y+12, 1, 1, '#d8d0c8');
+}
+
+function drawPathGravel(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#a8a098');
+  for (let r = 0; r < TS; r += 2) {
+    for (let c = ((r/2)%2)*1; c < TS; c += 3) px(ctx, x+c, y+r, 1, 1, '#605850');
+  }
+  px(ctx, x+3, y+8, 1, 1, '#d8d0c8');
+  px(ctx, x+11, y+4, 1, 1, '#d8d0c8');
+}
+
+function drawPathRedBrick(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#a83838');
+  for (let r = 0; r < TS; r += 4) px(ctx, x, y+r+3, TS, 1, '#602820');
+  for (let r = 0; r < TS; r += 4) {
+    const off = (r/4|0) % 2 ? 4 : 0;
+    for (let i = off; i < TS; i += 8) px(ctx, x+i, y+r, 1, 3, '#602820');
+  }
+  px(ctx, x+1, y+1, 2, 1, '#c85048');
+  px(ctx, x+9, y+5, 2, 1, '#c85048');
+}
+
+function drawPathPark(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#e8d8a8');
+  px(ctx, x, y, TS, 1, '#c8b888');
+  px(ctx, x, y+TS-1, TS, 1, '#c8b888');
+  px(ctx, x+3, y+5, 1, 1, '#5cae4c');
+  px(ctx, x+12, y+3, 1, 1, '#5cae4c');
+  px(ctx, x+6, y+10, 1, 1, '#a83820');
+  px(ctx, x+11, y+12, 1, 1, '#f0c020');
+}
+
+function drawPathMosaic(ctx, x, y) {
+  const cs = ['#a83838','#3060a8','#c8a020','#208828'];
+  for (let r = 0; r < TS; r += 4) {
+    for (let c = 0; c < TS; c += 4) {
+      const i = ((r/4)|0 + (c/4)|0) % cs.length;
+      px(ctx, x+c, y+r, 4, 4, cs[i]);
+      px(ctx, x+c, y+r, 4, 1, '#fff');
+      px(ctx, x+c, y+r, 1, 4, '#fff');
+    }
+  }
+}
+
+function drawPathBoardwalk(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#806038');
+  for (let r = 3; r < TS; r += 4) px(ctx, x, y+r, TS, 1, '#382008');
+  px(ctx, x+3, y+1, 1, 1, '#382008');
+  px(ctx, x+10, y+5, 1, 1, '#382008');
+  px(ctx, x+6, y+9, 1, 1, '#382008');
+  px(ctx, x+13, y+13, 1, 1, '#382008');
+  px(ctx, x+1, y+2, TS-2, 1, '#a08858');
+  px(ctx, x+1, y+10, TS-2, 1, '#a08858');
+}
+
+function drawPathSand(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#f0d8a0');
+  px(ctx, x+2, y+4, 2, 1, '#d8b870');
+  px(ctx, x+7, y+8, 3, 1, '#d8b870');
+  px(ctx, x+11, y+13, 2, 1, '#d8b870');
+  px(ctx, x+4, y+11, 1, 1, '#a88838');
+  px(ctx, x+9, y+3, 1, 1, '#a88838');
+}
+
+function drawPathRocky(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#787068');
+  px(ctx, x+1, y+3, 5, 4, '#a8a098');
+  px(ctx, x+8, y+1, 6, 5, '#a8a098');
+  px(ctx, x+3, y+10, 7, 5, '#a8a098');
+  px(ctx, x+12, y+9, 3, 5, '#a8a098');
+  px(ctx, x+3, y+5, 1, 1, '#383028');
+  px(ctx, x+10, y+3, 1, 1, '#383028');
+  px(ctx, x+1, y+3, 4, 1, '#c8c0b8');
+  px(ctx, x+8, y+1, 5, 1, '#c8c0b8');
+}
+
+function drawPathWetStone(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#384858');
+  for (let r = 0; r < TS; r += 4) {
+    for (let c = (r % 8 === 0 ? 0 : 4); c < TS; c += 8) {
+      px(ctx, x+c+1, y+r+1, 5, 2, '#588898');
+      px(ctx, x+c, y+r, 1, 4, '#202830');
+      px(ctx, x+c, y+r+3, 8, 1, '#202830');
+    }
+  }
+  // Wet shines.
+  px(ctx, x+3, y+2, 2, 1, '#a8c8d8');
+  px(ctx, x+11, y+9, 2, 1, '#a8c8d8');
+}
+
+function drawPathCrossroads(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#9a6838');
+  // North-south plus east-west bands.
+  px(ctx, x+6, y, 4, TS, '#d8b878');
+  px(ctx, x, y+6, TS, 4, '#d8b878');
+  px(ctx, x+6, y+6, 4, 4, '#f0d098');
+  // Tracks.
+  px(ctx, x+7, y+1, 2, 1, '#603810');
+  px(ctx, x+7, y+13, 2, 1, '#603810');
+  px(ctx, x+1, y+7, 1, 2, '#603810');
+  px(ctx, x+13, y+7, 1, 2, '#603810');
+}
+
+function drawPathYellowBrick(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#e0b830');
+  for (let r = 0; r < TS; r += 4) px(ctx, x, y+r+3, TS, 1, '#806818');
+  for (let r = 0; r < TS; r += 4) {
+    const off = (r/4|0) % 2 ? 4 : 0;
+    for (let i = off; i < TS; i += 8) px(ctx, x+i, y+r, 1, 3, '#806818');
+  }
+  px(ctx, x+1, y+1, 2, 1, '#f8d870');
+  px(ctx, x+9, y+9, 2, 1, '#f8d870');
+}
+
+function drawPathMoss(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#a89858');
+  // Moss patches between stones.
+  px(ctx, x+1, y+2, 4, 3, '#588838');
+  px(ctx, x+10, y+4, 4, 3, '#588838');
+  px(ctx, x+5, y+10, 4, 3, '#588838');
+  // Stones.
+  px(ctx, x+6, y+1, 3, 3, '#88807a');
+  px(ctx, x+1, y+8, 3, 3, '#88807a');
+  px(ctx, x+10, y+11, 3, 3, '#88807a');
+  px(ctx, x+2, y+3, 1, 1, '#a8d878');
+  px(ctx, x+11, y+5, 1, 1, '#a8d878');
+}
+
+function drawPathAutumn(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#b89858');
+  // Scattered leaves.
+  px(ctx, x+2, y+3, 2, 2, '#e87838');
+  px(ctx, x+10, y+5, 2, 2, '#a83820');
+  px(ctx, x+5, y+11, 2, 2, '#f0c020');
+  px(ctx, x+12, y+12, 2, 2, '#e87838');
+  px(ctx, x+8, y+2, 1, 1, '#a83820');
+  // Stems.
+  px(ctx, x+3, y+5, 1, 1, '#5a3818');
+  px(ctx, x+11, y+7, 1, 1, '#5a3818');
+}
+
+function drawPathBridge(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#88807a');
+  // Top rail.
+  px(ctx, x, y, TS, 2, '#5a3818');
+  px(ctx, x, y+1, TS, 1, '#806838');
+  // Bottom rail.
+  px(ctx, x, y+TS-2, TS, 2, '#5a3818');
+  px(ctx, x, y+TS-3, TS, 1, '#806838');
+  // Plank seams.
+  for (let i = 3; i < TS; i += 4) px(ctx, x+i, y+2, 1, TS-4, '#605850');
+  // Highlights.
+  for (let i = 4; i < TS; i += 4) px(ctx, x+i, y+3, 1, TS-6, '#a8a098');
+}
+
+function drawPathZen(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#e8d8a0');
+  // Concentric raked lines (wavy horizontals).
+  for (let r = 2; r < TS; r += 3) {
+    px(ctx, x+1, y+r, TS-2, 1, '#c8b870');
+    px(ctx, x+2, y+r+1, 1, 1, '#a89838');
+    px(ctx, x+8, y+r+1, 1, 1, '#a89838');
+    px(ctx, x+13, y+r+1, 1, 1, '#a89838');
+  }
+  // A small accent stone.
+  px(ctx, x+11, y+11, 3, 2, '#605850');
+  px(ctx, x+11, y+11, 3, 1, '#88807a');
+}
+
+function drawPathLantern(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#383028');
+  // Edge stones.
+  px(ctx, x+1, y+1, 3, 2, '#88807a');
+  px(ctx, x+12, y+12, 3, 2, '#88807a');
+  // Lantern post in upper-right.
+  px(ctx, x+11, y+1, 1, 5, '#5a3818');
+  px(ctx, x+9, y+1, 5, 3, '#a83820');
+  px(ctx, x+10, y+2, 3, 1, '#f8e040');
+  // Glow specks.
+  px(ctx, x+3, y+8, 1, 1, '#f0c020');
+  px(ctx, x+11, y+9, 1, 1, '#f0c020');
+  px(ctx, x+6, y+12, 1, 1, '#f0c020');
+}
+
+function drawPathDesert(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#f0d870');
+  // Dunes.
+  px(ctx, x+1, y+5, 5, 1, '#d8b840');
+  px(ctx, x+7, y+9, 7, 1, '#d8b840');
+  px(ctx, x+3, y+13, 6, 1, '#d8b840');
+  // Pebbles.
+  px(ctx, x+10, y+3, 1, 1, '#a88838');
+  px(ctx, x+4, y+10, 1, 1, '#a88838');
+  px(ctx, x+13, y+12, 1, 1, '#a88838');
+}
+
+function drawPathSnow(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#f8f8ff');
+  // Tracks.
+  px(ctx, x+3, y+5, 2, 1, '#a8b8d8');
+  px(ctx, x+9, y+9, 2, 1, '#a8b8d8');
+  px(ctx, x+5, y+12, 2, 1, '#a8b8d8');
+  // Subtle blue tint patches.
+  px(ctx, x+1, y+2, 3, 1, '#d8e0f0');
+  px(ctx, x+11, y+3, 3, 1, '#d8e0f0');
+  px(ctx, x+7, y+10, 3, 1, '#d8e0f0');
 }
 
 function drawFlowerGrass(ctx, x, y) {
@@ -389,6 +673,241 @@ function drawFloor(ctx, x, y) {
   px(ctx, x, y, TS, TS, '#d8c098');
   px(ctx, x, y, TS, 1, '#b89878');
   px(ctx, x, y, 1, TS, '#b89878');
+}
+
+function drawRoofBlue(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#4878d8');
+  px(ctx, x, y, TS, 3, '#2050a8');
+  px(ctx, x+1, y+4, 2, 1, '#88c0f0');
+  px(ctx, x+5, y+6, 2, 1, '#88c0f0');
+  px(ctx, x+10, y+9, 2, 1, '#88c0f0');
+  px(ctx, x+13, y+5, 2, 1, '#88c0f0');
+  px(ctx, x, y+TS-2, TS, 2, '#2050a8');
+}
+
+function drawRoofThatched(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#c8a838');
+  for (let i = 0; i < TS; i += 2) px(ctx, x+i, y+1, 1, TS-2, '#806818');
+  px(ctx, x, y, TS, 1, '#604818');
+  px(ctx, x, y+TS-2, TS, 2, '#604818');
+  px(ctx, x+3, y+5, 1, 1, '#f0d870');
+  px(ctx, x+11, y+9, 1, 1, '#f0d870');
+}
+
+function drawRoofTerracotta(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#c84818');
+  px(ctx, x, y, TS, 3, '#802018');
+  // Tile rows.
+  for (let r = 4; r < TS-2; r += 4) {
+    for (let i = (r%2)*2; i < TS; i += 4) px(ctx, x+i, y+r, 3, 2, '#f08838');
+  }
+  px(ctx, x, y+TS-2, TS, 2, '#802018');
+}
+
+function drawRoofDome(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#6840a8');
+  // Dome curve highlight.
+  px(ctx, x+5, y+1, 6, 1, '#a878d0');
+  px(ctx, x+3, y+2, 10, 1, '#a878d0');
+  px(ctx, x+2, y+3, 12, 1, '#a878d0');
+  px(ctx, x+5, y+5, 1, 1, '#e0c0f8');
+  px(ctx, x+10, y+7, 1, 1, '#e0c0f8');
+  px(ctx, x, y+TS-2, TS, 2, '#381860');
+  // Pinnacle.
+  px(ctx, x+7, y, 2, 1, '#f0c020');
+}
+
+function drawRoofSnow(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#5a3818');
+  // Snow blanket on top.
+  px(ctx, x, y, TS, 6, '#ffffff');
+  px(ctx, x+1, y+5, TS-2, 1, '#d0e0f0');
+  // Drip.
+  px(ctx, x+3, y+6, 1, 2, '#ffffff');
+  px(ctx, x+9, y+6, 1, 2, '#ffffff');
+  px(ctx, x+13, y+6, 1, 1, '#ffffff');
+  // Bottom edge.
+  px(ctx, x, y+TS-2, TS, 2, '#3a2410');
+}
+
+function drawRoofSlate(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#383848');
+  for (let r = 2; r < TS-2; r += 3) {
+    for (let i = (r%2)*2; i < TS; i += 4) px(ctx, x+i, y+r, 3, 2, '#585870');
+  }
+  px(ctx, x, y, TS, 1, '#181828');
+  px(ctx, x, y+TS-2, TS, 2, '#181828');
+}
+
+function drawRoofMoss(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#487830');
+  // Moss patches.
+  px(ctx, x+2, y+3, 4, 3, '#78a850');
+  px(ctx, x+9, y+5, 4, 3, '#78a850');
+  px(ctx, x+5, y+10, 5, 2, '#78a850');
+  px(ctx, x+1, y+12, 2, 2, '#5a8838');
+  px(ctx, x+13, y+11, 2, 2, '#5a8838');
+  px(ctx, x, y, TS, 1, '#284818');
+  px(ctx, x, y+TS-2, TS, 2, '#284818');
+}
+
+function drawRoofLeaf(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#208828');
+  // Layered leaves.
+  px(ctx, x, y+1, TS, 3, '#50c050');
+  px(ctx, x, y+5, TS, 3, '#50c050');
+  px(ctx, x, y+9, TS, 3, '#50c050');
+  // Leaf veins.
+  for (let i = 0; i < TS; i += 3) {
+    px(ctx, x+i, y+2, 1, 1, '#103810');
+    px(ctx, x+i+1, y+6, 1, 1, '#103810');
+    px(ctx, x+i, y+10, 1, 1, '#103810');
+  }
+  px(ctx, x, y+TS-2, TS, 2, '#103810');
+}
+
+function drawWallStone(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#98908a');
+  // Mortar grid.
+  for (let r = 0; r < TS; r += 4) px(ctx, x, y+r, TS, 1, '#685858');
+  for (let r = 0; r < TS; r += 4) {
+    const off = (r % 8 === 0) ? 0 : 4;
+    for (let i = off; i < TS; i += 8) px(ctx, x+i, y+r+1, 1, 3, '#685858');
+  }
+  px(ctx, x+1, y+1, 2, 1, '#b8b0aa');
+  px(ctx, x+9, y+5, 2, 1, '#b8b0aa');
+  px(ctx, x+13, y+12, 2, 1, '#b8b0aa');
+}
+
+function drawWallTimber(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#806038');
+  // Vertical planks.
+  for (let i = 0; i < TS; i += 4) {
+    px(ctx, x+i, y, 1, TS, '#604020');
+    px(ctx, x+i+1, y+2, 1, TS-4, '#a08858');
+  }
+  px(ctx, x, y, TS, 1, '#382008');
+  px(ctx, x, y+TS-1, TS, 1, '#382008');
+}
+
+function drawWallBrick(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#a83838');
+  // Brick courses.
+  for (let r = 0; r < TS; r += 4) px(ctx, x, y+r+3, TS, 1, '#602820');
+  for (let r = 0; r < TS; r += 4) {
+    const off = (r / 4 | 0) % 2 ? 4 : 0;
+    for (let i = off; i < TS; i += 8) px(ctx, x+i, y+r, 1, 3, '#602820');
+  }
+  px(ctx, x+1, y+1, 2, 1, '#c85048');
+  px(ctx, x+5, y+9, 2, 1, '#c85048');
+}
+
+function drawWallLog(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#806838');
+  // Horizontal log seams.
+  for (let r = 0; r < TS; r += 4) {
+    px(ctx, x, y+r, TS, 1, '#604018');
+    px(ctx, x, y+r+3, TS, 1, '#382008');
+  }
+  // Log knots.
+  px(ctx, x+3, y+5, 1, 1, '#382008');
+  px(ctx, x+10, y+1, 1, 1, '#382008');
+  px(ctx, x+12, y+9, 1, 1, '#382008');
+  px(ctx, x+5, y+13, 1, 1, '#382008');
+  px(ctx, x+1, y+1, 1, 2, '#a08858');
+  px(ctx, x+TS-1, y+1, 1, 2, '#a08858');
+}
+
+function drawWallWhite(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#f0e8d8');
+  // Subtle vertical seams.
+  for (let i = 4; i < TS; i += 4) px(ctx, x+i, y+1, 1, TS-2, '#c8c0b0');
+  px(ctx, x+2, y+3, 1, 1, '#ffffff');
+  px(ctx, x+10, y+8, 1, 1, '#ffffff');
+  px(ctx, x, y, TS, 1, '#a8a098');
+  px(ctx, x, y+TS-1, TS, 1, '#a8a098');
+}
+
+function drawWallLattice(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#80582a');
+  // Diagonal lattice.
+  for (let i = -TS; i < TS*2; i += 4) {
+    for (let j = 0; j < TS; j++) {
+      const xx = i + j, yy = j;
+      if (xx >= 0 && xx < TS && yy < TS) px(ctx, x+xx, y+yy, 1, 1, '#404020');
+    }
+    for (let j = 0; j < TS; j++) {
+      const xx = i + j, yy = TS - 1 - j;
+      if (xx >= 0 && xx < TS && yy >= 0) px(ctx, x+xx, y+yy, 1, 1, '#404020');
+    }
+  }
+  px(ctx, x, y, TS, 1, '#403020');
+  px(ctx, x, y+TS-1, TS, 1, '#403020');
+}
+
+function drawDoorBlue(ctx, x, y) {
+  px(ctx, x, y, TS, TS, '#4878d8');
+  px(ctx, x+3, y+2, TS-6, TS-3, '#88c0f0');
+  px(ctx, x+3, y+2, TS-6, 1, '#2050a8');
+  px(ctx, x+TS-6, y+TS/2, 2, 2, '#f0c020');
+  // Panel groove.
+  px(ctx, x+TS/2, y+3, 1, TS-5, '#2050a8');
+}
+
+function drawDoorShop(ctx, x, y) {
+  // Brown door + striped awning above.
+  px(ctx, x, y, TS, 4, '#a83838');
+  for (let i = 0; i < TS; i += 2) px(ctx, x+i, y, 1, 4, '#f0d8d0');
+  px(ctx, x, y+4, TS, 1, '#382008');
+  px(ctx, x+1, y+5, TS-2, TS-6, '#604028');
+  px(ctx, x+3, y+7, TS-6, TS-9, '#a86838');
+  px(ctx, x+TS-6, y+TS/2+2, 2, 2, '#f0c020');
+  px(ctx, x, y+TS-1, TS, 1, '#382008');
+}
+
+function drawWindowL(ctx, x, y) {
+  drawWallStone(ctx, x, y);
+  // Window frame on the right half so two of these abut.
+  px(ctx, x+8, y+3, 6, 8, '#382410');
+  px(ctx, x+9, y+4, 4, 6, '#88c0f0');
+  px(ctx, x+11, y+4, 1, 6, '#382410');
+  px(ctx, x+9, y+7, 4, 1, '#382410');
+  // Sill.
+  px(ctx, x+7, y+11, 8, 1, '#5a3818');
+}
+
+function drawWindowR(ctx, x, y) {
+  drawWallStone(ctx, x, y);
+  px(ctx, x+2, y+3, 6, 8, '#382410');
+  px(ctx, x+3, y+4, 4, 6, '#88c0f0');
+  px(ctx, x+5, y+4, 1, 6, '#382410');
+  px(ctx, x+3, y+7, 4, 1, '#382410');
+  px(ctx, x+1, y+11, 8, 1, '#5a3818');
+}
+
+function drawChimney(ctx, x, y) {
+  // Brick chimney with smoke.
+  px(ctx, x+5, y+5, 6, 11, '#a83838');
+  for (let r = 6; r < 16; r += 3) {
+    px(ctx, x+5, y+r, 6, 1, '#602820');
+  }
+  px(ctx, x+5, y+5, 6, 1, '#382008');
+  // Smoke puffs.
+  px(ctx, x+6, y+1, 4, 2, '#a8a8a8');
+  px(ctx, x+5, y+3, 6, 2, '#c8c8c8');
+  px(ctx, x+9, y, 2, 1, '#888888');
+}
+
+function drawSmokestack(ctx, x, y) {
+  px(ctx, x+6, y+2, 4, 14, '#585858');
+  px(ctx, x+5, y+2, 6, 1, '#383838');
+  px(ctx, x+5, y+15, 6, 1, '#383838');
+  px(ctx, x+7, y+5, 2, 1, '#a83838');
+  px(ctx, x+7, y+10, 2, 1, '#a83838');
+  // Smoke.
+  px(ctx, x+7, y, 2, 2, '#a8a8a8');
+  px(ctx, x+5, y, 2, 1, '#888888');
+  px(ctx, x+9, y, 2, 1, '#c8c8c8');
 }
 
 function drawSign(ctx, x, y) {

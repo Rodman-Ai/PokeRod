@@ -48,7 +48,51 @@ const TILE_PROPS = {
   'S': { walk:false, name:'sign', interact:'sign' },
   'L': { walk:'south', name:'ledge' },
   'D': { walk:true, door:true, name:'door' },
-  'X': { walk:true, edge:true, name:'edge' }
+  'X': { walk:true, edge:true, name:'edge' },
+  // House roofs (8) - all block.
+  '+': { walk:false, name:'roof_blue' },
+  '-': { walk:false, name:'roof_thatched' },
+  '=': { walk:false, name:'roof_terracotta' },
+  '*': { walk:false, name:'roof_dome' },
+  '%': { walk:false, name:'roof_snow' },
+  '&': { walk:false, name:'roof_slate' },
+  '7': { walk:false, name:'roof_moss' },
+  '8': { walk:false, name:'roof_leaf' },
+  // House walls (6) - all block.
+  '#': { walk:false, name:'wall_stone' },
+  '@': { walk:false, name:'wall_timber' },
+  '$': { walk:false, name:'wall_brick' },
+  '?': { walk:false, name:'wall_log' },
+  '!': { walk:false, name:'wall_white' },
+  '0': { walk:false, name:'wall_lattice' },
+  // Doors / windows / chimneys.
+  'd': { walk:true, door:true, name:'door_blue' },
+  'f': { walk:true, door:true, name:'door_shop' },
+  '[': { walk:false, name:'window_left' },
+  ']': { walk:false, name:'window_right' },
+  '(': { walk:false, name:'chimney' },
+  ')': { walk:false, name:'smokestack' },
+  // Paths (20) - all walkable.
+  '_': { walk:true, name:'path_cobble' },
+  '^': { walk:true, name:'path_dirt' },
+  'o': { walk:true, name:'path_stepstone' },
+  ';': { walk:true, name:'path_gravel' },
+  'i': { walk:true, name:'path_redbrick' },
+  'p': { walk:true, name:'path_park' },
+  'q': { walk:true, name:'path_mosaic' },
+  't': { walk:true, name:'path_boardwalk' },
+  'u': { walk:true, name:'path_sand' },
+  'v': { walk:true, name:'path_rocky' },
+  'w': { walk:true, name:'path_wetstone' },
+  'x': { walk:true, name:'path_crossroads' },
+  'y': { walk:true, name:'path_yellowbrick' },
+  'z': { walk:true, name:'path_moss' },
+  'a': { walk:true, name:'path_autumn' },
+  'A': { walk:true, name:'path_bridge' },
+  'Z': { walk:true, name:'path_zen' },
+  'I': { walk:true, name:'path_lantern' },
+  '5': { walk:true, name:'path_desert' },
+  '6': { walk:true, name:'path_snow' }
 };
 
 function tileAt(map, x, y) {
