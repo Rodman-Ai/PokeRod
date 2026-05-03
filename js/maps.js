@@ -102,7 +102,10 @@ const TILE_PROPS = {
   '`': { walk:false, name:'fence_h' },
   '"': { walk:false, name:'fence_v' },
   "'": { walk:false, name:'gardenbed' },
-  '\\': { walk:false, name:'mailbox' }
+  '\\': { walk:false, name:'mailbox' },
+  '/': { walk:false, name:'pc_terminal', interact:'pc' },
+  '9': { walk:false, name:'vending' },
+  '}': { walk:false, name:'pottedplant' }
 };
 
 function tileAt(map, x, y) {
@@ -344,9 +347,9 @@ const MAPS = {
     id:'pokecenter', name:'PokeRod Center', interior:true,
     tiles: [
       'BBBBBBBBB',
-      'BF>FF>>FB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
+      'B}>>>>>}B',
+      'BF/FF9FFB',
+      'BFCCCFFFB',
       'BFCHCFFFB',
       'BFFFFFFFB',
       'B{FFFFF{B',
@@ -502,9 +505,9 @@ const MAPS = {
     id:'woodfall_center', name:'PokeRod Center', interior:true,
     tiles: [
       'BBBBBBBBB',
-      'BF>FF>>FB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
+      'B}>>>>>}B',
+      'BF/FF9FFB',
+      'BFCCCFFFB',
       'BFCHCFFFB',
       'BFFFFFFFB',
       'B{FFFFF{B',
@@ -634,9 +637,9 @@ const MAPS = {
     id:'crestrock_center', name:'PokeRod Center', interior:true,
     tiles: [
       'BBBBBBBBB',
-      'BF>FF>>FB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
+      'B}>>>>>}B',
+      'BF/FF9FFB',
+      'BFCCCFFFB',
       'BFCHCFFFB',
       'BFFFFFFFB',
       'B{FFFFF{B',
@@ -804,9 +807,9 @@ const MAPS = {
     id:'frostmere_center', name:'PokeRod Center', interior:true,
     tiles: [
       'BBBBBBBBB',
-      'BF>FF>>FB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
+      'B}>>>>>}B',
+      'BF/FF9FFB',
+      'BFCCCFFFB',
       'BFCHCFFFB',
       'BFFFFFFFB',
       'B{FFFFF{B',
@@ -935,9 +938,9 @@ const MAPS = {
     id:'harborside_center', name:'PokeRod Center', interior:true,
     tiles: [
       'BBBBBBBBB',
-      'BF>FF>>FB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
+      'B}>>>>>}B',
+      'BF/FF9FFB',
+      'BFCCCFFFB',
       'BFCHCFFFB',
       'BFFFFFFFB',
       'B{FFFFF{B',
@@ -1066,9 +1069,9 @@ const MAPS = {
     id:'summitvale_center', name:'PokeRod Center', interior:true,
     tiles: [
       'BBBBBBBBB',
-      'BF>FF>>FB',
-      'BFFFFFFFB',
-      'BFFFFFFFB',
+      'B}>>>>>}B',
+      'BF/FF9FFB',
+      'BFCCCFFFB',
       'BFCHCFFFB',
       'BFFFFFFFB',
       'B{FFFFF{B',

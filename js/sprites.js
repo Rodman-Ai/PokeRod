@@ -114,6 +114,9 @@ function drawTile(ctx, code, sx, sy) {
     case '"': drawFenceV(ctx, x, y); break;
     case "'": drawGardenBed(ctx, x, y); break;
     case '\\': drawMailbox(ctx, x, y); break;
+    case '/': drawPCTerminal(ctx, x, y); break;
+    case '9': drawVending(ctx, x, y); break;
+    case '}': drawPottedPlant(ctx, x, y); break;
     default: drawGrass(ctx, x, y);
   }
 }
@@ -792,10 +795,25 @@ function drawWater(ctx, x, y) {
   px(ctx, x+1, y+12, 3, 1, '#3060b0');
 }
 
+// Interior floor — soft cream tile with subtle 8x8 checker grid and
+// a thin grout line, evoking a polished public-building floor.
 function drawFloor(ctx, x, y) {
-  px(ctx, x, y, TS, TS, '#d8c098');
-  px(ctx, x, y, TS, 1, '#b89878');
-  px(ctx, x, y, 1, TS, '#b89878');
+  const tx = (x / TS) | 0;
+  const ty = (y / TS) | 0;
+  const parity = (tx + ty) & 1;
+  // base
+  px(ctx, x, y, TS, TS, parity ? '#e8d8b0' : '#f0e0c0');
+  // 4 sub-tile squares with alternating shade
+  const lite = '#f8e8c8';
+  const dark = '#d8c8a0';
+  px(ctx, x,    y,    TS/2, TS/2, parity ? dark : lite);
+  px(ctx, x+TS/2, y+TS/2, TS/2, TS/2, parity ? dark : lite);
+  // grout cross
+  px(ctx, x, y+TS/2-1, TS, 1, '#b89878');
+  px(ctx, x+TS/2-1, y, 1, TS, '#b89878');
+  // tile corner highlights
+  px(ctx, x+1, y+1, 1, 1, '#fff8e0');
+  px(ctx, x+TS/2+1, y+TS/2+1, 1, 1, '#fff8e0');
 }
 
 function drawRoofBlue(ctx, x, y) {
@@ -1253,6 +1271,79 @@ function drawMailbox(ctx, x, y) {
   // address number
   px(ctx, x+6, y+6, 1, 1, '#ffffff');
   px(ctx, x+8, y+6, 1, 1, '#ffffff');
+}
+
+// PC terminal (/) — gray cabinet with glowing monitor on top.
+function drawPCTerminal(ctx, x, y) {
+  drawFloor(ctx, x, y);
+  // base cabinet
+  px(ctx, x+2, y+9, 12, 6, '#788090');
+  px(ctx, x+2, y+9, 12, 1, '#a0a8b8');
+  px(ctx, x+13, y+10, 1, 5, '#485060');
+  // monitor stand
+  px(ctx, x+7, y+7, 2, 2, '#586070');
+  // screen housing
+  px(ctx, x+3, y+1, 10, 7, '#383848');
+  px(ctx, x+3, y+1, 10, 1, '#585868');
+  // screen
+  px(ctx, x+4, y+2, 8, 5, '#88c8e8');
+  // pokeball icon on screen
+  px(ctx, x+7, y+3, 2, 3, '#e02828');
+  px(ctx, x+7, y+5, 2, 1, '#fff');
+  // cabinet drawer detail
+  px(ctx, x+4, y+11, 8, 1, '#586070');
+  px(ctx, x+5, y+13, 2, 1, '#3a3a48');
+}
+
+// Vending machine (9) — tall colored cabinet with display window.
+function drawVending(ctx, x, y) {
+  drawFloor(ctx, x, y);
+  // cabinet body
+  px(ctx, x+2, y+1, 12, 14, '#3868c0');
+  px(ctx, x+2, y+1, 12, 2, '#1a3878');
+  // top sign
+  px(ctx, x+3, y+2, 10, 2, '#f0d030');
+  px(ctx, x+5, y+2, 1, 2, '#a08020');
+  px(ctx, x+9, y+2, 1, 2, '#a08020');
+  // display window
+  px(ctx, x+3, y+5, 10, 5, '#a8c8e8');
+  px(ctx, x+3, y+5, 10, 1, '#688098');
+  // 3 bottles in window
+  px(ctx, x+4, y+6, 2, 3, '#e02828');
+  px(ctx, x+7, y+6, 2, 3, '#48a838');
+  px(ctx, x+10, y+6, 2, 3, '#f0d030');
+  px(ctx, x+4, y+6, 2, 1, '#fff');
+  px(ctx, x+7, y+6, 2, 1, '#fff');
+  px(ctx, x+10, y+6, 2, 1, '#fff');
+  // dispenser slot
+  px(ctx, x+3, y+11, 10, 2, '#1a2858');
+  // coin slot
+  px(ctx, x+11, y+13, 2, 1, '#a8a8b8');
+}
+
+// Potted leafy plant (}) — terracotta pot with bushy green foliage.
+function drawPottedPlant(ctx, x, y) {
+  drawFloor(ctx, x, y);
+  // foliage backdrop (round bush)
+  px(ctx, x+3, y+2, 10, 7, '#2c8048');
+  px(ctx, x+2, y+3, 12, 5, '#2c8048');
+  px(ctx, x+4, y+1, 8, 1, '#2c8048');
+  // foliage highlights
+  px(ctx, x+4, y+3, 4, 2, '#48b06c');
+  px(ctx, x+9, y+4, 3, 2, '#48b06c');
+  px(ctx, x+5, y+6, 2, 1, '#88d090');
+  // dark leaf veins
+  px(ctx, x+7, y+5, 1, 3, '#1a5028');
+  px(ctx, x+10, y+6, 1, 2, '#1a5028');
+  // pot body
+  px(ctx, x+5, y+10, 6, 5, '#a05028');
+  // pot rim
+  px(ctx, x+4, y+9, 8, 2, '#c06838');
+  px(ctx, x+4, y+9, 8, 1, '#e08858');
+  // pot shadow
+  px(ctx, x+10, y+11, 1, 4, '#702808');
+  // soil peeking
+  px(ctx, x+6, y+9, 4, 1, '#3a2008');
 }
 
 window.PR_TILES = { drawTile, TS, px };
