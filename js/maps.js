@@ -358,8 +358,6 @@ const MAPS = {
       { x:4, y:4, dir:'down', sprite:'npc_old', name:'GYM LEADER WAVE',
         gym:true, badge:'WAVE',
         dialog:["I am WAVE, leader of the BRINDALE GYM.","Show me you are ready and we shall battle!"],
-        gymRequirement:{ minCaught:3 },
-        gymLocked:["Catch a few more creatures first.","Come back when you have at least three!"],
         trainer:{ team:[['mistfin',12],['aquapup',13]], reward:600,
                   defeat:["A fine showing! Take this WAVE BADGE."] } }
     ],

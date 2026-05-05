@@ -390,12 +390,12 @@ html, body {
 /* Universal handheld controls (desktop and mobile) */
 #dpad {
   display: grid;
-  grid-template-columns: repeat(3, 44px);
-  grid-template-rows: repeat(3, 44px);
+  grid-template-columns: repeat(3, 58px);
+  grid-template-rows: repeat(3, 58px);
   gap: 0;
   background: #1a0204;
   border-radius: 12px;
-  padding: 4px;
+  padding: 5px;
   box-shadow:
     0 4px 0 #2a0604,
     inset 0 2px 4px rgba(0,0,0,0.6),
@@ -407,7 +407,7 @@ html, body {
   border-radius: 0;
   box-shadow: inset 0 -2px 0 #050508, inset 0 2px 0 #4a4a55;
   color: #f0e0c0;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
 }
 #dpad .dbtn:nth-child(1) { grid-column: 2; grid-row: 1; border-radius: 6px 6px 0 0; }
@@ -422,7 +422,7 @@ html, body {
 #dpad::before {
   content: '';
   grid-column: 2; grid-row: 2;
-  width: 18px; height: 18px;
+  width: 24px; height: 24px;
   align-self: center;
   justify-self: center;
   background: #1a1a1f;
@@ -498,5 +498,9 @@ html, body {
   #app { padding: 0; }
   #screen { width: auto; height: calc(100vh - 60px); margin: 6px auto; }
   #touch  { padding: 4px 12px var(--pad); }
+  #dpad {
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+  }
 }
 

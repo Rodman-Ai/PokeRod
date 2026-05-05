@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.16.1';
-  const BUILD = '2026.05.03-61';
+  const VERSION = 'v0.16.2';
+  const BUILD = '2026.05.05-62';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -33,6 +33,14 @@
     'route1','route2','pebblewood','glimcavern','glimcavern_b1',
     'frostpeak','searoute','desert','beach','mountain'
   ]);
+
+  const KONAMI_SEQUENCE = [
+    'ArrowUp','ArrowUp','ArrowDown','ArrowDown',
+    'ArrowLeft','ArrowRight','ArrowLeft','ArrowRight',
+    'x','z'
+  ];
+  const KONAMI_KEYS = Array.from(new Set(KONAMI_SEQUENCE));
+  let konamiIndex = 0;
 
   // Wire callbacks the world will invoke.
   state.onMapChange = () => {
@@ -210,6 +218,13 @@
         showFlash(A.isMuted() ? 'MUTED' : 'AUDIO ON');
       }
     }
+    if (updateKonamiCode()) return;
+    if (state.konamiArmed && state.mode === 'battle' && state.battle && state.battle.forceWin) {
+      const hadBadge = state.battle.opts && state.battle.opts.badge;
+      state.konamiArmed = false;
+      if (state.battle.forceWin() && !hadBadge) showFlash('KONAMI WIN!');
+      return;
+    }
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
     else if (state.mode === 'overworld') state.world.update(dt);
@@ -231,6 +246,46 @@
   let flashText = null, flashTimer = 0;
   function showFlash(text) { flashText = text; flashTimer = 1.4; }
   state.showFlash = showFlash;
+
+  function updateKonamiCode() {
+    const I = window.PR_INPUT;
+    if (!I || !I.pressed) return false;
+    let key = null;
+    for (const candidate of KONAMI_KEYS) {
+      if (I.pressed(candidate)) { key = candidate; break; }
+    }
+    if (!key) return false;
+    if (key === KONAMI_SEQUENCE[konamiIndex]) {
+      konamiIndex++;
+      if (konamiIndex >= KONAMI_SEQUENCE.length) {
+        konamiIndex = 0;
+        return activateKonamiCode();
+      }
+      return false;
+    }
+    konamiIndex = key === KONAMI_SEQUENCE[0] ? 1 : 0;
+    return false;
+  }
+
+  function activateKonamiCode() {
+    if (state.mode === 'battle' && state.battle && state.battle.forceWin) {
+      const hadBadge = state.battle.opts && state.battle.opts.badge;
+      if (state.battle.forceWin() && !hadBadge) {
+        showFlash('KONAMI WIN!');
+      }
+      return true;
+    }
+    if (state.mode === 'overworld') {
+      state.player.money = (state.player.money || 0) + 10000;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      showFlash('GOT $10000!');
+      window.PR_SAVE.save && window.PR_SAVE.save(state);
+      return true;
+    }
+    state.konamiArmed = true;
+    showFlash('KONAMI READY');
+    return true;
+  }
 
   function updateTitle() {
     const I = window.PR_INPUT;
@@ -549,6 +604,31 @@
   }
   state.gateConditionsMet = gateConditionsMet;
 
+  function addBadgeIfMissing(badge) {
+    if (!badge) return false;
+    if (!Array.isArray(state.player.badges)) state.player.badges = [];
+    if (state.player.badges.includes(badge)) return false;
+    state.player.badges.push(badge);
+    return true;
+  }
+
+  function repairDefeatedGymBadges() {
+    if (!state.defeatedTrainers || !window.PR_MAPS || !window.PR_MAPS.MAPS) return false;
+    let changed = false;
+    const maps = window.PR_MAPS.MAPS;
+    for (const mapId of Object.keys(maps)) {
+      const m = maps[mapId];
+      for (const n of (m.npcs || [])) {
+        if (!n.gym || !n.badge) continue;
+        const key = mapId + ':' + n.x + ',' + n.y;
+        if (state.defeatedTrainers.has(key)) {
+          changed = addBadgeIfMissing(n.badge) || changed;
+        }
+      }
+    }
+    return changed;
+  }
+
   function handleNpcInteract(npc) {
     if (handleGateNpc(npc)) return;
     if (npc.legendary) {
@@ -594,6 +674,9 @@
     if (npc.trainer) {
       const trainerKey = state.player.map + ':' + npc.x + ',' + npc.y;
       if (state.defeatedTrainers.has(trainerKey)) {
+        if (npc.gym && addBadgeIfMissing(npc.badge)) {
+          window.PR_SAVE.save && window.PR_SAVE.save(state);
+        }
         openDialog(npc.trainer.defeat || ['You already beat me!']);
         return;
       }
@@ -1259,6 +1342,9 @@
     if (window.PR_QUESTS) window.PR_QUESTS.ensure(state);
     state.activeSlot = (data._slot|0) || 0;
     state.world = new window.PR_WORLD.World(state);
+    if (repairDefeatedGymBadges()) {
+      window.PR_SAVE.save && window.PR_SAVE.save(state, state.activeSlot);
+    }
   }
 
   // ---------- Pokedex ----------
@@ -1503,7 +1589,7 @@
       state.player.map = 'rodport';
       state.player.x = 4; state.player.y = 5; state.player.dir = 'down';
     }
-    if (battle.opts && battle.opts.npcKey) state.defeatedTrainers.add(battle.opts.npcKey);
+    if (outcome === 'won' && battle.opts && battle.opts.npcKey) state.defeatedTrainers.add(battle.opts.npcKey);
     if (outcome === 'won' && battle.opts && battle.opts.badge) {
       if (!Array.isArray(state.player.badges)) state.player.badges = [];
       if (!state.player.badges.includes(battle.opts.badge)) {

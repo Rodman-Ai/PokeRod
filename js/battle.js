@@ -542,6 +542,7 @@
       if (this.trainer) {
         this.queue('Got $' + this.trainer.reward + '!');
         this.state.player.money += this.trainer.reward;
+        this._trainerRewarded = true;
       }
       this.phase = 'message';
       this.afterMessages = () => { this.phase = 'won'; };
@@ -624,6 +625,24 @@
         this.phase = 'turn';
       };
     }
+  };
+
+  Battle.prototype.forceWin = function() {
+    if (this.outcome || this.phase === 'won' || this.phase === 'lost' ||
+        this.phase === 'ran' || this.phase === 'caught') {
+      return false;
+    }
+    if (this.trainer && !this._trainerRewarded) {
+      this.state.player.money += this.trainer.reward || 0;
+      this._trainerRewarded = true;
+    }
+    this.outcome = 'won';
+    if (this.state && this.state.onBattleEnd) {
+      this.state.onBattleEnd('won', this);
+      return true;
+    }
+    this.phase = 'won';
+    return true;
   };
 
   Battle.prototype.tryThrowBall = function(ballId) {
