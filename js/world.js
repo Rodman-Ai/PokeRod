@@ -64,6 +64,8 @@
     this.justEntered = true;
     this._ambient = [];
     this._initAmbient();
+    this.follower = null;
+    this._resetFollower();
   }
 
   World.prototype._initAmbient = function() {
@@ -82,6 +84,91 @@
         nextDelay: 1.5 + Math.random() * 2,
         frame: 0, frameTimer: 0
       });
+    }
+  };
+
+  const DIR_STEP = {
+    up: { x:0, y:-1 },
+    down: { x:0, y:1 },
+    left: { x:-1, y:0 },
+    right: { x:1, y:0 }
+  };
+
+  function dirBetween(fx, fy, tx, ty, fallback) {
+    const dx = tx - fx, dy = ty - fy;
+    if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+    if (dy !== 0) return dy > 0 ? 'down' : 'up';
+    return fallback || 'down';
+  }
+
+  World.prototype._followerWalkable = function(x, y) {
+    const code = this.tileAt(x, y);
+    const props = window.PR_MAPS.TILE_PROPS[code];
+    const walkable = (props && props.walk === true) || code === 'W';
+    if (!walkable) return false;
+    if (this.npcAt(x, y)) return false;
+    if (this.player.x === x && this.player.y === y) return false;
+    if (this._ambientAt && this._ambientAt(x, y, null)) return false;
+    return true;
+  };
+
+  World.prototype._resetFollower = function() {
+    const p = this.player;
+    const dir = p.dir || 'down';
+    const step = DIR_STEP[dir] || DIR_STEP.down;
+    const candidates = [
+      { x:p.x - step.x, y:p.y - step.y },
+      { x:p.x, y:p.y + 1 },
+      { x:p.x - 1, y:p.y },
+      { x:p.x + 1, y:p.y },
+      { x:p.x, y:p.y - 1 }
+    ];
+    let spot = null;
+    for (const c of candidates) {
+      if (this._followerWalkable(c.x, c.y)) { spot = c; break; }
+    }
+    if (!spot) spot = { x:p.x, y:p.y };
+    this.follower = {
+      x: spot.x,
+      y: spot.y,
+      dir: dir,
+      frame: 0,
+      frameTimer: 0,
+      anim: { moving:false, t:0, duration:0.16, fromX:spot.x, fromY:spot.y, toX:spot.x, toY:spot.y }
+    };
+  };
+
+  World.prototype._startFollowerMove = function(tx, ty, dur) {
+    if (!this.follower) this._resetFollower();
+    const f = this.follower;
+    f.dir = dirBetween(f.x, f.y, tx, ty, f.dir);
+    if (f.x === tx && f.y === ty) {
+      f.anim.moving = false;
+      f.anim.t = 0;
+      return;
+    }
+    f.anim.moving = true;
+    f.anim.fromX = f.x; f.anim.fromY = f.y;
+    f.anim.toX = tx;   f.anim.toY = ty;
+    f.anim.t = 0;
+    f.anim.duration = dur || this.anim.duration || 0.16;
+  };
+
+  World.prototype._updateFollower = function(dt) {
+    const f = this.follower;
+    if (!f) return;
+    f.frameTimer += dt;
+    if (f.frameTimer > 0.3) {
+      f.frameTimer = 0;
+      f.frame ^= 1;
+    }
+    if (!f.anim.moving) return;
+    f.anim.t += dt;
+    if (f.anim.t >= f.anim.duration) {
+      f.x = f.anim.toX;
+      f.y = f.anim.toY;
+      f.anim.moving = false;
+      f.anim.t = f.anim.duration;
     }
   };
 
@@ -179,6 +266,7 @@
   };
 
   World.prototype.startMove = function(fx, fy, tx, ty, dur) {
+    this._startFollowerMove(fx, fy, dur || this.anim.duration);
     this.anim.moving = true;
     this.anim.fromX = fx; this.anim.fromY = fy;
     this.anim.toX = tx;   this.anim.toY = ty;
@@ -242,6 +330,7 @@
     this.anim.moving = false;
     this.justEntered = true;
     this._initAmbient();
+    this._resetFollower();
     if (this.state.onMapChange) this.state.onMapChange();
     if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('mapchange');
   };
@@ -395,6 +484,7 @@
         this._ambient = [];
       }
     }
+    this._updateFollower(dt);
 
     if (this.anim.moving) {
       this.anim.t += dt;
@@ -500,6 +590,21 @@
       }
     }
 
+    const dogPx = this.getFollowerPx();
+    if (dogPx && window.PR_CHARS && window.PR_CHARS.drawDog) {
+      const f = this.follower;
+      const sx = dogPx.x - camX;
+      const sy = dogPx.y - camY;
+      if (sx >= -TS && sx <= VIEW_W && sy >= -TS && sy <= VIEW_H) {
+        let p = 0;
+        if (f.anim.moving) p = Math.min(1, f.anim.t / f.anim.duration);
+        const reduced = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+        const bob = f.anim.moving && !reduced ? -Math.round(Math.sin(p * Math.PI)) : (f.frame ? -1 : 0);
+        const dogFrame = f.frame ^ (p > 0.5 ? 1 : 0);
+        window.PR_CHARS.drawDog(ctx, sx, sy + bob, f.dir, dogFrame);
+      }
+    }
+
     // Player (with mid-step bob + half-step leg swap for a 4-pose walk).
     let bobY = 0, walkFrame = 0;
     if (this.anim.moving) {
@@ -547,6 +652,18 @@
       return { x: fx * TS, y: fy * TS };
     }
     return { x: p.x * TS, y: p.y * TS };
+  };
+
+  World.prototype.getFollowerPx = function() {
+    const f = this.follower;
+    if (!f) return null;
+    if (f.anim.moving) {
+      const k = Math.min(1, f.anim.t / f.anim.duration);
+      const fx = f.anim.fromX + (f.anim.toX - f.anim.fromX) * k;
+      const fy = f.anim.fromY + (f.anim.toY - f.anim.fromY) * k;
+      return { x: fx * TS, y: fy * TS };
+    }
+    return { x: f.x * TS, y: f.y * TS };
   };
 
   window.PR_WORLD = { World };

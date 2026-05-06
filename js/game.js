@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.20.1';
-  const BUILD = '2026.05.06-68';
+  const VERSION = 'v0.21.2';
+  const BUILD = '2026.05.06-72';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -98,6 +98,7 @@
       });
     }
     ensureSettings();
+    applySettings();
     const has = window.PR_SAVE.exists();
     if (has) document.getElementById('btn-continue').hidden = false;
     const unlock = () => {
@@ -523,13 +524,30 @@
     const alive = state.party.some(p => p.hp > 0);
     if (!alive) return;
     const m = state.world.currentMap();
-    if (!m.encounters || !m.encounters.length) return;
-    const total = m.encounters.reduce((a,e) => a + e.weight, 0);
+    const encounters = encounterPoolForMap(m);
+    if (!encounters || !encounters.length) return;
+    const total = encounters.reduce((a,e) => a + e.weight, 0);
     let r = Math.random() * total;
-    let pick = m.encounters[0];
-    for (const e of m.encounters) { r -= e.weight; if (r <= 0) { pick = e; break; } }
+    let pick = encounters[0];
+    for (const e of encounters) { r -= e.weight; if (r <= 0) { pick = e; break; } }
     const lvl = pick.minL + Math.floor(Math.random() * (pick.maxL - pick.minL + 1));
     startBattleAgainstWild(pick.species, lvl);
+  }
+
+  function encounterPoolForMap(map) {
+    if (!map) return [];
+    if (Array.isArray(map.encounterZones)) {
+      const px = state.player.x | 0, py = state.player.y | 0;
+      for (const zone of map.encounterZones) {
+        const zx = zone.x | 0, zy = zone.y | 0;
+        const zw = Math.max(1, zone.w | 0), zh = Math.max(1, zone.h | 0);
+        if (px >= zx && px < zx + zw && py >= zy && py < zy + zh &&
+            zone.encounters && zone.encounters.length) {
+          return zone.encounters;
+        }
+      }
+    }
+    return map.encounters || [];
   }
 
   // ---------- Battle setup helpers ----------
@@ -1010,6 +1028,9 @@
     if (window.PR_ATLAS && window.PR_ATLAS.setPreset) {
       window.PR_ATLAS.setPreset(state.settings.graphics || SETTINGS_DEFAULTS.graphics);
     }
+    if (document.body) {
+      document.body.dataset.graphics = state.settings.graphics || SETTINGS_DEFAULTS.graphics;
+    }
     window.PR_SETTINGS = state.settings;
   }
 
@@ -1213,7 +1234,7 @@
           window.PR_UI.selectBar(ctx, sx, cy - 2, colW, 14, true);
         }
         if (mon) {
-          window.PR_MONS.drawCreature(ctx, mon.species, sx + 2, cy - 2, 14, false);
+          window.PR_MONS.drawCreature(ctx, mon.species, sx + 2, cy - 2, 14, false, mon);
           window.PR_UI.drawText(ctx, mon.nickname.slice(0, 10), sx + 18, cy, '#202020');
           window.PR_UI.drawText(ctx, 'L' + mon.level, sx + colW - 18, cy, '#202020');
         }
@@ -1302,21 +1323,33 @@
       return;
     }
     const v = state.bagView;
-    const rows = 8, rowH = 12;
-    const startY = y + 18;
+    const listX = x + 5, listY = y + 18, listW = 104;
+    const cardX = x + 114, cardY = y + 18, cardW = w - 119, cardH = h - 30;
+    const rows = 8, rowH = 13;
     const start = Math.max(0, Math.min(items.length - rows, v.idx - 3));
     for (let r = 0; r < rows; r++) {
       const i = start + r;
       if (i >= items.length) break;
-      const cy = startY + r * rowH;
+      const cy = listY + r * rowH;
       const it = items[i];
-      if (i === v.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 1, w - 8, 11, true);
-      window.PR_UI.drawText(ctx, it.def.name, x + 8, cy, '#202020');
-      window.PR_UI.drawText(ctx, 'x' + it.count, x + w - 32, cy, '#385890');
+      if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, listW, 12, true);
+      if (window.PR_ITEMS && window.PR_ITEMS.drawIcon) window.PR_ITEMS.drawIcon(ctx, it.id, listX + 2, cy, 10);
+      window.PR_UI.drawText(ctx, it.def.name.slice(0, 9), listX + 17, cy + 2, '#202020');
+      window.PR_UI.drawText(ctx, 'x' + it.count, listX + listW - 23, cy + 2, '#385890');
     }
     const sel = items[v.idx];
     if (sel) {
-      window.PR_UI.drawText(ctx, sel.def.desc.slice(0, 38), x + 8, y + h - 12, '#806040');
+      let footer = 'A:USE';
+      if (sel.def.kind === 'ball') footer = v.returnTo === 'battle' ? 'A:THROW' : 'BATTLE ONLY';
+      else if (sel.def.kind === 'trainer_gear') footer = 'A:EQUIP';
+      else if (sel.def.kind === 'held_gear' || sel.def.holdable) footer = 'A:HOLD';
+      if (window.PR_ITEMS && window.PR_ITEMS.drawCard) {
+        window.PR_ITEMS.drawCard(ctx, sel.id, cardX, cardY, cardW, cardH, {
+          count:sel.count, lines:5, footer
+        });
+      } else {
+        window.PR_UI.drawText(ctx, sel.def.desc.slice(0, 16), cardX + 6, cardY + 8, '#806040');
+      }
     }
   }
 
@@ -1386,7 +1419,7 @@
       const mon = state.party[i];
       const cy = y + 34 + i * 18;
       if (i === t.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 18, true);
-      window.PR_MONS.drawCreature(ctx, mon.species, x + 6, cy - 2, 18, false);
+      window.PR_MONS.drawCreature(ctx, mon.species, x + 6, cy - 2, 18, false, mon);
       window.PR_UI.drawText(ctx, mon.nickname, x + 28, cy, '#202020');
       window.PR_UI.drawText(ctx, 'L' + mon.level, x + 110, cy, '#202020');
       window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, mon.hp, mon.stats.hp);
@@ -1626,16 +1659,102 @@
     summitvale_lookout:'summitvale', summitvale_hall:'summitvale',
     mountain:'mountain', beach:'beach', desert:'desert', desert_ruins:'desert'
   };
+  const WORLD_AREA_DETAILS = {
+    rodport: {
+      icon:'harbor', tag:'HARBOR LAB',
+      detail:'Starter rods wake to sea spray and dock bells.'
+    },
+    brindale: {
+      icon:'garden', tag:'GARDEN TOWN',
+      detail:'Garden lanes smell like berries after rain.'
+    },
+    woodfall: {
+      icon:'forest', tag:'FOREST HUSH',
+      detail:'Cabins peek from mossy shade and shy trails.'
+    },
+    crestrock: {
+      icon:'stone', tag:'MINE CITY',
+      detail:'Terrace shops hum over bright ore veins.'
+    },
+    mountain: {
+      icon:'peak', tag:'HIGH ROAD',
+      detail:'Thin air, huge views, and brave boots.'
+    },
+    frostmere: {
+      icon:'snow', tag:'SNOW HAVEN',
+      detail:'Snow cabins glow with soup-steam windows.'
+    },
+    harborside: {
+      icon:'port', tag:'MARKET PORT',
+      detail:'Stalls trade shells, tall tales, and rope.'
+    },
+    beach: {
+      icon:'beach', tag:'SUNNY SPUR',
+      detail:'Warm shallows hide shiny pocket treasures.'
+    },
+    summitvale: {
+      icon:'summit', tag:'LOOKOUT',
+      detail:'Switchbacks climb toward little cloud bells.'
+    },
+    desert: {
+      icon:'ruins', tag:'OASIS LOOP',
+      detail:'Old ruins stay cool after copper dusk.'
+    }
+  };
 
   function worldNode(id) {
     for (const n of WORLD_NODES) if (n.id === id) return n;
     return WORLD_NODES[0];
   }
 
-  function worldNodeIndexForMap(mapId) {
-    const id = WORLD_MAP_HINTS[mapId] || mapId;
+  function worldNodeIndexById(id) {
     const idx = WORLD_NODES.findIndex(n => n.id === id);
     return idx >= 0 ? idx : 0;
+  }
+
+  function worldNodeIndexForMap(mapId) {
+    const id = WORLD_MAP_HINTS[mapId] || mapId;
+    return worldNodeIndexById(id);
+  }
+
+  function worldLinksForNode(id) {
+    return WORLD_LINKS.filter(l => l.a === id || l.b === id);
+  }
+
+  function worldNeighborIds(id) {
+    return worldLinksForNode(id).map(l => l.a === id ? l.b : l.a);
+  }
+
+  function moveWorldSelection(view, dir) {
+    const cur = WORLD_NODES[view.idx];
+    const dirs = {
+      right:{ x:1, y:0 }, left:{ x:-1, y:0 },
+      down:{ x:0, y:1 }, up:{ x:0, y:-1 }
+    };
+    const dv = dirs[dir];
+    if (!cur || !dv) return false;
+    let best = null;
+    for (const id of worldNeighborIds(cur.id)) {
+      const n = worldNode(id);
+      const vx = n.x - cur.x;
+      const vy = n.y - cur.y;
+      const dist = Math.max(1, Math.sqrt(vx * vx + vy * vy));
+      const primary = vx * dv.x + vy * dv.y;
+      if (primary <= 0) continue;
+      const cross = Math.abs(vx * dv.y - vy * dv.x);
+      const score = (primary / dist) * 100 - (cross / dist) * 28 - dist * 0.05;
+      if (!best || score > best.score) best = { idx:worldNodeIndexById(id), score };
+    }
+    const next = best ? best.idx :
+      (dir === 'right' || dir === 'down'
+        ? (view.idx + 1) % WORLD_NODES.length
+        : (view.idx + WORLD_NODES.length - 1) % WORLD_NODES.length);
+    if (next !== view.idx) {
+      view.idx = next;
+      window.PR_SFX && window.PR_SFX.play('select');
+      return true;
+    }
+    return false;
   }
 
   function openWorldMap() {
@@ -1647,14 +1766,10 @@
   function updateWorldMap() {
     const I = window.PR_INPUT;
     const m = state.map;
-    if (I.consumePressed('ArrowDown') || I.consumePressed('ArrowRight')) {
-      m.idx = (m.idx + 1) % WORLD_NODES.length;
-      window.PR_SFX && window.PR_SFX.play('select');
-    }
-    if (I.consumePressed('ArrowUp') || I.consumePressed('ArrowLeft')) {
-      m.idx = (m.idx + WORLD_NODES.length - 1) % WORLD_NODES.length;
-      window.PR_SFX && window.PR_SFX.play('select');
-    }
+    if (I.consumePressed('ArrowRight')) moveWorldSelection(m, 'right');
+    else if (I.consumePressed('ArrowLeft')) moveWorldSelection(m, 'left');
+    else if (I.consumePressed('ArrowDown')) moveWorldSelection(m, 'down');
+    else if (I.consumePressed('ArrowUp')) moveWorldSelection(m, 'up');
     if (I.consumePressed('x')) {
       state.map = null;
       state.mode = 'menu';
@@ -1662,7 +1777,7 @@
     }
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
       const target = WORLD_NODES[m.idx];
-      if (target.id === state.player.map) {
+      if (m.idx === worldNodeIndexForMap(state.player.map)) {
         // Already there - just close.
         state.map = null;
         state.mode = 'overworld';
@@ -1701,7 +1816,7 @@
     window.PR_UI.header(ctx, 'WORLD MAP', x + 4, y + 4, w - 8, {
       fill:'#1a0204', line:'#f0c020', text:'#f0c020'
     });
-    window.PR_UI.drawText(ctx, 'A:WARP  B:BACK', x + w - 86, y + 8, '#c8a060');
+    window.PR_UI.drawText(ctx, 'A:GO  B:BACK', x + w - 68, y + 8, '#c8a060');
 
     // Subtle biome flecks behind the route graph.
     const flecks = [
@@ -1733,14 +1848,7 @@
     }
 
     const sel = WORLD_NODES[state.map.idx];
-    window.PR_UI.panel(ctx, x + 8, y + h - 28, w - 16, 22, {
-      fill:'#f8f0d8', border:'#202020', shadow:'#c89048', highlight:'#fff8e8'
-    });
-    window.PR_UI.drawText(ctx, sel.name, x + 14, y + h - 22, '#202020');
-    window.PR_UI.chip(ctx, x + 86, y + h - 24, sel.kind, { fill:'#e8f0ff', border:'#385890' });
-    const link = WORLD_LINKS.find(l => l.a === sel.id || l.b === sel.id);
-    const note = sel.id === WORLD_NODES[currentIdx].id ? 'HERE' : (link && link.gate ? link.gate : 'WARP READY');
-    window.PR_UI.drawText(ctx, note, x + w - 72, y + h - 21, link && link.gate ? '#a86020' : '#208830');
+    drawWorldAreaPopup(sel, currentIdx);
   }
 
   function drawWorldLink(link) {
@@ -1761,6 +1869,85 @@
     ctx.quadraticCurveTo(ox, oy, b.x, b.y);
     ctx.stroke();
     ctx.restore();
+  }
+
+  function drawWorldAreaPopup(sel, currentIdx) {
+    const detail = WORLD_AREA_DETAILS[sel.id] || {};
+    const popW = 112, popH = 58;
+    let px = sel.x < VIEW_W / 2 ? 118 : 10;
+    let py = sel.y < VIEW_H / 2 ? 88 : 22;
+    px = Math.max(8, Math.min(VIEW_W - popW - 8, px));
+    py = Math.max(20, Math.min(VIEW_H - popH - 6, py));
+    window.PR_UI.panel(ctx, px, py, popW, popH, {
+      fill:'#fff8e8', border:'#202020', shadow:'#c89048', highlight:'#fff8f0'
+    });
+    drawAreaBadge(sel, detail.icon || 'town', px + 6, py + 7);
+    window.PR_UI.drawText(ctx, sel.name.slice(0, 12), px + 34, py + 6, '#202020');
+    window.PR_UI.chip(ctx, px + 34, py + 17, detail.tag || sel.kind, {
+      fill:'#e8f0ff', border:'#385890', text:'#202020'
+    });
+    const lines = window.PR_UI.wrap(detail.detail || 'A curious place waits here.', 17);
+    for (let i = 0; i < Math.min(3, lines.length); i++) {
+      window.PR_UI.drawText(ctx, lines[i], px + 7, py + 33 + i * 8, '#604830');
+    }
+  }
+
+  function drawAreaBadge(sel, icon, x, y) {
+    ctx.fillStyle = '#202020';
+    ctx.fillRect(x, y, 22, 22);
+    ctx.fillStyle = sel.color || '#80c878';
+    ctx.fillRect(x + 1, y + 1, 20, 20);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(x + 2, y + 2, 18, 2);
+    ctx.fillStyle = '#fff8e8';
+    if (icon === 'harbor' || icon === 'port') {
+      ctx.fillRect(x + 3, y + 12, 16, 2);
+      ctx.fillRect(x + 4, y + 16, 4, 2);
+      ctx.fillRect(x + 10, y + 16, 4, 2);
+      ctx.fillStyle = '#385890';
+      ctx.fillRect(x + 4, y + 5, 10, 5);
+      ctx.fillRect(x + 14, y + 7, 3, 3);
+    } else if (icon === 'garden' || icon === 'forest') {
+      ctx.fillStyle = '#2f7838';
+      ctx.fillRect(x + 5, y + 8, 5, 5);
+      ctx.fillRect(x + 12, y + 6, 5, 6);
+      ctx.fillRect(x + 8, y + 12, 8, 5);
+      ctx.fillStyle = '#f0c020';
+      ctx.fillRect(x + 5, y + 5, 2, 2);
+      ctx.fillRect(x + 16, y + 13, 2, 2);
+    } else if (icon === 'stone' || icon === 'peak' || icon === 'summit') {
+      ctx.fillStyle = '#806850';
+      ctx.fillRect(x + 4, y + 14, 14, 4);
+      ctx.fillRect(x + 7, y + 10, 8, 4);
+      ctx.fillRect(x + 10, y + 6, 4, 4);
+      ctx.fillStyle = '#fff8e8';
+      ctx.fillRect(x + 10, y + 6, 3, 2);
+    } else if (icon === 'snow') {
+      ctx.fillStyle = '#e8f8ff';
+      ctx.fillRect(x + 4, y + 5, 4, 4);
+      ctx.fillRect(x + 13, y + 7, 4, 4);
+      ctx.fillRect(x + 8, y + 13, 7, 3);
+      ctx.fillStyle = '#58a8d8';
+      ctx.fillRect(x + 5, y + 15, 12, 2);
+    } else if (icon === 'beach') {
+      ctx.fillStyle = '#58a8d8';
+      ctx.fillRect(x + 3, y + 12, 16, 5);
+      ctx.fillStyle = '#fff8d0';
+      ctx.fillRect(x + 4, y + 5, 4, 4);
+      ctx.fillRect(x + 6, y + 9, 8, 3);
+    } else if (icon === 'ruins') {
+      ctx.fillStyle = '#806040';
+      ctx.fillRect(x + 5, y + 6, 12, 3);
+      ctx.fillRect(x + 6, y + 9, 3, 8);
+      ctx.fillRect(x + 13, y + 9, 3, 8);
+      ctx.fillStyle = '#f0d080';
+      ctx.fillRect(x + 10, y + 12, 2, 5);
+    } else {
+      ctx.fillStyle = '#fff8e8';
+      ctx.fillRect(x + 6, y + 6, 10, 10);
+      ctx.fillStyle = '#e83838';
+      ctx.fillRect(x + 9, y + 9, 4, 4);
+    }
   }
 
   const PARTY_PAGES = ['SUMMARY','STATS','MOVES'];
@@ -1806,7 +1993,7 @@
     const sp = window.PR_DATA.CREATURES[mon.species];
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     window.PR_UI.drawText(ctx, PARTY_PAGES[page], x + 6, y + 5, '#385890');
-    window.PR_MONS.drawCreature(ctx, mon.species, x + w - 42, y + 4, 34, false);
+    window.PR_MONS.drawCreature(ctx, mon.species, x + w - 42, y + 4, 34, false, mon);
     window.PR_UI.drawText(ctx, mon.nickname.slice(0, 13), x + 6, y + 18, '#202020');
     window.PR_UI.drawText(ctx, 'L' + mon.level + ' ' + sp.types.join('/').slice(0, 13), x + 6, y + 28, '#385890');
     if (page === 0) {
@@ -1866,7 +2053,7 @@
       const mon = state.party[i];
       const cy = listY + i * 20;
       window.PR_UI.selectBar(ctx, listX, cy - 2, listW, 18, i === v.idx);
-      window.PR_MONS.drawCreature(ctx, mon.species, listX + 2, cy - 2, 16, false);
+      window.PR_MONS.drawCreature(ctx, mon.species, listX + 2, cy - 2, 16, false, mon);
       window.PR_UI.drawText(ctx, mon.nickname.slice(0, 7), listX + 20, cy, i === v.idx ? '#1a0204' : '#202020');
       window.PR_UI.drawText(ctx, 'L' + mon.level, listX + 20, cy + 9, '#385890');
       if (mon.held) {

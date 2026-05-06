@@ -93,7 +93,7 @@
     const v = state.shopView;
     if (!v) return;
     const x = 4, y = 4, w = viewW - 8, h = viewH - 8;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#fff8e8', border:'#202020', shadow:'#c89048' });
     // Header
     const shopName = (v.npc && v.npc.name) || 'MART';
     window.PR_UI.drawText(ctx, shopName, x + 6, y + 4, '#202020');
@@ -104,8 +104,9 @@
     ctx.fillRect(x + 4, y + 14, w - 8, 1);
 
     const items = v.list;
-    const rows = 8, rowH = 12;
-    const listY = y + 18;
+    const listX = x + 5, listY = y + 18, listW = 104;
+    const detailX = x + 114, detailY = y + 18, detailW = w - 119, detailH = h - 58;
+    const rows = 7, rowH = 13;
     if (!items.length) {
       window.PR_UI.drawText(ctx, 'No items in stock.', x + 8, listY, '#806040');
       return;
@@ -118,26 +119,30 @@
       const id = items[i];
       const def = window.PR_ITEMS.ITEMS[id];
       if (!def) continue;
-      if (i === v.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 1, w - 8, 11); }
-      window.PR_UI.drawText(ctx, def.name, x + 8, cy, '#202020');
+      if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, listW, 12, true);
+      if (window.PR_ITEMS.drawIcon) window.PR_ITEMS.drawIcon(ctx, id, listX + 2, cy, 10);
+      window.PR_UI.drawText(ctx, def.name.slice(0, 8), listX + 17, cy + 2, '#202020');
       const owned = (state.player.bag && state.player.bag[id]) || 0;
       if (owned > 0) {
-        window.PR_UI.drawText(ctx, 'x' + owned, x + w - 80, cy, '#806040');
+        window.PR_UI.drawText(ctx, 'x' + owned, listX + listW - 55, cy + 2, '#806040');
       }
-      window.PR_UI.drawText(ctx, '$' + (def.price | 0), x + w - 38, cy, '#385890');
+      window.PR_UI.drawText(ctx, '$' + (def.price | 0), listX + listW - 34, cy + 2, '#385890');
     }
-    // Footer: description + qty prompt or hint
+    // Detail card + qty prompt or hint
     const sel = items[v.idx];
     const selDef = sel ? window.PR_ITEMS.ITEMS[sel] : null;
-    const footerY = y + h - 24;
+    if (selDef && window.PR_ITEMS.drawCard) {
+      const owned = (state.player.bag && state.player.bag[sel]) || 0;
+      window.PR_ITEMS.drawCard(ctx, sel, detailX, detailY, detailW, detailH, {
+        price:selDef.price | 0, count:owned, lines:3, compact:true
+      });
+    }
+    const footerY = y + h - 28;
     ctx.fillStyle = '#202020';
     ctx.fillRect(x + 4, footerY - 2, w - 8, 1);
-    if (selDef) {
-      window.PR_UI.drawText(ctx, selDef.desc.slice(0, 40), x + 8, footerY, '#806040');
-    }
     if (v.mode === 'qty') {
       // Quantity selector strip
-      const stripY = y + h - 12;
+      const stripY = y + h - 22;
       window.PR_UI.drawText(ctx, 'QTY:', x + 8, stripY, '#202020');
       let cx = x + 32;
       for (let i = 0; i < QTY_OPTIONS.length; i++) {
@@ -151,7 +156,8 @@
       }
       const totalQty = QTY_OPTIONS[v.qtyIdx];
       const totalCost = (selDef ? (selDef.price | 0) : 0) * totalQty;
-      window.PR_UI.drawText(ctx, 'TOTAL $' + totalCost, x + w - 60, stripY, '#385890');
+      window.PR_UI.drawText(ctx, ('TOTAL $' + totalCost).slice(0, 12), x + w - 72, stripY, '#385890');
+      window.PR_UI.drawText(ctx, 'A:OK  B:BACK', x + 8, y + h - 10, '#806040');
     } else {
       window.PR_UI.drawText(ctx, 'Z:BUY  X:EXIT', x + 8, y + h - 12, '#806040');
     }

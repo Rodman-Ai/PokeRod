@@ -1618,6 +1618,8 @@ function applyWorldExpansion(MAPS) {
     map.signs = cfg.signs || {};
     map.hidden = cfg.hidden || {};
     map.npcs = cfg.npcs || [];
+    if (cfg.encounters) map.encounters = cfg.encounters;
+    if (cfg.encounterZones) map.encounterZones = cfg.encounterZones;
     map.doors = {};
     for (const d of cfg.doors || []) map.doors[d.x + ',' + d.y] = { to:d.to, x:d.tx, y:d.ty };
   }
@@ -1881,6 +1883,7 @@ function applyWorldExpansion(MAPS) {
       { points:[[20,22],[10,22],[10,29],[18,29]], radius:1 }
     ],
     pockets:[
+      { x:19, y:4, w:6, h:4, code:':' },
       { x:6, y:15, w:9, h:5, code:':' },
       { x:31, y:12, w:9, h:5, code:':' },
       { x:12, y:27, w:8, h:5, code:':' }
@@ -1889,6 +1892,38 @@ function applyWorldExpansion(MAPS) {
     doors:[{ x:37, y:9, to:'route1_hollow', tx:14, ty:18 }],
     signs:{ '18,6':'ROUTE 1 - The first road now has a few secrets.' },
     hidden:{ '18,29':{ item:'potion', count:1 }, '39,14':{ item:'rodball', count:2 } },
+    encounters:[
+      { species:'nibblet',     minL:2, maxL:4, weight:2 },
+      { species:'flitwing',    minL:2, maxL:4, weight:2 },
+      { species:'crawlbug',    minL:2, maxL:3, weight:2 },
+      { species:'zapret',      minL:3, maxL:5, weight:1 }
+    ],
+    encounterZones:[
+      { x:6, y:15, w:9, h:5, encounters:[
+        { species:'silkuttle', minL:2, maxL:4, weight:4 },
+        { species:'venipip',   minL:3, maxL:5, weight:3 },
+        { species:'pugpaw',    minL:3, maxL:5, weight:3 },
+        { species:'nibblet',   minL:2, maxL:4, weight:1 }
+      ] },
+      { x:31, y:12, w:9, h:5, encounters:[
+        { species:'rivettot',  minL:3, maxL:5, weight:4 },
+        { species:'mindrop',   minL:3, maxL:5, weight:3 },
+        { species:'joltlet',   minL:3, maxL:5, weight:3 },
+        { species:'glimkit',   minL:3, maxL:5, weight:1 }
+      ] },
+      { x:12, y:27, w:8, h:5, encounters:[
+        { species:'mudmote',   minL:3, maxL:6, weight:4 },
+        { species:'craglet',   minL:3, maxL:6, weight:4 },
+        { species:'frostnip',  minL:3, maxL:5, weight:3 },
+        { species:'crawlbug',  minL:2, maxL:4, weight:1 }
+      ] },
+      { x:19, y:4, w:6, h:4, encounters:[
+        { species:'breezlet',  minL:3, maxL:5, weight:4 },
+        { species:'joltlet',   minL:3, maxL:5, weight:2 },
+        { species:'pugpaw',    minL:3, maxL:5, weight:2 },
+        { species:'flitwing',  minL:2, maxL:4, weight:1 }
+      ] }
+    ],
     npcs:[movedNpc('route1', 0, 9, 18, 'right')],
     edges:{ north:{ y:0, to:'rodport', tx:22, ty:32 }, south:{ y:37, to:'brindale', tx:22, ty:1 } }
   });

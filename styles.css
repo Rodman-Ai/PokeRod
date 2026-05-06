@@ -5,6 +5,63 @@
   --accent: #f0b03a;
   --shadow: rgba(0,0,0,0.5);
   --pad: max(8px, env(safe-area-inset-bottom));
+  --shell-bg: linear-gradient(180deg, #c01818 0%, #8a0808 60%, #5a0404 100%);
+  --shell-top: linear-gradient(180deg, #d83020 0%, #a01818 100%);
+  --shell-top-text: #ffd060;
+  --shell-top-shadow: #2a0604;
+  --shell-title: 'POKEROD COLOR';
+  --bezel-bg: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
+  --bezel-line: #5a1810;
+  --bezel-label: #f0a020;
+  --game-glow: rgba(255,160,40,0.15);
+}
+
+body[data-graphics="gb_red"] {
+  --shell-bg: linear-gradient(180deg, #c9c8bb 0%, #9f9d91 58%, #6f6d66 100%);
+  --shell-top: linear-gradient(180deg, #deddd1 0%, #9b9a8f 100%);
+  --shell-top-text: #313a37;
+  --shell-top-shadow: #5d5c55;
+  --shell-title: 'POKEROD DMG';
+  --bezel-bg: linear-gradient(180deg, #5c6461 0%, #303634 100%);
+  --bezel-line: #202624;
+  --bezel-label: #9bbc0f;
+  --game-glow: rgba(139,172,15,0.25);
+}
+
+body[data-graphics="gbc_yellow"] {
+  --shell-bg: linear-gradient(180deg, #ffd83f 0%, #e0aa18 60%, #b87412 100%);
+  --shell-top: linear-gradient(180deg, #ffe869 0%, #dfa51a 100%);
+  --shell-top-text: #62401c;
+  --shell-top-shadow: #7a5310;
+  --shell-title: 'POKEROD COLOR';
+  --bezel-bg: linear-gradient(180deg, #6a4b26 0%, #2a2018 100%);
+  --bezel-line: #9b6f1d;
+  --bezel-label: #ffe27e;
+  --game-glow: rgba(255,226,126,0.24);
+}
+
+body[data-graphics="gba_firered"] {
+  --shell-bg: linear-gradient(180deg, #c01818 0%, #8a0808 60%, #5a0404 100%);
+  --shell-top: linear-gradient(180deg, #d83020 0%, #a01818 100%);
+  --shell-top-text: #ffd060;
+  --shell-top-shadow: #2a0604;
+  --shell-title: 'POKEROD COLOR';
+  --bezel-bg: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
+  --bezel-line: #5a1810;
+  --bezel-label: #f0a020;
+  --game-glow: rgba(255,160,40,0.15);
+}
+
+body[data-graphics="ds_diamond"] {
+  --shell-bg: linear-gradient(180deg, #1b1d24 0%, #0c0d12 62%, #030407 100%);
+  --shell-top: linear-gradient(180deg, #282b34 0%, #0d0f16 100%);
+  --shell-top-text: #c9e4ff;
+  --shell-top-shadow: #02030a;
+  --shell-title: 'POKEROD DS';
+  --bezel-bg: linear-gradient(180deg, #090a0e 0%, #020306 100%);
+  --bezel-line: #3f4654;
+  --bezel-label: #7fb6ff;
+  --game-glow: rgba(127,182,255,0.16);
 }
 
 * { box-sizing: border-box; }
@@ -33,25 +90,25 @@ html, body {
   justify-content: flex-start;
   gap: 0;
   padding: 0;
-  background: linear-gradient(180deg, #c01818 0%, #8a0808 60%, #5a0404 100%);
+  background: var(--shell-bg);
   box-shadow: inset 0 0 80px rgba(0,0,0,0.5);
   overflow: hidden;
 }
 
 #app::before {
-  content: 'POKEROD COLOR';
+  content: var(--shell-title);
   display: block;
   width: 100%;
   padding: 14px 20px 10px;
   font-size: 11px;
   letter-spacing: 6px;
-  color: #ffd060;
+  color: var(--shell-top-text);
   text-align: center;
-  text-shadow: 0 1px 0 #2a0604;
+  text-shadow: 0 1px 0 var(--shell-top-shadow);
   background:
     repeating-linear-gradient(90deg, transparent 0 14px, rgba(0,0,0,0.25) 14px 16px) 50% 100% / 60% 6px no-repeat,
-    linear-gradient(180deg, #d83020 0%, #a01818 100%);
-  border-bottom: 3px solid #2a0604;
+    var(--shell-top);
+  border-bottom: 3px solid var(--shell-top-shadow);
   box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4);
   flex: 0 0 auto;
 }
@@ -77,10 +134,10 @@ html, body {
   aspect-ratio: 3 / 2;
   margin: 18px auto 14px;
   padding: 14px 14px 22px;
-  background: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
+  background: var(--bezel-bg);
   border-radius: 14px 14px 28px 14px;
   box-shadow:
-    inset 0 0 0 3px #5a1810,
+    inset 0 0 0 3px var(--bezel-line),
     inset 0 6px 14px rgba(0,0,0,0.7),
     0 6px 16px rgba(0,0,0,0.45);
   overflow: visible;
@@ -93,7 +150,7 @@ html, body {
   text-align: center;
   font-size: 7px;
   letter-spacing: 3px;
-  color: #f0a020;
+  color: var(--bezel-label);
   opacity: 0.6;
 }
 
@@ -105,7 +162,7 @@ html, body {
   display: block;
   background: #2c5d34;
   border-radius: 4px;
-  box-shadow: 0 0 0 2px #1a0204, 0 0 12px rgba(255,160,40,0.15) inset;
+  box-shadow: 0 0 0 2px #1a0204, 0 0 12px var(--game-glow) inset;
 }
 .overlay {
   border-radius: 4px;
@@ -328,19 +385,20 @@ html, body {
   grid-template-rows: auto auto;
   grid-template-areas:
     'dpad abuttons'
-    'startsel abuttons';
-  align-items: center;
+    'startsel startsel';
+  align-items: end;
   justify-items: center;
+  justify-content: center;
   column-gap: clamp(8px, 3vw, 18px);
-  row-gap: 8px;
+  row-gap: 10px;
   width: min(100vw, 760px);
   padding: 12px clamp(8px, 3vw, 18px) var(--pad);
   margin: 4px auto 0;
   flex: 1 1 auto;
 }
-#dpad      { grid-area: dpad; }
-#startsel  { grid-area: startsel; display: flex; flex-direction: row; gap: 8px; transform: none; }
-#abuttons  { grid-area: abuttons; }
+#dpad      { grid-area: dpad; align-self: end; margin-top: clamp(10px, 3vw, 20px); }
+#startsel  { grid-area: startsel; display: flex; flex-direction: row; gap: 8px; justify-self: center; transform: none; }
+#abuttons  { grid-area: abuttons; align-self: end; }
 
 #dpad {
   display: grid;

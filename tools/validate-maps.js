@@ -1,10 +1,12 @@
 'use strict';
 
 global.window = {};
+require('../js/data.js');
 require('../js/maps.js');
 require('../js/items.js');
 
 const { MAPS, TILE_PROPS, tileAt } = window.PR_MAPS;
+const CREATURES = window.PR_DATA.CREATURES;
 
 const REQUIRED_48x38 = [
   'route1','route2','pebblewood','glimcavern','frostpeak',
@@ -34,6 +36,20 @@ function isWalkable(map, x, y) {
   if (!inBounds(map, x, y)) return false;
   const props = TILE_PROPS[tileAt(map, x, y)];
   return !!props && (props.walk === true || props.walk === 'south' || props.edge);
+}
+
+function validateEncounterList(mapId, label, list) {
+  if (!Array.isArray(list)) return;
+  for (const e of list) {
+    if (!e || !e.species || !CREATURES[e.species]) {
+      fail(`${mapId}: ${label} references unknown species ${e && e.species}`);
+      continue;
+    }
+    if ((e.weight | 0) <= 0) fail(`${mapId}: ${label} ${e.species} has non-positive weight`);
+    if ((e.minL | 0) < 1 || (e.maxL | 0) < (e.minL | 0)) {
+      fail(`${mapId}: ${label} ${e.species} has invalid level range`);
+    }
+  }
 }
 
 function edgeCoord(edge, side) {
@@ -129,6 +145,21 @@ for (const [id, map] of Object.entries(MAPS)) {
       const itemId = map.hidden[key] && map.hidden[key].item;
       if (!itemId || !window.PR_ITEMS.ITEMS[itemId]) fail(`${id}: hidden item ${key} references unknown item ${itemId}`);
       anchors.push([x, y]);
+    }
+  }
+  validateEncounterList(id, 'encounters', map.encounters);
+  if (map.encounterZones) {
+    if (!Array.isArray(map.encounterZones)) fail(`${id}: encounterZones must be an array`);
+    else {
+      for (let i = 0; i < map.encounterZones.length; i++) {
+        const z = map.encounterZones[i];
+        if (!inBounds(map, z.x | 0, z.y | 0)) fail(`${id}: encounter zone ${i} starts out of bounds`);
+        if ((z.w | 0) <= 0 || (z.h | 0) <= 0) fail(`${id}: encounter zone ${i} has invalid size`);
+        if (!inBounds(map, (z.x | 0) + (z.w | 0) - 1, (z.y | 0) + (z.h | 0) - 1)) {
+          fail(`${id}: encounter zone ${i} extends out of bounds`);
+        }
+        validateEncounterList(id, `encounter zone ${i}`, z.encounters);
+      }
     }
   }
   if (map.signs) {

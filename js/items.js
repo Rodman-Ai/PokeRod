@@ -4,113 +4,297 @@
 (function(){
   const ITEMS = {
     rodball: {
-      id:'rodball', name:'ROD BALL', desc:'Throw to catch a wild creature.',
-      kind:'ball', battleOnly:true, price:200
+      id:'rodball', name:'ROD BALL',
+      desc:'A trusty starter ball with a bright little snap.',
+      detail:'A cheerful standard ball. It clicks shut like it is proud of you.',
+      kind:'ball', icon:'ball', color:'#e84848', accent:'#ffd060',
+      battleOnly:true, price:200
     },
     greatball: {
-      id:'greatball', name:'GREAT BALL', desc:'A better catch rate than a Rod Ball.',
-      kind:'ball', battleOnly:true, price:600, catchBonus:1.5
+      id:'greatball', name:'GREAT BALL',
+      desc:'A stronger clasp for wilder finds.',
+      detail:'Blue shell, red fins, and a catch grip that feels ready for trouble.',
+      kind:'ball', icon:'ball', color:'#4878d8', accent:'#e84848',
+      battleOnly:true, price:600, catchBonus:1.5
     },
     ultraball: {
-      id:'ultraball', name:'ULTRA BALL', desc:'High catch rate. Great for tough finds.',
-      kind:'ball', battleOnly:true, price:1200, catchBonus:2.0
+      id:'ultraball', name:'ULTRA BALL',
+      desc:'Heavy-duty gear for stubborn stars.',
+      detail:'Black-and-gold hardware for catches that refuse to be ordinary.',
+      kind:'ball', icon:'ball', color:'#202020', accent:'#f0c020',
+      battleOnly:true, price:1200, catchBonus:2.0
     },
     quickball: {
-      id:'quickball', name:'QUICK BALL', desc:'Best at the start of a wild battle.',
-      kind:'ball', battleOnly:true, price:900, catchBonus:1.0, firstTurnBonus:2.5
+      id:'quickball', name:'QUICK BALL',
+      desc:'Loves a dramatic first turn.',
+      detail:'A fast little flash-bolt ball. Throw it early while everyone is surprised.',
+      kind:'ball', icon:'ball', color:'#58c8f0', accent:'#f0d030',
+      battleOnly:true, price:900, catchBonus:1.0, firstTurnBonus:2.5
     },
     cavernball: {
-      id:'cavernball', name:'CAVERN BALL', desc:'Works better in caves, caverns, and ruins.',
-      kind:'ball', battleOnly:true, price:800, catchBonus:1.0, tagBonus:2.2, tagAny:['cave','ruins']
+      id:'cavernball', name:'CAVERN BALL',
+      desc:'Glows warmly in caves and ruins.',
+      detail:'A mossy stone ball that hums when the ceiling gets rocky.',
+      kind:'ball', icon:'ball', color:'#807070', accent:'#58c878',
+      battleOnly:true, price:800, catchBonus:1.0, tagBonus:2.2, tagAny:['cave','ruins']
     },
     potion: {
-      id:'potion', name:'POTION', desc:'Restores 20 HP to one ally.',
-      kind:'heal', amount:20, target:'ally', price:200
+      id:'potion', name:'POTION',
+      desc:'Fizzy red medicine. Restores 20 HP.',
+      detail:'Smells like cherries and brave decisions. Restores 20 HP to one ally.',
+      kind:'heal', icon:'bottle', color:'#e84848', accent:'#fff0c8',
+      amount:20, target:'ally', price:200
     },
     superpotion: {
-      id:'superpotion', name:'SUPER POTION', desc:'Restores 50 HP.',
-      kind:'heal', amount:50, target:'ally', price:700
+      id:'superpotion', name:'SUPER POTION',
+      desc:'Bigger bottle, bigger bounce-back. 50 HP.',
+      detail:'A cool blue tonic with a tiny foam cap. Restores 50 HP.',
+      kind:'heal', icon:'bottle', color:'#5898e8', accent:'#e8f8ff',
+      amount:50, target:'ally', price:700
     },
     hyperpotion: {
-      id:'hyperpotion', name:'HYPER POTION', desc:'Restores 120 HP.',
-      kind:'heal', amount:120, target:'ally', price:1500
+      id:'hyperpotion', name:'HYPER POTION',
+      desc:'Gold tonic for heavy scrapes. 120 HP.',
+      detail:'A rich honey-gold draught for the sort of scrape with a story.',
+      kind:'heal', icon:'bottle', color:'#f0b840', accent:'#fff8d8',
+      amount:120, target:'ally', price:1500
     },
     maxpotion: {
-      id:'maxpotion', name:'MAX POTION', desc:'Fully restores HP to one ally.',
-      kind:'heal', amount:9999, target:'ally', price:2500
+      id:'maxpotion', name:'MAX POTION',
+      desc:'A full-health miracle in one bright gulp.',
+      detail:'The fancy bottle you save for a real cliffhanger. Fully restores HP.',
+      kind:'heal', icon:'bottle', color:'#f070b8', accent:'#fff0f8',
+      amount:9999, target:'ally', price:2500
     },
     antidote: {
-      id:'antidote', name:'ANTIDOTE', desc:'Cures poison.',
-      kind:'status', cures:['poisoned'], target:'ally', price:100
+      id:'antidote', name:'ANTIDOTE',
+      desc:'Minty drops that clear poison.',
+      detail:'A tiny green vial with a leaf on the label. Cures poison.',
+      kind:'status', icon:'vial', color:'#48b860', accent:'#d8ffe0',
+      cures:['poisoned'], target:'ally', price:100
     },
     awakening: {
-      id:'awakening', name:'AWAKENING', desc:'Wakes a sleeping ally.',
-      kind:'status', cures:['asleep'], target:'ally', price:250
+      id:'awakening', name:'AWAKENING',
+      desc:'Tiny sunrise scent for sleepy allies.',
+      detail:'One sniff and nap-time packs its blanket. Wakes a sleeping ally.',
+      kind:'status', icon:'vial', color:'#f0c020', accent:'#fff8d8',
+      cures:['asleep'], target:'ally', price:250
     },
     burnheal: {
-      id:'burnheal', name:'BURN HEAL', desc:'Cures a burn.',
-      kind:'status', cures:['burned'], target:'ally', price:250
+      id:'burnheal', name:'BURN HEAL',
+      desc:'Cool blue gel for hot mistakes.',
+      detail:'A chilly salve that takes the sting out of a bad matchup. Cures burns.',
+      kind:'status', icon:'vial', color:'#58b8f0', accent:'#e0f8ff',
+      cures:['burned'], target:'ally', price:250
     },
     paralyzeheal: {
-      id:'paralyzeheal', name:'PARLYZ HEAL', desc:'Cures paralysis.',
-      kind:'status', cures:['paralyzed'], target:'ally', price:200
+      id:'paralyzeheal', name:'PARLYZ HEAL',
+      desc:'Static-smoothing citrus spray.',
+      detail:'A crackly yellow remedy that gets stiff legs moving again.',
+      kind:'status', icon:'spray', color:'#f0d030', accent:'#fff8c0',
+      cures:['paralyzed'], target:'ally', price:200
     },
     fullheal: {
-      id:'fullheal', name:'FULL HEAL', desc:'Cures any status.',
-      kind:'status', cures:['poisoned','asleep','burned','paralyzed','frozen','confused'], target:'ally', price:600
+      id:'fullheal', name:'FULL HEAL',
+      desc:'One shiny fix for every weird condition.',
+      detail:'The all-purpose sparkle bottle. Cures any status condition.',
+      kind:'status', icon:'spray', color:'#f080c8', accent:'#80e8f0',
+      cures:['poisoned','asleep','burned','paralyzed','frozen','confused'], target:'ally', price:600
     },
     revive: {
-      id:'revive', name:'REVIVE', desc:'Revives a fainted ally to half HP.',
-      kind:'revive', ratio:0.5, target:'fainted', price:1500
+      id:'revive', name:'REVIVE',
+      desc:'A bright shard that brings an ally back.',
+      detail:'A star-shaped pulse of courage. Revives a fainted ally to half HP.',
+      kind:'revive', icon:'star', color:'#f0d030', accent:'#fff8d8',
+      ratio:0.5, target:'fainted', price:1500
     },
     maxrevive: {
-      id:'maxrevive', name:'MAX REVIVE', desc:'Revives a fainted ally to full HP.',
-      kind:'revive', ratio:1.0, target:'fainted', price:4000
+      id:'maxrevive', name:'MAX REVIVE',
+      desc:'The big comeback star. Full HP.',
+      detail:'A golden burst that turns the music back up. Revives to full HP.',
+      kind:'revive', icon:'star', color:'#f8e870', accent:'#e85050',
+      ratio:1.0, target:'fainted', price:4000
     },
     oranberry: {
-      id:'oranberry', name:'ORAN BERRY', desc:'Held item. Restores 20 HP at <50% HP.',
-      kind:'berry', berry:true, heal:20, atRatio:0.5, holdable:true, price:150
+      id:'oranberry', name:'ORAN BERRY',
+      desc:'A held berry with a dependable snack crunch.',
+      detail:'Holder munches it below half HP to restore 20 HP.',
+      kind:'berry', icon:'berry', color:'#4f82df', accent:'#75c45e',
+      berry:true, heal:20, atRatio:0.5, holdable:true, price:150
     },
     sitrusberry: {
-      id:'sitrusberry', name:'SITRUS BERRY', desc:'Held item. Restores 50 HP at <25% HP.',
-      kind:'berry', berry:true, heal:50, atRatio:0.25, holdable:true, price:400
+      id:'sitrusberry', name:'SITRUS BERRY',
+      desc:'A zesty held berry for scary moments.',
+      detail:'Holder eats it below quarter HP to restore 50 HP.',
+      kind:'berry', icon:'berry', color:'#f0a030', accent:'#65b850',
+      berry:true, heal:50, atRatio:0.25, holdable:true, price:400
     },
     pechaberry: {
-      id:'pechaberry', name:'PECHA BERRY', desc:'Held item. Cures poison automatically.',
-      kind:'berry', berry:true, cures:['poisoned'], holdable:true, price:200
+      id:'pechaberry', name:'PECHA BERRY',
+      desc:'A sweet pink held berry that hates poison.',
+      detail:'Holder eats it automatically to cure poison.',
+      kind:'berry', icon:'berry', color:'#f078b8', accent:'#65b850',
+      berry:true, cures:['poisoned'], holdable:true, price:200
     },
     pokeflute: {
-      id:'pokeflute', name:'POKE FLUTE', desc:'A flute that wakes any sleeping creature.',
-      kind:'key', key:true, price:0
+      id:'pokeflute', name:'POKE FLUTE',
+      desc:'A bright tune for impossible naps.',
+      detail:'A polished flute whose song wakes any sleeping creature.',
+      kind:'key', icon:'flute', color:'#d8b070', accent:'#fff0c0',
+      key:true, price:0
     },
     // ---- Trainer equipment (worn by the player; one per slot) ----
     lucky_charm: {
       id:'lucky_charm', name:'LUCKY CHARM',
-      desc:'Worn trinket. All party Pokerod gain 10% more XP.',
-      kind:'trainer_gear', slot:'trinket', xpMult:1.10, price:1500
+      desc:'A warm little charm. Party XP +10%.',
+      detail:'Trainer gear with a lucky jingle. All party Pokerod gain 10% more XP.',
+      kind:'trainer_gear', icon:'charm', color:'#f0c020', accent:'#e85050',
+      slot:'trinket', xpMult:1.10, price:1500
     },
     scholars_glasses: {
       id:'scholars_glasses', name:'SCHOLAR GLASS',
-      desc:'Worn trinket. All party Pokerod gain 25% more XP.',
-      kind:'trainer_gear', slot:'trinket', xpMult:1.25, price:5000
+      desc:'Smart frames. Party XP +25%.',
+      detail:'Trainer gear with careful lenses. All party Pokerod gain 25% more XP.',
+      kind:'trainer_gear', icon:'glasses', color:'#385890', accent:'#e8f8ff',
+      slot:'trinket', xpMult:1.25, price:5000
     },
     masters_pendant: {
       id:'masters_pendant', name:'MASTER PENDANT',
-      desc:'Worn trinket. All party Pokerod gain 50% more XP.',
-      kind:'trainer_gear', slot:'trinket', xpMult:1.50, price:15000
+      desc:'A boss-level pendant. Party XP +50%.',
+      detail:'Trainer gear with a deep shine. All party Pokerod gain 50% more XP.',
+      kind:'trainer_gear', icon:'pendant', color:'#8050c8', accent:'#f0d060',
+      slot:'trinket', xpMult:1.50, price:15000
     },
     // ---- Pokerod held equipment (one per creature; shares mon.held slot) ----
     soothe_bell: {
       id:'soothe_bell', name:'SOOTHE BELL',
-      desc:'Held item. Holder gains 10% more XP from battles.',
-      kind:'held_gear', holdable:true, xpMult:1.10, price:1200
+      desc:'A gentle held bell. Holder XP +10%.',
+      detail:'Held gear that rings softly after each victory. Holder XP +10%.',
+      kind:'held_gear', icon:'bell', color:'#d8b060', accent:'#fff0c8',
+      holdable:true, xpMult:1.10, price:1200
     },
     lucky_egg: {
       id:'lucky_egg', name:'LUCKY EGG',
-      desc:'Held item. Holder gains 50% more XP from battles.',
-      kind:'held_gear', holdable:true, xpMult:1.50, price:4000
+      desc:'A speckled held egg. Holder XP +50%.',
+      detail:'Held gear with mysterious warmth. Holder gains 50% more XP.',
+      kind:'held_gear', icon:'egg', color:'#f8f0d8', accent:'#f0c020',
+      holdable:true, xpMult:1.50, price:4000
     }
   };
+
+  function kindLabel(it) {
+    if (!it) return 'ITEM';
+    if (it.kind === 'ball') return 'BALL';
+    if (it.kind === 'heal') return 'HEAL';
+    if (it.kind === 'status') return 'CARE';
+    if (it.kind === 'revive') return 'REVIVE';
+    if (it.kind === 'berry') return 'BERRY';
+    if (it.kind === 'trainer_gear') return 'GEAR';
+    if (it.kind === 'held_gear') return 'HELD';
+    if (it.kind === 'key') return 'KEY';
+    return 'ITEM';
+  }
+
+  function detailText(it) {
+    return (it && (it.detail || it.desc)) || '';
+  }
+
+  function drawIcon(ctx, itemId, x, y, size) {
+    const it = ITEMS[itemId];
+    if (!it || !ctx) return false;
+    const s = Math.max(12, size || 24) / 16;
+    const main = it.color || '#d85050';
+    const accent = it.accent || '#fff0c0';
+    const dark = '#202020';
+    const light = '#fff8e8';
+    const r = (rx, ry, rw, rh, color) => {
+      ctx.fillStyle = color;
+      ctx.fillRect((x + rx * s) | 0, (y + ry * s) | 0, Math.max(1, (rw * s) | 0), Math.max(1, (rh * s) | 0));
+    };
+    const icon = it.icon || 'item';
+    if (icon === 'ball') {
+      r(4,1,8,2,dark); r(2,3,12,3,dark); r(1,6,14,4,dark); r(2,10,12,3,dark); r(4,13,8,2,dark);
+      r(4,2,8,2,accent); r(3,4,10,3,main); r(2,7,12,1,main);
+      r(2,8,12,2,light); r(4,11,8,2,light);
+      r(6,6,4,4,dark); r(7,7,2,2,light);
+      return true;
+    }
+    if (icon === 'bottle') {
+      r(6,1,4,2,dark); r(5,3,6,2,dark); r(4,5,8,9,dark);
+      r(7,2,2,2,accent); r(6,4,4,2,light); r(5,6,6,7,main); r(6,6,4,2,accent); r(6,10,4,2,'rgba(255,255,255,0.45)');
+      return true;
+    }
+    if (icon === 'vial' || icon === 'spray') {
+      r(5,1,6,2,dark); r(6,3,4,2,dark); r(4,5,8,8,dark);
+      r(6,2,4,1,accent); r(5,6,6,6,main); r(6,5,4,2,light);
+      if (icon === 'spray') { r(10,3,4,1,dark); r(12,2,1,1,accent); r(13,1,1,1,accent); }
+      return true;
+    }
+    if (icon === 'berry') {
+      r(7,1,3,2,'#307838'); r(4,4,8,8,dark); r(3,6,10,6,dark);
+      r(5,4,6,8,main); r(4,7,8,4,main); r(6,5,2,2,accent); r(9,8,1,1,light);
+      r(9,2,4,2,'#58a848'); r(11,1,2,2,'#7ed060');
+      return true;
+    }
+    if (icon === 'star' || icon === 'charm') {
+      r(7,1,2,4,accent); r(5,5,6,2,dark); r(3,7,10,2,dark); r(5,9,6,2,dark); r(6,11,4,3,dark);
+      r(7,3,2,3,main); r(5,7,6,2,main); r(7,9,2,4,accent);
+      if (icon === 'charm') { r(6,0,4,1,dark); r(7,13,2,2,dark); }
+      return true;
+    }
+    if (icon === 'flute') {
+      r(2,8,12,3,dark); r(3,7,3,1,dark); r(4,8,10,1,accent); r(3,9,11,1,main);
+      r(6,7,1,1,dark); r(8,7,1,1,dark); r(10,7,1,1,dark); r(13,6,1,2,dark);
+      return true;
+    }
+    if (icon === 'glasses') {
+      r(2,6,5,5,dark); r(9,6,5,5,dark); r(7,8,2,1,dark);
+      r(3,7,3,3,accent); r(10,7,3,3,accent); r(4,8,1,1,light); r(11,8,1,1,light);
+      return true;
+    }
+    if (icon === 'pendant') {
+      r(7,1,2,4,dark); r(5,5,6,2,dark); r(4,7,8,5,dark); r(6,12,4,2,dark);
+      r(7,2,2,3,accent); r(6,6,4,1,accent); r(5,8,6,3,main); r(7,11,2,2,accent);
+      return true;
+    }
+    if (icon === 'bell') {
+      r(6,2,4,2,dark); r(4,4,8,8,dark); r(3,11,10,2,dark); r(7,13,2,2,dark);
+      r(7,3,2,2,accent); r(5,5,6,6,main); r(4,11,8,1,accent); r(8,13,1,1,accent);
+      return true;
+    }
+    if (icon === 'egg') {
+      r(5,2,6,2,dark); r(4,4,8,8,dark); r(5,12,6,2,dark);
+      r(6,3,4,2,light); r(5,5,6,7,it.color || '#fff8e8'); r(6,8,2,1,accent); r(9,6,1,1,accent);
+      return true;
+    }
+    r(4,4,8,8,dark); r(5,5,6,6,main); r(7,7,2,2,accent);
+    return true;
+  }
+
+  function drawCard(ctx, itemId, x, y, w, h, opts) {
+    opts = opts || {};
+    const it = ITEMS[itemId];
+    if (!it || !ctx || !window.PR_UI) return false;
+    window.PR_UI.panel(ctx, x, y, w, h, {
+      fill:opts.fill || '#fff8e8',
+      border:opts.border || '#202020',
+      shadow:opts.shadow || '#c89048',
+      highlight:'#fff8f0'
+    });
+    drawIcon(ctx, itemId, x + 7, y + 9, opts.iconSize || 26);
+    const nameMax = Math.max(6, ((w - 44) / 6) | 0);
+    window.PR_UI.drawText(ctx, it.name.slice(0, nameMax), x + 39, y + 7, '#202020');
+    window.PR_UI.chip(ctx, x + 39, y + 18, kindLabel(it), { fill:'#e8f0ff', border:'#385890' });
+    if (opts.count !== undefined) window.PR_UI.drawText(ctx, 'x' + opts.count, x + w - 24, y + 20, '#385890');
+    if (opts.price !== undefined) window.PR_UI.drawText(ctx, '$' + opts.price, x + w - 42, y + 32, '#385890');
+    const lines = window.PR_UI.wrap(detailText(it), Math.max(10, ((w - 14) / 6) | 0));
+    const textY = y + (opts.compact ? 39 : 44);
+    for (let i = 0; i < Math.min(lines.length, opts.lines || 4); i++) {
+      window.PR_UI.drawText(ctx, lines[i], x + 7, textY + i * 9, '#604830');
+    }
+    if (opts.footer) window.PR_UI.drawText(ctx, opts.footer, x + 7, y + h - 10, '#806040');
+    return true;
+  }
 
   // Apply an item to a target mon. Returns { ok, message }.
   function apply(itemId, target) {
@@ -254,5 +438,6 @@
   }
 
   window.PR_ITEMS = { ITEMS, apply, add, take, listOwned, ensureBag, byId, getCatchBonus,
+                      kindLabel, detailText, drawIcon, drawCard,
                       SHOP_TIERS, computeShopInventory };
 })();

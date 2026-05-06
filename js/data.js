@@ -1,29 +1,40 @@
 // PokeRod data: original creatures, types, moves.
 'use strict';
 
-const TYPES = ['NORMAL','FIRE','WATER','GRASS','ELECTRIC','FLYING','BUG','POISON','GROUND','ROCK','PSYCHIC','ICE','DARK'];
+const TYPES = [
+  'NORMAL','FIRE','WATER','ELECTRIC','GRASS','ICE','FIGHTING','POISON',
+  'GROUND','FLYING','PSYCHIC','BUG','ROCK','GHOST','DRAGON','DARK',
+  'STEEL','FAIRY'
+];
 
 const TYPE_COLOR = {
-  NORMAL:'#a8a878', FIRE:'#f08030', WATER:'#6890f0', GRASS:'#78c850',
-  ELECTRIC:'#f8d030', FLYING:'#a890f0', BUG:'#a8b820', POISON:'#a040a0',
-  GROUND:'#e0c068', ROCK:'#b8a038', PSYCHIC:'#f85888', ICE:'#98d8d8', DARK:'#705848'
+  NORMAL:'#a8a878', FIRE:'#f08030', WATER:'#6890f0', ELECTRIC:'#f8d030',
+  GRASS:'#78c850', ICE:'#98d8d8', FIGHTING:'#c03028', POISON:'#a040a0',
+  GROUND:'#e0c068', FLYING:'#a890f0', PSYCHIC:'#f85888', BUG:'#a8b820',
+  ROCK:'#b8a038', GHOST:'#705898', DRAGON:'#7038f8', DARK:'#705848',
+  STEEL:'#b8b8d0', FAIRY:'#ee99ac'
 };
 
 // effectiveness[atk][def] = multiplier; defaults to 1 if missing.
 const TYPE_CHART = {
-  FIRE:    { GRASS:2, ICE:2, BUG:2, WATER:0.5, FIRE:0.5, ROCK:0.5 },
-  WATER:   { FIRE:2, GROUND:2, ROCK:2, WATER:0.5, GRASS:0.5 },
-  GRASS:   { WATER:2, GROUND:2, ROCK:2, FIRE:0.5, GRASS:0.5, FLYING:0.5, BUG:0.5, POISON:0.5 },
-  ELECTRIC:{ WATER:2, FLYING:2, GRASS:0.5, ELECTRIC:0.5, GROUND:0 },
-  FLYING:  { GRASS:2, BUG:2, ELECTRIC:0.5, ROCK:0.5 },
-  BUG:     { GRASS:2, PSYCHIC:2, DARK:2, FIRE:0.5, FLYING:0.5, POISON:0.5 },
-  POISON:  { GRASS:2, POISON:0.5, GROUND:0.5, ROCK:0.5 },
-  GROUND:  { FIRE:2, ELECTRIC:2, POISON:2, ROCK:2, GRASS:0.5, BUG:0.5, FLYING:0 },
-  ROCK:    { FIRE:2, FLYING:2, BUG:2, ICE:2, GROUND:0.5 },
-  PSYCHIC: { POISON:2, DARK:0, PSYCHIC:0.5 },
-  ICE:     { GRASS:2, GROUND:2, FLYING:2, FIRE:0.5, WATER:0.5, ICE:0.5 },
-  NORMAL:  { ROCK:0.5 },
-  DARK:    { PSYCHIC:2, DARK:0.5 }
+  NORMAL:  { ROCK:0.5, STEEL:0.5, GHOST:0 },
+  FIRE:    { GRASS:2, ICE:2, BUG:2, STEEL:2, FIRE:0.5, WATER:0.5, ROCK:0.5, DRAGON:0.5 },
+  WATER:   { FIRE:2, GROUND:2, ROCK:2, WATER:0.5, GRASS:0.5, DRAGON:0.5 },
+  ELECTRIC:{ WATER:2, FLYING:2, ELECTRIC:0.5, GRASS:0.5, DRAGON:0.5, GROUND:0 },
+  GRASS:   { WATER:2, GROUND:2, ROCK:2, FIRE:0.5, GRASS:0.5, POISON:0.5, FLYING:0.5, BUG:0.5, DRAGON:0.5, STEEL:0.5 },
+  ICE:     { GRASS:2, GROUND:2, FLYING:2, DRAGON:2, FIRE:0.5, WATER:0.5, ICE:0.5, STEEL:0.5 },
+  FIGHTING:{ NORMAL:2, ICE:2, ROCK:2, DARK:2, STEEL:2, POISON:0.5, FLYING:0.5, PSYCHIC:0.5, BUG:0.5, FAIRY:0.5, GHOST:0 },
+  POISON:  { GRASS:2, FAIRY:2, POISON:0.5, GROUND:0.5, ROCK:0.5, GHOST:0.5, STEEL:0 },
+  GROUND:  { FIRE:2, ELECTRIC:2, POISON:2, ROCK:2, STEEL:2, GRASS:0.5, BUG:0.5, FLYING:0 },
+  FLYING:  { GRASS:2, FIGHTING:2, BUG:2, ELECTRIC:0.5, ROCK:0.5, STEEL:0.5 },
+  PSYCHIC: { FIGHTING:2, POISON:2, PSYCHIC:0.5, STEEL:0.5, DARK:0 },
+  BUG:     { GRASS:2, PSYCHIC:2, DARK:2, FIRE:0.5, FIGHTING:0.5, POISON:0.5, FLYING:0.5, GHOST:0.5, STEEL:0.5, FAIRY:0.5 },
+  ROCK:    { FIRE:2, ICE:2, FLYING:2, BUG:2, FIGHTING:0.5, GROUND:0.5, STEEL:0.5 },
+  GHOST:   { PSYCHIC:2, GHOST:2, DARK:0.5, NORMAL:0 },
+  DRAGON:  { DRAGON:2, STEEL:0.5, FAIRY:0 },
+  DARK:    { PSYCHIC:2, GHOST:2, FIGHTING:0.5, DARK:0.5, FAIRY:0.5 },
+  STEEL:   { ICE:2, ROCK:2, FAIRY:2, FIRE:0.5, WATER:0.5, ELECTRIC:0.5, STEEL:0.5 },
+  FAIRY:   { FIGHTING:2, DRAGON:2, DARK:2, FIRE:0.5, POISON:0.5, STEEL:0.5 }
 };
 
 function effectiveness(atkType, defTypes) {
@@ -59,6 +70,10 @@ const MOVES = {
   acidspray: { name:'Acid Spray',type:'POISON',   power:40, accuracy:100, kind:'special',  pp:20 },
   rocktoss:  { name:'Rock Toss', type:'ROCK',     power:50, accuracy:90,  kind:'physical', pp:15 },
   earthbump: { name:'Earth Bump',type:'GROUND',   power:55, accuracy:100, kind:'physical', pp:20 },
+  ironswipe: { name:'Iron Swipe',type:'STEEL',    power:45, accuracy:100, kind:'physical', pp:25 },
+  chromebash:{ name:'Chrome Bash',type:'STEEL',   power:65, accuracy:90,  kind:'physical', pp:15 },
+  focusjab:  { name:'Focus Jab', type:'FIGHTING', power:45, accuracy:100, kind:'physical', pp:25 },
+  palmstrike:{ name:'Palm Strike',type:'FIGHTING',power:65, accuracy:95,  kind:'physical', pp:15 },
   shimmer:   { name:'Shimmer',   type:'PSYCHIC',  power:50, accuracy:100, kind:'special',  pp:25, confuseChance:0.1 },
   dazzle:    { name:'Dazzle',    type:'PSYCHIC',  power:0,  accuracy:90,  kind:'status',   pp:15, confuseChance:1.0 },
   freezewind:{ name:'Freeze Wind',type:'ICE',     power:55, accuracy:95,  kind:'special',  pp:20, freezeChance:0.1 },
@@ -489,6 +504,76 @@ const CREATURES = {
     learnset:[ [1,'growl'],[1,'tailwhip'],[6,'shimmer'],[12,'vinelash'],[20,'leafcut'],[32,'freezewind'] ],
     catchRate:30,
     design:{ palette:['#d878b8','#fff8ff','#702848'], shape:'plant', accent:'bud', beard:true }
+  },
+  rivettot: {
+    id:'rivettot', name:'Rivettot', dex:58, types:['STEEL'],
+    baseStats:{hp:46, atk:60, def:72, spa:35, spd:48, spe:42},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[6,'ironswipe'],[12,'rocktoss'],[18,'chromebash'] ],
+    catchRate:190,
+    design:{ palette:['#b8bcc8','#687080','#303844'], shape:'mouse', accent:'tail', tuftX:15, tuftY:8 }
+  },
+  mindrop: {
+    id:'mindrop', name:'Mindrop', dex:59, types:['PSYCHIC'],
+    baseStats:{hp:42, atk:30, def:40, spa:72, spd:60, spe:56},
+    learnset:[ [1,'growl'],[1,'tailwhip'],[6,'shimmer'],[12,'dazzle'],[18,'hypnoray'] ],
+    catchRate:170,
+    design:{ palette:['#d898e8','#fff0ff','#704088'], shape:'blob', accent:'glow', tuftX:16, tuftY:10 }
+  },
+  pugpaw: {
+    id:'pugpaw', name:'Pugpaw', dex:60, types:['FIGHTING'],
+    baseStats:{hp:50, atk:68, def:45, spa:30, spd:42, spe:65},
+    learnset:[ [1,'tackle'],[1,'focusjab'],[7,'quickjab'],[13,'tailwhip'],[19,'palmstrike'] ],
+    catchRate:180,
+    design:{ palette:['#c07848','#f0c090','#502818'], shape:'mouse', accent:'tail', tuftX:16, tuftY:8 }
+  },
+  joltlet: {
+    id:'joltlet', name:'Joltlet', dex:61, types:['ELECTRIC'],
+    baseStats:{hp:38, atk:48, def:36, spa:68, spd:48, spe:82},
+    learnset:[ [1,'quickjab'],[1,'tailwhip'],[6,'spark'],[12,'bite'],[18,'zapburst'] ],
+    catchRate:180,
+    design:{ palette:['#f0d838','#403010','#f07838'], shape:'mouse', accent:'bolt', tuftX:16, tuftY:8 }
+  },
+  breezlet: {
+    id:'breezlet', name:'Breezlet', dex:62, types:['FLYING'],
+    baseStats:{hp:44, atk:50, def:42, spa:58, spd:48, spe:76},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'gust'],[12,'quickjab'],[18,'airslash'] ],
+    catchRate:190,
+    design:{ palette:['#88b8e8','#f8f8ff','#304870'], shape:'bird', accent:'wings', tuftX:16, tuftY:6 }
+  },
+  silkuttle: {
+    id:'silkuttle', name:'Silkuttle', dex:63, types:['BUG'],
+    baseStats:{hp:48, atk:42, def:50, spa:35, spd:42, spe:45},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'bugbite'],[12,'pinmissile'] ],
+    catchRate:220,
+    design:{ palette:['#b8d868','#486820','#fff0a0'], shape:'caterpillar', accent:'segments', tuftX:9, tuftY:16 }
+  },
+  venipip: {
+    id:'venipip', name:'Venipip', dex:64, types:['POISON'],
+    baseStats:{hp:42, atk:50, def:38, spa:58, spd:48, spe:66},
+    learnset:[ [1,'tackle'],[1,'poisonsting'],[7,'growl'],[13,'acidspray'],[19,'bite'] ],
+    catchRate:180,
+    design:{ palette:['#8a58b8','#302050','#e878a8'], shape:'bat', accent:'wings', tuftX:16, tuftY:10 }
+  },
+  mudmote: {
+    id:'mudmote', name:'Mudmote', dex:65, types:['GROUND'],
+    baseStats:{hp:56, atk:60, def:72, spa:25, spd:38, spe:30},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'earthbump'],[12,'rocktoss'],[18,'bite'] ],
+    catchRate:190,
+    design:{ palette:['#a87848','#604020','#d8b878'], shape:'caterpillar', accent:'segments', tuftX:12, tuftY:15 }
+  },
+  frostnip: {
+    id:'frostnip', name:'Frostnip', dex:66, types:['ICE'],
+    baseStats:{hp:44, atk:48, def:46, spa:66, spd:58, spe:58},
+    learnset:[ [1,'tackle'],[1,'growl'],[6,'freezewind'],[12,'bite'],[18,'shimmer'] ],
+    catchRate:180,
+    design:{ palette:['#d8f0ff','#80c8f0','#284860'], shape:'fox', accent:'tail', tuftX:16, tuftY:8 }
+  },
+  craglet: {
+    id:'craglet', name:'Craglet', dex:67, types:['ROCK'],
+    baseStats:{hp:52, atk:64, def:84, spa:28, spd:40, spe:24},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[6,'rocktoss'],[12,'earthbump'] ],
+    catchRate:190,
+    design:{ palette:['#9a8870','#5a4a38','#c8b898'], shape:'rock', accent:'pebble', tuftX:16, tuftY:9 }
   }
 };
 

@@ -581,6 +581,19 @@
     return -1;
   }
 
+  function statGainText(oldStats, newStats) {
+    const labels = [
+      ['HP', 'hp'], ['ATK', 'atk'], ['DEF', 'def'],
+      ['SPA', 'spa'], ['SPD', 'spd'], ['SPE', 'spe']
+    ];
+    const parts = [];
+    for (const [label, key] of labels) {
+      const d = (newStats[key] | 0) - (oldStats[key] | 0);
+      if (d > 0) parts.push(label + ' +' + d);
+    }
+    return parts.length ? ('Stats rose! ' + parts.join(' ')) : 'Stats held steady.';
+  }
+
   Battle.prototype.swapTo = function(idx, fainted) {
     const old = this.me.nickname;
     this.partyIdx = idx;
@@ -712,11 +725,13 @@
       mon.level++;
       window.PR_SFX && window.PR_SFX.play('levelup');
       let sp = window.PR_DATA.CREATURES[mon.species];
+      const oldStats = mon.stats;
       const newStats = window.PR_DATA.computeStats(sp.baseStats, mon.ivs, mon.level);
       const dHp = newStats.hp - mon.stats.hp;
       mon.stats = newStats;
       mon.hp = Math.min(mon.stats.hp, mon.hp + Math.max(0, dHp));
       this.queue(mon.nickname + ' grew to LV. ' + mon.level + '!');
+      this.queue(statGainText(oldStats, newStats));
       // Learn moves.
       for (const [reqLv, mvId] of sp.learnset) {
         if (reqLv === mon.level && !mon.moves.find(m => m.id === mvId)) {
@@ -740,7 +755,10 @@
         const evo = sp.evolves.to;
         mon.species = evo;
         const evoSp = window.PR_DATA.CREATURES[evo];
-        mon.stats = window.PR_DATA.computeStats(evoSp.baseStats, mon.ivs, mon.level);
+        const evoStats = window.PR_DATA.computeStats(evoSp.baseStats, mon.ivs, mon.level);
+        const evoHpGain = evoStats.hp - mon.stats.hp;
+        mon.stats = evoStats;
+        mon.hp = Math.min(mon.stats.hp, mon.hp + Math.max(0, evoHpGain));
         if (mon.nickname === sp.name) mon.nickname = evoSp.name;
         this.queue('What? ' + sp.name + ' is evolving!');
         this.queue('It evolved into ' + evoSp.name + '!');
@@ -798,12 +816,12 @@
     const foeFloat = (Math.sin(this.timer * 2) * 1) | 0;
     const foeY = 30 + foeFloat - (this.faintAnim.foe * 30);
     if (this.faintAnim.foe < 1 || this.foe.hp > 0) {
-      window.PR_MONS.drawCreature(ctx, this.foe.species, 160, foeY, 48, false);
+      window.PR_MONS.drawCreature(ctx, this.foe.species, 160, foeY, 48, false, this.foe);
     }
     // Player sprite (back-ish view).
     const meY = 86 - (this.faintAnim.me * 30);
     if (this.faintAnim.me < 1 || this.me.hp > 0) {
-      window.PR_MONS.drawCreature(ctx, this.me.species, 24 + shakeX, meY, 56, true);
+      window.PR_MONS.drawCreature(ctx, this.me.species, 24 + shakeX, meY, 56, true, this.me);
     }
 
     // Damage flash.
@@ -962,7 +980,7 @@
         ctx.fillStyle = '#f0c020';
         ctx.fillRect(x + 4, cy - 2, w - 8, 18);
       }
-      window.PR_MONS.drawCreature(ctx, m.species, x + 6, cy - 2, 18, false);
+      window.PR_MONS.drawCreature(ctx, m.species, x + 6, cy - 2, 18, false, m);
       window.PR_UI.drawText(ctx, m.nickname, x + 28, cy, '#202020');
       window.PR_UI.drawText(ctx, 'L' + m.level, x + 110, cy, '#202020');
       window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, m.hp, m.stats.hp);
