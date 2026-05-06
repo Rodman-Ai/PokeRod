@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.21.5';
-  const BUILD = '2026.05.06-75';
+  const VERSION = 'v0.21.6';
+  const BUILD = '2026.05.06-76';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -478,7 +478,7 @@
         ctx.fillRect(x + w - 8, y + h - 8, 4, 4);
       }
     }
-    window.PR_UI.drawText(ctx, 'X: SKIP', 6, VIEW_H - 8, '#606060');
+    window.PR_UI.drawText(ctx, 'B: SKIP', 6, VIEW_H - 8, '#606060');
   }
 
   function drawProfPortrait(ctx, x, y) {
@@ -796,7 +796,7 @@
     const sel = STARTERS[state.starterMenu.idx];
     const sp = window.PR_DATA.CREATURES[sel];
     window.PR_UI.drawText(ctx, sp.types.join('/'), 16, 120, '#202020');
-    window.PR_UI.drawText(ctx, 'Z: PICK   X: CANCEL', 16, 140, '#202020');
+    window.PR_UI.drawText(ctx, 'A: PICK   B: CANCEL', 16, 140, '#202020');
   }
 
   // ---------- Pause menu ----------
@@ -1222,15 +1222,18 @@
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     window.PR_UI.header(ctx, 'PC STORAGE', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'B:BACK  L/R:SIDE', x + w - 90, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, 'B:BACK  <>SIDE', x + w - 86, y + 4, '#806040');
 
     // Two columns: BOX | PARTY
     const colW = (w - 16) / 2;
     const drawList = (label, list, sx, isActive) => {
       window.PR_UI.drawText(ctx, label + ' (' + list.length + ')', sx + 4, y + 16, isActive ? '#e83838' : '#385890');
-      for (let i = 0; i < Math.min(list.length, 6); i++) {
+      const rows = 6;
+      const start = isActive ? Math.max(0, Math.min(Math.max(0, list.length - rows), state.boxView.idx - 2)) : 0;
+      for (let r = 0; r < Math.min(list.length, rows); r++) {
+        const i = start + r;
         const mon = list[i];
-        const cy = y + 28 + i * 16;
+        const cy = y + 28 + r * 16;
         if (isActive && i === state.boxView.idx) {
           window.PR_UI.selectBar(ctx, sx, cy - 2, colW, 14, true);
         }
@@ -1241,10 +1244,11 @@
         }
       }
       if (!list.length) window.PR_UI.drawText(ctx, '(empty)', sx + 4, y + 32, '#806040');
+      else if (list.length > rows) window.PR_UI.drawText(ctx, (start + 1) + '-' + Math.min(start + rows, list.length), sx + colW - 28, y + 16, '#806040');
     };
     drawList('BOX',   state.box,   x + 6,           state.boxView.side === 'box');
     drawList('PARTY', state.party, x + 12 + colW,   state.boxView.side === 'party');
-    window.PR_UI.drawText(ctx, 'A: SWAP', x + 8, y + h - 12, '#806040');
+    window.PR_UI.drawText(ctx, 'A: MOVE', x + 8, y + h - 12, '#806040');
   }
 
   // ---------- Bag ----------
@@ -1357,7 +1361,15 @@
   function updateBagTarget() {
     const I = window.PR_INPUT;
     const t = state.bagTarget;
-    const party = state.party;
+    const party = state.party || [];
+    if (!party.length) {
+      if (I.consumePressed('x') || I.consumePressed('z') || I.consumePressed('Enter')) {
+        state.bagTarget = null;
+        state.mode = 'bag';
+      }
+      return;
+    }
+    if (t.idx >= party.length) t.idx = party.length - 1;
     if (I.consumePressed('ArrowDown')) { t.idx = (t.idx + 1) % party.length; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('ArrowUp'))   { t.idx = (t.idx + party.length - 1) % party.length; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('x')) {
@@ -1416,8 +1428,14 @@
     window.PR_UI.drawText(ctx, state.bagTarget.def.name + ' ON?', x + 8, y + 18, '#202020');
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
     const t = state.bagTarget;
-    for (let i = 0; i < state.party.length; i++) {
-      const mon = state.party[i];
+    const party = state.party || [];
+    if (!party.length) {
+      window.PR_UI.drawText(ctx, 'No party members.', x + 8, y + 38, '#806040');
+      window.PR_UI.drawText(ctx, 'B:BACK', x + 8, y + h - 12, '#806040');
+      return;
+    }
+    for (let i = 0; i < party.length; i++) {
+      const mon = party[i];
       const cy = y + 34 + i * 18;
       if (i === t.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 18, true);
       window.PR_MONS.drawCreature(ctx, mon.species, x + 6, cy - 2, 18, false, mon);
@@ -2084,7 +2102,7 @@
     const v = (state.menu && state.menu.partyView) || { idx:0, page:0 };
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
     window.PR_UI.header(ctx, 'PARTY', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'B:BACK  A/R:PAGE', x + w - 96, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, 'B:BACK  A:PAGE', x + w - 84, y + 4, '#806040');
     if (!state.party.length) {
       window.PR_UI.drawText(ctx, 'No partners yet.', x + 8, y + 30, '#202020');
       return;

@@ -97,8 +97,8 @@
     // Header
     const shopName = (v.npc && v.npc.name) || 'MART';
     window.PR_UI.drawText(ctx, shopName, x + 6, y + 4, '#202020');
-    window.PR_UI.drawText(ctx, '$' + state.player.money, x + w - 56, y + 4, '#385890');
-    window.PR_UI.drawText(ctx, 'X:EXIT', x + w - 28, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, '$' + state.player.money, x + w - 92, y + 4, '#385890');
+    window.PR_UI.drawText(ctx, 'B:EXIT', x + w - 44, y + 4, '#806040');
     // Divider
     ctx.fillStyle = '#202020';
     ctx.fillRect(x + 4, y + 14, w - 8, 1);
@@ -159,7 +159,7 @@
       window.PR_UI.drawText(ctx, ('TOTAL $' + totalCost).slice(0, 12), x + w - 72, stripY, '#385890');
       window.PR_UI.drawText(ctx, 'A:OK  B:BACK', x + 8, y + h - 10, '#806040');
     } else {
-      window.PR_UI.drawText(ctx, 'Z:BUY  X:EXIT', x + 8, y + h - 12, '#806040');
+      window.PR_UI.drawText(ctx, 'A:BUY  B:EXIT', x + 8, y + h - 12, '#806040');
     }
     // Flash message
     const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());

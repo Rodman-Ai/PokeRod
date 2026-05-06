@@ -191,6 +191,60 @@ async function main() {
       }
     }
 
+    const uiModeChecks = await page.evaluate(async () => {
+      const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const sampleSum = () => {
+        const c = document.getElementById('game');
+        const cx = c.getContext('2d');
+        let sum = 0;
+        for (const [px, py] of [[32,32],[92,52],[156,76],[212,126]]) {
+          const p = cx.getImageData(px, py, 1, 1).data;
+          sum += p[0] + p[1] + p[2] + p[3];
+        }
+        return sum;
+      };
+      const state = window.PR_GAME && window.PR_GAME.state;
+      const make = window.PR_DATA && window.PR_DATA.makeMon;
+      if (!state || !make) return { ok:false, reason:'missing game state' };
+      state.mode = 'box';
+      state.party = [make('rivettot', 5)];
+      state.box = Array.from({ length: 8 }, (_, i) => make(i % 2 ? 'mindrop' : 'joltlet', 5 + i));
+      state.boxView = { idx:7, side:'box' };
+      await nextFrame();
+      const boxSum = sampleSum();
+      state.mode = 'bagtarget';
+      state.party = [];
+      state.player.bag = Object.assign({}, state.player.bag, { potion:1 });
+      state.bagView = { idx:0, scroll:0, returnTo:'overworld' };
+      state.bagTarget = { itemId:'potion', def:window.PR_ITEMS.ITEMS.potion, idx:0, returnTo:'menu' };
+      await nextFrame();
+      const emptyTargetSum = sampleSum();
+      return { ok:true, boxSum, emptyTargetSum, mode:state.mode };
+    });
+    console.log('ui mode checks:', uiModeChecks);
+    if (!uiModeChecks.ok || uiModeChecks.boxSum === 0 || uiModeChecks.emptyTargetSum === 0 || uiModeChecks.mode !== 'bagtarget') {
+      console.error('ui mode render failed:', uiModeChecks);
+      exitCode = 2;
+    }
+    await page.keyboard.press('z');
+    await page.waitForTimeout(180);
+    const emptyTargetExit = await page.evaluate(() => {
+      const state = window.PR_GAME && window.PR_GAME.state;
+      if (!state || state.mode !== 'bag') return false;
+      state.party = [window.PR_DATA.makeMon('rivettot', 5)];
+      state.player.map = 'route1';
+      state.player.x = 12;
+      state.player.y = 28;
+      state.player.dir = 'down';
+      state.mode = 'overworld';
+      state.world = new window.PR_WORLD.World(state);
+      return true;
+    });
+    if (!emptyTargetExit) {
+      console.error('empty bag target did not return to bag cleanly');
+      exitCode = 2;
+    }
+
     // Force a battle by walking into tall grass repeatedly.
     for (let i = 0; i < 80; i++) {
       await page.keyboard.press('ArrowDown');
