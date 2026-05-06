@@ -54,6 +54,8 @@
 const COLS = 16; // 16 cells across
 const TILE_PX = 32;
 const CREATURE_PX = 64;
+const GRID_PX = 1;
+const GRID_COLOR = '#ff00ff';
 
 let artRegistered = false;
 let lastResult = null;
@@ -81,9 +83,16 @@ function makeOut(style) {
 
 function setStatus(s) { document.getElementById('status').textContent = s; }
 
+function sectionSize(rows, cellH) {
+  return rows * cellH + Math.max(0, rows - 1) * GRID_PX;
+}
+
+function sectionWidth(colsPerRow, cellW) {
+  return colsPerRow * cellW + Math.max(0, colsPerRow - 1) * GRID_PX;
+}
+
 function drawSection(items, cellW, cellH, colsPerRow, startY, ctx, out) {
   let i = 0;
-  let y = startY;
   for (const item of items) {
     const col = i % colsPerRow;
     const row = (i / colsPerRow) | 0;
@@ -96,6 +105,40 @@ function drawSection(items, cellW, cellH, colsPerRow, startY, ctx, out) {
   // Return the y position right after this section.
   const rowsUsed = Math.ceil(items.length / colsPerRow);
   return startY + rowsUsed * cellH;
+}
+
+function mapSectionFrames(items, cellW, cellH, colsPerRow, startY, out) {
+  let i = 0;
+  for (const item of items) {
+    const col = i % colsPerRow;
+    const row = (i / colsPerRow) | 0;
+    const px = col * (cellW + GRID_PX);
+    const py = startY + row * (cellH + GRID_PX);
+    out.frames[item.key] = { x: px, y: py, w: cellW, h: cellH };
+    i++;
+  }
+  const rowsUsed = Math.ceil(items.length / colsPerRow);
+  return startY + sectionSize(rowsUsed, cellH);
+}
+
+function drawEditorGrid(ctx, sections, totalW) {
+  ctx.fillStyle = GRID_COLOR;
+  for (const section of sections) {
+    const h = sectionSize(section.rows, section.cellH);
+    const w = sectionWidth(section.cols, section.cellW);
+    for (let col = 1; col < section.cols; col++) {
+      const x = col * (section.cellW + GRID_PX) - GRID_PX;
+      ctx.fillRect(x, section.y, GRID_PX, h);
+    }
+    for (let row = 1; row < section.rows; row++) {
+      const y = section.y + row * (section.cellH + GRID_PX) - GRID_PX;
+      ctx.fillRect(0, y, w, GRID_PX);
+    }
+  }
+  for (let i = 0; i < sections.length - 1; i++) {
+    const y = sections[i].y + sectionSize(sections[i].rows, sections[i].cellH);
+    ctx.fillRect(0, y, totalW, GRID_PX);
+  }
 }
 
 function snapshotAssets(ctx, frames) {
@@ -129,8 +172,26 @@ async function generate(styleId, headlessSnapshots) {
   const charRows = Math.ceil(A.CHARS.length / COLS);
   const creatureCols = 8;
   const creatureRows = Math.ceil(A.CREATURES.length / creatureCols);
-  const totalH = tileRows * TILE_PX + charRows * TILE_PX + creatureRows * CREATURE_PX;
-  const totalW = Math.max(COLS * TILE_PX, creatureCols * CREATURE_PX);
+  const tightTotalH = tileRows * TILE_PX + charRows * TILE_PX + creatureRows * CREATURE_PX;
+  const tightTotalW = Math.max(COLS * TILE_PX, creatureCols * CREATURE_PX);
+  const totalH = sectionSize(tileRows, TILE_PX) + GRID_PX +
+    sectionSize(charRows, TILE_PX) + GRID_PX +
+    sectionSize(creatureRows, CREATURE_PX);
+  const totalW = Math.max(sectionWidth(COLS, TILE_PX), sectionWidth(creatureCols, CREATURE_PX));
+
+  const sourceCanvas = document.createElement('canvas');
+  sourceCanvas.width = tightTotalW;
+  sourceCanvas.height = tightTotalH;
+  const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
+  sourceCtx.imageSmoothingEnabled = false;
+  sourceCtx.clearRect(0, 0, tightTotalW, tightTotalH);
+  const source = makeOut(style);
+
+  let sy = 0;
+  sy = drawSection(A.TILES, TILE_PX, TILE_PX, COLS, sy, sourceCtx, source);
+  sy = drawSection(A.CHARS, TILE_PX, TILE_PX, COLS, sy, sourceCtx, source);
+  sy = drawSection(A.CREATURES, CREATURE_PX, CREATURE_PX, creatureCols, sy, sourceCtx, source);
+  if (A.applyAtlasStyle) A.applyAtlasStyle(sourceCtx, style.id, 0, 0, tightTotalW, tightTotalH);
 
   const canvas = document.getElementById('atlas');
   canvas.width = totalW;
@@ -144,13 +205,23 @@ async function generate(styleId, headlessSnapshots) {
 
   // Section 1: TILES (32x32, 16 across).
   let y = 0;
-  y = drawSection(A.TILES, TILE_PX, TILE_PX, COLS, y, ctx, out);
+  const sections = [];
+  sections.push({ y, rows:tileRows, cellW:TILE_PX, cellH:TILE_PX, cols:COLS });
+  y = mapSectionFrames(A.TILES, TILE_PX, TILE_PX, COLS, y, out);
+  y += GRID_PX;
   // Section 2: CHARACTERS (32x32, 16 across).
-  y = drawSection(A.CHARS, TILE_PX, TILE_PX, COLS, y, ctx, out);
+  sections.push({ y, rows:charRows, cellW:TILE_PX, cellH:TILE_PX, cols:COLS });
+  y = mapSectionFrames(A.CHARS, TILE_PX, TILE_PX, COLS, y, out);
+  y += GRID_PX;
   // Section 3: CREATURES (64x64, 8 across).
-  y = drawSection(A.CREATURES, CREATURE_PX, CREATURE_PX, creatureCols, y, ctx, out);
+  sections.push({ y, rows:creatureRows, cellW:CREATURE_PX, cellH:CREATURE_PX, cols:creatureCols });
+  y = mapSectionFrames(A.CREATURES, CREATURE_PX, CREATURE_PX, creatureCols, y, out);
 
-  if (A.applyAtlasStyle) A.applyAtlasStyle(ctx, style.id, 0, 0, totalW, totalH);
+  for (const [key, f] of Object.entries(out.frames)) {
+    const src = source.frames[key];
+    ctx.drawImage(sourceCanvas, src.x, src.y, src.w, src.h, f.x, f.y, f.w, f.h);
+  }
+  drawEditorGrid(ctx, sections, totalW);
 
   // Also inject a code->key map for tiles so the runtime can resolve tile codes.
   const tileCodeMap = {};
