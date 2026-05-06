@@ -16,14 +16,14 @@ function px(ctx, x, y, w, h, color) {
 // world layer cleared to underneath - world.js now clears to grass green
 // so the gap blends in instead of showing as a black seam.
 const FOLIAGE_CODES = 'TYOKJQNUVEGbceghjklmn';
-function drawTile(ctx, code, sx, sy) {
+function drawTile(ctx, code, sx, sy, context) {
   const x = sx | 0, y = sy | 0;
   let drawX = x;
   if (FOLIAGE_CODES.indexOf(code) !== -1) {
     drawX += Math.round(Math.sin((performance.now() + sx * 7 + sy * 11) / 700));
   }
   if (window.PR_ATLAS && window.PR_ATLAS.isReady()) {
-    if (window.PR_ATLAS.drawTileCode(ctx, code, drawX, y)) return;
+    if (window.PR_ATLAS.drawTileCode(ctx, code, drawX, y, context)) return;
   }
   // Atlas not yet ready: draw a placeholder grass-coloured tile.
   px(ctx, x, y, TS, TS, '#5cae4c');

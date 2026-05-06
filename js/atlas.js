@@ -9,6 +9,7 @@
     image: null,        // HTMLImageElement once loaded
     frames: null,       // {key: {x, y, w, h}}
     tileCodeToKey: null,// {char: key}
+    tileVariants: null, // {char: {random:[], context:{}}}
     tileSize: 32,
     creatureSize: 64,
     ready: false,
@@ -39,6 +40,7 @@
       state.image = img;
       state.frames = json.frames;
       state.tileCodeToKey = json.tile_code_to_key || {};
+      state.tileVariants = json.tile_variants || {};
       state.tileSize = json.tile_size || 32;
       state.creatureSize = json.creature_size || 64;
       state.ready = true;
@@ -69,10 +71,57 @@
 
   // Convenience: tile-code dispatch. If the code isn't mapped, falls back
   // to grass.
-  function drawTileCode(ctx, code, dx, dy) {
+  function contextKey(code, context) {
+    if (!context || !context.map) return null;
+    const m = context.map;
+    const x = context.tx, y = context.ty;
+    if (code === 'S' && m.signKinds) {
+      const kind = m.signKinds[x + ',' + y];
+      if (kind) return 'sign_' + kind;
+    }
+    const row = (yy) => (yy >= 0 && yy < m.tiles.length) ? m.tiles[yy] : '';
+    const at = (xx, yy) => {
+      const r = row(yy);
+      return xx >= 0 && xx < r.length ? r[xx] : null;
+    };
+    const same = (xx, yy) => at(xx, yy) === code;
+    const up = same(x, y - 1), down = same(x, y + 1);
+    const left = same(x - 1, y), right = same(x + 1, y);
+    if (!up && !left) return 'top_left';
+    if (!up && !right) return 'top_right';
+    if (!down && !left) return 'bottom_left';
+    if (!down && !right) return 'bottom_right';
+    if (!up) return 'top';
+    if (!down) return 'bottom';
+    if (!left) return 'left';
+    if (!right) return 'right';
+    return 'center';
+  }
+
+  function hashTile(code, context, dx, dy) {
+    const tx = context && context.tx !== undefined ? context.tx : ((dx / state.tileSize) | 0);
+    const ty = context && context.ty !== undefined ? context.ty : ((dy / state.tileSize) | 0);
+    let h = (code ? code.charCodeAt(0) : 17) * 73856093;
+    h ^= tx * 19349663;
+    h ^= ty * 83492791;
+    return (h >>> 0);
+  }
+
+  function variantKey(code, base, dx, dy, context) {
+    const v = state.tileVariants && state.tileVariants[code];
+    if (!v) return base;
+    const cKey = contextKey(code, context);
+    if (cKey && v.context && v.context[cKey]) return v.context[cKey];
+    if (v.random && v.random.length) {
+      return v.random[hashTile(code, context, dx, dy) % v.random.length];
+    }
+    return base;
+  }
+
+  function drawTileCode(ctx, code, dx, dy, context) {
     if (!state.ready) return false;
     const key = state.tileCodeToKey[code] || 'tile_grass';
-    return drawKey(ctx, key, dx, dy);
+    return drawKey(ctx, variantKey(code, key, dx, dy, context), dx, dy);
   }
 
   // Read-only state accessor (so renderers can ask if ready).

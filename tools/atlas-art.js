@@ -55,9 +55,18 @@
   const TILES = [];     // 32x32 entries (and a few 32x64 for tall objects)
   const CHARS = [];     // 32x32 entries
   const CREATURES = []; // 64x64 entries (added at gen time when PR_DATA loaded)
+  const TILE_VARIANTS = {}; // { tileCode: { random:[], context:{} } }
 
   function regTile(code, name, w, h, draw) {
     TILES.push({ key: 'tile_' + name, code, w, h, draw });
+  }
+  function regTileVariant(code, name, draw, opts) {
+    opts = opts || {};
+    const key = 'tile_' + name;
+    TILES.push({ key, code:null, variantFor:code, w:TILE, h:TILE, draw });
+    if (!TILE_VARIANTS[code]) TILE_VARIANTS[code] = { random:[], context:{} };
+    if (opts.context) TILE_VARIANTS[code].context[opts.context] = key;
+    else TILE_VARIANTS[code].random.push(key);
   }
   function regChar(name, draw) {
     CHARS.push({ key: name, w: TILE, h: TILE, draw });
@@ -1549,6 +1558,440 @@
   });
 
   // ------------------------------------------------------------------
+  // === GBA-INSPIRED OVERWORLD TILE REDO ==============================
+  // These registrations intentionally come after the older art. The
+  // generator keeps the last non-variant registration for each tile code,
+  // so the runtime maps stay compatible while the atlas art is replaced.
+  // ------------------------------------------------------------------
+
+  const GBA = {
+    outline:'#243018',
+    grass:'#6fc45a', grassDark:'#3d8b3e', grassLight:'#a8e67a',
+    dry:'#d6bd6c', dryDark:'#a8843d', dryLight:'#f0d78e',
+    snow:'#edf8ff', snowBlue:'#b8d8e8', snowShadow:'#7ea6c4',
+    dirt:'#c99b5b', dirtDark:'#8d6534', dirtLight:'#e7c47e',
+    stone:'#aaa49a', stoneDark:'#716a63', stoneLight:'#d5d0c8',
+    water:'#4f9ee8', waterDark:'#2670c4', waterLight:'#b8efff',
+    cave:'#77635b', caveDark:'#423634', caveLight:'#a58f82',
+    wallCream:'#f0d8a8', wallShadow:'#b98d58'
+  };
+
+  function gbaGrass(c, x, y, tone, opts) {
+    opts = opts || {};
+    const base = tone && tone.base || GBA.grass;
+    const dark = tone && tone.dark || GBA.grassDark;
+    const light = tone && tone.light || GBA.grassLight;
+    px(c, x, y, TILE, TILE, base);
+    for (let yy = 0; yy < TILE; yy += 8) px(c, x, y + yy, TILE, 1, dark);
+    for (let i = 0; i < 18; i++) {
+      const sx = (i * 11 + x * 3 + y) % 30;
+      const sy = (i * 7 + x + y * 5) % 30;
+      px(c, x + sx, y + sy, 2, 1, (i & 1) ? dark : light);
+      if ((i % 4) === 0) px(c, x + sx + 1, y + sy - 1, 1, 1, light);
+    }
+    if (opts.flowers) {
+      const cols = opts.flowerCols || ['#f06a8a', '#fff2a0', '#ffffff'];
+      for (let i = 0; i < 5; i++) {
+        const fx = x + 4 + ((i * 7) % 23);
+        const fy = y + 5 + ((i * 11) % 22);
+        px(c, fx, fy, 1, 1, cols[i % cols.length]);
+      }
+    }
+  }
+
+  function gbaTall(c, x, y) {
+    gbaGrass(c, x, y, { base:'#4eaa43', dark:'#2f7834', light:'#84d16b' });
+    for (let i = 0; i < 8; i++) {
+      const bx = x + 2 + i * 4;
+      const top = y + 8 + (i & 1) * 2;
+      px(c, bx, top + 5, 3, 15, '#296c2e');
+      px(c, bx + 1, top + 2, 1, 18, '#3f963f');
+      px(c, bx + 1, top, 1, 4, '#9bea77');
+      px(c, bx, top + 3, 1, 1, '#bdf19a');
+    }
+    px(c, x, y + 28, TILE, 2, '#2b6d30');
+  }
+
+  function gbaWater(c, x, y, alt) {
+    px(c, x, y, TILE, TILE, alt ? '#5aaef0' : GBA.water);
+    for (let yy = 0; yy < TILE; yy += 8) px(c, x, y + yy, TILE, 3, GBA.waterDark);
+    const off = alt ? 5 : 0;
+    for (let yy = 4; yy < TILE; yy += 8) {
+      for (let xx = -8; xx < TILE; xx += 16) {
+        px(c, x + xx + off, y + yy, 8, 1, GBA.waterLight);
+        px(c, x + xx + off + 2, y + yy + 1, 5, 1, '#82d4ff');
+      }
+    }
+  }
+
+  function gbaSand(c, x, y, wet) {
+    px(c, x, y, TILE, TILE, wet ? '#d7b26e' : '#e6c879');
+    stipple(c, x + 1, y + 1, 30, 30, '#b98b45', 26, x * 5 + y * 13);
+    stipple(c, x + 1, y + 1, 30, 30, '#fff0ae', 12, x * 13 + y * 5);
+    px(c, x + 5, y + 9, 5, 1, '#bd8d47');
+    px(c, x + 21, y + 22, 4, 1, '#bd8d47');
+  }
+
+  function gbaPath(c, x, y, pal, style) {
+    pal = pal || { base:GBA.dirt, dark:GBA.dirtDark, light:GBA.dirtLight };
+    px(c, x, y, TILE, TILE, pal.base);
+    if (style === 'brick') {
+      brickPattern(c, x, y, pal.base, pal.dark, pal.light);
+      return;
+    }
+    if (style === 'plank') {
+      px(c, x, y, TILE, TILE, pal.base);
+      for (let yy = 0; yy < TILE; yy += 8) {
+        px(c, x, y + yy + 7, TILE, 1, pal.dark);
+        px(c, x, y + yy, TILE, 1, pal.light);
+      }
+      for (let xx = 8; xx < TILE; xx += 8) px(c, x + xx, y, 1, TILE, pal.dark);
+      return;
+    }
+    if (style === 'stone') {
+      px(c, x, y, TILE, TILE, pal.dark);
+      for (let yy = 0; yy < TILE; yy += 8) {
+        const off = (yy & 8) ? 4 : 0;
+        for (let xx = -off; xx < TILE; xx += 8) {
+          const sx = Math.max(0, xx);
+          const ex = Math.min(TILE, xx + 8);
+          if (ex <= sx) continue;
+          px(c, x + sx, y + yy + 1, ex - sx - 1, 6, pal.base);
+          px(c, x + sx, y + yy + 1, ex - sx - 1, 1, pal.light);
+          px(c, x + sx, y + yy + 6, ex - sx - 1, 1, pal.dark);
+        }
+      }
+      return;
+    }
+    stipple(c, x + 1, y + 1, 30, 30, pal.dark, 22, x * 3 + y * 7);
+    stipple(c, x + 1, y + 1, 30, 30, pal.light, 12, x * 7 + y * 3);
+    px(c, x + 6, y + 8, 4, 1, pal.dark);
+    px(c, x + 20, y + 20, 6, 1, pal.dark);
+  }
+
+  function gbaTree(c, x, y, leaf, trunk, snow) {
+    gbaGrass(c, x, y);
+    px(c, x + 13, y + 18, 6, 12, trunk || '#765036');
+    px(c, x + 13, y + 18, 2, 12, '#4d2f20');
+    disc(c, x + 16, y + 10, 11, leaf);
+    disc(c, x + 9, y + 15, 8, leaf);
+    disc(c, x + 23, y + 15, 8, leaf);
+    disc(c, x + 16, y + 18, 9, leaf);
+    px(c, x + 9, y + 8, 7, 2, '#b7ef86');
+    px(c, x + 6, y + 16, 4, 1, '#2d6e2f');
+    px(c, x + 22, y + 20, 5, 1, '#2d6e2f');
+    if (snow) {
+      px(c, x + 8, y + 7, 16, 3, '#ffffff');
+      px(c, x + 4, y + 15, 10, 2, '#ffffff');
+      px(c, x + 18, y + 15, 10, 2, '#ffffff');
+    }
+    px(c, x + 6, y + 27, 20, 2, '#2f7834');
+  }
+
+  function gbaPalm(c, x, y) {
+    gbaSand(c, x, y);
+    for (let i = 0; i < 15; i++) px(c, x + 14 + (i >> 2), y + 14 + i, 4, 1, '#8b6038');
+    const leaves = [[16,9,0], [10,12,0], [22,12,0], [8,8,0], [24,8,0]];
+    for (const l of leaves) {
+      disc(c, x + l[0], y + l[1], 7, '#2f9b4b');
+      px(c, x + l[0] - 2, y + l[1] - 2, 6, 1, '#8ee46f');
+    }
+  }
+
+  function gbaBush(c, x, y, pal, flowers) {
+    gbaGrass(c, x, y);
+    pal = pal || ['#286c2e', '#3f963f', '#8ee46f'];
+    disc(c, x + 10, y + 20, 7, pal[1]);
+    disc(c, x + 20, y + 20, 8, pal[1]);
+    disc(c, x + 16, y + 16, 8, pal[1]);
+    px(c, x + 6, y + 18, 4, 1, pal[2]);
+    px(c, x + 17, y + 14, 5, 1, pal[2]);
+    px(c, x + 8, y + 25, 17, 2, pal[0]);
+    if (flowers) {
+      const cols = flowers === 'berry' ? ['#d82d2d', '#ff7a4a'] :
+        flowers === 'blue' ? ['#386ee8', '#cfe4ff'] :
+        flowers === 'purple' ? ['#9c42c7', '#e0a8ff'] :
+        ['#fff7b0', '#f26b8a'];
+      px(c, x + 9, y + 18, 1, 1, cols[0]);
+      px(c, x + 17, y + 16, 1, 1, cols[1]);
+      px(c, x + 23, y + 22, 1, 1, cols[0]);
+    }
+  }
+
+  function roofPalette(base, dark, light, eave) {
+    return { base, dark, light, eave:eave || dark };
+  }
+
+  function gbaRoof(c, x, y, pal, pos, emblem) {
+    px(c, x, y, TILE, TILE, pal.base);
+    for (let yy = 3; yy < TILE - 4; yy += 6) {
+      const off = ((yy / 6) | 0) & 1 ? 4 : 0;
+      for (let xx = -off; xx < TILE; xx += 8) {
+        px(c, x + xx, y + yy, 7, 4, pal.base);
+        px(c, x + xx + 1, y + yy, 5, 1, pal.light);
+        px(c, x + xx, y + yy + 4, 7, 1, pal.dark);
+      }
+    }
+    if (pos.indexOf('top') !== -1) {
+      px(c, x, y, TILE, 5, pal.dark);
+      px(c, x, y + 1, TILE, 1, pal.light);
+    }
+    if (pos.indexOf('bottom') !== -1) {
+      px(c, x, y + 24, TILE, 4, pal.eave);
+      px(c, x, y + 28, TILE, 4, '#302820');
+    }
+    if (pos.indexOf('left') !== -1) px(c, x, y, 4, TILE, pal.dark);
+    if (pos.indexOf('right') !== -1) px(c, x + 28, y, 4, TILE, pal.dark);
+    if (emblem && (pos === 'center' || pos.indexOf('bottom') !== -1)) {
+      px(c, x + 8, y + 10, 16, 9, '#fff8e8');
+      px(c, x + 8, y + 10, 16, 1, '#403020');
+      px(c, x + 8, y + 18, 16, 1, '#403020');
+      if (emblem === 'center') {
+        px(c, x + 14, y + 12, 4, 5, '#e94c5f');
+        px(c, x + 11, y + 14, 10, 2, '#e94c5f');
+      } else if (emblem === 'mart') {
+        px(c, x + 11, y + 12, 2, 5, '#2f62c9');
+        px(c, x + 14, y + 12, 4, 5, '#2f62c9');
+        px(c, x + 19, y + 12, 2, 5, '#2f62c9');
+      } else if (emblem === 'gym') {
+        px(c, x + 11, y + 12, 10, 2, '#c48a24');
+        px(c, x + 14, y + 14, 4, 3, '#c48a24');
+      }
+    }
+  }
+
+  function registerRoofSet(code, name, pal, emblem) {
+    const draw = (pos) => (c, x, y) => gbaRoof(c, x, y, pal, pos, emblem);
+    regTile(code, 'gba_' + name + '_roof', TILE, TILE, draw('center'));
+    for (const pos of ['center','top','bottom','left','right','top_left','top_right','bottom_left','bottom_right']) {
+      regTileVariant(code, 'gba_' + name + '_roof_' + pos, draw(pos), { context:pos });
+    }
+  }
+
+  function gbaWall(c, x, y, pal, style, mark) {
+    pal = pal || { base:GBA.wallCream, dark:GBA.wallShadow, light:'#fff0c8' };
+    px(c, x, y, TILE, TILE, pal.base);
+    if (style === 'brick') brickPattern(c, x, y, pal.base, pal.dark, pal.light);
+    else if (style === 'wood') {
+      for (let xx = 0; xx < TILE; xx += 6) {
+        px(c, x + xx, y, 1, TILE, pal.dark);
+        px(c, x + xx + 1, y + 2, 1, TILE - 4, pal.light);
+      }
+    } else if (style === 'log') {
+      for (let yy = 0; yy < TILE; yy += 8) {
+        px(c, x, y + yy, TILE, 1, pal.dark);
+        px(c, x, y + yy + 1, TILE, 1, pal.light);
+        px(c, x, y + yy + 7, TILE, 1, '#5f4327');
+      }
+    } else {
+      for (let yy = 7; yy < TILE; yy += 8) px(c, x, y + yy, TILE, 1, pal.dark);
+      for (let xx = 8; xx < TILE; xx += 16) px(c, x + xx, y, 1, TILE, pal.dark);
+      stipple(c, x, y, TILE, TILE, pal.light, 8, x * 9 + y * 5);
+    }
+    px(c, x, y, TILE, 2, pal.dark);
+    px(c, x, y + 30, TILE, 2, '#6e4d2f');
+    if (mark) {
+      px(c, x + 5, y + 9, 22, 9, '#fff8e8');
+      px(c, x + 5, y + 9, 22, 1, '#403020');
+      if (mark === 'center') {
+        px(c, x + 14, y + 11, 4, 5, '#e94c5f');
+        px(c, x + 11, y + 13, 10, 2, '#e94c5f');
+      } else if (mark === 'mart') {
+        px(c, x + 10, y + 11, 12, 5, '#2f62c9');
+        px(c, x + 13, y + 12, 2, 4, '#fff8e8');
+        px(c, x + 18, y + 12, 2, 4, '#fff8e8');
+      }
+    }
+  }
+
+  function gbaDoor(c, x, y, kind) {
+    gbaWall(c, x, y, { base:'#f0d8a8', dark:'#b98d58', light:'#fff0c8' });
+    if (kind === 'shop') {
+      for (let xx = 0; xx < TILE; xx += 4) px(c, x + xx, y + 2, 2, 8, (xx & 4) ? '#fff8e8' : '#e94c5f');
+      px(c, x, y + 10, TILE, 2, '#403020');
+    }
+    px(c, x + 6, y + 8, 20, 24, '#5b3826');
+    px(c, x + 8, y + 10, 16, 22, kind === 'dark' ? '#33251f' : '#9b633a');
+    px(c, x + 10, y + 12, 12, 8, kind === 'shop' ? '#8fd8ff' : '#c9905d');
+    px(c, x + 15, y + 10, 2, 22, '#5b3826');
+    disc(c, x + 22, y + 22, 1, '#ffd45a');
+  }
+
+  function gbaWindow(c, x, y, side) {
+    gbaWall(c, x, y, { base:'#f0d8a8', dark:'#b98d58', light:'#fff0c8' });
+    const wx = side === 'left' ? 15 : 1;
+    px(c, x + wx, y + 8, 16, 14, '#3d2a20');
+    px(c, x + wx + 2, y + 10, 12, 10, '#79c8ef');
+    px(c, x + wx + 7, y + 10, 1, 10, '#3d2a20');
+    px(c, x + wx + 2, y + 15, 12, 1, '#3d2a20');
+    px(c, x + wx + 3, y + 11, 4, 1, '#ffffff');
+    px(c, x + wx - 1, y + 22, 18, 2, '#8d6534');
+  }
+
+  function gbaSign(c, x, y, kind) {
+    gbaGrass(c, x, y);
+    px(c, x + 14, y + 22, 4, 10, '#6b442b');
+    const colors = kind === 'mart' ? ['#2f62c9', '#fff8e8'] :
+      kind === 'center' ? ['#e94c5f', '#fff8e8'] :
+      kind === 'gym' ? ['#c48a24', '#fff8e8'] :
+      ['#9b6a3a', '#fff0c8'];
+    px(c, x + 4, y + 8, 24, 14, '#3d2a20');
+    px(c, x + 5, y + 9, 22, 12, colors[0]);
+    px(c, x + 6, y + 10, 20, 2, colors[1]);
+    px(c, x + 8, y + 15, 16, 1, colors[1]);
+    if (kind === 'center') {
+      px(c, x + 14, y + 13, 4, 5, colors[1]);
+      px(c, x + 11, y + 15, 10, 2, colors[1]);
+    } else if (kind === 'mart') {
+      px(c, x + 10, y + 13, 2, 5, colors[1]);
+      px(c, x + 14, y + 13, 4, 5, colors[1]);
+      px(c, x + 20, y + 13, 2, 5, colors[1]);
+    }
+  }
+
+  function gbaFloor(c, x, y, base) {
+    px(c, x, y, TILE, TILE, base || '#d8c18f');
+    for (let yy = 0; yy < TILE; yy += 8) px(c, x, y + yy, TILE, 1, '#b99b65');
+    for (let xx = 0; xx < TILE; xx += 8) px(c, x + xx, y, 1, TILE, '#b99b65');
+    px(c, x + 1, y + 1, 6, 1, '#ecd7a5');
+  }
+
+  function gbaObjectBase(c, x, y, ground) {
+    if (ground === 'floor') gbaFloor(c, x, y);
+    else if (ground === 'sand') gbaSand(c, x, y);
+    else gbaGrass(c, x, y);
+  }
+
+  // Terrain and path overrides.
+  regTile('.', 'gba_grass', TILE, TILE, (c, x, y) => gbaGrass(c, x, y));
+  regTile('X', 'gba_edge_grass', TILE, TILE, (c, x, y) => gbaGrass(c, x, y, { base:'#63b951', dark:'#36843a', light:'#97dc72' }));
+  regTile('1', 'gba_flower_grass', TILE, TILE, (c, x, y) => gbaGrass(c, x, y, null, { flowers:true }));
+  regTile('2', 'gba_light_grass', TILE, TILE, (c, x, y) => gbaGrass(c, x, y, { base:'#82d464', dark:'#5bae4e', light:'#b9ef8f' }));
+  regTile('3', 'gba_dry_grass', TILE, TILE, (c, x, y) => gbaGrass(c, x, y, { base:GBA.dry, dark:GBA.dryDark, light:GBA.dryLight }));
+  regTile('4', 'gba_lush_grass', TILE, TILE, (c, x, y) => gbaGrass(c, x, y, { base:'#3f963f', dark:'#286c2e', light:'#80d566' }));
+  regTile(':', 'gba_tallgrass', TILE, TILE, gbaTall);
+  regTile('s', 'gba_sand', TILE, TILE, (c, x, y) => gbaSand(c, x, y));
+  regTile('W', 'gba_water', TILE, TILE, (c, x, y) => gbaWater(c, x, y));
+  regTile('F', 'gba_floor', TILE, TILE, (c, x, y) => gbaFloor(c, x, y));
+  regTile('r', 'gba_rug', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 3, y + 5, 26, 22, '#c44d58'); px(c, x + 6, y + 8, 20, 16, '#e27b75'); px(c, x + 8, y + 10, 16, 1, '#fff0c8'); });
+  regTile(',', 'gba_path_dirt_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y));
+  regTile('_', 'gba_path_cobble_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#aaa49a', dark:'#716a63', light:'#d5d0c8' }, 'stone'));
+  regTile('^', 'gba_path_dirt_deep', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#a87442', dark:'#6c4528', light:'#d4a56b' }));
+  regTile('o', 'gba_path_stepstone_clean', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); disc(c, x + 9, y + 10, 5, '#aaa49a'); disc(c, x + 22, y + 17, 5, '#aaa49a'); disc(c, x + 14, y + 25, 5, '#aaa49a'); });
+  regTile(';', 'gba_path_gravel_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#b7b0a6', dark:'#746d65', light:'#e2ddd5' }));
+  regTile('i', 'gba_path_redbrick_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#b54d42', dark:'#70332e', light:'#de7869' }, 'brick'));
+  regTile('y', 'gba_path_yellowbrick_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#e0bd4d', dark:'#987330', light:'#ffe28a' }, 'brick'));
+  regTile('p', 'gba_path_park_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#ead9a4', dark:'#b9a26d', light:'#fff2bf' }));
+  regTile('q', 'gba_path_mosaic_clean', TILE, TILE, (c, x, y) => { gbaPath(c, x, y, { base:'#f0e8d8', dark:'#9d9489', light:'#ffffff' }, 'stone'); px(c, x + 7, y + 7, 6, 6, '#d65a5a'); px(c, x + 19, y + 7, 6, 6, '#5a8de8'); px(c, x + 7, y + 19, 6, 6, '#65b95a'); px(c, x + 19, y + 19, 6, 6, '#e0bd4d'); });
+  regTile('t', 'gba_path_boardwalk_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#b77c45', dark:'#674223', light:'#e1ae70' }, 'plank'));
+  regTile('u', 'gba_path_beach_clean', TILE, TILE, (c, x, y) => gbaSand(c, x, y));
+  regTile('v', 'gba_path_rocky_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#91877d', dark:'#5f5650', light:'#c7beb2' }, 'stone'));
+  regTile('w', 'gba_path_wetstone_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#7aa7ad', dark:'#4d747d', light:'#b8e2e8' }, 'stone'));
+  regTile('x', 'gba_path_crossroads_clean', TILE, TILE, (c, x, y) => { gbaPath(c, x, y); px(c, x + 13, y, 6, TILE, '#e1b978'); px(c, x, y + 13, TILE, 6, '#e1b978'); });
+  regTile('z', 'gba_path_moss_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#789954', dark:'#466832', light:'#a9cf78' }, 'stone'));
+  regTile('a', 'gba_path_autumn_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#c88448', dark:'#8a4f28', light:'#eeb16d' }));
+  regTile('A', 'gba_path_bridge_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#a36f3e', dark:'#5c3922', light:'#d69d5f' }, 'plank'));
+  regTile('Z', 'gba_path_zen_clean', TILE, TILE, (c, x, y) => gbaPath(c, x, y, { base:'#d7d0bd', dark:'#9c9280', light:'#fff8e6' }, 'stone'));
+  regTile('I', 'gba_path_lantern_clean', TILE, TILE, (c, x, y) => { gbaPath(c, x, y, { base:'#ead9a4', dark:'#b9a26d', light:'#fff2bf' }); px(c, x + 14, y + 7, 4, 9, '#403020'); px(c, x + 13, y + 6, 6, 3, '#f3d45c'); });
+  regTile('5', 'gba_path_desert_clean', TILE, TILE, (c, x, y) => gbaSand(c, x, y));
+  regTile('6', 'gba_path_snow_clean', TILE, TILE, (c, x, y) => { px(c, x, y, TILE, TILE, GBA.snow); stipple(c, x + 1, y + 1, 30, 30, GBA.snowBlue, 18, x * 7 + y * 11); px(c, x + 4, y + 12, 7, 1, '#ffffff'); px(c, x + 20, y + 22, 6, 1, '#ffffff'); });
+
+  for (const code of ['.', 'X']) {
+    regTileVariant(code, 'gba_' + code.charCodeAt(0) + '_grass_a', (c, x, y) => gbaGrass(c, x, y, null, { flowers:true, flowerCols:['#ffffff'] }));
+    regTileVariant(code, 'gba_' + code.charCodeAt(0) + '_grass_b', (c, x, y) => gbaGrass(c, x, y, { base:'#66bc53', dark:'#3b873b', light:'#9fe078' }));
+    regTileVariant(code, 'gba_' + code.charCodeAt(0) + '_grass_c', (c, x, y) => gbaGrass(c, x, y, { base:'#73c85f', dark:'#408f40', light:'#b4ec86' }));
+  }
+  for (const code of [',','^',';','p','a']) {
+    regTileVariant(code, 'gba_path_var_' + code.charCodeAt(0) + '_a', (c, x, y) => gbaPath(c, x, y));
+    regTileVariant(code, 'gba_path_var_' + code.charCodeAt(0) + '_b', (c, x, y) => { gbaPath(c, x, y); px(c, x + 8, y + 23, 5, 1, '#8d6534'); });
+  }
+  regTileVariant('_', 'gba_path_var_95_a', (c, x, y) => gbaPath(c, x, y, { base:'#a9a39b', dark:'#6f6963', light:'#d4cdc4' }, 'stone'));
+  regTileVariant('_', 'gba_path_var_95_b', (c, x, y) => { gbaPath(c, x, y, { base:'#b4aea6', dark:'#77716a', light:'#dfd8ce' }, 'stone'); px(c, x + 8, y + 24, 8, 1, '#6f6963'); });
+  regTileVariant('u', 'gba_path_var_117_a', (c, x, y) => gbaSand(c, x, y));
+  regTileVariant('u', 'gba_path_var_117_b', (c, x, y) => { gbaSand(c, x, y); px(c, x + 8, y + 22, 9, 1, '#c99142'); });
+  regTileVariant('v', 'gba_path_var_118_a', (c, x, y) => gbaPath(c, x, y, { base:'#8c8f82', dark:'#575c55', light:'#c5c8bb' }, 'stone'));
+  regTileVariant('v', 'gba_path_var_118_b', (c, x, y) => { gbaPath(c, x, y, { base:'#989b8d', dark:'#5f645c', light:'#d1d4c5' }, 'stone'); px(c, x + 19, y + 20, 5, 1, '#575c55'); });
+  regTileVariant('z', 'gba_path_var_122_a', (c, x, y) => gbaPath(c, x, y, { base:'#789954', dark:'#466832', light:'#a9cf78' }, 'stone'));
+  regTileVariant('z', 'gba_path_var_122_b', (c, x, y) => { gbaPath(c, x, y, { base:'#84a55e', dark:'#4c7137', light:'#b8dd87' }, 'stone'); px(c, x + 9, y + 17, 7, 1, '#466832'); });
+  regTileVariant('5', 'gba_path_var_53_a', (c, x, y) => gbaSand(c, x, y));
+  regTileVariant('5', 'gba_path_var_53_b', (c, x, y) => { gbaSand(c, x, y); px(c, x + 7, y + 20, 12, 1, '#c99142'); });
+  regTileVariant('6', 'gba_path_var_54_a', (c, x, y) => { px(c, x, y, TILE, TILE, GBA.snow); stipple(c, x + 1, y + 1, 30, 30, GBA.snowBlue, 12, x * 13 + y * 5); });
+  regTileVariant('6', 'gba_path_var_54_b', (c, x, y) => { px(c, x, y, TILE, TILE, '#eef9ff'); stipple(c, x + 1, y + 1, 30, 30, '#bdd9e8', 14, x * 17 + y * 3); px(c, x + 9, y + 22, 8, 1, '#ffffff'); });
+  regTileVariant('W', 'gba_water_alt_a', (c, x, y) => gbaWater(c, x, y, true));
+  regTileVariant('W', 'gba_water_alt_b', (c, x, y) => { gbaWater(c, x, y); px(c, x + 7, y + 13, 10, 1, '#d8f8ff'); });
+
+  // Trees, bushes, and blockers.
+  regTile('T', 'gba_tree_green', TILE, TILE, (c, x, y) => gbaTree(c, x, y, '#3f963f'));
+  regTile('Y', 'gba_tree_oak', TILE, TILE, (c, x, y) => gbaTree(c, x, y, '#3f963f'));
+  regTile('K', 'gba_tree_cherry', TILE, TILE, (c, x, y) => gbaTree(c, x, y, '#ee88b5'));
+  regTile('E', 'gba_tree_autumn', TILE, TILE, (c, x, y) => gbaTree(c, x, y, '#de7b3b'));
+  regTile('G', 'gba_tree_ancient', TILE, TILE, (c, x, y) => gbaTree(c, x, y, '#2f6d35', '#5f4327'));
+  regTile('O', 'gba_tree_palm', TILE, TILE, gbaPalm);
+  regTile('J', 'gba_tree_dead', TILE, TILE, (c, x, y) => { gbaSand(c, x, y); px(c, x + 15, y + 8, 5, 22, '#6b4a30'); px(c, x + 8, y + 13, 11, 3, '#6b4a30'); px(c, x + 17, y + 17, 10, 3, '#6b4a30'); });
+  regTile('Q', 'gba_tree_snowpine', TILE, TILE, (c, x, y) => gbaTree(c, x, y, '#4c9e50', '#765036', true));
+  regTile('N', 'gba_tree_birch', TILE, TILE, (c, x, y) => gbaTree(c, x, y, '#6abf55', '#f2efe1'));
+  regTile('U', 'gba_tree_mushroom', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 13, y + 16, 6, 14, '#f0d8a8'); disc(c, x + 16, y + 13, 12, '#d64e66'); px(c, x + 10, y + 10, 3, 2, '#fff8e8'); px(c, x + 20, y + 15, 4, 2, '#fff8e8'); });
+  regTile('V', 'gba_tree_willow', TILE, TILE, (c, x, y) => { gbaTree(c, x, y, '#4da24b'); for (let xx = 8; xx <= 24; xx += 4) px(c, x + xx, y + 13, 1, 13, '#2f7834'); });
+  regTile('b', 'gba_bush', TILE, TILE, (c, x, y) => gbaBush(c, x, y));
+  regTile('c', 'gba_bush_flower', TILE, TILE, (c, x, y) => gbaBush(c, x, y, null, 'flower'));
+  regTile('e', 'gba_bush_berry', TILE, TILE, (c, x, y) => gbaBush(c, x, y, null, 'berry'));
+  regTile('g', 'gba_bush_thorn', TILE, TILE, (c, x, y) => gbaBush(c, x, y, ['#1f4b25','#2f6d35','#5d9b55']));
+  regTile('j', 'gba_bush_autumn', TILE, TILE, (c, x, y) => gbaBush(c, x, y, ['#8a4f28','#de7b3b','#f3c15d']));
+  regTile('k', 'gba_bush_snow', TILE, TILE, (c, x, y) => { gbaBush(c, x, y); px(c, x + 8, y + 14, 16, 3, '#ffffff'); px(c, x + 6, y + 21, 20, 2, '#ffffff'); });
+  regTile('l', 'gba_bush_blueflower', TILE, TILE, (c, x, y) => gbaBush(c, x, y, null, 'blue'));
+  regTile('m', 'gba_bush_purpleflower', TILE, TILE, (c, x, y) => gbaBush(c, x, y, null, 'purple'));
+  regTile('n', 'gba_thorn_cluster', TILE, TILE, (c, x, y) => { gbaBush(c, x, y, ['#204020','#305a28','#6b8a45']); for (let i = 0; i < 5; i++) px(c, x + 7 + i * 4, y + 15 + (i & 1) * 4, 3, 1, '#f0e0b0'); });
+  regTile('h', 'gba_hedge', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 1, y + 8, 30, 19, '#2f7834'); px(c, x + 1, y + 8, 30, 3, '#7ed66d'); px(c, x + 1, y + 25, 30, 2, '#1e5a2b'); });
+
+  // Building roofs and walls.
+  registerRoofSet('R', 'house_red', roofPalette('#d95a52', '#943334', '#ff9a86', '#6b2428'));
+  registerRoofSet('P', 'center', roofPalette('#e971a1', '#a53667', '#ffafcc', '#752345'), 'center');
+  registerRoofSet('M', 'mart', roofPalette('#4f84df', '#2952a8', '#9ac4ff', '#1a346f'), 'mart');
+  registerRoofSet('+', 'blue', roofPalette('#4f84df', '#2952a8', '#9ac4ff', '#1a346f'));
+  registerRoofSet('-', 'thatch', roofPalette('#d3b44d', '#8d6d23', '#f2d879', '#654818'));
+  registerRoofSet('=', 'terra', roofPalette('#d95a36', '#87351f', '#ffa066', '#612418'));
+  registerRoofSet('*', 'dome', roofPalette('#8a62c8', '#533582', '#c4a0ff', '#3b235f'), 'gym');
+  registerRoofSet('%', 'snow', roofPalette('#f4fbff', '#9fc5dc', '#ffffff', '#6c91ad'));
+  registerRoofSet('&', 'slate', roofPalette('#565a72', '#2c3045', '#858aa6', '#1b1d2c'));
+  registerRoofSet('7', 'moss', roofPalette('#699b46', '#3f642c', '#9ac875', '#29451f'));
+  registerRoofSet('8', 'leaf', roofPalette('#3fa34c', '#23672f', '#8de06e', '#17471f'));
+  regTile('B', 'gba_wall_house', TILE, TILE, (c, x, y) => gbaWall(c, x, y));
+  regTile('#', 'gba_wall_stone', TILE, TILE, (c, x, y) => gbaWall(c, x, y, { base:'#aaa49a', dark:'#716a63', light:'#d5d0c8' }, 'brick'));
+  regTile('@', 'gba_wall_timber', TILE, TILE, (c, x, y) => gbaWall(c, x, y, { base:'#9b6a3a', dark:'#5b3826', light:'#d49a5f' }, 'wood'));
+  regTile('$', 'gba_wall_brick', TILE, TILE, (c, x, y) => gbaWall(c, x, y, { base:'#b54d42', dark:'#70332e', light:'#de7869' }, 'brick'));
+  regTile('?', 'gba_wall_log', TILE, TILE, (c, x, y) => gbaWall(c, x, y, { base:'#9b6a3a', dark:'#5b3826', light:'#d49a5f' }, 'log'));
+  regTile('!', 'gba_wall_white', TILE, TILE, (c, x, y) => gbaWall(c, x, y, { base:'#f5eedc', dark:'#b8aa92', light:'#ffffff' }));
+  regTile('0', 'gba_wall_lattice', TILE, TILE, (c, x, y) => { gbaWall(c, x, y, { base:'#b9834d', dark:'#674223', light:'#e1ae70' }, 'wood'); for (let i = -32; i < 64; i += 6) for (let j = 0; j < 32; j++) { const xx = i + j; if (xx >= 0 && xx < 32) px(c, x + xx, y + j, 1, 1, '#46301e'); } });
+  regTile('d', 'gba_door_blue', TILE, TILE, (c, x, y) => gbaDoor(c, x, y));
+  regTile('f', 'gba_door_shop', TILE, TILE, (c, x, y) => gbaDoor(c, x, y, 'shop'));
+  regTile('D', 'gba_door_dark', TILE, TILE, (c, x, y) => gbaDoor(c, x, y, 'dark'));
+  regTile('[', 'gba_window_left', TILE, TILE, (c, x, y) => gbaWindow(c, x, y, 'left'));
+  regTile(']', 'gba_window_right', TILE, TILE, (c, x, y) => gbaWindow(c, x, y, 'right'));
+
+  // Objects, signs, caves, and interiors.
+  regTile('S', 'gba_sign', TILE, TILE, (c, x, y) => gbaSign(c, x, y));
+  regTileVariant('S', 'gba_sign_center', (c, x, y) => gbaSign(c, x, y, 'center'), { context:'sign_center' });
+  regTileVariant('S', 'gba_sign_mart', (c, x, y) => gbaSign(c, x, y, 'mart'), { context:'sign_mart' });
+  regTileVariant('S', 'gba_sign_gym', (c, x, y) => gbaSign(c, x, y, 'gym'), { context:'sign_gym' });
+  regTile('L', 'gba_ledge', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x, y + 22, TILE, 4, '#9b6a3a'); px(c, x, y + 26, TILE, 5, '#5b3826'); for (let xx = 0; xx < TILE; xx += 4) px(c, x + xx, y + 22, 2, 1, '#d49a5f'); });
+  regTile('C', 'gba_counter', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x, y + 9, TILE, 15, '#b54d42'); px(c, x, y + 9, TILE, 2, '#70332e'); px(c, x, y + 23, TILE, 2, '#5b2420'); px(c, x + 3, y + 6, 26, 4, '#e0bd83'); });
+  regTile('H', 'gba_heal_pad', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 3, y + 7, 26, 18, '#f3a1bd'); px(c, x + 3, y + 7, 26, 2, '#ffffff'); disc(c, x + 11, y + 16, 4, '#ffffff'); disc(c, x + 21, y + 16, 4, '#ffffff'); px(c, x + 9, y + 15, 4, 2, '#e94c5f'); px(c, x + 19, y + 15, 4, 2, '#e94c5f'); });
+  regTile('(', 'gba_small_rock', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); disc(c, x + 16, y + 22, 6, '#858079'); disc(c, x + 14, y + 20, 4, '#b4aca4'); px(c, x + 12, y + 19, 4, 1, '#ffffff'); });
+  regTile(')', 'gba_large_rock', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); disc(c, x + 16, y + 21, 10, '#6f6963'); disc(c, x + 14, y + 18, 7, '#a9a19a'); px(c, x + 10, y + 16, 6, 1, '#ffffff'); px(c, x + 15, y + 25, 8, 1, '#443e3a'); });
+  regTile('<', 'gba_bench', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 4, y + 10, 24, 4, '#9b6a3a'); px(c, x + 4, y + 17, 24, 5, '#9b6a3a'); px(c, x + 4, y + 10, 24, 1, '#d49a5f'); px(c, x + 6, y + 22, 3, 7, '#5b3826'); px(c, x + 23, y + 22, 3, 7, '#5b3826'); });
+  regTile('|', 'gba_street_lamp', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 15, y + 8, 2, 22, '#403020'); px(c, x + 11, y + 5, 10, 4, '#403020'); px(c, x + 13, y + 2, 6, 5, '#ffd861'); px(c, x + 14, y + 3, 4, 2, '#fff3a3'); px(c, x + 11, y + 29, 10, 2, '#403020'); });
+  regTile('~', 'gba_hydrant', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); disc(c, x + 16, y + 12, 5, '#d83b32'); px(c, x + 11, y + 12, 10, 16, '#d83b32'); px(c, x + 8, y + 17, 16, 5, '#b92325'); px(c, x + 13, y + 14, 1, 10, '#ff7b65'); px(c, x + 10, y + 27, 12, 3, '#6f1517'); });
+  regTile('{', 'gba_flower_pot', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 9, y + 19, 14, 10, '#b85f3a'); px(c, x + 7, y + 18, 18, 3, '#7b3a25'); px(c, x + 12, y + 10, 1, 8, '#3f963f'); px(c, x + 18, y + 8, 1, 10, '#3f963f'); disc(c, x + 12, y + 8, 2, '#e94c5f'); disc(c, x + 18, y + 6, 2, '#ffd861'); });
+  regTile('>', 'gba_shelf', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 2, y + 2, 28, 28, '#9b6a3a'); px(c, x + 2, y + 2, 28, 2, '#5b3826'); px(c, x + 4, y + 11, 24, 1, '#5b3826'); px(c, x + 4, y + 21, 24, 1, '#5b3826'); for (let i = 0; i < 5; i++) { px(c, x + 5 + i * 5, y + 6, 3, 4, ['#e94c5f','#4f84df','#6fc45a','#ffd861','#8a62c8'][i]); disc(c, x + 6 + i * 5, y + 16, 2, '#ffffff'); px(c, x + 4 + i * 5, y + 14, 4, 2, '#e94c5f'); } });
+  regTile('`', 'gba_fence_h', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x, y + 12, TILE, 3, '#9b6a3a'); px(c, x, y + 21, TILE, 3, '#9b6a3a'); for (const xx of [4,16,28]) px(c, x + xx, y + 7, 4, 22, '#6b442b'); });
+  regTile('"', 'gba_fence_v', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 14, y, 4, TILE, '#6b442b'); px(c, x + 7, y + 10, 18, 3, '#9b6a3a'); px(c, x + 7, y + 21, 18, 3, '#9b6a3a'); });
+  regTile('\\', 'gba_mailbox', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 15, y + 16, 3, 14, '#6b442b'); px(c, x + 8, y + 9, 16, 9, '#4f84df'); px(c, x + 8, y + 9, 16, 1, '#9ac4ff'); px(c, x + 22, y + 10, 2, 7, '#2952a8'); });
+  regTile('/', 'gba_pc_terminal', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 7, y + 4, 18, 18, '#49566a'); px(c, x + 9, y + 6, 14, 10, '#79c8ef'); px(c, x + 10, y + 23, 12, 5, '#3a4657'); px(c, x + 13, y + 25, 6, 1, '#edf8ff'); });
+  regTile('9', 'gba_vending', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 7, y + 2, 18, 28, '#d83b32'); px(c, x + 9, y + 5, 10, 10, '#79c8ef'); px(c, x + 20, y + 6, 3, 14, '#ffd861'); for (let yy = 18; yy < 27; yy += 4) px(c, x + 10, y + yy, 8, 1, '#fff8e8'); });
+  regTile('}', 'gba_potted_plant', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 9, y + 19, 14, 10, '#b85f3a'); px(c, x + 7, y + 18, 18, 3, '#7b3a25'); disc(c, x + 12, y + 12, 5, '#3f963f'); disc(c, x + 20, y + 11, 5, '#3f963f'); disc(c, x + 16, y + 7, 5, '#6fc45a'); });
+  regTile("'", 'gba_gardenbed', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 3, y + 5, 26, 22, '#8d5b32'); px(c, x + 3, y + 5, 26, 1, '#d49a5f'); px(c, x + 3, y + 26, 26, 1, '#4c2d1c'); for (const yy of [11,20]) for (const xx of [9,16,23]) { px(c, x + xx, y + yy, 1, 4, '#3f963f'); px(c, x + xx - 2, y + yy, 2, 1, '#6fc45a'); px(c, x + xx + 1, y + yy, 2, 1, '#6fc45a'); } });
+
+  // ------------------------------------------------------------------
   // === CHARACTERS ===================================================
   // 32x32 trainer-style sprites with outlined silhouette, multi-tone
   // shading. Uses a parameterised palette per character type.
@@ -1950,6 +2393,7 @@
     TILE_SIZE: TILE,
     CREATURE_SIZE: CREATURE,
     TILES,
+    TILE_VARIANTS,
     CHARS,
     CREATURES,
     registerCharacters,

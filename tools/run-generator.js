@@ -16,7 +16,14 @@ const http = require('http');
 const url = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
-const PORT = 5174;
+const PORT = 0;
+
+function existingExecutable(candidates) {
+  for (const p of candidates) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  return null;
+}
 
 function startStaticServer(root, port) {
   const mime = {
@@ -52,9 +59,23 @@ function dataUrlToBuffer(dataUrl) {
 async function main() {
   // Resolve playwright from globally installed npm modules.
   let playwright;
-  try {
-    playwright = require('playwright');
-  } catch (e) {
+  const candidates = ['playwright'];
+  if (process.env.NODE_PATH) {
+    for (const p of process.env.NODE_PATH.split(path.delimiter)) {
+      if (p) candidates.push(path.join(p, 'playwright'));
+    }
+  }
+  if (process.env.USERPROFILE) {
+    candidates.push(path.join(process.env.USERPROFILE,
+      '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));
+  }
+  for (const candidate of candidates) {
+    try {
+      playwright = require(candidate);
+      break;
+    } catch (_) {}
+  }
+  if (!playwright) {
     const globalNodeModules = require('child_process').execSync('npm root -g').toString().trim();
     playwright = require(path.join(globalNodeModules, 'playwright'));
   }
@@ -64,13 +85,22 @@ async function main() {
   const server = await startStaticServer(ROOT, PORT);
 
   console.log('launching headless chromium...');
-  const browser = await chromium.launch({ headless: true });
+  const executablePath = existingExecutable([
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+  ]);
+  const launchOptions = { headless: true };
+  if (executablePath) launchOptions.executablePath = executablePath;
+  const browser = await chromium.launch(launchOptions);
   try {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 1280 } });
     const page = await ctx.newPage();
     page.on('console', (msg) => console.log('[page]', msg.type(), msg.text()));
     page.on('pageerror', (err) => console.error('[pageerror]', err.message));
-    const target = 'http://127.0.0.1:' + PORT + '/tools/generate-atlas.html';
+    const target = 'http://127.0.0.1:' + server.address().port + '/tools/generate-atlas.html';
     console.log('loading', target);
     await page.goto(target, { waitUntil: 'load' });
     // Wait for the generator hook to attach.

@@ -35,6 +35,8 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 - Catch wild creatures with Rod, Great, Quick, Cavern, and Ultra Balls
 - Heal at the PokeRod Center, save/load to localStorage
 - Mobile touch controls and a handheld console skin (desktop and portrait)
+- Original GBA-era-inspired overworld tiles with contextual roof, path, grass,
+  water, sign, and city decor variants
 - 57 original creatures with procedural pixel-art sprites
 - Procedural Web Audio music and SFX, no audio files shipped
 
@@ -80,6 +82,6 @@ tools/validate-maps.js  Map shape and transition validator
 
 ## Notes
 
-This project ships no third-party assets. Everything is drawn at runtime
-from JavaScript: tiles, characters, and creature sprites are all plain
-canvas pixels. No external fonts, images, or audio are loaded.
+This project ships no third-party assets. Visual assets are generated from
+JavaScript canvas art into `assets/atlas.png`, `assets/atlas.json`, and
+`assets/sprites/*.png`; no external fonts, images, or audio are loaded.

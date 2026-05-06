@@ -465,7 +465,7 @@
         const row = m.tiles[wy];
         if (wx < 0 || wx >= row.length) continue;
         const code = row[wx];
-        window.PR_TILES.drawTile(ctx, code, offX + tx*TS, offY + ty*TS);
+        window.PR_TILES.drawTile(ctx, code, offX + tx*TS, offY + ty*TS, { map:m, tx:wx, ty:wy });
       }
     }
 

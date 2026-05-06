@@ -125,8 +125,11 @@ async function generate(headlessSnapshots) {
 
   // Also inject a code->key map for tiles so the runtime can resolve tile codes.
   const tileCodeMap = {};
-  for (const t of A.TILES) tileCodeMap[t.code] = t.key;
+  for (const t of A.TILES) {
+    if (t.code && !t.variantFor) tileCodeMap[t.code] = t.key;
+  }
   out.tile_code_to_key = tileCodeMap;
+  out.tile_variants = A.TILE_VARIANTS || {};
 
   document.getElementById('json-preview').textContent =
     JSON.stringify(out, null, 2).slice(0, 3500) + '\n... (truncated for preview)';

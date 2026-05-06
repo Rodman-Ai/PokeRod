@@ -9,7 +9,14 @@ const http = require('http');
 const url = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
-const PORT = 5175;
+const PORT = 0;
+
+function existingExecutable(candidates) {
+  for (const p of candidates) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  return null;
+}
 
 function startStaticServer(root, port) {
   const mime = {
@@ -38,22 +45,46 @@ function startStaticServer(root, port) {
 
 async function main() {
   let playwright;
-  try { playwright = require('playwright'); }
-  catch (e) {
+  const candidates = ['playwright'];
+  if (process.env.NODE_PATH) {
+    for (const p of process.env.NODE_PATH.split(path.delimiter)) {
+      if (p) candidates.push(path.join(p, 'playwright'));
+    }
+  }
+  if (process.env.USERPROFILE) {
+    candidates.push(path.join(process.env.USERPROFILE,
+      '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));
+  }
+  for (const candidate of candidates) {
+    try {
+      playwright = require(candidate);
+      break;
+    } catch (_) {}
+  }
+  if (!playwright) {
     const g = require('child_process').execSync('npm root -g').toString().trim();
     playwright = require(path.join(g, 'playwright'));
   }
   const { chromium } = playwright;
 
   const server = await startStaticServer(ROOT, PORT);
-  const browser = await chromium.launch({ headless: true });
+  const executablePath = existingExecutable([
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+  ]);
+  const launchOptions = { headless: true };
+  if (executablePath) launchOptions.executablePath = executablePath;
+  const browser = await chromium.launch(launchOptions);
   let exitCode = 0;
   try {
     const ctx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
     const page = await ctx.newPage();
     page.on('console', (msg) => console.log('[page]', msg.type(), msg.text()));
     page.on('pageerror', (err) => { console.error('[pageerror]', err.message); exitCode = 1; });
-    await page.goto('http://127.0.0.1:' + PORT + '/', { waitUntil: 'load' });
+    await page.goto('http://127.0.0.1:' + server.address().port + '/', { waitUntil: 'load' });
     // Wait for atlas to load.
     await page.waitForFunction(() => window.PR_ATLAS && window.PR_ATLAS.isReady(), { timeout: 8000 });
     console.log('atlas loaded');
