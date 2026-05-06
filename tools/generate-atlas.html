@@ -21,6 +21,7 @@
 <p class="note">Renders every tile, character frame, and creature into a packed PNG sheet plus a JSON layout, and emits per-asset PNGs for individual editing/regeneration.</p>
 
 <div class="row">
+  <label>Style <select id="style"></select></label>
   <button id="run">Generate</button>
   <button id="dl-atlas" disabled>Download atlas.png</button>
   <button id="dl-json" disabled>Download atlas.json</button>
@@ -54,19 +55,33 @@ const COLS = 16; // 16 cells across
 const TILE_PX = 32;
 const CREATURE_PX = 64;
 
-const out = {
-  frames: {},
-  image: 'atlas.png',
-  tile_size: TILE_PX,
-  creature_size: CREATURE_PX
-};
+let artRegistered = false;
+let lastResult = null;
 
-// Per-asset data URLs collected during generation (for individual export).
-const perAssetPNGs = {};
+function stylePresets() {
+  return (window.PR_ATLAS_ART && window.PR_ATLAS_ART.STYLE_PRESETS) || [
+    { id:'gba_firered', label:'GBA FIRERED', image:'atlas.png', json:'atlas.json', spritesDir:'sprites' }
+  ];
+}
+
+function styleById(styleId) {
+  const styles = stylePresets();
+  return styles.find((s) => s.id === styleId) || styles.find((s) => s.id === 'gba_firered') || styles[0];
+}
+
+function makeOut(style) {
+  return {
+    frames: {},
+    image: style.image || 'atlas.png',
+    style: { id: style.id, label: style.label },
+    tile_size: TILE_PX,
+    creature_size: CREATURE_PX
+  };
+}
 
 function setStatus(s) { document.getElementById('status').textContent = s; }
 
-function drawSection(items, cellW, cellH, colsPerRow, startY, ctx, headlessSnapshots) {
+function drawSection(items, cellW, cellH, colsPerRow, startY, ctx, out) {
   let i = 0;
   let y = startY;
   for (const item of items) {
@@ -76,13 +91,6 @@ function drawSection(items, cellW, cellH, colsPerRow, startY, ctx, headlessSnaps
     const py = startY + row * cellH;
     item.draw(ctx, px, py);
     out.frames[item.key] = { x: px, y: py, w: cellW, h: cellH };
-    if (headlessSnapshots) {
-      // Snapshot into a small canvas for individual export.
-      const off = document.createElement('canvas');
-      off.width = cellW; off.height = cellH;
-      off.getContext('2d').drawImage(ctx.canvas, px, py, cellW, cellH, 0, 0, cellW, cellH);
-      perAssetPNGs[item.key] = off.toDataURL('image/png');
-    }
     i++;
   }
   // Return the y position right after this section.
@@ -90,12 +98,31 @@ function drawSection(items, cellW, cellH, colsPerRow, startY, ctx, headlessSnaps
   return startY + rowsUsed * cellH;
 }
 
-async function generate(headlessSnapshots) {
-  setStatus('Generating...');
-  const A = window.PR_ATLAS_ART;
-  // Register characters + creatures (creatures need PR_DATA already loaded).
+function snapshotAssets(ctx, frames) {
+  const perAssetPNGs = {};
+  for (const [key, f] of Object.entries(frames)) {
+    const off = document.createElement('canvas');
+    off.width = f.w; off.height = f.h;
+    off.getContext('2d').drawImage(ctx.canvas, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h);
+    perAssetPNGs[key] = off.toDataURL('image/png');
+  }
+  return perAssetPNGs;
+}
+
+function ensureArtRegistered(A) {
+  if (artRegistered) return;
   A.registerCharacters();
   A.registerCreatures();
+  artRegistered = true;
+}
+
+async function generate(styleId, headlessSnapshots) {
+  const A = window.PR_ATLAS_ART;
+  const style = styleById(styleId);
+  setStatus('Generating ' + style.label + '...');
+  // Register characters + creatures (creatures need PR_DATA already loaded).
+  ensureArtRegistered(A);
+  const out = makeOut(style);
 
   // Compute total height needed.
   const tileRows = Math.ceil(A.TILES.length / COLS);
@@ -108,7 +135,7 @@ async function generate(headlessSnapshots) {
   const canvas = document.getElementById('atlas');
   canvas.width = totalW;
   canvas.height = totalH;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, totalW, totalH);
 
@@ -117,11 +144,13 @@ async function generate(headlessSnapshots) {
 
   // Section 1: TILES (32x32, 16 across).
   let y = 0;
-  y = drawSection(A.TILES, TILE_PX, TILE_PX, COLS, y, ctx, headlessSnapshots);
+  y = drawSection(A.TILES, TILE_PX, TILE_PX, COLS, y, ctx, out);
   // Section 2: CHARACTERS (32x32, 16 across).
-  y = drawSection(A.CHARS, TILE_PX, TILE_PX, COLS, y, ctx, headlessSnapshots);
+  y = drawSection(A.CHARS, TILE_PX, TILE_PX, COLS, y, ctx, out);
   // Section 3: CREATURES (64x64, 8 across).
-  y = drawSection(A.CREATURES, CREATURE_PX, CREATURE_PX, creatureCols, y, ctx, headlessSnapshots);
+  y = drawSection(A.CREATURES, CREATURE_PX, CREATURE_PX, creatureCols, y, ctx, out);
+
+  if (A.applyAtlasStyle) A.applyAtlasStyle(ctx, style.id, 0, 0, totalW, totalH);
 
   // Also inject a code->key map for tiles so the runtime can resolve tile codes.
   const tileCodeMap = {};
@@ -138,8 +167,10 @@ async function generate(headlessSnapshots) {
   document.getElementById('dl-json').disabled = false;
   document.getElementById('dl-zip').disabled = false;
 
-  setStatus('Generated. Tiles=' + A.TILES.length + '  Chars=' + A.CHARS.length + '  Creatures=' + A.CREATURES.length + '  AtlasSize=' + totalW + 'x' + totalH);
-  return { canvas, json: out, perAssetPNGs };
+  const perAssetPNGs = headlessSnapshots ? snapshotAssets(ctx, out.frames) : {};
+  lastResult = { style, canvas, json: out, perAssetPNGs };
+  setStatus('Generated ' + style.label + '. Tiles=' + A.TILES.length + '  Chars=' + A.CHARS.length + '  Creatures=' + A.CREATURES.length + '  AtlasSize=' + totalW + 'x' + totalH);
+  return lastResult;
 }
 
 function download(name, dataUrl) {
@@ -151,25 +182,38 @@ function download(name, dataUrl) {
   document.body.removeChild(a);
 }
 
-document.getElementById('run').addEventListener('click', () => generate(true));
+const styleSelect = document.getElementById('style');
+for (const style of stylePresets()) {
+  const opt = document.createElement('option');
+  opt.value = style.id;
+  opt.textContent = style.label;
+  if (style.id === 'gba_firered') opt.selected = true;
+  styleSelect.appendChild(opt);
+}
+
+document.getElementById('run').addEventListener('click', () => generate(styleSelect.value, true));
 document.getElementById('dl-atlas').addEventListener('click', () => {
-  download('atlas.png', document.getElementById('atlas').toDataURL('image/png'));
+  const style = lastResult && lastResult.style || styleById(styleSelect.value);
+  download(style.image || 'atlas.png', document.getElementById('atlas').toDataURL('image/png'));
 });
 document.getElementById('dl-json').addEventListener('click', () => {
-  download('atlas.json', 'data:application/json,' + encodeURIComponent(JSON.stringify(out, null, 2)));
+  const style = lastResult && lastResult.style || styleById(styleSelect.value);
+  const json = lastResult ? lastResult.json : makeOut(style);
+  download(style.json || 'atlas.json', 'data:application/json,' + encodeURIComponent(JSON.stringify(json, null, 2)));
 });
 document.getElementById('dl-zip').addEventListener('click', () => {
   // Emit a manifest of base64 PNGs the user can split externally.
   let manifest = '';
-  for (const [k, v] of Object.entries(perAssetPNGs)) manifest += k + '\t' + v + '\n';
+  for (const [k, v] of Object.entries((lastResult && lastResult.perAssetPNGs) || {})) manifest += k + '\t' + v + '\n';
   download('atlas-sprites.txt', 'data:text/plain,' + encodeURIComponent(manifest));
 });
 
 // Headless API: window.__pokerodGenerate() resolves with all artifacts
 // as data URLs / strings. Used by tools/run-generator.js (Playwright).
-window.__pokerodGenerate = async function () {
-  const r = await generate(true);
+window.__pokerodGenerate = async function (styleId) {
+  const r = await generate(styleId || 'gba_firered', true);
   return {
+    style: r.style,
     atlasPng: r.canvas.toDataURL('image/png'),
     atlasJson: JSON.stringify(r.json, null, 2),
     perAssetPNGs: r.perAssetPNGs,
@@ -180,6 +224,15 @@ window.__pokerodGenerate = async function () {
       total: r.json && Object.keys(r.json.frames || {}).length
     }
   };
+};
+
+window.__pokerodGenerateAll = async function () {
+  const results = [];
+  for (const style of stylePresets()) {
+    const r = await window.__pokerodGenerate(style.id);
+    results.push(r);
+  }
+  return results;
 };
 </script>
 

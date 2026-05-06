@@ -5,9 +5,9 @@
 // Usage:  node tools/run-generator.js
 //
 // Outputs:
-//   assets/atlas.png
-//   assets/atlas.json
-//   assets/sprites/<key>.png   (one PNG per asset for individual editing)
+//   assets/atlas*.png
+//   assets/atlas*.json
+//   assets/sprites*/<key>.png   (one PNG per asset for individual editing)
 'use strict';
 
 const path = require('path');
@@ -106,28 +106,31 @@ async function main() {
     // Wait for the generator hook to attach.
     await page.waitForFunction(() => typeof window.__pokerodGenerate === 'function', { timeout: 15000 });
     console.log('running generator...');
-    const result = await page.evaluate(async () => {
-      const r = await window.__pokerodGenerate();
-      return r;
+    const results = await page.evaluate(async () => {
+      return await window.__pokerodGenerateAll();
     });
-    console.log('counts:', result.counts, 'atlas:', result.width + 'x' + result.height);
 
-    // Write atlas.png + atlas.json.
     const assetsDir = path.join(ROOT, 'assets');
-    const spritesDir = path.join(assetsDir, 'sprites');
     fs.mkdirSync(assetsDir, { recursive: true });
-    fs.mkdirSync(spritesDir, { recursive: true });
-    fs.writeFileSync(path.join(assetsDir, 'atlas.png'), dataUrlToBuffer(result.atlasPng));
-    fs.writeFileSync(path.join(assetsDir, 'atlas.json'), result.atlasJson);
-    console.log('wrote assets/atlas.png and assets/atlas.json');
+    for (const result of results) {
+      const style = result.style || {};
+      const imageName = style.image || 'atlas.png';
+      const jsonName = style.json || 'atlas.json';
+      const spritesDir = path.join(assetsDir, style.spritesDir || 'sprites');
+      console.log('counts:', style.label || style.id, result.counts, 'atlas:', result.width + 'x' + result.height);
 
-    // Write per-asset PNGs.
-    let n = 0;
-    for (const [key, dataUrl] of Object.entries(result.perAssetPNGs)) {
-      fs.writeFileSync(path.join(spritesDir, key + '.png'), dataUrlToBuffer(dataUrl));
-      n++;
+      fs.mkdirSync(spritesDir, { recursive: true });
+      fs.writeFileSync(path.join(assetsDir, imageName), dataUrlToBuffer(result.atlasPng));
+      fs.writeFileSync(path.join(assetsDir, jsonName), result.atlasJson);
+      console.log('wrote assets/' + imageName + ' and assets/' + jsonName);
+
+      let n = 0;
+      for (const [key, dataUrl] of Object.entries(result.perAssetPNGs)) {
+        fs.writeFileSync(path.join(spritesDir, key + '.png'), dataUrlToBuffer(dataUrl));
+        n++;
+      }
+      console.log('wrote', n, 'per-asset PNGs to assets/' + (style.spritesDir || 'sprites') + '/');
     }
-    console.log('wrote', n, 'per-asset PNGs to assets/sprites/');
   } finally {
     await browser.close();
     server.close();

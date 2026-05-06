@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.19.0';
-  const BUILD = '2026.05.06-66';
+  const VERSION = 'v0.20.0';
+  const BUILD = '2026.05.06-67';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -975,6 +975,7 @@
   }
   // ---------- Settings ----------
   const SETTINGS_DEFAULTS = {
+    graphics: 'gba_firered',
     sfxVol: 'med',     // off | low | med | high
     musicVol: 'med',
     textSpeed: 'normal', // slow | normal | fast
@@ -984,6 +985,13 @@
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
   const TEXT_SPEED_STEPS = ['slow','normal','fast'];
+  const GRAPHICS_STEPS = ['gb_red','gbc_yellow','gba_firered','ds_diamond'];
+  const GRAPHICS_LABELS = {
+    gb_red: 'GB RED',
+    gbc_yellow: 'GBC YELLOW',
+    gba_firered: 'GBA FIRERED',
+    ds_diamond: 'DS DIAMOND'
+  };
 
   function ensureSettings() {
     if (!state.settings) state.settings = Object.assign({}, SETTINGS_DEFAULTS);
@@ -999,6 +1007,9 @@
       if (A.sfxGain)   A.sfxGain.gain.value   = VOL_VALUES[state.settings.sfxVol];
       if (A.musicGain) A.musicGain.gain.value = VOL_VALUES[state.settings.musicVol] * 0.6;
     }
+    if (window.PR_ATLAS && window.PR_ATLAS.setPreset) {
+      window.PR_ATLAS.setPreset(state.settings.graphics || SETTINGS_DEFAULTS.graphics);
+    }
     window.PR_SETTINGS = state.settings;
   }
 
@@ -1010,6 +1021,7 @@
   }
 
   const SETTINGS_ROWS = [
+    { key:'graphics',      label:'GRAPHICS',    type:'enum', steps:GRAPHICS_STEPS, labels:GRAPHICS_LABELS },
     { key:'sfxVol',        label:'SFX VOLUME',   type:'enum', steps:VOL_STEPS },
     { key:'musicVol',      label:'MUSIC VOLUME', type:'enum', steps:VOL_STEPS },
     { key:'textSpeed',     label:'TEXT SPEED',   type:'enum', steps:TEXT_SPEED_STEPS },
@@ -1051,8 +1063,8 @@
       window.PR_UI.drawText(ctx, row.label, x + 12, cy, '#202020');
       let val;
       if (row.type === 'bool') val = state.settings[row.key] ? 'ON' : 'OFF';
-      else val = (state.settings[row.key] || '').toUpperCase();
-      window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 78, cy, '#385890');
+      else val = (row.labels && row.labels[state.settings[row.key]]) || (state.settings[row.key] || '').toUpperCase();
+      window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 92, cy, '#385890');
     }
     window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
   }

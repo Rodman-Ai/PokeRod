@@ -5,6 +5,14 @@
 'use strict';
 
 (function () {
+  const DEFAULT_PRESET = 'gba_firered';
+  const PRESETS = {
+    gb_red: { label:'GB RED', json:'assets/atlas-gb-red.json', image:'assets/atlas-gb-red.png' },
+    gbc_yellow: { label:'GBC YELLOW', json:'assets/atlas-gbc-yellow.json', image:'assets/atlas-gbc-yellow.png' },
+    gba_firered: { label:'GBA FIRERED', json:'assets/atlas.json', image:'assets/atlas.png' },
+    ds_diamond: { label:'DS DIAMOND', json:'assets/atlas-ds-diamond.json', image:'assets/atlas-ds-diamond.png' }
+  };
+
   const state = {
     image: null,        // HTMLImageElement once loaded
     frames: null,       // {key: {x, y, w, h}}
@@ -12,9 +20,12 @@
     tileVariants: null, // {char: {random:[], context:{}}}
     tileSize: 32,
     creatureSize: 64,
+    activePreset: null,
+    loadingPreset: null,
     ready: false,
     error: null
   };
+  let loadToken = 0;
 
   // Resolve path relative to the page so it works under any host path.
   function fetchJson(url) {
@@ -27,27 +38,44 @@
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = (e) => reject(new Error('atlas.png load failed'));
+      img.onerror = () => reject(new Error(url + ' load failed'));
       img.src = url;
     });
   }
 
   function init() {
+    return setPreset(DEFAULT_PRESET, true);
+  }
+
+  function setPreset(presetId, initial) {
+    const id = PRESETS[presetId] ? presetId : DEFAULT_PRESET;
+    if (!initial && state.ready && state.activePreset === id) return Promise.resolve(true);
+    const preset = PRESETS[id];
+    const token = ++loadToken;
+    state.loadingPreset = id;
+    state.error = null;
     return Promise.all([
-      fetchJson('assets/atlas.json'),
-      loadImage('assets/atlas.png')
+      fetchJson(preset.json),
+      loadImage(preset.image)
     ]).then(([json, img]) => {
+      if (token !== loadToken) return false;
       state.image = img;
       state.frames = json.frames;
       state.tileCodeToKey = json.tile_code_to_key || {};
       state.tileVariants = json.tile_variants || {};
       state.tileSize = json.tile_size || 32;
       state.creatureSize = json.creature_size || 64;
+      state.activePreset = id;
+      state.loadingPreset = null;
       state.ready = true;
+      return true;
     }).catch((e) => {
+      if (token !== loadToken) return false;
       state.error = e;
-      state.ready = false;
+      state.loadingPreset = null;
+      if (initial || !state.image) state.ready = false;
       console.error('PR_ATLAS init failed:', e);
+      return false;
     });
   }
 
@@ -127,6 +155,8 @@
   // Read-only state accessor (so renderers can ask if ready).
   function isReady() { return state.ready; }
   function getError() { return state.error; }
+  function getPreset() { return state.activePreset || DEFAULT_PRESET; }
+  function getPresets() { return Object.keys(PRESETS).map((id) => ({ id, label:PRESETS[id].label })); }
 
   // Kick off loading immediately (idempotent if called again).
   const readyPromise = init();
@@ -135,6 +165,9 @@
     ready: readyPromise,    // Promise<void>; resolves when image+json are loaded
     isReady,
     getError,
+    getPreset,
+    getPresets,
+    setPreset,
     drawKey,
     drawKeyScaled,
     drawTileCode,

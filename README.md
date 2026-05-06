@@ -35,8 +35,8 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 - Catch wild creatures with Rod, Great, Quick, Cavern, and Ultra Balls
 - Heal at the PokeRod Center, save/load to localStorage
 - Mobile touch controls and a handheld console skin (desktop and portrait)
-- Original GBA-era-inspired overworld tiles with contextual roof, path, grass,
-  water, sign, and city decor variants
+- Four switchable full-atlas graphics styles: GB Red, GBC Yellow,
+  GBA FireRed, and DS Diamond inspired original PokeRod art
 - 57 original creatures with procedural pixel-art sprites
 - Procedural Web Audio music and SFX, no audio files shipped
 
@@ -83,5 +83,6 @@ tools/validate-maps.js  Map shape and transition validator
 ## Notes
 
 This project ships no third-party assets. Visual assets are generated from
-JavaScript canvas art into `assets/atlas.png`, `assets/atlas.json`, and
-`assets/sprites/*.png`; no external fonts, images, or audio are loaded.
+JavaScript canvas art into four atlas families such as `assets/atlas.png`,
+`assets/atlas-gb-red.png`, and matching JSON metadata; no external fonts,
+images, or audio are loaded.

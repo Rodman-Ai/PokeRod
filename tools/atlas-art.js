@@ -9,6 +9,12 @@
 (function () {
   const TILE = 32;        // tile/character native size
   const CREATURE = 64;    // creature native size
+  const STYLE_PRESETS = [
+    { id:'gb_red', label:'GB RED', image:'atlas-gb-red.png', json:'atlas-gb-red.json', spritesDir:'sprites-gb-red' },
+    { id:'gbc_yellow', label:'GBC YELLOW', image:'atlas-gbc-yellow.png', json:'atlas-gbc-yellow.json', spritesDir:'sprites-gbc-yellow' },
+    { id:'gba_firered', label:'GBA FIRERED', image:'atlas.png', json:'atlas.json', spritesDir:'sprites' },
+    { id:'ds_diamond', label:'DS DIAMOND', image:'atlas-ds-diamond.png', json:'atlas-ds-diamond.json', spritesDir:'sprites-ds-diamond' }
+  ];
 
   // ------------------------------------------------------------------
   // Pixel helpers
@@ -2386,12 +2392,94 @@
     }
   }
 
+  function clampByte(v) {
+    return Math.max(0, Math.min(255, v | 0));
+  }
+
+  function nearestPaletteColor(r, g, b, palette) {
+    let best = palette[0], bestDist = Infinity;
+    for (const p of palette) {
+      const dr = r - p[0], dg = g - p[1], db = b - p[2];
+      const dist = dr * dr * 0.8 + dg * dg * 1.2 + db * db;
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = p;
+      }
+    }
+    return best;
+  }
+
+  function applyGbRed(data) {
+    const palette = [
+      [15, 56, 15],
+      [48, 98, 48],
+      [139, 172, 15],
+      [155, 188, 15]
+    ];
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 8) continue;
+      const lum = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+      const idx = lum < 66 ? 0 : lum < 128 ? 1 : lum < 190 ? 2 : 3;
+      const p = palette[idx];
+      data[i] = p[0]; data[i + 1] = p[1]; data[i + 2] = p[2];
+    }
+  }
+
+  function applyGbcYellow(data) {
+    const palette = [
+      [28, 28, 36], [66, 62, 76], [110, 105, 93], [225, 216, 175],
+      [88, 137, 69], [139, 202, 87], [235, 205, 91], [252, 232, 132],
+      [201, 132, 61], [221, 75, 75], [92, 132, 207], [141, 204, 233],
+      [236, 146, 184], [135, 92, 181], [244, 244, 220]
+    ];
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 8) continue;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const p = nearestPaletteColor(r, g, b, palette);
+      data[i] = p[0]; data[i + 1] = p[1]; data[i + 2] = p[2];
+    }
+  }
+
+  function applyDsDiamond(data) {
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 8) continue;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
+      let nr = lum + (r - lum) * 1.2;
+      let ng = lum + (g - lum) * 1.16;
+      let nb = lum + (b - lum) * 1.24;
+      nr = (nr - 128) * 1.08 + 143;
+      ng = (ng - 128) * 1.08 + 143;
+      nb = (nb - 128) * 1.08 + 150;
+      if (lum > 185) {
+        nr += 10; ng += 12; nb += 16;
+      } else if (lum < 70) {
+        nr -= 8; ng -= 7; nb -= 4;
+      }
+      data[i] = clampByte(nr);
+      data[i + 1] = clampByte(ng);
+      data[i + 2] = clampByte(nb);
+    }
+  }
+
+  function applyAtlasStyle(ctx, styleId, x, y, w, h) {
+    if (!styleId || styleId === 'gba_firered') return;
+    x = x || 0; y = y || 0; w = w || ctx.canvas.width; h = h || ctx.canvas.height;
+    const img = ctx.getImageData(x, y, w, h);
+    if (styleId === 'gb_red') applyGbRed(img.data);
+    else if (styleId === 'gbc_yellow') applyGbcYellow(img.data);
+    else if (styleId === 'ds_diamond') applyDsDiamond(img.data);
+    ctx.putImageData(img, x, y);
+  }
+
   // ------------------------------------------------------------------
   // Public exports for the generator page.
   // ------------------------------------------------------------------
   window.PR_ATLAS_ART = {
     TILE_SIZE: TILE,
     CREATURE_SIZE: CREATURE,
+    STYLE_PRESETS,
+    applyAtlasStyle,
     TILES,
     TILE_VARIANTS,
     CHARS,

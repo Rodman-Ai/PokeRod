@@ -2804,6 +2804,10 @@
     }
   },
   "image": "atlas.png",
+  "style": {
+    "id": "gba_firered",
+    "label": "GBA FIRERED"
+  },
   "tile_size": 32,
   "creature_size": 64,
   "tile_code_to_key": {

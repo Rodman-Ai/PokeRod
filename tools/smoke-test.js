@@ -113,6 +113,28 @@ async function main() {
     fs.writeFileSync(outPath, buf);
     console.log('wrote', outPath, 'bytes=', buf.length);
 
+    const styleChecks = await page.evaluate(async () => {
+      const styles = ['gb_red', 'gbc_yellow', 'gba_firered', 'ds_diamond'];
+      const out = [];
+      for (const id of styles) {
+        const ok = await window.PR_ATLAS.setPreset(id);
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const c = document.getElementById('game');
+        const cx = c.getContext('2d');
+        const p = cx.getImageData(c.width / 2 | 0, c.height / 2 | 0, 1, 1).data;
+        out.push({ id, ok, active:window.PR_ATLAS.getPreset(), center:[p[0], p[1], p[2], p[3]] });
+      }
+      return out;
+    });
+    console.log('style checks:', styleChecks);
+    for (const check of styleChecks) {
+      const sum = check.center[0] + check.center[1] + check.center[2];
+      if (!check.ok || check.active !== check.id || sum === 0) {
+        console.error('graphics preset failed:', check);
+        exitCode = 2;
+      }
+    }
+
     // Force a battle by walking into tall grass repeatedly.
     for (let i = 0; i < 80; i++) {
       await page.keyboard.press('ArrowDown');
