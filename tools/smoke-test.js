@@ -115,21 +115,36 @@ async function main() {
 
     const styleChecks = await page.evaluate(async () => {
       const styles = ['gb_red', 'gbc_yellow', 'gba_firered', 'ds_diamond'];
+      const expectedTitles = {
+        gb_red: 'pokerod classic',
+        gbc_yellow: 'pokerod classic',
+        gba_firered: 'pokerod advance',
+        ds_diamond: 'pokerod ds'
+      };
       const out = [];
       for (const id of styles) {
         const ok = await window.PR_ATLAS.setPreset(id);
+        document.body.dataset.graphics = id;
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const c = document.getElementById('game');
         const cx = c.getContext('2d');
         const p = cx.getImageData(c.width / 2 | 0, c.height / 2 | 0, 1, 1).data;
-        out.push({ id, ok, active:window.PR_ATLAS.getPreset(), center:[p[0], p[1], p[2], p[3]] });
+        const app = document.getElementById('app');
+        const version = document.getElementById('version');
+        const title = getComputedStyle(app, '::before').content.replace(/^["']|["']$/g, '');
+        const versionPointer = getComputedStyle(version).pointerEvents;
+        out.push({
+          id, ok, active:window.PR_ATLAS.getPreset(), center:[p[0], p[1], p[2], p[3]],
+          title, expectedTitle:expectedTitles[id], versionPointer
+        });
       }
       return out;
     });
     console.log('style checks:', styleChecks);
     for (const check of styleChecks) {
       const sum = check.center[0] + check.center[1] + check.center[2];
-      if (!check.ok || check.active !== check.id || sum === 0) {
+      if (!check.ok || check.active !== check.id || sum === 0 ||
+          check.title !== check.expectedTitle || check.versionPointer !== 'none') {
         console.error('graphics preset failed:', check);
         exitCode = 2;
       }

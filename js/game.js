@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.21.4';
-  const BUILD = '2026.05.06-74';
+  const VERSION = 'v0.21.5';
+  const BUILD = '2026.05.06-75';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1013,6 +1013,10 @@
     for (const k of Object.keys(SETTINGS_DEFAULTS)) {
       if (state.settings[k] === undefined) state.settings[k] = SETTINGS_DEFAULTS[k];
     }
+    if (GRAPHICS_STEPS.indexOf(state.settings.graphics) === -1) state.settings.graphics = SETTINGS_DEFAULTS.graphics;
+    if (VOL_STEPS.indexOf(state.settings.sfxVol) === -1) state.settings.sfxVol = SETTINGS_DEFAULTS.sfxVol;
+    if (VOL_STEPS.indexOf(state.settings.musicVol) === -1) state.settings.musicVol = SETTINGS_DEFAULTS.musicVol;
+    if (TEXT_SPEED_STEPS.indexOf(state.settings.textSpeed) === -1) state.settings.textSpeed = SETTINGS_DEFAULTS.textSpeed;
   }
 
   function applySettings() {
@@ -1084,7 +1088,7 @@
       else val = (row.labels && row.labels[state.settings[row.key]]) || (state.settings[row.key] || '').toUpperCase();
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 92, cy, '#385890');
     }
-    window.PR_UI.drawText(ctx, 'A / R: cycle    L: prev', x + 8, y + h - 12, '#806040');
+    window.PR_UI.drawText(ctx, 'A/RIGHT: NEXT  LEFT: PREV', x + 8, y + h - 12, '#806040');
   }
 
   // ---------- Rival duel (PvP-style mirror match) ----------
@@ -1813,7 +1817,8 @@
     window.PR_UI.header(ctx, 'WORLD MAP', x + 4, y + 4, w - 8, {
       fill:'#1a0204', line:'#f0c020', text:'#f0c020'
     });
-    window.PR_UI.drawText(ctx, 'A GO  B BACK', x + w - 78, y + 8, '#f0d080');
+    window.PR_UI.drawText(ctx, 'D-PAD PICK', x + 78, y + 8, '#f0d080');
+    window.PR_UI.drawText(ctx, 'A WARP  B BACK', x + w - 88, y + 8, '#f0d080');
 
     drawWorldMapTerrain(x, y, w, h);
 

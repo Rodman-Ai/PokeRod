@@ -9,7 +9,7 @@
   --shell-top: linear-gradient(180deg, #d83020 0%, #a01818 100%);
   --shell-top-text: #ffd060;
   --shell-top-shadow: #2a0604;
-  --shell-title: 'PokeRod Advance';
+  --shell-title: 'pokerod advance';
   --bezel-bg: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
   --bezel-line: #5a1810;
   --bezel-label: #f0a020;
@@ -25,7 +25,7 @@ body[data-graphics="gb_red"] {
   --shell-top: linear-gradient(180deg, #deddd1 0%, #9b9a8f 100%);
   --shell-top-text: #313a37;
   --shell-top-shadow: #5d5c55;
-  --shell-title: 'PokeRod Classic';
+  --shell-title: 'pokerod classic';
   --bezel-bg: linear-gradient(180deg, #5c6461 0%, #303634 100%);
   --bezel-line: #202624;
   --bezel-label: #9bbc0f;
@@ -41,7 +41,7 @@ body[data-graphics="gbc_yellow"] {
   --shell-top: linear-gradient(180deg, #ffe869 0%, #dfa51a 100%);
   --shell-top-text: #62401c;
   --shell-top-shadow: #7a5310;
-  --shell-title: 'PokeRod Classic';
+  --shell-title: 'pokerod classic';
   --bezel-bg: linear-gradient(180deg, #6a4b26 0%, #2a2018 100%);
   --bezel-line: #9b6f1d;
   --bezel-label: #ffe27e;
@@ -57,7 +57,7 @@ body[data-graphics="gba_firered"] {
   --shell-top: linear-gradient(180deg, #d83020 0%, #a01818 100%);
   --shell-top-text: #ffd060;
   --shell-top-shadow: #2a0604;
-  --shell-title: 'PokeRod Advance';
+  --shell-title: 'pokerod advance';
   --bezel-bg: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
   --bezel-line: #5a1810;
   --bezel-label: #f0a020;
@@ -69,7 +69,7 @@ body[data-graphics="ds_diamond"] {
   --shell-top: linear-gradient(180deg, #282b34 0%, #0d0f16 100%);
   --shell-top-text: #c9e4ff;
   --shell-top-shadow: #02030a;
-  --shell-title: 'POKEROD DS';
+  --shell-title: 'pokerod ds';
   --bezel-bg: linear-gradient(180deg, #090a0e 0%, #020306 100%);
   --bezel-line: #3f4654;
   --bezel-label: #7fb6ff;
