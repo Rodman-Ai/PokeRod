@@ -191,10 +191,7 @@
     if (!m || !m.edges) return false;
     for (const side of Object.keys(m.edges)) {
       const e = m.edges[side];
-      if (side === 'north' && ny <= e.y) return true;
-      if (side === 'south' && ny >= e.y) return true;
-      if (side === 'east'  && nx >= e.y) return true;
-      if (side === 'west'  && nx <= e.y) return true;
+      if (edgeMatches(side, e, nx, ny)) return true;
     }
     return false;
   };
@@ -204,15 +201,29 @@
     if (!m.edges) return;
     for (const side of Object.keys(m.edges)) {
       const e = m.edges[side];
-      if ((side === 'north' && ny <= e.y) ||
-          (side === 'south' && ny >= e.y) ||
-          (side === 'east'  && nx >= e.y) ||
-          (side === 'west'  && nx <= e.y)) {
+      if (edgeMatches(side, e, nx, ny)) {
+        if (e.gate && this.state.gateConditionsMet
+            && !this.state.gateConditionsMet(e.gate)) {
+          const msg = e.gate.message || 'The way is blocked.';
+          if (this.state.onSign) this.state.onSign(Array.isArray(msg) ? msg[0] : msg);
+          else window.PR_SFX && window.PR_SFX.play('bump');
+          return;
+        }
         this.transitionTo(e.to, e.tx, e.ty);
         return;
       }
     }
   };
+
+  function edgeMatches(side, e, nx, ny) {
+    if (!e) return false;
+    const ex = e.x !== undefined ? e.x : e.y;
+    if (side === 'north') return ny <= e.y;
+    if (side === 'south') return ny >= e.y;
+    if (side === 'east')  return nx >= ex;
+    if (side === 'west')  return nx <= ex;
+    return false;
+  }
 
   World.prototype.tryDoorAt = function(x, y) {
     const m = this.currentMap();

@@ -119,6 +119,84 @@ function tileAt(map, x, y) {
   return row[x];
 }
 
+const OUTDOOR_W = 34;
+const OUTDOOR_H = 28;
+
+function makeGrid(w, h, fill) {
+  const rows = [];
+  for (let y = 0; y < h; y++) {
+    rows.push(Array(w).fill(fill));
+  }
+  return rows;
+}
+
+function putTile(grid, x, y, code) {
+  if (y < 0 || y >= grid.length) return;
+  if (x < 0 || x >= grid[y].length) return;
+  grid[y][x] = code;
+}
+
+function carveBrush(grid, x, y, code, radius) {
+  radius = radius || 0;
+  for (let yy = y - radius; yy <= y + radius; yy++) {
+    for (let xx = x - radius; xx <= x + radius; xx++) {
+      putTile(grid, xx, yy, code);
+    }
+  }
+}
+
+function carveSegment(grid, a, b, code, radius) {
+  let x = a[0], y = a[1];
+  carveBrush(grid, x, y, code, radius);
+  while (x !== b[0] || y !== b[1]) {
+    if (x !== b[0]) x += x < b[0] ? 1 : -1;
+    else if (y !== b[1]) y += y < b[1] ? 1 : -1;
+    carveBrush(grid, x, y, code, radius);
+  }
+}
+
+function carvePath(grid, points, code, radius) {
+  for (let i = 1; i < points.length; i++) {
+    carveSegment(grid, points[i - 1], points[i], code, radius);
+  }
+}
+
+function carveRect(grid, x, y, w, h, code) {
+  for (let yy = y; yy < y + h; yy++) {
+    for (let xx = x; xx < x + w; xx++) putTile(grid, xx, yy, code);
+  }
+}
+
+function scatterTiles(grid, cfg) {
+  if (!cfg || !cfg.codes || !cfg.codes.length) return;
+  const seed = cfg.seed || 0;
+  const fill = cfg.on;
+  for (let y = 1; y < grid.length - 1; y++) {
+    for (let x = 1; x < grid[y].length - 1; x++) {
+      if (fill && grid[y][x] !== fill) continue;
+      const n = (x * 19 + y * 31 + seed) % (cfg.rate || 23);
+      if (n === 0) grid[y][x] = cfg.codes[(x + y + seed) % cfg.codes.length];
+    }
+  }
+}
+
+function makeWindingTiles(cfg) {
+  const grid = makeGrid(OUTDOOR_W, OUTDOOR_H, cfg.fill);
+  carvePath(grid, cfg.path, cfg.pathCode || ',', cfg.pathRadius || 0);
+  if (cfg.branches) {
+    for (const branch of cfg.branches) {
+      carvePath(grid, branch.points, branch.code || cfg.pathCode || ',', branch.radius || 0);
+    }
+  }
+  if (cfg.pockets) {
+    for (const p of cfg.pockets) carveRect(grid, p.x, p.y, p.w, p.h, p.code || ':');
+  }
+  if (cfg.decor) {
+    for (const d of cfg.decor) scatterTiles(grid, d);
+  }
+  return grid.map(row => row.join(''));
+}
+
 const MAPS = {
   rodport: {
     id:'rodport', name:'Rodport Town',
@@ -139,7 +217,7 @@ const MAPS = {
       'Y.\'.\'.............,Y',
       'Y..,..WW.....1.(..,Y',
       'Y..,..WW.)........,Y',
-      'Y.|,,,,,,,,,,,,,,,,Y',
+      ',.|,,,,,,,,,,,,,,,,Y',
       'YYYYYYY,,YYYYYYYYYYY',
       'XXXXXXX,,XXXXXXXXXXX'
     ],
@@ -156,6 +234,7 @@ const MAPS = {
     ],
     signs: {
       '3,11': "RODPORT TOWN — Where every adventure begins.",
+      '1,15': "A late desert road loops back here. Come prepared.",
     },
     doors: {
       '4,4':  { to:'player_house', x:3, y:6 },
@@ -163,6 +242,8 @@ const MAPS = {
       '9,9':  { to:'lab',          x:5, y:8 }
     },
     edges: {
+      west: { x:0, to:'desert', tx:32, ty:14,
+              gate:{ minBadges:6, message:"The desert loop is too harsh without six BADGES." } },
       south: { y:17, to:'route1', tx:7, ty:1 }
     }
   },
@@ -238,30 +319,23 @@ const MAPS = {
 
   route1: {
     id:'route1', name:'Route 1',
-    tiles: [
-      'XXXXXXX,,XXXXXXXXXXXXXXXX',
-      'YYYYYYY,,YYYYYYYYYYYYYYYY',
-      'Yc:c:Y:,,:::::Y:Y:E:e:1:Y',
-      'Y::::Y:,,E:e:1:c:c:Y::::Y',
-      'Y:e:1:c,,:Y::::::::Y:Y:EY',
-      'YY:::::,,:Y:Y:E:e:1:c:c:Y',
-      'YY:Y:E:,,1:c:c::::::::::Y',
-      'Y:c,,,,,,::::::Y:Y:E:e:1Y',
-      'Y::,:::,,:E:e:1:c:c:Y:::Y',
-      'YE:,,1:c:c:Y::::::::Y:Y:Y',
-      'Y:Y,,::::::Y:Y:E:e:1:c:cY',
-      'Y:Y,,:E:e:1:c:c:Y:::::::Y',
-      'Y1:,,,,,,:::::::Y:Y:E:e:Y',
-      'Y::,,,,,,Y:E:e:1:c:c:Y::Y',
-      'Y:E:e:1,,:c:Y::::::::Y:YY',
-      'Yc:Y:::,,:::Y:Y:E:e:1:c:Y',
-      'Y::Y:Y:,,e:1:c:c:Y::::::Y',
-      'Y:1:c:c,,::::::::Y:Y:E:eY',
-      'Y::::::,,:Y:E:e:1:c:c:Y:Y',
-      'YY:E:e:,,c:c:Y::::::::Y:Y',
-      'YYYYYYY,,YYYYYYYYYYYYYYYY',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'Y', pathCode:',', pathRadius:1,
+      path:[[7,0],[7,4],[14,4],[14,8],[9,8],[9,13],[22,13],[22,18],[16,18],[16,23],[18,23],[18,27]],
+      branches:[
+        { points:[[14,8],[20,8],[20,5]], radius:1 },
+        { points:[[9,13],[5,13],[5,18],[11,18]], radius:1 }
+      ],
+      pockets:[
+        { x:16, y:4, w:6, h:4, code:':' },
+        { x:4, y:15, w:8, h:5, code:':' },
+        { x:23, y:14, w:6, h:6, code:':' }
+      ],
+      decor:[
+        { on:'Y', codes:['K','E'], rate:17, seed:3 },
+        { on:'Y', codes:['c','e','1'], rate:11, seed:5 }
+      ]
+    }),
     npcs: [
       { x:5, y:8, dir:'right', sprite:'npc_youth', name:'YOUNGSTER JOE',
         dialog:["Hey, you have a POKEROD?","Let's battle!"],
@@ -285,13 +359,13 @@ const MAPS = {
       { species:'geistmite',   minL:3, maxL:5, weight:1 }
     ],
     hidden: {
-      '14,14': { item:'potion',     count:1 },
-      '15,2':  { item:'rodball',    count:2 },
-      '4,11':  { item:'antidote',   count:1 }
+      '20,5':  { item:'rodball',    count:2 },
+      '11,18': { item:'antidote',   count:1 },
+      '27,18': { item:'potion',     count:1 }
     },
     edges: {
       north: { y:0,  to:'rodport',  tx:7, ty:16 },
-      south: { y:21, to:'brindale', tx:7, ty:1 }
+      south: { y:27, to:'brindale', tx:7, ty:1 }
     }
   },
 
@@ -336,7 +410,7 @@ const MAPS = {
       '13,14':{ to:'brindale_gym', x:4, y:7 }
     },
     edges: {
-      north: { y:0,  to:'route1', tx:7, ty:20 },
+      north: { y:0,  to:'route1', tx:18, ty:26 },
       south: { y:17, to:'route2', tx:7, ty:1 }
     }
   },
@@ -434,30 +508,23 @@ const MAPS = {
 
   route2: {
     id:'route2', name:'Route 2',
-    tiles: [
-      'XXXXXXX,,XXXXXXXXXXXXXXXX',
-      'KKKKKKK,,KKKKKKKKKKKKKKKK',
-      'Km:c:K:,,:::::::K:K:K:1:K',
-      'K::::::,,K:K:1:m:c:K::::K',
-      'K:K:1:m,,:K::::::::::K:KK',
-      'KK:::::,,:::K:K:K:1:m:c:K',
-      'K::K:K:,,,,,,,,,,:::::::K',
-      'K:m:c:K,,,,,,,,,,K:K:K:1K',
-      'K:::::::K:K:K:1,,:c:K:::K',
-      'KK:K:1:m:c:K:::,,:::::K:K',
-      'K:K::::::::::K:,,K:1:m:cK',
-      'K:::K:K:K:1:m:c,,:::::::K',
-      'K1:m:c:K:::::::,,:K:K:K:K',
-      'K::::::,,,,,,,,,,m:c:K::K',
-      'K:K:K:1,,,,,,,,,,::::::KK',
-      'Kc:K:::,,:::::K:K:K:1:m:K',
-      'K::::K:,,K:1:m:c:K::::::K',
-      'K:1:m:c,,::::::::::K:K:KK',
-      'K::::::,,:K:K:K:1:m:c:K:K',
-      'KK:K:K:,,m:c:K::::::::::K',
-      'KKKKKKK,,KKKKKKKKKKKKKKKK',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'K', pathCode:',', pathRadius:1,
+      path:[[7,0],[7,5],[16,5],[16,9],[11,9],[11,14],[24,14],[24,20],[18,20],[18,27]],
+      branches:[
+        { points:[[16,9],[23,9],[23,6],[28,6]], radius:1 },
+        { points:[[11,14],[6,14],[6,20],[12,20]], radius:1 }
+      ],
+      pockets:[
+        { x:19, y:5, w:8, h:4, code:':' },
+        { x:5, y:16, w:9, h:5, code:':' },
+        { x:23, y:21, w:7, h:4, code:':' }
+      ],
+      decor:[
+        { on:'K', codes:['m','c','1'], rate:10, seed:7 },
+        { on:'K', codes:['E'], rate:19, seed:2 }
+      ]
+    }),
     npcs: [
       { x:6, y:8, dir:'right', sprite:'npc_youth', name:'CAMPER MEL',
         dialog:["Heading north already?","Not before you battle me!"],
@@ -476,7 +543,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'brindale', tx:7, ty:16 },
-      south: { y:21, to:'woodfall', tx:7, ty:1 }
+      south: { y:27, to:'woodfall', tx:7, ty:1 }
     }
   },
 
@@ -520,7 +587,7 @@ const MAPS = {
       '10,12':{ to:'woodfall_gym',    x:4, y:7 }
     },
     edges: {
-      north: { y:0,  to:'route2',     tx:7, ty:20 },
+      north: { y:0,  to:'route2',     tx:18, ty:26 },
       south: { y:17, to:'pebblewood', tx:7, ty:1 }
     }
   },
@@ -596,30 +663,23 @@ const MAPS = {
 
   pebblewood: {
     id:'pebblewood', name:'Pebblewood Forest',
-    tiles: [
-      'XXXXXXX,,XXXXXXXXXXXXXXXX',
-      'GGGGGGG,,GGGGGGGGGGGGGGGG',
-      'G:::::G,,::::::gN::::::GG',
-      'G:gN:::,,:GVU::::::gN:::G',
-      'G:::::g,,:::::GVU::::::gG',
-      'GGVU:::,,:gN::::::GVU:::G',
-      'G::::GV,,:::::::::::::GVG',
-      'GgN::::,,,,,,,,,::gN::::G',
-      'G::::gN,,,,,,,,,::::::gNG',
-      'GVU::::::gN:::,,:GVU::::G',
-      'G:::GVU::::::g,,:::::GVUG',
-      'GN::::::GVU:::,,:gN:::::G',
-      'G:::gN:,,,,,,,,,:::::gN:G',
-      'GU:::::,,,,,,,,,GVU:::::G',
-      'G::GVU:,,:::gN::::::GVU:G',
-      'G::::::,,U::::::gN::::::G',
-      'G::gN::,,::GVU::::::gN::G',
-      'G::::::,,::::::GVU::::::G',
-      'G:GVU::,,::gN::::::GVU::G',
-      'G:::::G,,::::::gN::::::GG',
-      'GGGGGGG,,GGGGGGGGGGGGGGGG',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'G', pathCode:'z', pathRadius:1,
+      path:[[7,0],[7,4],[13,4],[13,10],[9,10],[9,15],[21,15],[21,11],[27,11],[27,19],[18,19],[18,27]],
+      branches:[
+        { points:[[13,10],[18,10],[18,6],[24,6]], code:'z', radius:1 },
+        { points:[[21,15],[25,15],[25,22],[12,22],[12,18]], code:'z', radius:1 }
+      ],
+      pockets:[
+        { x:15, y:5, w:8, h:5, code:':' },
+        { x:5, y:12, w:8, h:6, code:':' },
+        { x:23, y:16, w:7, h:7, code:':' }
+      ],
+      decor:[
+        { on:'G', codes:['U','V','g'], rate:12, seed:4 },
+        { on:'G', codes:['4','n'], rate:18, seed:9 }
+      ]
+    }),
     npcs: [
       { x:14, y:6, dir:'left', sprite:'npc_youth', name:'BUG-FAN ARI',
         dialog:["Bugs are the BEST POKEROD.","I'll prove it in battle!"],
@@ -636,7 +696,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'woodfall',  tx:7, ty:16 },
-      south: { y:21, to:'crestrock', tx:7, ty:1 }
+      south: { y:27, to:'crestrock', tx:7, ty:1 }
     }
   },
 
@@ -658,13 +718,13 @@ const MAPS = {
       'V..,.....BDB..2...,V',
       'V..,..\'...........,V',
       'V.|,..............,V',
-      'V..,,,,,,,,,,,,,,,,V',
+      'V..,,,,,,,,,,,,,,,,,',
       'VVVVVVV,,VVVVVVVVVVV',
       'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
-        dialog:["Welcome to CRESTROCK.","The slate-roofed building south is the CRESTROCK GYM.","South of town lies GLIMCAVERN."] }
+        dialog:["Welcome to CRESTROCK.","The slate-roofed building south is the CRESTROCK GYM.","East of town, HIGHSPIRE climbs into the clouds."] }
     ],
     ambient: [
       { species:'pebra',     x:8,  y:9,  range:2 },
@@ -680,7 +740,8 @@ const MAPS = {
       '10,12':{ to:'crestrock_gym',    x:4, y:7 }
     },
     edges: {
-      north: { y:0,  to:'pebblewood', tx:7, ty:20 },
+      north: { y:0,  to:'pebblewood', tx:18, ty:26 },
+      east:  { x:19, to:'mountain', tx:1, ty:14 },
       south: { y:17, to:'glimcavern', tx:7, ty:1 }
     }
   },
@@ -756,31 +817,29 @@ const MAPS = {
 
   glimcavern: {
     id:'glimcavern', name:'Glimcavern',
-    tiles: [
-      'XXXXXXX,,XXXXXXXXXXX',
-      'TTTTTTT,,TTTTTTTTTTT',
-      'TssssssTssTsssssssTT',
-      'Ts:::sTsssTs::ssssTT',
-      'Tss::ssssssss::sssTT',
-      'TssssTsTssTsssTsssTT',
-      'Ts::ssssssssss::ssTT',
-      'TssssTsssTsssssssTTT',
-      'Ts::sssTssDs:::sssTT',
-      'TsssssTssssTsssssTTT',
-      'Ts::ssssssss:::ssTTT',
-      'TssssTsTssTsssssssTT',
-      'Ts:::ssssss::ssssTTT',
-      'TssssTssssTssTsssTTT',
-      'TssssssTssTsssssssTT',
-      'TTTTTTT,,TTTTTTTTTTT',
-      'XXXXXXX,,XXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'#', pathCode:'s', pathRadius:1,
+      path:[[7,0],[7,5],[15,5],[15,9],[10,9],[10,14],[24,14],[24,19],[17,19],[17,24],[18,24],[18,27]],
+      branches:[
+        { points:[[15,9],[22,9],[22,6],[29,6]], code:'s', radius:1 },
+        { points:[[10,14],[5,14],[5,20],[13,20]], code:'s', radius:1 }
+      ],
+      pockets:[
+        { x:18, y:6, w:8, h:4, code:':' },
+        { x:4, y:16, w:8, h:5, code:':' },
+        { x:24, y:20, w:6, h:5, code:':' }
+      ],
+      decor:[
+        { on:'#', codes:['T',')'], rate:15, seed:8 },
+        { on:'#', codes:['('], rate:20, seed:6 }
+      ]
+    }),
     npcs: [
-      { x:6, y:8, dir:'right', sprite:'npc_youth', name:'SPELUNKER GUS',
+      { x:10, y:14, dir:'right', sprite:'npc_youth', name:'SPELUNKER GUS',
         dialog:["I came down here looking for crystals.","Found a fight instead!"],
         trainer: { team:[['pebra',12],['geistmite',12]], reward:520,
                    defeat:["Bah! The dark always wins, eventually."] } },
-      { x:15, y:12, dir:'down', sprite:'ball', name:'',
+      { x:27, y:22, dir:'down', sprite:'ball', name:'',
         legendary:true, species:'stormfangis', level:30,
         dialog:["A faint thunder rolls deep in the dark..."],
         afterDialog:["The thunder is gone now. Just stone."] }
@@ -793,11 +852,11 @@ const MAPS = {
       { species:'crysthorn', minL:12, maxL:15, weight:1 }
     ],
     doors: {
-      '10,8': { to:'glimcavern_b1', x:10, y:1 }
+      '29,6': { to:'glimcavern_b1', x:10, y:1 }
     },
     edges: {
       north: { y:0,  to:'crestrock', tx:7, ty:6 },
-      south: { y:16, to:'frostmere', tx:7, ty:1 }
+      south: { y:27, to:'frostmere', tx:7, ty:1 }
     }
   },
 
@@ -878,7 +937,7 @@ const MAPS = {
       '10,12':{ to:'frostmere_gym',    x:4, y:7 }
     },
     edges: {
-      north: { y:0,  to:'glimcavern', tx:7, ty:15 },
+      north: { y:0,  to:'glimcavern', tx:18, ty:26 },
       south: { y:17, to:'frostpeak',  tx:7, ty:1 }
     }
   },
@@ -954,32 +1013,25 @@ const MAPS = {
 
   frostpeak: {
     id:'frostpeak', name:'Frostpeak',
-    tiles: [
-      'XXXXXXX,,XXXXXXXXXXXXXXXX',
-      'QQQQQQQ,,QQQQQQQQQQQQQQQQ',
-      'QQ:k:Q:,,:::::::::Q:Q:k:Q',
-      'Q::::::,,Q:Q:k:Q:k:Q::::Q',
-      'Q:Q:k:Q,,:Q::::::::::::QQ',
-      'QQ:::::,,,,,,:Q:Q:k:Q:k:Q',
-      'Q::::Q:,,,,,,:::::::::::Q',
-      'Q:Q:k:Q::::,,::::::Q:Q:kQ',
-      'Q:::::::::Q,,:k:Q:k:Q:::Q',
-      'QQ:Q:k:Q:k:,,:::::::::::Q',
-      'Q:Q::::::::,,,,,,,,k:Q:kQ',
-      'Q:::::Q:Q:k,,,,,,,,:::::Q',
-      'Qk:Q:k:Q:::::::::,,:Q:Q:Q',
-      'Q::::::::::Q:Q:k:,,k:Q::Q',
-      'Q:Q:Q:k:Q:k:Q::::,,:::::Q',
-      'Qk:Q:::,,,,,,,,,,,,:k:Q:Q',
-      'Q::::::,,,,,,,,,,,,:::::Q',
-      'Q:k:Q:k,,::::::::::::Q:QQ',
-      'Q::::::,,:::Q:Q:k:Q:k:Q:Q',
-      'Q::Q:Q:,,Q:k:Q::::::::::Q',
-      'QQQQQQQ,,QQQQQQQQQQQQQQQQ',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'Q', pathCode:'6', pathRadius:1,
+      path:[[7,0],[7,4],[15,4],[15,8],[11,8],[11,13],[25,13],[25,18],[19,18],[19,23],[19,27]],
+      branches:[
+        { points:[[15,8],[24,8],[24,5],[29,5]], code:'6', radius:1 },
+        { points:[[11,13],[6,13],[6,20],[14,20]], code:'6', radius:1 }
+      ],
+      pockets:[
+        { x:17, y:5, w:8, h:4, code:':' },
+        { x:5, y:15, w:8, h:6, code:':' },
+        { x:22, y:19, w:7, h:5, code:':' }
+      ],
+      decor:[
+        { on:'Q', codes:['k','2'], rate:11, seed:6 },
+        { on:'Q', codes:['('], rate:21, seed:12 }
+      ]
+    }),
     npcs: [
-      { x:14, y:6, dir:'left', sprite:'npc_old', name:'CLIMBER VAL',
+      { x:24, y:8, dir:'left', sprite:'npc_old', name:'CLIMBER VAL',
         dialog:["The wind up here cuts to the bone.","Show me your strongest!"],
         trainer: { team:[['frostpup',16],['snowox',16]], reward:760,
                    defeat:["Aye... the slope respects your team."] } }
@@ -993,7 +1045,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'frostmere',  tx:7, ty:16 },
-      south: { y:21, to:'harborside', tx:7, ty:1 }
+      south: { y:27, to:'harborside', tx:7, ty:1 }
     }
   },
 
@@ -1015,13 +1067,13 @@ const MAPS = {
       'O..,..1........WWWWW',
       'O.\'............WWWWW',
       'O..,......1c...WWWWW',
-      'O.|,,,,,,,,,,,,,,,,O',
+      'O.|,,,,,,,,,,,,,,,,,',
       'OOOOOOO,,OOOOOOOOOOO',
       'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
       { x:9, y:9, dir:'right', sprite:'npc_youth', name:'DOCKHAND TEO',
-        dialog:["HARBORSIDE - last stop before the SEAROUTE.","The slate-roofed building south is the HARBORSIDE GYM.","If your creatures love the water, you'll fit right in."] }
+        dialog:["HARBORSIDE - last stop before the SEAROUTE.","The slate-roofed building south is the HARBORSIDE GYM.","The beach path heads east from the dock road."] }
     ],
     ambient: [
       { species:'aquapup',   x:8,  y:7,  range:2 },
@@ -1037,7 +1089,8 @@ const MAPS = {
       '11,11':{ to:'harborside_gym',    x:4, y:7 }
     },
     edges: {
-      north: { y:0,  to:'frostpeak', tx:7, ty:20 },
+      north: { y:0,  to:'frostpeak', tx:19, ty:26 },
+      east:  { x:19, to:'beach', tx:1, ty:15 },
       south: { y:17, to:'searoute',  tx:7, ty:1 }
     }
   },
@@ -1113,32 +1166,26 @@ const MAPS = {
 
   searoute: {
     id:'searoute', name:'Searoute',
-    tiles: [
-      'XXXXXXX,,XXXXXXXXXXXXXXXX',
-      'OOOOOOO,,OOOOOOOOOOOOOOOO',
-      'OO:s:O:,,:::::::::O:3:s:O',
-      'O::::::,,O:3:s:O:s:O::::O',
-      'O:3:s:O,,:O::::::::::::OO',
-      'OO:::::,,:::::O:3:s:O:s:O',
-      'O::::O:,,s:O:s:O::::::::O',
-      'O:O:s:O,,::::::::::O:3:sO',
-      'O::::::,,,,,,:::O:s:O:::O',
-      'OO:3:s:,,,,,,,,:::::::::O',
-      'O:O::::::::::,,O:3:s:O:sO',
-      'O:::::O:3:s:O,,:O:::::::O',
-      'Os:O:s:O:::::,,:::::O:3:O',
-      'O::::::::::O:,,s:O:s:O::O',
-      'O:O:3:s,,,,,,,,:::::::::O',
-      'Os:O:::,,,,,,,,:O:3:s:O:O',
-      'O::::::,,3:s:O:s:O::::::O',
-      'O:s:O:s,,::::::::::::O:3O',
-      'O::::::,,:::O:3:s:O:s:O:O',
-      'O::O:3:,,O:s:O::::::::::O',
-      'OOOOOOO,,OOOOOOOOOOOOOOOO',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'O', pathCode:'t', pathRadius:1,
+      path:[[7,0],[7,4],[14,4],[14,10],[9,10],[9,15],[22,15],[22,11],[28,11],[28,20],[18,20],[18,27]],
+      branches:[
+        { points:[[14,10],[21,10],[21,6],[27,6]], code:'u', radius:1 },
+        { points:[[22,15],[27,15],[27,23],[11,23],[11,19]], code:'u', radius:1 }
+      ],
+      pockets:[
+        { x:16, y:5, w:8, h:5, code:':' },
+        { x:5, y:16, w:8, h:5, code:':' },
+        { x:22, y:21, w:7, h:4, code:':' },
+        { x:27, y:2, w:5, h:8, code:'W' }
+      ],
+      decor:[
+        { on:'O', codes:['3','s'], rate:10, seed:13 },
+        { on:'O', codes:['W'], rate:28, seed:4 }
+      ]
+    }),
     npcs: [
-      { x:14, y:8, dir:'left', sprite:'npc_youth', name:'FISHER LIL',
+      { x:21, y:10, dir:'left', sprite:'npc_youth', name:'FISHER LIL',
         dialog:["Hey there, traveler!","Care to test the salty waves?"],
         trainer: { team:[['mistfin',20],['aquapup',20],['splashfin',20]], reward:1100,
                    defeat:["The tide always returns. So will I."] } }
@@ -1152,7 +1199,7 @@ const MAPS = {
     ],
     edges: {
       north: { y:0,  to:'harborside', tx:7, ty:6 },
-      south: { y:21, to:'summitvale', tx:7, ty:1 }
+      south: { y:27, to:'summitvale', tx:7, ty:1 }
     }
   },
 
@@ -1174,7 +1221,7 @@ const MAPS = {
       'N..,..\'...____....,N',
       'N..,...|..........,N',
       'N..,..............,N',
-      'N.|,,,,,,,,,,,,,,,,N',
+      'N.|,,,,,,,,,,,,,,,,,',
       'NNNNNNNNNNNNNNNNNNNN',
       'NNNNNNNNNNNNNNNNNNNN'
     ],
@@ -1194,7 +1241,7 @@ const MAPS = {
       { species:'glimkit',  x:15, y:14, range:2 }
     ],
     signs: {
-      '3,8': "SUMMITVALE - The road's end, for now."
+      '3,8': "SUMMITVALE - The road bends east toward the desert loop."
     },
     doors: {
       '5,5':  { to:'summitvale_center', x:4, y:6 },
@@ -1202,7 +1249,8 @@ const MAPS = {
       '12,11':{ to:'summitvale_house',  x:3, y:6 }
     },
     edges: {
-      north: { y:0, to:'searoute', tx:7, ty:20 }
+      north: { y:0, to:'searoute', tx:18, ty:26 },
+      east:  { x:19, to:'desert', tx:1, ty:14 }
     }
   },
 
@@ -1270,32 +1318,25 @@ const MAPS = {
 ,
 desert: {
     id:'desert', name:'Sunbleach Desert',
-    tiles: [
-      'JJJJJJJJJJJJJJJJJJJJJJJJJ',
-      'J:::J:J,,:3:O:J:::::::::J',
-      'J3:O:J:,,:::::::::J:J:5:J',
-      'J::::::,,J:J:5:3:O:J::::J',
-      'J:J:5:3,,:J::::::::::::JJ',
-      'JJ:::::,,:::::J:J:5:3:O:J',
-      'J::::J:,,,,,,,,J::::::::J',
-      'J:3:O:J,,,,,,,,::::J:J:5J',
-      'J:::::::::J:J,,:3:O:J:::J',
-      'JJ:J:5:3:O:J:,,:::::::::J',
-      'J:J::::::::::,,J:J:5:3:OJ',
-      'J:::::J:J:5:3,,:J:::::::J',
-      'J5:3:O:,,,,,,,,:::::J:J:J',
-      'J::::::,,,,,,,,5:3:O:J::J',
-      'J:J:J:5,,:O:J:::::::::::J',
-      'JO:J:::,,:::::::J:J:5:3:J',
-      'J::::::,,J:5:3:O:J::::::J',
-      'J:5:3:O,,::::::::::::J:JJ',
-      'J::::::,,:::J:J:5:3:O:J:J',
-      'J::J:J:,,3:O:J::::::::::J',
-      'J:O:J::,,::::::::J:J:5:3J',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'J', pathCode:'5', pathRadius:1,
+      path:[[0,14],[5,14],[5,9],[13,9],[13,5],[23,5],[23,11],[18,11],[18,17],[27,17],[27,22],[32,22],[32,14],[33,14]],
+      branches:[
+        { points:[[13,9],[9,9],[9,18],[14,18]], code:'5', radius:1 },
+        { points:[[23,11],[29,11],[29,6]], code:'5', radius:1 }
+      ],
+      pockets:[
+        { x:7, y:15, w:8, h:5, code:':' },
+        { x:20, y:6, w:8, h:4, code:':' },
+        { x:24, y:18, w:7, h:5, code:':' }
+      ],
+      decor:[
+        { on:'J', codes:['3','O'], rate:9, seed:14 },
+        { on:'J', codes:['('], rate:18, seed:3 }
+      ]
+    }),
     npcs: [
-      { x:12, y:6, dir:'down', sprite:'npc_old', name:'GYM LEADER MIRE',
+      { x:23, y:11, dir:'down', sprite:'npc_old', name:'GYM LEADER MIRE',
         gym:true, badge:'DUNE',
         dialog:["I am MIRE, leader of the SUNBLEACH GYM.","The dunes test only the worthy. Do you have what it takes?"],
         gymRequirement:{ minBadges:5 },
@@ -1312,36 +1353,30 @@ desert: {
       { species:'geistmite', minL:14, maxL:18, weight:2 }
     ],
     edges: {
-      south: { y:21, to:'summitvale', tx:7, ty:6 }
+      west: { x:0, to:'summitvale', tx:18, ty:15 },
+      east: { x:33, to:'rodport', tx:1, ty:15 }
     }
   },
 
   beach: {
     id:'beach', name:'Sunkissed Beach',
-    tiles: [
-      'OOOOOOOOOOOOOOOOOOOOOOOOO',
-      'O:::3:O,,:W:s:O:::::::::O',
-      'OW:s:O:,,:::::::::3:O:WWO',
-      'O::::::,,3:O:t:W:s:O::WWO',
-      'O:O:t:W,,:O:::::::::::WWO',
-      'OO:::::,,:::::3:O:t:W:WWO',
-      'O::::3:,,t:W:s:O::::::WWO',
-      'O:W:s:O,,,,,,::::::3:OWWO',
-      'O::::::,,,,,,:t:W:s:O:WWO',
-      'O3:O:t:W:s:,,:::::::::WWO',
-      'O:O::::::::,,::3:O:t:WWWO',
-      'O:::::3:O:t,,:s:O:::::WWO',
-      'Ot:W:s:O:::,,:::::::3:WWO',
-      'O::::::,,,,,,O:t:W:s:OWWO',
-      'O:3:O:t,,,,,,:::::::::WWO',
-      'Os:O:::,,:::::::3:O:t:WWO',
-      'O::::::,,O:t:W:s:O::::WWO',
-      'O:t:W:s,,::::::::::::3WWO',
-      'O::::::,,:::3:O:t:W:s:WWO',
-      'O::3:O:,,W:s:O::::::::WWO',
-      'O:s:O::,,::::::::3:O:t:WO',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'O', pathCode:'u', pathRadius:1,
+      path:[[0,15],[6,15],[6,10],[14,10],[14,6],[24,6],[24,13],[18,13],[18,20],[28,20]],
+      branches:[
+        { points:[[14,10],[9,10],[9,22],[15,22]], code:'t', radius:1 },
+        { points:[[24,13],[30,13],[30,8]], code:'t', radius:1 }
+      ],
+      pockets:[
+        { x:7, y:17, w:8, h:6, code:':' },
+        { x:20, y:7, w:8, h:5, code:':' },
+        { x:25, y:14, w:7, h:5, code:':' },
+        { x:29, y:1, w:5, h:26, code:'W' }
+      ],
+      decor:[
+        { on:'O', codes:['3','s'], rate:9, seed:4 }
+      ]
+    }),
     npcs: [],
     encounters: [
       { species:'splashfin', minL:14, maxL:18, weight:5 },
@@ -1351,38 +1386,31 @@ desert: {
       { species:'galewing',  minL:14, maxL:18, weight:3 }
     ],
     edges: {
-      south: { y:21, to:'harborside', tx:7, ty:16 }
+      west: { x:0, to:'harborside', tx:18, ty:15 }
     }
   },
 
   mountain: {
     id:'mountain', name:'Highspire Mountain',
-    tiles: [
-      'GGGGGGGGGGGGGGGGGGGGGGGGG',
-      'G:::#:G,,:v:#:G:::::::::G',
-      'Gv:#:G:,,:::::::::#:G:G:G',
-      'G::::::,,#:G:G:v:#:G::::G',
-      'G:G:G:v,,:G::::::::::::#G',
-      'GG:::::,,,,,,,,,,:G:v:#:G',
-      'G::::#:,,,,,,,,,,:::::::G',
-      'G:v:#:G::::::::,,::#:G:GG',
-      'G:::::::::#:G:G,,:#:G:::G',
-      'G#:G:G:v:#:G:::,,:::::::G',
-      'G:G::::::::::::,,G:G:v:#G',
-      'G:::::#,,,,,,,,,,:::::::G',
-      'GG:v:#:,,,,,,,,,,:::#:G:G',
-      'G::::::,,::#:G:G:v:#:G::G',
-      'G:#:G:G,,:#:G:::::::::::G',
-      'G#:G:::,,:::::::#:G:G:v:G',
-      'G:::,,,,,G:G:v:#:G::::::G',
-      'G:G,,,,,,::::::::::::#:GG',
-      'G::,,:::::::#:G:G:v:#:G:G',
-      'G::,,G:G:v:#:G::::::::::G',
-      'G:#:G::,,::::::::#:G:G:vG',
-      'XXXXXXX,,XXXXXXXXXXXXXXXX'
-    ],
+    tiles: makeWindingTiles({
+      fill:'G', pathCode:'v', pathRadius:1,
+      path:[[0,14],[5,14],[5,8],[12,8],[12,4],[21,4],[21,12],[28,12],[28,21],[19,21]],
+      branches:[
+        { points:[[12,8],[17,8],[17,14],[11,14]], code:'v', radius:1 },
+        { points:[[21,12],[25,12],[25,6],[30,6]], code:'v', radius:1 }
+      ],
+      pockets:[
+        { x:8, y:12, w:8, h:5, code:':' },
+        { x:22, y:6, w:8, h:5, code:':' },
+        { x:21, y:18, w:8, h:5, code:':' }
+      ],
+      decor:[
+        { on:'G', codes:['#',')'], rate:11, seed:10 },
+        { on:'G', codes:['('], rate:17, seed:2 }
+      ]
+    }),
     npcs: [
-      { x:12, y:6, dir:'down', sprite:'npc_youth', name:'GYM LEADER VOLTA',
+      { x:28, y:12, dir:'down', sprite:'npc_youth', name:'GYM LEADER VOLTA',
         gym:true, badge:'SPARK',
         dialog:["I am VOLTA, leader of the HIGHSPIRE GYM.","The mountain crackles with electric storms — and so does my team!"],
         gymRequirement:{ minBadges:3 },
@@ -1399,7 +1427,7 @@ desert: {
       { species:'snowox',    minL:18, maxL:22, weight:2 }
     ],
     edges: {
-      south: { y:21, to:'crestrock', tx:7, ty:16 }
+      west: { x:0, to:'crestrock', tx:18, ty:15 }
     }
   }
 };

@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.16.3';
-  const BUILD = '2026.05.05-63';
+  const VERSION = 'v0.17.0';
+  const BUILD = '2026.05.06-64';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -778,6 +778,11 @@
   }
 
   // ---------- Pause menu ----------
+  const MENU_ICONS = {
+    MAP:'map', DEX:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
+    QUEST:'map', PVP:'party', SETTINGS:'gear', SAVE:'save', EXIT:'x'
+  };
+
   function openPauseMenu() {
     state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
@@ -819,31 +824,39 @@
     if (m.viewing === 'party') {
       drawPartyView(); return;
     }
-    const w = 92;
-    // +12 below options for the equipped-gear line.
-    const h = m.options.length * 12 + 22 + 12;
-    const x = VIEW_W - w - 6, y = 6;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    // Money chip at the top so it never collides with entries.
-    window.PR_UI.drawText(ctx, '$' + state.player.money, x + 4, y + 4, '#385890');
-    // Separator line.
-    ctx.fillStyle = '#202020';
-    ctx.fillRect(x + 4, y + 13, w - 8, 1);
+    ctx.fillStyle = 'rgba(8,12,20,0.42)';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    const w = 122, h = 144;
+    const x = VIEW_W - w - 6, y = 8;
+    window.PR_UI.panel(ctx, x, y, w, h, {
+      fill:'#f8f0d8', border:'#202020', shadow:'#c89048', highlight:'#fff8e8'
+    });
+    window.PR_UI.header(ctx, 'START', x + 4, y + 4, w - 8, {
+      fill:'#1a0204', line:'#f0c020', text:'#f0c020'
+    });
+    const badges = (state.player.badges || []).length;
+    window.PR_UI.chip(ctx, x + 6, y + 20, '$' + state.player.money, {
+      fill:'#e8f0ff', border:'#385890'
+    });
+    window.PR_UI.chip(ctx, x + 68, y + 20, 'BDG ' + badges, {
+      fill:'#fff0c8', border:'#a86020'
+    });
     for (let i = 0; i < m.options.length; i++) {
-      const cy = y + 17 + i * 12;
-      if (i === m.idx) window.PR_UI.drawText(ctx, '>', x + 4, cy, '#e83838');
-      window.PR_UI.drawText(ctx, m.options[i], x + 12, cy, '#202020');
+      const cy = y + 35 + i * 10;
+      const active = i === m.idx;
+      window.PR_UI.selectBar(ctx, x + 5, cy - 1, w - 10, 10, active);
+      window.PR_UI.icon(ctx, MENU_ICONS[m.options[i]], x + 10, cy, active ? '#1a0204' : '#385890');
+      window.PR_UI.drawText(ctx, m.options[i], x + 24, cy + 1, active ? '#1a0204' : '#202020');
     }
     // Currently equipped trinket (if any), shown beneath the menu list.
     const eq = state.player.equipment;
     const trinket = eq && eq.trinket;
     const tDef = trinket && window.PR_ITEMS && window.PR_ITEMS.byId(trinket);
-    const gearY = y + h - 10;
-    window.PR_UI.drawText(ctx, 'GEAR:' + (tDef ? tDef.name.slice(0, 10) : '(none)'),
-                          x + 4, gearY, '#806040');
+    const gearText = 'GEAR ' + (tDef ? tDef.name.slice(0, 9).toUpperCase() : 'NONE');
+    window.PR_UI.drawText(ctx, gearText, x + 8, y + h - 11, '#806040');
     if (m.flashTimer > 0) {
       m.flashTimer -= 1/60;
-      window.PR_UI.box(ctx, 40, 70, 160, 20, '#fff', '#202020');
+      window.PR_UI.panel(ctx, 40, 70, 160, 20, { fill:'#fff', border:'#202020' });
       window.PR_UI.drawText(ctx, m.flash, 50, 76, '#202020');
     }
   }
@@ -915,13 +928,13 @@
 
   function drawSettings() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    window.PR_UI.drawText(ctx, 'SETTINGS', x + 8, y + 4, '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'SETTINGS', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
     for (let i = 0; i < SETTINGS_ROWS.length; i++) {
       const row = SETTINGS_ROWS[i];
       const cy = y + 22 + i * 16;
-      if (i === state.settingsView.idx) window.PR_UI.drawText(ctx, '>', x + 4, cy, '#e83838');
+      if (i === state.settingsView.idx) window.PR_UI.selectBar(ctx, x + 6, cy - 2, w - 12, 12, true);
       window.PR_UI.drawText(ctx, row.label, x + 12, cy, '#202020');
       let val;
       if (row.type === 'bool') val = state.settings[row.key] ? 'ON' : 'OFF';
@@ -972,8 +985,8 @@
   }
   function drawQuests() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    window.PR_UI.drawText(ctx, 'QUESTS', x + 6, y + 4, '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'QUESTS', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
     const list = window.PR_QUESTS ? window.PR_QUESTS.list(state) : [];
     if (!list.length) {
@@ -983,7 +996,7 @@
     for (let i = 0; i < list.length; i++) {
       const e = list[i];
       const cy = y + 22 + i * 18;
-      if (i === state.questsView.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 2, w - 8, 18); }
+      if (i === state.questsView.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 18, true);
       const mark = e.status === 'done' ? '*' : '.';
       window.PR_UI.drawText(ctx, mark + ' ' + e.def.name, x + 8, cy, e.status === 'done' ? '#208830' : '#202020');
       window.PR_UI.drawText(ctx, e.def.desc.slice(0, 36), x + 8, cy + 8, '#806040');
@@ -1060,8 +1073,8 @@
   function drawBox() {
     ensureBox();
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    window.PR_UI.drawText(ctx, 'PC STORAGE', x + 6, y + 4, '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'PC STORAGE', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK  L/R:SIDE', x + w - 90, y + 4, '#806040');
 
     // Two columns: BOX | PARTY
@@ -1072,7 +1085,7 @@
         const mon = list[i];
         const cy = y + 28 + i * 16;
         if (isActive && i === state.boxView.idx) {
-          ctx.fillStyle = '#f0c020'; ctx.fillRect(sx, cy - 2, colW, 14);
+          window.PR_UI.selectBar(ctx, sx, cy - 2, colW, 14, true);
         }
         if (mon) {
           window.PR_MONS.drawCreature(ctx, mon.species, sx + 2, cy - 2, 14, false);
@@ -1155,8 +1168,8 @@
 
   function drawBag() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    window.PR_UI.drawText(ctx, 'BAG', x + 6, y + 4, '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'BAG', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
     const items = bagItems();
     if (!items.length) {
@@ -1172,7 +1185,7 @@
       if (i >= items.length) break;
       const cy = startY + r * rowH;
       const it = items[i];
-      if (i === v.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 1, w - 8, 11); }
+      if (i === v.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 1, w - 8, 11, true);
       window.PR_UI.drawText(ctx, it.def.name, x + 8, cy, '#202020');
       window.PR_UI.drawText(ctx, 'x' + it.count, x + w - 32, cy, '#385890');
     }
@@ -1239,14 +1252,15 @@
 
   function drawBagTarget() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#a8c0e8', '#202020');
-    window.PR_UI.drawText(ctx, 'USE ' + state.bagTarget.def.name + ' ON?', x + 6, y + 4, '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
+    window.PR_UI.header(ctx, 'USE ITEM', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, state.bagTarget.def.name + ' ON?', x + 8, y + 18, '#202020');
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
     const t = state.bagTarget;
     for (let i = 0; i < state.party.length; i++) {
       const mon = state.party[i];
-      const cy = y + 22 + i * 20;
-      if (i === t.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 2, w - 8, 18); }
+      const cy = y + 34 + i * 18;
+      if (i === t.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 18, true);
       window.PR_MONS.drawCreature(ctx, mon.species, x + 6, cy - 2, 18, false);
       window.PR_UI.drawText(ctx, mon.nickname, x + 28, cy, '#202020');
       window.PR_UI.drawText(ctx, 'L' + mon.level, x + 110, cy, '#202020');
@@ -1295,17 +1309,17 @@
 
   function drawSlotPicker() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     const v = state.slotPicker;
     const title = v.action === 'save' ? 'SAVE TO WHICH SLOT?' : 'LOAD WHICH SLOT?';
-    window.PR_UI.drawText(ctx, title, x + 6, y + 4, '#202020');
+    window.PR_UI.header(ctx, title.slice(0, 24), x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
     const info = window.PR_SAVE.slotInfo();
     const last = window.PR_SAVE.lastSlot();
     for (let i = 0; i < 3; i++) {
       const cy = y + 22 + i * 32;
       const slot = info[i];
-      if (i === v.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(x + 4, cy - 2, w - 8, 28); }
+      if (i === v.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 28, true);
       window.PR_UI.drawText(ctx, 'SLOT ' + (i + 1) + (i === last ? ' *' : ''), x + 8, cy, '#202020');
       if (slot.empty) {
         window.PR_UI.drawText(ctx, '-- EMPTY --', x + 60, cy, '#806040');
@@ -1390,9 +1404,9 @@
     ensureDex();
     const ids = dexEntries();
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     const seenN = state.dex.seen.size, caughtN = state.dex.caught.size;
-    window.PR_UI.drawText(ctx, 'POKEDEX', x + 6, y + 4, '#202020');
+    window.PR_UI.header(ctx, 'POKEDEX', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'SEEN ' + seenN + ' CAUGHT ' + caughtN, x + 60, y + 4, '#385890');
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
 
@@ -1406,7 +1420,7 @@
       const id = ids[i];
       const sp = window.PR_DATA.CREATURES[id];
       const cy = listY + r * rowH;
-      if (i === v.idx) { ctx.fillStyle = '#f0c020'; ctx.fillRect(listX, cy - 1, 100, 11); }
+      if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, 100, 11, true);
       const num = String(sp.dex).padStart(3, '0');
       const seen = state.dex.seen.has(id);
       const caught = state.dex.caught.has(id);
@@ -1420,7 +1434,7 @@
     const sp = window.PR_DATA.CREATURES[selId];
     const seen = state.dex.seen.has(selId);
     const dx = x + 110, dy = y + 14, dw = w - 116, dh = h - 18;
-    window.PR_UI.box(ctx, dx, dy, dw, dh, '#a8c0e8', '#202020');
+    window.PR_UI.panel(ctx, dx, dy, dw, dh, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
     if (seen) {
       window.PR_MONS.drawCreature(ctx, selId, dx + 4, dy + 4, 32, false);
       window.PR_UI.drawText(ctx, sp.name, dx + 40, dy + 4, '#202020');
@@ -1439,29 +1453,59 @@
   }
 
   // ---------- World map + warp ----------
-  // Linear chain of towns with their connecting routes. Spawn coords
-  // are tiles already known walkable from each town's south-side door.
-  const TOWNS = [
-    { id:'rodport',    name:'RODPORT',    spawn:{x:4,  y:5,  dir:'down'} },
-    { id:'brindale',   name:'BRINDALE',   spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'woodfall',   name:'WOODFALL',   spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'crestrock',  name:'CRESTROCK',  spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'frostmere',  name:'FROSTMERE',  spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'harborside', name:'HARBORSIDE', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'summitvale', name:'SUMMITVALE', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'mountain',   name:'HIGHSPIRE',  spawn:{x:7,  y:2,  dir:'down'} },
-    { id:'beach',      name:'BEACH',      spawn:{x:7,  y:2,  dir:'down'} },
-    { id:'desert',     name:'DESERT',     spawn:{x:7,  y:2,  dir:'down'} }
+  // Circular region layout. Spawn coords are known walkable arrival tiles.
+  const WORLD_NODES = [
+    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN',  x:118, y:24,  color:'#60b870', spawn:{x:4,  y:5,  dir:'down'} },
+    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN',  x:158, y:38,  color:'#80c878', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN',  x:178, y:74,  color:'#50a860', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN',  x:158, y:110, color:'#a89870', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'mountain',   name:'HIGHSPIRE',  short:'HI',  kind:'SPUR',  x:204, y:118, color:'#a8b8d8', spawn:{x:2,  y:14, dir:'right'} },
+    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN',  x:118, y:124, color:'#98d8e8', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN',  x:78,  y:110, color:'#58a8d8', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'beach',      name:'BEACH',      short:'BCH', kind:'SPUR',  x:34,  y:118, color:'#f0d070', spawn:{x:2,  y:15, dir:'right'} },
+    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN',  x:58,  y:74,  color:'#d88858', spawn:{x:7,  y:6,  dir:'down'} },
+    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:78,  y:38,  color:'#d8a850', spawn:{x:2,  y:14, dir:'right'} }
   ];
-  const ROUTES_BETWEEN = [
-    'ROUTE 1','ROUTE 2','PEBBLEWOOD','GLIMCAVERN','FROSTPEAK','SEAROUTE',
-    '(branch from CRESTROCK)','(branch from HARBORSIDE)','(branch from SUMMITVALE)'
+  const WORLD_LINKS = [
+    { a:'rodport', b:'brindale',   label:'ROUTE 1',      color:'#74b870' },
+    { a:'brindale', b:'woodfall',  label:'ROUTE 2',      color:'#60a858' },
+    { a:'woodfall', b:'crestrock', label:'PEBBLEWOOD',   color:'#509850' },
+    { a:'crestrock', b:'frostmere', label:'GLIMCAVERN',  color:'#807070' },
+    { a:'frostmere', b:'harborside', label:'FROSTPEAK',  color:'#90c8e8' },
+    { a:'harborside', b:'summitvale', label:'SEAROUTE',  color:'#58a8d8' },
+    { a:'summitvale', b:'desert',  label:'DUNE ROAD',    color:'#d8a850' },
+    { a:'desert', b:'rodport',    label:'DESERT LOOP',   color:'#c89048', gate:'6 BADGES' },
+    { a:'crestrock', b:'mountain', label:'HIGHSPIRE',    color:'#b8c8e0', spur:true },
+    { a:'harborside', b:'beach',   label:'BEACH PATH',   color:'#e0c860', spur:true }
   ];
+  const WORLD_MAP_HINTS = {
+    player_house:'rodport', rival_house:'rodport', lab:'rodport',
+    route1:'rodport', route2:'brindale', pebblewood:'woodfall',
+    crestrock_center:'crestrock', crestrock_mart:'crestrock', crestrock_gym:'crestrock',
+    woodfall_center:'woodfall', woodfall_mart:'woodfall', woodfall_gym:'woodfall',
+    brindale_gym:'brindale', pokecenter:'brindale', mart:'brindale', townhouse:'brindale',
+    glimcavern:'crestrock', glimcavern_b1:'crestrock',
+    frostmere:'frostmere', frostmere_center:'frostmere', frostmere_mart:'frostmere', frostmere_gym:'frostmere',
+    frostpeak:'frostmere',
+    harborside_center:'harborside', harborside_mart:'harborside', harborside_gym:'harborside',
+    searoute:'harborside',
+    summitvale_center:'summitvale', summitvale_mart:'summitvale', summitvale_house:'summitvale',
+    mountain:'mountain', beach:'beach', desert:'desert'
+  };
+
+  function worldNode(id) {
+    for (const n of WORLD_NODES) if (n.id === id) return n;
+    return WORLD_NODES[0];
+  }
+
+  function worldNodeIndexForMap(mapId) {
+    const id = WORLD_MAP_HINTS[mapId] || mapId;
+    const idx = WORLD_NODES.findIndex(n => n.id === id);
+    return idx >= 0 ? idx : 0;
+  }
 
   function openWorldMap() {
-    let idx = TOWNS.findIndex(t => t.id === state.player.map);
-    if (idx < 0) idx = 0;
-    state.map = { idx };
+    state.map = { idx: worldNodeIndexForMap(state.player.map) };
     state.mode = 'map';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
@@ -1469,12 +1513,12 @@
   function updateWorldMap() {
     const I = window.PR_INPUT;
     const m = state.map;
-    if (I.consumePressed('ArrowDown')) {
-      m.idx = (m.idx + 1) % TOWNS.length;
+    if (I.consumePressed('ArrowDown') || I.consumePressed('ArrowRight')) {
+      m.idx = (m.idx + 1) % WORLD_NODES.length;
       window.PR_SFX && window.PR_SFX.play('select');
     }
-    if (I.consumePressed('ArrowUp')) {
-      m.idx = (m.idx + TOWNS.length - 1) % TOWNS.length;
+    if (I.consumePressed('ArrowUp') || I.consumePressed('ArrowLeft')) {
+      m.idx = (m.idx + WORLD_NODES.length - 1) % WORLD_NODES.length;
       window.PR_SFX && window.PR_SFX.play('select');
     }
     if (I.consumePressed('x')) {
@@ -1483,7 +1527,7 @@
       return;
     }
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
-      const target = TOWNS[m.idx];
+      const target = WORLD_NODES[m.idx];
       if (target.id === state.player.map) {
         // Already there - just close.
         state.map = null;
@@ -1517,46 +1561,85 @@
 
   function drawWorldMap() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#1a0204', '#f0c020');
-    window.PR_UI.drawText(ctx, 'WORLD MAP', x + 8, y + 4, '#f0c020');
-    window.PR_UI.drawText(ctx, 'A:WARP  B:BACK', x + w - 86, y + 4, '#806040');
+    window.PR_UI.panel(ctx, x, y, w, h, {
+      fill:'#152030', border:'#f0c020', shadow:'#5a1810', highlight:'#ffd060'
+    });
+    window.PR_UI.header(ctx, 'WORLD MAP', x + 4, y + 4, w - 8, {
+      fill:'#1a0204', line:'#f0c020', text:'#f0c020'
+    });
+    window.PR_UI.drawText(ctx, 'A:WARP  B:BACK', x + w - 86, y + 8, '#c8a060');
 
-    // Two-column compact layout: town pills with route labels between.
-    const colX = x + 12;
-    const startY = y + 16;
-    const rowH = 18; // 12 for pill + 6 for route gap
-    for (let i = 0; i < TOWNS.length; i++) {
-      const t = TOWNS[i];
-      const cy = startY + i * rowH;
-      const isHere = (t.id === state.player.map);
-      const isSel  = (i === state.map.idx);
-      // Pill.
-      const pillW = w - 24, pillH = 12;
-      ctx.fillStyle = isSel ? '#f0c020' : '#3a0a08';
-      ctx.fillRect(colX, cy, pillW, pillH);
-      ctx.fillStyle = isSel ? '#1a0204' : '#5a1810';
-      ctx.fillRect(colX, cy + pillH - 2, pillW, 2);
-      const textColor = isSel ? '#1a0204' : '#ffd060';
-      window.PR_UI.drawText(ctx, t.name, colX + 8, cy + 3, textColor);
-      if (isHere) window.PR_UI.drawText(ctx, '*', colX + pillW - 10, cy + 3, isSel ? '#a01818' : '#e83838');
-      // Route label between this town and the next.
-      if (i < ROUTES_BETWEEN.length) {
-        const rcy = cy + pillH + 1;
-        window.PR_UI.drawText(ctx, '| ' + ROUTES_BETWEEN[i], colX + 8, rcy, '#806040');
-      }
+    // Subtle biome flecks behind the route graph.
+    const flecks = [
+      [32,34,'#386840'], [184,35,'#78b878'], [192,92,'#806850'],
+      [122,132,'#b8e8f0'], [48,98,'#4088b0'], [66,42,'#c89048']
+    ];
+    for (const f of flecks) {
+      ctx.fillStyle = f[2];
+      ctx.fillRect(x + f[0], y + f[1], 12, 6);
+      ctx.fillRect(x + f[0] + 4, y + f[1] - 3, 6, 12);
     }
+
+    for (const link of WORLD_LINKS) drawWorldLink(link);
+
+    const currentIdx = worldNodeIndexForMap(state.player.map);
+    for (let i = 0; i < WORLD_NODES.length; i++) {
+      const n = WORLD_NODES[i];
+      const isSel = i === state.map.idx;
+      const isHere = i === currentIdx;
+      const r = isSel ? 6 : 5;
+      ctx.fillStyle = '#101018';
+      ctx.fillRect(n.x - r - 1, n.y - r, r * 2 + 2, r * 2 + 2);
+      ctx.fillStyle = isSel ? '#f0c020' : n.color;
+      ctx.fillRect(n.x - r, n.y - r, r * 2, r * 2);
+      ctx.fillStyle = isHere ? '#e83838' : '#fff';
+      ctx.fillRect(n.x - 2, n.y - 2, 4, 4);
+      if (isHere) window.PR_UI.drawText(ctx, '*', n.x + 6, n.y - 7, '#e83838');
+      window.PR_UI.drawText(ctx, n.short, n.x - 9, n.y + 8, isSel ? '#ffd060' : '#d8e8f8');
+    }
+
+    const sel = WORLD_NODES[state.map.idx];
+    window.PR_UI.panel(ctx, x + 8, y + h - 28, w - 16, 22, {
+      fill:'#f8f0d8', border:'#202020', shadow:'#c89048', highlight:'#fff8e8'
+    });
+    window.PR_UI.drawText(ctx, sel.name, x + 14, y + h - 22, '#202020');
+    window.PR_UI.chip(ctx, x + 86, y + h - 24, sel.kind, { fill:'#e8f0ff', border:'#385890' });
+    const link = WORLD_LINKS.find(l => l.a === sel.id || l.b === sel.id);
+    const note = sel.id === WORLD_NODES[currentIdx].id ? 'HERE' : (link && link.gate ? link.gate : 'WARP READY');
+    window.PR_UI.drawText(ctx, note, x + w - 72, y + h - 21, link && link.gate ? '#a86020' : '#208830');
+  }
+
+  function drawWorldLink(link) {
+    const a = worldNode(link.a);
+    const b = worldNode(link.b);
+    const cx = 118, cy = 76;
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2;
+    const bend = link.spur ? 0 : 0.22;
+    const ox = mx + (mx - cx) * bend;
+    const oy = my + (my - cy) * bend;
+    ctx.save();
+    ctx.strokeStyle = link.color;
+    ctx.lineWidth = link.gate ? 1.5 : 2;
+    if (link.spur || link.gate) ctx.setLineDash([3, 2]);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.quadraticCurveTo(ox, oy, b.x, b.y);
+    ctx.stroke();
+    ctx.restore();
   }
 
   function drawPartyView() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.box(ctx, x, y, w, h, '#a8c0e8', '#202020');
-    window.PR_UI.drawText(ctx, 'PARTY', x + 8, y + 6, '#202020');
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
+    window.PR_UI.header(ctx, 'PARTY', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     if (!state.party.length) {
       window.PR_UI.drawText(ctx, 'No partners yet.', x + 8, y + 30, '#202020');
     }
     for (let i = 0; i < state.party.length; i++) {
       const mon = state.party[i];
       const cy = y + 22 + i * 20;
+      window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 18, false);
       window.PR_MONS.drawCreature(ctx, mon.species, x + 6, cy - 2, 18, false);
       window.PR_UI.drawText(ctx, mon.nickname, x + 28, cy, '#202020');
       window.PR_UI.drawText(ctx, 'L' + mon.level, x + 110, cy, '#202020');

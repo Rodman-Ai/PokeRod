@@ -26,7 +26,7 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 ## Features
 
 - Tile-based overworld with smooth movement and a follow camera
-- Seven towns and six routes/zones from Rodport to Summitvale, with
+- Seven towns, side areas, and a looped route network from Rodport to Desert, with
   interiors for lab, houses, every PokeRod Center, and every Mart
 - Turn-based battles with a 13-type chart, STAB, crits, and accuracy
 - Status effects (burn, poison, paralysis), stat stages, and priority moves
@@ -41,9 +41,19 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 ## World
 
 ```
-rodport - route1 - brindale - route2 - woodfall - pebblewood -
-crestrock - glimcavern - frostmere - frostpeak - harborside -
-searoute - summitvale
+             rodport
+          /           \
+      desert        route1
+        |              |
+   summitvale      brindale
+        |              |
+    searoute        route2
+        |              |
+   harborside      woodfall
+     /     \          |
+  beach  frostpeak pebblewood
+          |          |
+      frostmere - glimcavern - crestrock - highspire
 ```
 
 ## Project layout
@@ -62,6 +72,7 @@ js/world.js         Overworld state: movement, NPCs, transitions
 js/battle.js        Turn-based battle state and rendering
 js/save.js          localStorage save/load
 js/game.js          State machine, title screen, main loop
+tools/validate-maps.js  Map shape and transition validator
 ```
 
 ## Notes

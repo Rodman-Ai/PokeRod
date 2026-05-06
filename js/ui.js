@@ -104,6 +104,87 @@
     ctx.fillRect(x+3, y+3, w-6, 1);
   }
 
+  function panel(ctx, x, y, w, h, opts) {
+    opts = opts || {};
+    const border = opts.border || '#202020';
+    const fill = opts.fill || '#f8f8f8';
+    const shadow = opts.shadow || '#806040';
+    const hi = opts.highlight || '#ffffff';
+    ctx.fillStyle = '#101018';
+    ctx.fillRect(x + 2, y + 3, w, h);
+    ctx.fillStyle = border;
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = shadow;
+    ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+    ctx.fillStyle = fill;
+    ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+    ctx.fillStyle = hi;
+    ctx.fillRect(x + 3, y + 3, w - 6, 1);
+    ctx.fillStyle = opts.lowlight || 'rgba(0,0,0,0.12)';
+    ctx.fillRect(x + 3, y + h - 4, w - 6, 1);
+  }
+
+  function header(ctx, text, x, y, w, opts) {
+    opts = opts || {};
+    ctx.fillStyle = opts.fill || '#202020';
+    ctx.fillRect(x, y, w, 12);
+    ctx.fillStyle = opts.line || '#f0c020';
+    ctx.fillRect(x, y + 10, w, 2);
+    drawText(ctx, text, x + 5, y + 3, opts.text || '#fff');
+  }
+
+  function selectBar(ctx, x, y, w, h, active) {
+    ctx.fillStyle = active ? '#f0c020' : 'rgba(56,88,144,0.14)';
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = active ? '#b07010' : 'rgba(32,32,32,0.12)';
+    ctx.fillRect(x, y + h - 2, w, 2);
+  }
+
+  function chip(ctx, x, y, text, opts) {
+    opts = opts || {};
+    const w = Math.max(18, textWidth(text) + 8);
+    const fill = opts.fill || '#e8f0ff';
+    const border = opts.border || '#385890';
+    ctx.fillStyle = border;
+    ctx.fillRect(x, y, w, 11);
+    ctx.fillStyle = fill;
+    ctx.fillRect(x + 1, y + 1, w - 2, 9);
+    drawText(ctx, text, x + 4, y + 2, opts.text || '#202020');
+    return w;
+  }
+
+  function icon(ctx, kind, x, y, color) {
+    color = color || '#202020';
+    ctx.fillStyle = color;
+    if (kind === 'map') {
+      ctx.fillRect(x + 1, y + 1, 7, 5);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 3, y + 2, 1, 3);
+      ctx.fillRect(x + 6, y + 2, 1, 3);
+    } else if (kind === 'bag') {
+      ctx.fillRect(x + 1, y + 3, 7, 5);
+      ctx.fillRect(x + 3, y + 1, 3, 2);
+    } else if (kind === 'party') {
+      ctx.fillRect(x + 1, y + 1, 3, 3);
+      ctx.fillRect(x + 5, y + 1, 3, 3);
+      ctx.fillRect(x + 3, y + 5, 3, 3);
+    } else if (kind === 'save') {
+      ctx.fillRect(x + 1, y + 1, 7, 7);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 2, y + 2, 5, 2);
+      ctx.fillRect(x + 3, y + 6, 3, 1);
+    } else if (kind === 'gear') {
+      ctx.fillRect(x + 3, y + 1, 3, 7);
+      ctx.fillRect(x + 1, y + 3, 7, 3);
+    } else if (kind === 'dex') {
+      ctx.fillRect(x + 1, y + 1, 6, 7);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 3, y + 3, 2, 2);
+    } else {
+      ctx.fillRect(x + 2, y + 2, 5, 5);
+    }
+  }
+
   // Dialog box: 2 lines of text at the bottom of the screen.
   function drawDialog(ctx, lines, screenW, screenH, advanceMark) {
     const h = 44;
@@ -146,5 +227,8 @@
     ctx.fillRect(x, y, Math.ceil(w * ratio), 2);
   }
 
-  window.PR_UI = { drawText, drawChar, textWidth, wrap, box, drawDialog, drawHpBar, drawXpBar, FONT };
+  window.PR_UI = {
+    drawText, drawChar, textWidth, wrap, box, panel, header, selectBar,
+    chip, icon, drawDialog, drawHpBar, drawXpBar, FONT
+  };
 })();
