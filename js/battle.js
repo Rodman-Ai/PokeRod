@@ -21,6 +21,7 @@
     this.selection = 0;
     this.subSelection = 0;
     this.runs = 0;
+    this.turnCount = 0;
     this.timer = 0;
     this.outcome = null;
     this.flashTimer = 0;
@@ -462,6 +463,7 @@
   };
 
   Battle.prototype.endOfTurn = function() {
+    this.turnCount = (this.turnCount || 0) + 1;
     // Status damage.
     const tickStatus = (mon) => {
       if (mon.hp <= 0) return;
@@ -661,7 +663,9 @@
     const rate = sp.catchRate || 45;
     const hpRatio = this.foe.hp / this.foe.stats.hp;
     const statusBonus = this.foe.status ? 1.5 : 1;
-    const ballBonus = (def && def.catchBonus) || 1;
+    const ballBonus = items && items.getCatchBonus
+      ? items.getCatchBonus(ballId, { state:this.state, battle:this })
+      : ((def && def.catchBonus) || 1);
     const a = ((3 * this.foe.stats.hp - 2 * this.foe.hp) * rate * statusBonus * ballBonus)
               / (3 * this.foe.stats.hp);
     const shakes = a >= 255 ? 4 : Math.min(4, Math.floor(a / 60) + (Math.random() < 0.5 ? 1 : 0));
@@ -669,6 +673,10 @@
       window.PR_SFX && window.PR_SFX.play('catch');
       if (window.PR_DEX) window.PR_DEX.markCaught(this.foe.species);
       if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('catch');
+      if (this.state.player) {
+        if (!this.state.player.stats) this.state.player.stats = {};
+        this.state.player.stats.catches = (this.state.player.stats.catches || 0) + 1;
+      }
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) {
         this.state.party.push(this.foe);

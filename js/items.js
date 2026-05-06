@@ -15,6 +15,14 @@
       id:'ultraball', name:'ULTRA BALL', desc:'High catch rate. Great for tough finds.',
       kind:'ball', battleOnly:true, price:1200, catchBonus:2.0
     },
+    quickball: {
+      id:'quickball', name:'QUICK BALL', desc:'Best at the start of a wild battle.',
+      kind:'ball', battleOnly:true, price:900, catchBonus:1.0, firstTurnBonus:2.5
+    },
+    cavernball: {
+      id:'cavernball', name:'CAVERN BALL', desc:'Works better in caves, caverns, and ruins.',
+      kind:'ball', battleOnly:true, price:800, catchBonus:1.0, tagBonus:2.2, tagAny:['cave','ruins']
+    },
     potion: {
       id:'potion', name:'POTION', desc:'Restores 20 HP to one ally.',
       kind:'heal', amount:20, target:'ally', price:200
@@ -169,8 +177,11 @@
       out.push({ id, count: state.player.bag[id], def: it });
     }
     // Stable order roughly by category.
-    const order = ['rodball','greatball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','pokeflute'];
-    out.sort((a,b) => order.indexOf(a.id) - order.indexOf(b.id));
+    const order = ['rodball','greatball','quickball','cavernball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','pokeflute'];
+    out.sort((a,b) => {
+      const ai = order.indexOf(a.id), bi = order.indexOf(b.id);
+      return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+    });
     return out;
   }
 
@@ -178,13 +189,36 @@
   // safely chain `(byId(x) || {}).xpMult` style patterns.
   function byId(id) { return ITEMS[id] || null; }
 
+  function getCatchBonus(itemId, context) {
+    const it = ITEMS[itemId];
+    if (!it || it.kind !== 'ball') return 1;
+    let bonus = it.catchBonus || 1;
+    const battle = context && context.battle;
+    if (it.firstTurnBonus && (!battle || (battle.turnCount || 0) === 0)) {
+      bonus = Math.max(bonus, it.firstTurnBonus);
+    }
+    if (it.tagBonus && it.tagAny && it.tagAny.length) {
+      const state = context && context.state;
+      const map = (context && context.map) ||
+        (state && state.world && state.world.currentMap && state.world.currentMap());
+      const tags = map && Array.isArray(map.tags) ? map.tags : [];
+      for (const tag of it.tagAny) {
+        if (tags.includes(tag)) {
+          bonus = Math.max(bonus, it.tagBonus);
+          break;
+        }
+      }
+    }
+    return bonus;
+  }
+
   // Shop inventory tiered by player badge count. tier:N rows unlock
   // once the player has N badges (so tier:0 is available from the start).
   const SHOP_TIERS = [
     { tier:0, items:['rodball','potion','antidote'] },
-    { tier:1, items:['superpotion','paralyzeheal','awakening'] },
-    { tier:2, items:['burnheal','oranberry','lucky_charm','soothe_bell'] },
-    { tier:3, items:['greatball','sitrusberry'] },
+    { tier:1, items:['greatball','superpotion','paralyzeheal','awakening'] },
+    { tier:2, items:['quickball','cavernball','burnheal','oranberry','lucky_charm','soothe_bell'] },
+    { tier:3, items:['sitrusberry'] },
     { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg'] },
     { tier:5, items:['ultraball','fullheal'] },
     { tier:6, items:['maxpotion','masters_pendant'] },
@@ -219,6 +253,6 @@
     return out;
   }
 
-  window.PR_ITEMS = { ITEMS, apply, add, take, listOwned, ensureBag, byId,
+  window.PR_ITEMS = { ITEMS, apply, add, take, listOwned, ensureBag, byId, getCatchBonus,
                       SHOP_TIERS, computeShopInventory };
 })();

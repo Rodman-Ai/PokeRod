@@ -26,13 +26,13 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 ## Features
 
 - Tile-based overworld with smooth movement and a follow camera
-- Seven towns, side areas, and a looped route network from Rodport to Desert, with
-  interiors for lab, houses, every PokeRod Center, and every Mart
+- Larger city hubs, side caves, and a looped route network from Rodport to Desert,
+  with interiors for labs, homes, local buildings, every PokeRod Center, and every Mart
 - Turn-based battles with a 13-type chart, STAB, crits, and accuracy
 - Status effects (burn, poison, paralysis), stat stages, and priority moves
 - Party of up to 6, level-up stat gains, move learning, and evolutions
 - Wild encounters scaled by zone and trainer battles on every route
-- Catch wild creatures with ROD BALLs
+- Catch wild creatures with Rod, Great, Quick, Cavern, and Ultra Balls
 - Heal at the PokeRod Center, save/load to localStorage
 - Mobile touch controls and a handheld console skin (desktop and portrait)
 - 57 original creatures with procedural pixel-art sprites
@@ -43,17 +43,20 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 ```
              rodport
           /           \
-      desert        route1
+  desert hub      route1 + hollow
         |              |
    summitvale      brindale
         |              |
     searoute        route2
+   + tide cave        |
         |              |
    harborside      woodfall
      /     \          |
-  beach  frostpeak pebblewood
-          |          |
-      frostmere - glimcavern - crestrock - highspire
+  beach  frostpeak pebblewood + cavern
+          |   |      |
+    ice cave  frostmere - glimcavern - crestrock - highspire
+                         \             /
+                       cavern B1   mountain paths
 ```
 
 ## Project layout

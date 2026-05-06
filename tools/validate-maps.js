@@ -2,12 +2,17 @@
 
 global.window = {};
 require('../js/maps.js');
+require('../js/items.js');
 
 const { MAPS, TILE_PROPS, tileAt } = window.PR_MAPS;
 
-const REQUIRED_34x28 = [
+const REQUIRED_48x38 = [
   'route1','route2','pebblewood','glimcavern','frostpeak',
   'searoute','mountain','beach','desert'
+];
+const REQUIRED_44x34 = [
+  'rodport','brindale','woodfall','crestrock','frostmere',
+  'harborside','summitvale'
 ];
 
 const errors = [];
@@ -82,8 +87,14 @@ for (const [id, map] of Object.entries(MAPS)) {
       if (!TILE_PROPS[code]) fail(`${id}: unknown tile ${JSON.stringify(code)} at ${x},${y}`);
     }
   }
-  if (REQUIRED_34x28.includes(id) && (d.w !== 34 || d.h !== 28)) {
-    fail(`${id}: expected 34x28, got ${d.w}x${d.h}`);
+  if (REQUIRED_48x38.includes(id) && (d.w !== 48 || d.h !== 38)) {
+    fail(`${id}: expected 48x38, got ${d.w}x${d.h}`);
+  }
+  if (REQUIRED_44x34.includes(id) && (d.w !== 44 || d.h !== 34)) {
+    fail(`${id}: expected 44x34, got ${d.w}x${d.h}`);
+  }
+  if (!Array.isArray(map.tags) || !map.tags.length) {
+    fail(`${id}: missing map tags`);
   }
 
   const anchors = [];
@@ -115,6 +126,8 @@ for (const [id, map] of Object.entries(MAPS)) {
       const [x, y] = key.split(',').map(Number);
       if (!inBounds(map, x, y)) fail(`${id}: hidden item ${key} out of bounds`);
       else if (!isWalkable(map, x, y)) fail(`${id}: hidden item ${key} is not walkable`);
+      const itemId = map.hidden[key] && map.hidden[key].item;
+      if (!itemId || !window.PR_ITEMS.ITEMS[itemId]) fail(`${id}: hidden item ${key} references unknown item ${itemId}`);
       anchors.push([x, y]);
     }
   }

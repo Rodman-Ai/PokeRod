@@ -180,6 +180,11 @@
       ctx.fillRect(x + 1, y + 1, 6, 7);
       ctx.fillStyle = '#fff';
       ctx.fillRect(x + 3, y + 3, 2, 2);
+    } else if (kind === 'profile') {
+      ctx.fillRect(x + 3, y + 1, 3, 3);
+      ctx.fillRect(x + 2, y + 5, 5, 3);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 4, y + 2, 1, 1);
     } else {
       ctx.fillRect(x + 2, y + 2, 5, 5);
     }

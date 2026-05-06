@@ -3,20 +3,22 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.17.0';
-  const BUILD = '2026.05.06-64';
+  const VERSION = 'v0.18.0';
+  const BUILD = '2026.05.06-65';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
 
   // Game state container.
   const state = {
-    mode: 'title',        // title | intro | overworld | battle | dialog | menu | starter
+    mode: 'title',        // title | intro | overworld | battle | dialog | menu | profile | starter
     player: {
       name: 'YOU',
       map: 'rodport',
-      x: 4, y: 5, dir: 'down',
-      money: 500, balls: 5, steps: 0
+      x: 8, y: 9, dir: 'down',
+      money: 500, balls: 5, steps: 0,
+      stats: { battlesWon:0, catches:0 },
+      equipment: { trinket:null }
     },
     party: [],
     flags: { starterChosen: false },
@@ -31,6 +33,8 @@
   // Maps that use the route (action) music. Anything else plays town.
   const ROUTE_MAPS = new Set([
     'route1','route2','pebblewood','glimcavern','glimcavern_b1',
+    'route1_hollow','pebblewood_cavern','frostpeak_ice_cave',
+    'searoute_tide_cavern','desert_ruins',
     'frostpeak','searoute','desert','beach','mountain'
   ]);
 
@@ -151,9 +155,10 @@
 
   function startNewGame() {
     window.PR_SAVE.clear();
-    state.player = { name:'YOU', map:'rodport', x:4, y:5, dir:'down', money:500, balls:5, steps:0,
+    state.player = { name:'YOU', map:'rodport', x:8, y:9, dir:'down', money:500, balls:5, steps:0,
                      bag: { rodball:5, potion:3, antidote:1, oranberry:1 },
-                     equipment: { trinket: null } };
+                     equipment: { trinket: null },
+                     stats: { battlesWon:0, catches:0 } };
     state.party = [];
     state.flags = { starterChosen:false };
     state.defeatedTrainers = new Set();
@@ -231,6 +236,7 @@
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'menu') updateMenu();
+    else if (state.mode === 'profile') updateProfile();
     else if (state.mode === 'map') updateWorldMap();
     else if (state.mode === 'settings') updateSettings();
     else if (state.mode === 'dex') updateDex();
@@ -313,6 +319,7 @@
     withScale2(() => {
       if (state.mode === 'dialog') drawDialog();
       else if (state.mode === 'menu') drawMenu();
+      else if (state.mode === 'profile') drawProfile();
       else if (state.mode === 'map') drawWorldMap();
       else if (state.mode === 'settings') drawSettings();
       else if (state.mode === 'dex') drawDex();
@@ -780,18 +787,35 @@
   // ---------- Pause menu ----------
   const MENU_ICONS = {
     MAP:'map', DEX:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
-    QUEST:'map', PVP:'party', SETTINGS:'gear', SAVE:'save', EXIT:'x'
+    PROFILE:'profile', QUEST:'map', PVP:'party', SETTINGS:'gear', SAVE:'save', EXIT:'x'
   };
 
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
   }
   function updateMenu() {
     const I = window.PR_INPUT;
     const m = state.menu;
-    if (I.consumePressed('ArrowDown')) m.idx = (m.idx + 1) % m.options.length;
-    if (I.consumePressed('ArrowUp'))   m.idx = (m.idx + m.options.length - 1) % m.options.length;
+    if (m.viewing === 'party') { updatePartyView(); return; }
+    const rows = Math.ceil(m.options.length / 2);
+    const moveGrid = (dx, dy) => {
+      let col = m.idx >= rows ? 1 : 0;
+      let row = m.idx - col * rows;
+      if (dy) row = (row + dy + rows) % rows;
+      if (dx) col = (col + dx + 2) % 2;
+      let next = col * rows + row;
+      while (next >= m.options.length) {
+        row = (row + rows - 1) % rows;
+        next = col * rows + row;
+      }
+      m.idx = next;
+      window.PR_SFX && window.PR_SFX.play('select');
+    };
+    if (I.consumePressed('ArrowDown')) moveGrid(0, 1);
+    if (I.consumePressed('ArrowUp'))   moveGrid(0, -1);
+    if (I.consumePressed('ArrowRight')) moveGrid(1, 0);
+    if (I.consumePressed('ArrowLeft'))  moveGrid(-1, 0);
     if (I.consumePressed('x') || I.consumePressed('Enter')) { state.menu = null; state.mode = 'overworld'; return; }
     if (I.consumePressed('z')) {
       const opt = m.options[m.idx];
@@ -802,6 +826,9 @@
         state.mode = 'overworld';
       } else if (opt === 'PARTY') {
         m.viewing = 'party';
+        m.partyView = { idx:0, page:0 };
+      } else if (opt === 'PROFILE') {
+        openProfile();
       } else if (opt === 'MAP') {
         openWorldMap();
       } else if (opt === 'SETTINGS') {
@@ -826,7 +853,7 @@
     }
     ctx.fillStyle = 'rgba(8,12,20,0.42)';
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
-    const w = 122, h = 144;
+    const w = 154, h = 144;
     const x = VIEW_W - w - 6, y = 8;
     window.PR_UI.panel(ctx, x, y, w, h, {
       fill:'#f8f0d8', border:'#202020', shadow:'#c89048', highlight:'#fff8e8'
@@ -841,12 +868,17 @@
     window.PR_UI.chip(ctx, x + 68, y + 20, 'BDG ' + badges, {
       fill:'#fff0c8', border:'#a86020'
     });
+    const rows = Math.ceil(m.options.length / 2);
+    const cellW = 68, cellH = 16;
     for (let i = 0; i < m.options.length; i++) {
-      const cy = y + 35 + i * 10;
+      const col = i >= rows ? 1 : 0;
+      const row = i - col * rows;
+      const cx = x + 6 + col * (cellW + 6);
+      const cy = y + 36 + row * cellH;
       const active = i === m.idx;
-      window.PR_UI.selectBar(ctx, x + 5, cy - 1, w - 10, 10, active);
-      window.PR_UI.icon(ctx, MENU_ICONS[m.options[i]], x + 10, cy, active ? '#1a0204' : '#385890');
-      window.PR_UI.drawText(ctx, m.options[i], x + 24, cy + 1, active ? '#1a0204' : '#202020');
+      window.PR_UI.selectBar(ctx, cx, cy - 2, cellW, 13, active);
+      window.PR_UI.icon(ctx, MENU_ICONS[m.options[i]], cx + 4, cy, active ? '#1a0204' : '#385890');
+      window.PR_UI.drawText(ctx, m.options[i], cx + 16, cy + 2, active ? '#1a0204' : '#202020');
     }
     // Currently equipped trinket (if any), shown beneath the menu list.
     const eq = state.player.equipment;
@@ -858,6 +890,87 @@
       m.flashTimer -= 1/60;
       window.PR_UI.panel(ctx, 40, 70, 160, 20, { fill:'#fff', border:'#202020' });
       window.PR_UI.drawText(ctx, m.flash, 50, 76, '#202020');
+    }
+  }
+
+  function ensurePlayerStats() {
+    if (!state.player.stats) state.player.stats = {};
+    if (state.player.stats.battlesWon === undefined) state.player.stats.battlesWon = 0;
+    if (state.player.stats.catches === undefined) state.player.stats.catches = 0;
+    if (!state.player.equipment) state.player.equipment = { trinket:null };
+    if (state.player.equipment.trinket === undefined) state.player.equipment.trinket = null;
+  }
+
+  function openProfile() {
+    ensurePlayerStats();
+    state.profileView = { page:0 };
+    state.menu = null;
+    state.mode = 'profile';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+
+  function updateProfile() {
+    const I = window.PR_INPUT;
+    const v = state.profileView || (state.profileView = { page:0 });
+    if (I.consumePressed('ArrowLeft') || I.consumePressed('ArrowRight') || I.consumePressed('z')) {
+      v.page = (v.page + 1) % 2;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+      state.profileView = null;
+      openPauseMenu();
+    }
+  }
+
+  function drawProfile() {
+    ensurePlayerStats();
+    ensureDex();
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const v = state.profileView || { page:0 };
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, v.page === 0 ? 'TRAINER PROFILE' : 'TRAINER GEAR', x + 4, y + 4, w - 8,
+      { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK  A:NEXT', x + w - 88, y + 4, '#806040');
+    const badges = (state.player.badges || []).length;
+    const map = state.world && state.world.currentMap ? state.world.currentMap() : null;
+    if (v.page === 0) {
+      window.PR_UI.chip(ctx, x + 8, y + 20, state.player.name || 'YOU', { fill:'#e8f0ff', border:'#385890' });
+      window.PR_UI.chip(ctx, x + 66, y + 20, '$' + (state.player.money || 0), { fill:'#fff0c8', border:'#a86020' });
+      window.PR_UI.chip(ctx, x + 130, y + 20, 'BDG ' + badges, { fill:'#e8ffe8', border:'#208830' });
+      const rows = [
+        ['AREA', map ? map.name.toUpperCase().slice(0, 20) : (state.player.map || '?').toUpperCase()],
+        ['PARTY', String((state.party || []).length) + '/6'],
+        ['DEX', (state.dex.seen.size || 0) + ' SEEN  ' + (state.dex.caught.size || 0) + ' CAUGHT'],
+        ['STEPS', String(state.player.steps || 0)],
+        ['WINS', String(state.player.stats.battlesWon || 0)],
+        ['CATCHES', String(state.player.stats.catches || 0)]
+      ];
+      for (let i = 0; i < rows.length; i++) {
+        const cy = y + 42 + i * 14;
+        window.PR_UI.selectBar(ctx, x + 8, cy - 2, w - 16, 12, false);
+        window.PR_UI.drawText(ctx, rows[i][0], x + 12, cy, '#385890');
+        window.PR_UI.drawText(ctx, rows[i][1], x + 76, cy, '#202020');
+      }
+    } else {
+      const eq = state.player.equipment || {};
+      const trinket = eq.trinket && window.PR_ITEMS && window.PR_ITEMS.byId(eq.trinket);
+      const gearRows = [
+        ['TRINKET', trinket ? trinket.name : 'NONE'],
+        ['EFFECT', trinket && trinket.xpMult ? ('XP x' + trinket.xpMult.toFixed(2)) : 'NO WORN BONUS'],
+        ['ROD BALL', String((state.player.bag && state.player.bag.rodball) || 0)],
+        ['GREAT', String((state.player.bag && state.player.bag.greatball) || 0)],
+        ['QUICK', String((state.player.bag && state.player.bag.quickball) || 0)],
+        ['CAVERN', String((state.player.bag && state.player.bag.cavernball) || 0)],
+        ['ULTRA', String((state.player.bag && state.player.bag.ultraball) || 0)]
+      ];
+      for (let i = 0; i < gearRows.length; i++) {
+        const cy = y + 24 + i * 15;
+        if (i === 0) window.PR_UI.selectBar(ctx, x + 8, cy - 2, w - 16, 12, true);
+        else window.PR_UI.selectBar(ctx, x + 8, cy - 2, w - 16, 12, false);
+        window.PR_UI.drawText(ctx, gearRows[i][0], x + 12, cy, '#385890');
+        window.PR_UI.drawText(ctx, String(gearRows[i][1]).slice(0, 20), x + 78, cy, '#202020');
+      }
+      window.PR_UI.drawText(ctx, 'Equip trainer gear from BAG.', x + 12, y + h - 14, '#806040');
     }
   }
   // ---------- Settings ----------
@@ -1339,6 +1452,7 @@
     if (state.player.balls === undefined) state.player.balls = 5;
     if (!state.player.equipment) state.player.equipment = { trinket: null };
     if (state.player.equipment.trinket === undefined) state.player.equipment.trinket = null;
+    ensurePlayerStats();
     if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
     state.party = data.party || [];
     // Default missing held slot on each party member (pre-feature saves).
@@ -1455,16 +1569,16 @@
   // ---------- World map + warp ----------
   // Circular region layout. Spawn coords are known walkable arrival tiles.
   const WORLD_NODES = [
-    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN',  x:118, y:24,  color:'#60b870', spawn:{x:4,  y:5,  dir:'down'} },
-    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN',  x:158, y:38,  color:'#80c878', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN',  x:178, y:74,  color:'#50a860', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN',  x:158, y:110, color:'#a89870', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'mountain',   name:'HIGHSPIRE',  short:'HI',  kind:'SPUR',  x:204, y:118, color:'#a8b8d8', spawn:{x:2,  y:14, dir:'right'} },
-    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN',  x:118, y:124, color:'#98d8e8', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN',  x:78,  y:110, color:'#58a8d8', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'beach',      name:'BEACH',      short:'BCH', kind:'SPUR',  x:34,  y:118, color:'#f0d070', spawn:{x:2,  y:15, dir:'right'} },
-    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN',  x:58,  y:74,  color:'#d88858', spawn:{x:7,  y:6,  dir:'down'} },
-    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:78,  y:38,  color:'#d8a850', spawn:{x:2,  y:14, dir:'right'} }
+    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN',  x:118, y:24,  color:'#60b870', spawn:{x:8,  y:9,  dir:'down'} },
+    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN',  x:158, y:38,  color:'#80c878', spawn:{x:22, y:17, dir:'down'} },
+    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN',  x:178, y:74,  color:'#50a860', spawn:{x:22, y:17, dir:'down'} },
+    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN',  x:158, y:110, color:'#a89870', spawn:{x:22, y:17, dir:'down'} },
+    { id:'mountain',   name:'HIGHSPIRE',  short:'HI',  kind:'SPUR',  x:204, y:118, color:'#a8b8d8', spawn:{x:6,  y:20, dir:'right'} },
+    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN',  x:118, y:124, color:'#98d8e8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN',  x:78,  y:110, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'beach',      name:'BEACH',      short:'BCH', kind:'SPUR',  x:34,  y:118, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
+    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN',  x:58,  y:74,  color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
+    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:78,  y:38,  color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} }
   ];
   const WORLD_LINKS = [
     { a:'rodport', b:'brindale',   label:'ROUTE 1',      color:'#74b870' },
@@ -1480,17 +1594,25 @@
   ];
   const WORLD_MAP_HINTS = {
     player_house:'rodport', rival_house:'rodport', lab:'rodport',
-    route1:'rodport', route2:'brindale', pebblewood:'woodfall',
+    rodport_dockhouse:'rodport', rodport_boathouse:'rodport',
+    route1:'rodport', route1_hollow:'rodport', route2:'brindale', pebblewood:'woodfall',
+    pebblewood_cavern:'woodfall',
     crestrock_center:'crestrock', crestrock_mart:'crestrock', crestrock_gym:'crestrock',
+    crestrock_workshop:'crestrock', crestrock_house:'crestrock',
     woodfall_center:'woodfall', woodfall_mart:'woodfall', woodfall_gym:'woodfall',
+    woodfall_lodge:'woodfall', woodfall_cabin:'woodfall',
     brindale_gym:'brindale', pokecenter:'brindale', mart:'brindale', townhouse:'brindale',
+    brindale_school:'brindale',
     glimcavern:'crestrock', glimcavern_b1:'crestrock',
     frostmere:'frostmere', frostmere_center:'frostmere', frostmere_mart:'frostmere', frostmere_gym:'frostmere',
-    frostpeak:'frostmere',
+    frostmere_inn:'frostmere', frostmere_cabin:'frostmere',
+    frostpeak:'frostmere', frostpeak_ice_cave:'frostmere',
     harborside_center:'harborside', harborside_mart:'harborside', harborside_gym:'harborside',
-    searoute:'harborside',
+    harborside_warehouse:'harborside', harborside_fisher:'harborside',
+    searoute:'harborside', searoute_tide_cavern:'harborside',
     summitvale_center:'summitvale', summitvale_mart:'summitvale', summitvale_house:'summitvale',
-    mountain:'mountain', beach:'beach', desert:'desert'
+    summitvale_lookout:'summitvale', summitvale_hall:'summitvale',
+    mountain:'mountain', beach:'beach', desert:'desert', desert_ruins:'desert'
   };
 
   function worldNode(id) {
@@ -1629,39 +1751,118 @@
     ctx.restore();
   }
 
-  function drawPartyView() {
-    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
-    window.PR_UI.header(ctx, 'PARTY', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    if (!state.party.length) {
-      window.PR_UI.drawText(ctx, 'No partners yet.', x + 8, y + 30, '#202020');
-    }
-    for (let i = 0; i < state.party.length; i++) {
-      const mon = state.party[i];
-      const cy = y + 22 + i * 20;
-      window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 18, false);
-      window.PR_MONS.drawCreature(ctx, mon.species, x + 6, cy - 2, 18, false);
-      window.PR_UI.drawText(ctx, mon.nickname, x + 28, cy, '#202020');
-      window.PR_UI.drawText(ctx, 'L' + mon.level, x + 110, cy, '#202020');
-      window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, mon.hp, mon.stats.hp);
-      window.PR_UI.drawText(ctx, mon.hp + '/' + mon.stats.hp, x + w - 60, cy + 8, '#202020');
-      // Held item indicator: small coloured chip + abbreviated name beneath the HP.
-      if (mon.held) {
-        const heldDef = window.PR_ITEMS && window.PR_ITEMS.byId(mon.held);
-        if (heldDef) {
-          const isXpGear = !!heldDef.xpMult;
-          ctx.fillStyle = isXpGear ? '#f0c020' : '#88c0f0';
-          ctx.fillRect(x + 28, cy + 9, 4, 4);
-          ctx.fillStyle = '#202020';
-          ctx.fillRect(x + 28, cy + 9, 4, 1);
-          window.PR_UI.drawText(ctx, '@' + heldDef.name.slice(0, 9), x + 36, cy + 9, '#385890');
-        }
+  const PARTY_PAGES = ['SUMMARY','STATS','MOVES'];
+
+  function updatePartyView() {
+    const I = window.PR_INPUT;
+    const m = state.menu;
+    const v = m.partyView || (m.partyView = { idx:0, page:0 });
+    const max = state.party.length;
+    if (max) {
+      if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+      if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+      if (I.consumePressed('ArrowRight') || I.consumePressed('z')) {
+        v.page = (v.page + 1) % PARTY_PAGES.length;
+        window.PR_SFX && window.PR_SFX.play('select');
+      }
+      if (I.consumePressed('ArrowLeft')) {
+        v.page = (v.page + PARTY_PAGES.length - 1) % PARTY_PAGES.length;
+        window.PR_SFX && window.PR_SFX.play('select');
       }
     }
-    window.PR_UI.drawText(ctx, 'B: BACK', x + 8, y + h - 12, '#202020');
-    if (window.PR_INPUT.consumePressed('x') || window.PR_INPUT.consumePressed('Enter')) {
-      state.menu.viewing = null;
+    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+      m.viewing = null;
+      m.partyView = null;
     }
+  }
+
+  function xpRatio(mon) {
+    if (!mon || !window.PR_DATA) return 0;
+    const lv = mon.level || window.PR_DATA.levelFromXp(mon.xp || 0);
+    const curBase = window.PR_DATA.xpForLevel(lv);
+    const nextBase = window.PR_DATA.xpForLevel(Math.min(100, lv + 1));
+    if (nextBase <= curBase) return 1;
+    return Math.max(0, Math.min(1, ((mon.xp || 0) - curBase) / (nextBase - curBase)));
+  }
+
+  function heldName(mon) {
+    const def = mon && mon.held && window.PR_ITEMS && window.PR_ITEMS.byId(mon.held);
+    return def ? def.name : 'NONE';
+  }
+
+  function drawPartyDetail(mon, page, x, y, w, h) {
+    const sp = window.PR_DATA.CREATURES[mon.species];
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.drawText(ctx, PARTY_PAGES[page], x + 6, y + 5, '#385890');
+    window.PR_MONS.drawCreature(ctx, mon.species, x + w - 42, y + 4, 34, false);
+    window.PR_UI.drawText(ctx, mon.nickname.slice(0, 13), x + 6, y + 18, '#202020');
+    window.PR_UI.drawText(ctx, 'L' + mon.level + ' ' + sp.types.join('/').slice(0, 13), x + 6, y + 28, '#385890');
+    if (page === 0) {
+      window.PR_UI.drawHpBar(ctx, x + 6, y + 42, 72, mon.hp, mon.stats.hp);
+      window.PR_UI.drawText(ctx, mon.hp + '/' + mon.stats.hp + ' HP', x + 84, y + 40, '#202020');
+      window.PR_UI.drawXpBar(ctx, x + 6, y + 54, 100, xpRatio(mon));
+      window.PR_UI.drawText(ctx, 'XP', x + 110, y + 50, '#385890');
+      window.PR_UI.drawText(ctx, 'STATUS ' + (mon.status || 'OK').toUpperCase(), x + 6, y + 64, '#202020');
+      window.PR_UI.drawText(ctx, 'HELD ' + heldName(mon).slice(0, 16), x + 6, y + 76, '#202020');
+      const mult = window.PR_DATA.xpMultiplier(state, mon);
+      window.PR_UI.drawText(ctx, 'XP BONUS x' + mult.toFixed(2), x + 6, y + 88, '#806040');
+    } else if (page === 1) {
+      const rows = [
+        ['HP', mon.stats.hp, mon.ivs && mon.ivs.hp],
+        ['ATK', mon.stats.atk, mon.ivs && mon.ivs.atk],
+        ['DEF', mon.stats.def, mon.ivs && mon.ivs.def],
+        ['SPA', mon.stats.spa, mon.ivs && mon.ivs.spa],
+        ['SPD', mon.stats.spd, mon.ivs && mon.ivs.spd],
+        ['SPE', mon.stats.spe, mon.ivs && mon.ivs.spe]
+      ];
+      for (let i = 0; i < rows.length; i++) {
+        const cy = y + 42 + i * 11;
+        window.PR_UI.drawText(ctx, rows[i][0], x + 8, cy, '#385890');
+        window.PR_UI.drawText(ctx, String(rows[i][1]), x + 44, cy, '#202020');
+        window.PR_UI.drawText(ctx, 'IV ' + (rows[i][2] == null ? '-' : rows[i][2]), x + 82, cy, '#806040');
+      }
+    } else {
+      for (let i = 0; i < 4; i++) {
+        const mv = mon.moves[i];
+        const cy = y + 42 + i * 17;
+        if (!mv) {
+          window.PR_UI.drawText(ctx, '-', x + 8, cy, '#806040');
+          continue;
+        }
+        const def = window.PR_DATA.MOVES[mv.id];
+        window.PR_UI.drawText(ctx, def.name.slice(0, 14), x + 8, cy, '#202020');
+        window.PR_UI.drawText(ctx, def.type + ' ' + def.kind.toUpperCase().slice(0, 3), x + 8, cy + 8, '#385890');
+        const pow = def.power ? ('PW ' + def.power) : 'STATUS';
+        window.PR_UI.drawText(ctx, pow, x + 76, cy + 8, '#806040');
+        window.PR_UI.drawText(ctx, (mv.pp || 0) + '/' + (mv.ppMax || def.pp), x + w - 34, cy, '#202020');
+      }
+    }
+  }
+
+  function drawPartyView() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const v = (state.menu && state.menu.partyView) || { idx:0, page:0 };
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
+    window.PR_UI.header(ctx, 'PARTY', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK  A/R:PAGE', x + w - 96, y + 4, '#806040');
+    if (!state.party.length) {
+      window.PR_UI.drawText(ctx, 'No partners yet.', x + 8, y + 30, '#202020');
+      return;
+    }
+    const listX = x + 6, listY = y + 20, listW = 70;
+    for (let i = 0; i < state.party.length; i++) {
+      const mon = state.party[i];
+      const cy = listY + i * 20;
+      window.PR_UI.selectBar(ctx, listX, cy - 2, listW, 18, i === v.idx);
+      window.PR_MONS.drawCreature(ctx, mon.species, listX + 2, cy - 2, 16, false);
+      window.PR_UI.drawText(ctx, mon.nickname.slice(0, 7), listX + 20, cy, i === v.idx ? '#1a0204' : '#202020');
+      window.PR_UI.drawText(ctx, 'L' + mon.level, listX + 20, cy + 9, '#385890');
+      if (mon.held) {
+        ctx.fillStyle = '#f0c020';
+        ctx.fillRect(listX + listW - 8, cy + 4, 4, 4);
+      }
+    }
+    drawPartyDetail(state.party[Math.min(v.idx, state.party.length - 1)], v.page || 0, x + 82, y + 20, w - 90, h - 34);
   }
 
   // ---------- Battle end ----------
@@ -1673,6 +1874,10 @@
       state.player.x = 4; state.player.y = 5; state.player.dir = 'down';
     }
     if (outcome === 'won' && battle.opts && battle.opts.npcKey) state.defeatedTrainers.add(battle.opts.npcKey);
+    if (outcome === 'won') {
+      ensurePlayerStats();
+      state.player.stats.battlesWon = (state.player.stats.battlesWon || 0) + 1;
+    }
     if (outcome === 'won' && battle.opts && battle.opts.badge) {
       if (!Array.isArray(state.player.badges)) state.player.badges = [];
       if (!state.player.badges.includes(battle.opts.badge)) {

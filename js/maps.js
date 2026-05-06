@@ -119,8 +119,10 @@ function tileAt(map, x, y) {
   return row[x];
 }
 
-const OUTDOOR_W = 34;
-const OUTDOOR_H = 28;
+const OUTDOOR_W = 48;
+const OUTDOOR_H = 38;
+const CITY_W = 44;
+const CITY_H = 34;
 
 function makeGrid(w, h, fill) {
   const rows = [];
@@ -181,7 +183,9 @@ function scatterTiles(grid, cfg) {
 }
 
 function makeWindingTiles(cfg) {
-  const grid = makeGrid(OUTDOOR_W, OUTDOOR_H, cfg.fill);
+  const w = cfg.w || OUTDOOR_W;
+  const h = cfg.h || OUTDOOR_H;
+  const grid = makeGrid(w, h, cfg.fill);
   carvePath(grid, cfg.path, cfg.pathCode || ',', cfg.pathRadius || 0);
   if (cfg.branches) {
     for (const branch of cfg.branches) {
@@ -191,10 +195,150 @@ function makeWindingTiles(cfg) {
   if (cfg.pockets) {
     for (const p of cfg.pockets) carveRect(grid, p.x, p.y, p.w, p.h, p.code || ':');
   }
+  if (cfg.rects) {
+    for (const r of cfg.rects) carveRect(grid, r.x, r.y, r.w, r.h, r.code);
+  }
   if (cfg.decor) {
     for (const d of cfg.decor) scatterTiles(grid, d);
   }
+  if (cfg.tiles) {
+    for (const t of cfg.tiles) putTile(grid, t.x, t.y, t.code);
+  }
+  if (cfg.doors) {
+    for (const d of cfg.doors) putTile(grid, d.x, d.y, d.code || 'D');
+  }
   return grid.map(row => row.join(''));
+}
+
+function stampBuilding(grid, b, pathCode, hub) {
+  const x = b.x, y = b.y, w = b.w || 7;
+  const roof = b.roof || '+';
+  const wall = b.wall || '#';
+  const doorOffset = Math.max(1, Math.min(w - 2, b.doorOffset == null ? Math.floor(w / 2) : b.doorOffset));
+  const doorX = x + doorOffset;
+  const doorY = y + 3;
+  carveRect(grid, x, y, w, 2, roof);
+  carveRect(grid, x, y + 2, w, 2, wall);
+  if (w >= 6) {
+    putTile(grid, x + 1, y + 3, '[');
+    putTile(grid, x + w - 2, y + 3, ']');
+  }
+  const below = Math.min(grid.length - 2, doorY + 1);
+  carveSegment(grid, [doorX, below], hub || [22, 17], pathCode, 0);
+  putTile(grid, doorX, doorY, b.doorTile || 'd');
+  if (b.trim) putTile(grid, x + w - 1, y, b.trim);
+  return { x: doorX, y: doorY };
+}
+
+function makeCityHubTiles(cfg) {
+  const fill = cfg.fill || '.';
+  const pathCode = cfg.pathCode || ',';
+  const grid = makeGrid(CITY_W, CITY_H, fill);
+  for (let x = 0; x < CITY_W; x++) {
+    putTile(grid, x, 0, cfg.edges && cfg.edges.north ? 'X' : fill);
+    putTile(grid, x, CITY_H - 1, cfg.edges && cfg.edges.south ? 'X' : fill);
+  }
+  for (let y = 0; y < CITY_H; y++) {
+    putTile(grid, 0, y, cfg.edges && cfg.edges.west ? 'X' : fill);
+    putTile(grid, CITY_W - 1, y, cfg.edges && cfg.edges.east ? 'X' : fill);
+  }
+  scatterTiles(grid, { on:fill, codes:cfg.trees || ['c','1'], rate:cfg.treeRate || 11, seed:cfg.seed || 1 });
+  carvePath(grid, [[22,0],[22,5],[17,5],[17,10],[22,10],[22,33]], pathCode, 1);
+  carvePath(grid, [[0,17],[8,17],[8,14],[17,14],[26,14],[26,17],[43,17]], pathCode, 1);
+  carvePath(grid, [[9,29],[15,25],[22,25],[29,25],[35,29]], pathCode, 1);
+  carveRect(grid, 15, 13, 14, 8, pathCode);
+  carveRect(grid, 18, 22, 9, 6, cfg.plaza || pathCode);
+  if (cfg.paths) {
+    for (const p of cfg.paths) carvePath(grid, p.points, p.code || pathCode, p.radius || 0);
+  }
+  if (cfg.features) {
+    for (const f of cfg.features) carveRect(grid, f.x, f.y, f.w, f.h, f.code);
+  }
+  const hub = cfg.hub || [22, 17];
+  if (cfg.buildings) {
+    for (const b of cfg.buildings) stampBuilding(grid, b, pathCode, hub);
+  }
+  // Keep a guaranteed civic spine through every hub even when a district
+  // building sits close to the winding street plan.
+  carvePath(grid, [[22,0],[22,CITY_H - 1]], pathCode, 1);
+  carvePath(grid, [[0,17],[CITY_W - 1,17]], pathCode, 1);
+  if (cfg.buildings) {
+    for (const b of cfg.buildings) {
+      const [dx, dy] = buildingDoor(b);
+      putTile(grid, dx, dy, b.doorTile || 'd');
+    }
+  }
+  if (cfg.signTiles) {
+    for (const s of cfg.signTiles) putTile(grid, s.x, s.y, 'S');
+  }
+  if (cfg.extraTiles) {
+    for (const t of cfg.extraTiles) putTile(grid, t.x, t.y, t.code);
+  }
+  return grid.map(row => row.join(''));
+}
+
+function buildingDoor(b) {
+  const w = b.w || 7;
+  const doorOffset = Math.max(1, Math.min(w - 2, b.doorOffset == null ? Math.floor(w / 2) : b.doorOffset));
+  return [b.x + doorOffset, b.y + 3];
+}
+
+function cityDoors(buildings) {
+  const doors = {};
+  for (const b of buildings || []) {
+    if (!b.to) continue;
+    const [x, y] = buildingDoor(b);
+    doors[x + ',' + y] = { to:b.to, x:b.tx, y:b.ty };
+  }
+  return doors;
+}
+
+function makeFlavorInterior(id, name, returnMap, returnX, returnY, npc) {
+  return {
+    id, name, interior:true, tags:['interior'],
+    tiles: [
+      'BBBBBBBBBBB',
+      'B}FFFFFFF}B',
+      'BFFFrrFFFFB',
+      'BFFFrrFFFFB',
+      'BF>>FFF>>FB',
+      'BFFFFFFFFFB',
+      'BFFFFCFFFFB',
+      'B{rrrrrrr{B',
+      'BBBBBDBBBBB'
+    ],
+    npcs: npc ? [npc] : [],
+    doors: { '5,8': { to:returnMap, x:returnX, y:returnY } }
+  };
+}
+
+function makeSideCave(id, name, returnMap, returnX, returnY, cfg) {
+  cfg = cfg || {};
+  const grid = makeGrid(30, 20, '#');
+  carvePath(grid, [[14,19],[14,15],[8,15],[8,9],[16,9],[16,5],[23,5]], 's', 1);
+  carvePath(grid, [[8,9],[5,9],[5,13],[11,13]], 's', 1);
+  carvePath(grid, [[16,9],[22,9],[22,14],[18,14]], 's', 1);
+  carveRect(grid, 4, 11, 8, 4, ':');
+  carveRect(grid, 18, 12, 7, 4, ':');
+  carveRect(grid, 20, 3, 6, 4, cfg.deepCode || ':');
+  scatterTiles(grid, { on:'#', codes:['T',')'], rate:13, seed:cfg.seed || 5 });
+  scatterTiles(grid, { on:'#', codes:['('], rate:17, seed:(cfg.seed || 5) + 3 });
+  putTile(grid, 14, 19, 'D');
+  if (cfg.extraTiles) {
+    for (const t of cfg.extraTiles) putTile(grid, t.x, t.y, t.code);
+  }
+  return {
+    id, name, interior:true, tags:cfg.tags || ['cave'],
+    tiles: grid.map(row => row.join('')),
+    npcs: cfg.npcs || [],
+    encounters: cfg.encounters || [
+      { species:'pebra', minL:8, maxL:12, weight:4 },
+      { species:'geistmite', minL:8, maxL:12, weight:3 },
+      { species:'cavewing', minL:8, maxL:12, weight:3 }
+    ],
+    hidden: cfg.hidden || {},
+    doors: { '14,19': { to:returnMap, x:returnX, y:returnY } }
+  };
 }
 
 const MAPS = {
@@ -1431,5 +1575,613 @@ desert: {
     }
   }
 };
+
+function applyWorldExpansion(MAPS) {
+  function signTiles(signs) {
+    return Object.keys(signs || {}).map(k => {
+      const parts = k.split(',').map(Number);
+      return { x:parts[0], y:parts[1] };
+    });
+  }
+
+  function updateCity(id, cfg) {
+    const map = MAPS[id];
+    cfg.signTiles = signTiles(cfg.signs);
+    map.name = cfg.name || map.name;
+    map.tags = ['city'].concat(cfg.tags || []);
+    map.tiles = makeCityHubTiles(cfg);
+    map.doors = cityDoors(cfg.buildings);
+    map.signs = cfg.signs || {};
+    map.npcs = cfg.npcs || [];
+    map.ambient = cfg.ambient || [];
+    map.edges = cfg.edgeDefs || map.edges || {};
+    if (cfg.hidden) map.hidden = cfg.hidden;
+  }
+
+  function updateExit(mapId, key, to, x, y) {
+    if (!MAPS[mapId].doors) MAPS[mapId].doors = {};
+    MAPS[mapId].doors[key] = { to, x, y };
+  }
+
+  function movedNpc(mapId, idx, x, y, dir) {
+    const src = MAPS[mapId].npcs && MAPS[mapId].npcs[idx];
+    return Object.assign({}, src || {}, { x, y, dir:dir || (src && src.dir) || 'down' });
+  }
+
+  function updateRoute(id, cfg) {
+    const map = MAPS[id];
+    const doorTiles = (cfg.doors || []).map(d => ({ x:d.x, y:d.y, code:d.code || 'D' }));
+    map.name = cfg.name || map.name;
+    map.tags = cfg.tags || ['route'];
+    map.tiles = makeWindingTiles(Object.assign({}, cfg, { doors:doorTiles }));
+    map.edges = cfg.edges;
+    map.signs = cfg.signs || {};
+    map.hidden = cfg.hidden || {};
+    map.npcs = cfg.npcs || [];
+    map.doors = {};
+    for (const d of cfg.doors || []) map.doors[d.x + ',' + d.y] = { to:d.to, x:d.tx, y:d.ty };
+  }
+
+  const rodportBuildings = [
+    { x:5,  y:5,  w:7, roof:'+', wall:'@', to:'player_house', tx:3, ty:6 },
+    { x:14, y:5,  w:7, roof:'-', wall:'@', to:'rival_house',  tx:3, ty:6 },
+    { x:24, y:4,  w:10, roof:'P', wall:'B', doorTile:'D', to:'lab', tx:5, ty:8 },
+    { x:5,  y:22, w:8, roof:'=', wall:'$', to:'rodport_dockhouse', tx:5, ty:7 },
+    { x:31, y:21, w:8, roof:'&', wall:'#', to:'rodport_boathouse', tx:5, ty:7 }
+  ];
+  updateCity('rodport', {
+    fill:'Y', pathCode:'_', trees:['K','c','1','e'], seed:3, edges:{ south:true, west:true },
+    buildings:rodportBuildings,
+    features:[
+      { x:32, y:27, w:10, h:4, code:'W' },
+      { x:2, y:13, w:7, h:3, code:"'" },
+      { x:27, y:13, w:7, h:3, code:'1' }
+    ],
+    extraTiles:[{x:10,y:17,code:'<'},{x:30,y:17,code:'<'},{x:33,y:26,code:'t'},{x:34,y:26,code:'t'}],
+    signs:{
+      '19,19': 'RODPORT TOWN - Harbor, lab, and first steps.',
+      '2,17': 'The desert road loops back here after six BADGES.'
+    },
+    npcs:[
+      { x:28, y:9, dir:'down', sprite:'npc_oak', name:'PROF. ROD',
+        dialog:["Welcome to the world of POKEROD!","My lab is bigger now, but the adventure still starts with one partner."] },
+      { x:13, y:17, dir:'down', sprite:'npc_girl', name:'LILA',
+        dialog:["The new harbor paths all bend back to the plaza.","If you get turned around, follow the cobbles."] },
+      { x:35, y:25, dir:'left', sprite:'npc_youth', name:'DOCKHAND REN',
+        dialog:["We keep spare ROD BALL crates by the pier.","The sea breeze makes every route feel longer."] }
+    ],
+    ambient:[
+      { species:'nibblet', x:16, y:18, range:3 },
+      { species:'flitwing', x:34, y:29, range:2 },
+      { species:'glimkit', x:7, y:14, range:2 }
+    ],
+    edgeDefs:{
+      west:{ x:0, to:'desert', tx:46, ty:20, gate:{ minBadges:6, message:'The desert loop is too harsh without six BADGES.' } },
+      south:{ y:33, to:'route1', tx:24, ty:1 }
+    }
+  });
+
+  const brindaleBuildings = [
+    { x:5, y:4, w:7, roof:'P', wall:'B', doorTile:'D', to:'pokecenter', tx:4, ty:6 },
+    { x:15, y:4, w:7, roof:'M', wall:'$', doorTile:'f', to:'mart', tx:5, ty:9 },
+    { x:28, y:5, w:9, roof:'-', wall:'!', to:'brindale_school', tx:5, ty:7 },
+    { x:5, y:22, w:7, roof:'=', wall:'$', to:'townhouse', tx:3, ty:6 },
+    { x:25, y:22, w:9, roof:'&', wall:'B', doorTile:'D', to:'brindale_gym', tx:4, ty:7 }
+  ];
+  updateCity('brindale', {
+    fill:'K', pathCode:'p', trees:['c','1','e','K'], seed:7, edges:{ north:true, south:true },
+    buildings:brindaleBuildings,
+    features:[
+      { x:12, y:20, w:9, h:4, code:"'" },
+      { x:30, y:12, w:8, h:3, code:'1' },
+      { x:5, y:13, w:6, h:3, code:'c' }
+    ],
+    signs:{ '18,19':'BRINDALE CITY - Gardens, school, Center, Mart, and Gym.' },
+    npcs:[
+      { x:21, y:16, dir:'down', sprite:'npc_girl', name:'BRINDALE GUIDE',
+        dialog:["BRINDALE has grown into a real garden city.","The Gym is tucked into the southern courtyard."] },
+      { x:33, y:10, dir:'left', sprite:'npc_youth', name:'SCHOOL KID NEM',
+        dialog:["Trainer school says Great Balls show up earlier now.","I wrote that down twice."] },
+      { x:14, y:23, dir:'up', sprite:'npc_old', name:'GARDENER ELI',
+        dialog:["Every flowerbed is a tiny route if you walk slowly enough."] }
+    ],
+    ambient:[
+      { species:'glimkit', x:12, y:16, range:2 },
+      { species:'splashfin', x:31, y:14, range:2 },
+      { species:'nibblet', x:8, y:24, range:2 }
+    ],
+    edgeDefs:{
+      north:{ y:0, to:'route1', tx:24, ty:36 },
+      south:{ y:33, to:'route2', tx:24, ty:1 }
+    }
+  });
+
+  const woodfallBuildings = [
+    { x:6, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'woodfall_center', tx:4, ty:6 },
+    { x:17, y:5, w:7, roof:'M', wall:'?', doorTile:'f', to:'woodfall_mart', tx:5, ty:9 },
+    { x:30, y:6, w:8, roof:'8', wall:'?', to:'woodfall_lodge', tx:5, ty:7 },
+    { x:7, y:22, w:8, roof:'7', wall:'?', to:'woodfall_cabin', tx:5, ty:7 },
+    { x:24, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'woodfall_gym', tx:4, ty:7 }
+  ];
+  updateCity('woodfall', {
+    fill:'G', pathCode:'z', trees:['U','V','4','n'], seed:4, edges:{ north:true, south:true },
+    buildings:woodfallBuildings,
+    features:[
+      { x:2, y:12, w:8, h:5, code:'4' },
+      { x:31, y:14, w:8, h:5, code:'4' },
+      { x:16, y:26, w:5, h:4, code:'m' }
+    ],
+    signs:{ '18,19':'WOODFALL - Cabins under the old canopy.' },
+    npcs:[
+      { x:22, y:16, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
+        dialog:["The village paths twist with the roots now.","South of town, PEBBLEWOOD has deeper side trails."] },
+      { x:34, y:13, dir:'left', sprite:'npc_girl', name:'FORAGER MIA',
+        dialog:["A forest cavern opened near PEBBLEWOOD.","Cavern Balls work nicely in places like that."] },
+      { x:10, y:24, dir:'up', sprite:'npc_youth', name:'CABIN KID SOL',
+        dialog:["I counted five different roofs from my porch!"] }
+    ],
+    ambient:[
+      { species:'sproutling', x:8, y:14, range:3 },
+      { species:'crawlbug', x:33, y:16, range:2 },
+      { species:'fernsprout', x:18, y:27, range:2 }
+    ],
+    edgeDefs:{
+      north:{ y:0, to:'route2', tx:24, ty:36 },
+      south:{ y:33, to:'pebblewood', tx:24, ty:1 }
+    }
+  });
+
+  const crestrockBuildings = [
+    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'crestrock_center', tx:4, ty:6 },
+    { x:16, y:5, w:7, roof:'M', wall:'#', doorTile:'f', to:'crestrock_mart', tx:5, ty:9 },
+    { x:29, y:6, w:9, roof:'=', wall:'#', to:'crestrock_workshop', tx:5, ty:7 },
+    { x:7, y:22, w:8, roof:'&', wall:'#', to:'crestrock_house', tx:5, ty:7 },
+    { x:24, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'crestrock_gym', tx:4, ty:7 }
+  ];
+  updateCity('crestrock', {
+    fill:'V', pathCode:'v', trees:['2','(',')','V'], seed:10, edges:{ north:true, east:true, south:true },
+    buildings:crestrockBuildings,
+    features:[
+      { x:3, y:12, w:8, h:4, code:'(' },
+      { x:32, y:13, w:7, h:5, code:';' },
+      { x:35, y:16, w:7, h:3, code:'v' }
+    ],
+    signs:{ '18,19':'CRESTROCK - Terraces, workshops, and the Highspire gate.' },
+    npcs:[
+      { x:22, y:16, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
+        dialog:["The east switchback reaches HIGHSPIRE.","The south gate drops into GLIMCAVERN."] },
+      { x:33, y:12, dir:'left', sprite:'npc_old', name:'MINER OREN',
+        dialog:["We carved more bends into the roads than the mountain asked for."] },
+      { x:12, y:24, dir:'up', sprite:'npc_youth', name:'WORKSHOP KAI',
+        dialog:["Quick Balls are best before a wild Pokerod gets its bearings."] }
+    ],
+    ambient:[
+      { species:'pebra', x:9, y:14, range:2 },
+      { species:'geistmite', x:32, y:16, range:2 },
+      { species:'voltkit', x:14, y:25, range:2 }
+    ],
+    edgeDefs:{
+      north:{ y:0, to:'pebblewood', tx:24, ty:36 },
+      east:{ x:43, to:'mountain', tx:1, ty:20 },
+      south:{ y:33, to:'glimcavern', tx:24, ty:1 }
+    }
+  });
+
+  const frostmereBuildings = [
+    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'frostmere_center', tx:4, ty:6 },
+    { x:16, y:5, w:7, roof:'M', wall:'?', doorTile:'f', to:'frostmere_mart', tx:5, ty:9 },
+    { x:29, y:6, w:8, roof:'%', wall:'!', to:'frostmere_inn', tx:5, ty:7 },
+    { x:7, y:22, w:8, roof:'%', wall:'?', to:'frostmere_cabin', tx:5, ty:7 },
+    { x:24, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'frostmere_gym', tx:4, ty:7 }
+  ];
+  updateCity('frostmere', {
+    fill:'Q', pathCode:'6', trees:['k','2','Q'], seed:6, edges:{ north:true, south:true },
+    buildings:frostmereBuildings,
+    features:[
+      { x:30, y:13, w:9, h:5, code:'W' },
+      { x:3, y:14, w:8, h:4, code:'k' },
+      { x:16, y:25, w:5, h:3, code:'2' }
+    ],
+    signs:{ '18,19':'FROSTMERE - Frozen lake, warm inn, cold Gym.' },
+    npcs:[
+      { x:22, y:16, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
+        dialog:["The lake district grew around the old ice path.","FROSTPEAK hides an ice cave now."] },
+      { x:33, y:12, dir:'left', sprite:'npc_girl', name:'INNKEEPER POL',
+        dialog:["The hot spring is small, but the stories get larger every night."] },
+      { x:11, y:24, dir:'up', sprite:'npc_youth', name:'SNOW SCOUT IVA',
+        dialog:["Look for Ultra Balls in late mountain pockets."] }
+    ],
+    ambient:[
+      { species:'frostpup', x:8, y:14, range:2 },
+      { species:'snowox', x:34, y:17, range:2 },
+      { species:'glimkit', x:18, y:25, range:2 }
+    ],
+    edgeDefs:{
+      north:{ y:0, to:'glimcavern', tx:24, ty:36 },
+      south:{ y:33, to:'frostpeak', tx:24, ty:1 }
+    }
+  });
+
+  const harborsideBuildings = [
+    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'harborside_center', tx:4, ty:6 },
+    { x:16, y:5, w:7, roof:'M', wall:'!', doorTile:'f', to:'harborside_mart', tx:5, ty:9 },
+    { x:29, y:6, w:9, roof:'&', wall:'$', to:'harborside_warehouse', tx:5, ty:7 },
+    { x:7, y:22, w:8, roof:'=', wall:'!', to:'harborside_fisher', tx:5, ty:7 },
+    { x:23, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'harborside_gym', tx:4, ty:7 }
+  ];
+  updateCity('harborside', {
+    fill:'O', pathCode:'t', trees:['3','s','O'], seed:13, edges:{ north:true, east:true, south:true },
+    buildings:harborsideBuildings,
+    features:[
+      { x:34, y:10, w:9, h:7, code:'W' },
+      { x:32, y:20, w:10, h:4, code:'W' },
+      { x:29, y:18, w:8, h:2, code:'t' }
+    ],
+    signs:{ '18,19':'HARBORSIDE - Docks, warehouses, beach road.' },
+    npcs:[
+      { x:22, y:16, dir:'down', sprite:'npc_youth', name:'DOCKHAND TEO',
+        dialog:["The beach path runs east from the dock road.","South is the longer, windier SEAROUTE."] },
+      { x:34, y:19, dir:'left', sprite:'npc_girl', name:'MARKET JIN',
+        dialog:["Quick Balls sell fast when travelers smell storm weather."] },
+      { x:11, y:24, dir:'up', sprite:'npc_old', name:'OLD FISHER PIKE',
+        dialog:["The tide cavern opens when you least expect a shortcut."] }
+    ],
+    ambient:[
+      { species:'aquapup', x:10, y:14, range:2 },
+      { species:'splashfin', x:34, y:21, range:2 },
+      { species:'mistfin', x:16, y:25, range:2 }
+    ],
+    edgeDefs:{
+      north:{ y:0, to:'frostpeak', tx:24, ty:36 },
+      east:{ x:43, to:'beach', tx:1, ty:20 },
+      south:{ y:33, to:'searoute', tx:24, ty:1 }
+    }
+  });
+
+  const summitBuildings = [
+    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'summitvale_center', tx:4, ty:6 },
+    { x:16, y:5, w:7, roof:'M', wall:'!', doorTile:'f', to:'summitvale_mart', tx:5, ty:9 },
+    { x:29, y:6, w:8, roof:'*', wall:'!', to:'summitvale_house', tx:3, ty:6 },
+    { x:7, y:23, w:8, roof:'=', wall:'#', to:'summitvale_lookout', tx:5, ty:7 },
+    { x:29, y:23, w:9, roof:'*', wall:'!', to:'summitvale_hall', tx:5, ty:7 }
+  ];
+  updateCity('summitvale', {
+    fill:'N', pathCode:'i', trees:['1','c','N','('], seed:16, edges:{ north:true, east:true },
+    buildings:summitBuildings,
+    features:[
+      { x:31, y:14, w:8, h:4, code:'5' },
+      { x:3, y:14, w:8, h:4, code:'(' },
+      { x:18, y:25, w:8, h:3, code:'I' }
+    ],
+    signs:{ '18,19':'SUMMITVALE - The loop turns east toward the desert.' },
+    npcs:[
+      movedNpc('summitvale', 0, 26, 18, 'down'),
+      { x:34, y:13, dir:'left', sprite:'npc_girl', name:'LOOKOUT ANA',
+        dialog:["From here the region finally looks like a circle.","The desert closes the loop to Rodport."] },
+      { x:12, y:25, dir:'up', sprite:'npc_youth', name:'RIDGE RUNNER CAL',
+        dialog:["The old straight roads are gone. Every route has a bend worth checking."] }
+    ],
+    ambient:[
+      { species:'emberkit', x:11, y:15, range:2 },
+      { species:'voltkit', x:34, y:15, range:2 },
+      { species:'glimkit', x:19, y:26, range:2 }
+    ],
+    edgeDefs:{
+      north:{ y:0, to:'searoute', tx:24, ty:36 },
+      east:{ x:43, to:'desert', tx:1, ty:20 }
+    }
+  });
+
+  updateRoute('route1', {
+    fill:'Y', pathCode:',', pathRadius:1,
+    path:[[24,0],[24,5],[17,5],[17,10],[30,10],[30,15],[20,15],[20,22],[34,22],[34,29],[24,29],[24,37]],
+    branches:[
+      { points:[[17,10],[8,10],[8,18],[14,18]], radius:1 },
+      { points:[[30,15],[40,15],[40,9],[37,9]], radius:1 },
+      { points:[[20,22],[10,22],[10,29],[18,29]], radius:1 }
+    ],
+    pockets:[
+      { x:6, y:15, w:9, h:5, code:':' },
+      { x:31, y:12, w:9, h:5, code:':' },
+      { x:12, y:27, w:8, h:5, code:':' }
+    ],
+    decor:[{ on:'Y', codes:['K','E'], rate:15, seed:3 }, { on:'Y', codes:['c','e','1'], rate:10, seed:5 }],
+    doors:[{ x:37, y:9, to:'route1_hollow', tx:14, ty:18 }],
+    signs:{ '18,6':'ROUTE 1 - The first road now has a few secrets.' },
+    hidden:{ '18,29':{ item:'potion', count:1 }, '39,14':{ item:'rodball', count:2 } },
+    npcs:[movedNpc('route1', 0, 9, 18, 'right')],
+    edges:{ north:{ y:0, to:'rodport', tx:22, ty:32 }, south:{ y:37, to:'brindale', tx:22, ty:1 } }
+  });
+
+  updateRoute('route2', {
+    fill:'K', pathCode:',', pathRadius:1,
+    path:[[24,0],[24,4],[15,4],[15,9],[32,9],[32,14],[18,14],[18,20],[10,20],[10,28],[24,28],[24,37]],
+    branches:[
+      { points:[[15,9],[7,9],[7,16],[13,16]], radius:1 },
+      { points:[[32,14],[41,14],[41,22],[34,22]], radius:1 },
+      { points:[[18,20],[25,20],[25,25],[31,25]], radius:1 }
+    ],
+    pockets:[
+      { x:5, y:13, w:9, h:5, code:':' },
+      { x:33, y:19, w:9, h:5, code:':' },
+      { x:21, y:23, w:9, h:5, code:':' }
+    ],
+    decor:[{ on:'K', codes:['m','c','1'], rate:10, seed:7 }, { on:'K', codes:['E'], rate:18, seed:2 }],
+    signs:{ '16,5':'ROUTE 2 - Flower meadows hide longer bends.' },
+    hidden:{ '35,22':{ item:'greatball', count:1 }, '12,16':{ item:'awakening', count:1 } },
+    npcs:[movedNpc('route2', 0, 7, 16, 'right')],
+    edges:{ north:{ y:0, to:'brindale', tx:22, ty:32 }, south:{ y:37, to:'woodfall', tx:22, ty:1 } }
+  });
+
+  updateRoute('pebblewood', {
+    fill:'G', pathCode:'z', pathRadius:1,
+    path:[[24,0],[24,5],[14,5],[14,11],[29,11],[29,17],[18,17],[18,24],[34,24],[34,30],[24,30],[24,37]],
+    branches:[
+      { points:[[14,11],[7,11],[7,22],[14,22]], code:'z', radius:1 },
+      { points:[[29,17],[40,17],[40,9],[37,9]], code:'z', radius:1 },
+      { points:[[18,24],[10,24],[10,30],[16,30]], code:'z', radius:1 }
+    ],
+    pockets:[
+      { x:5, y:18, w:10, h:6, code:':' },
+      { x:31, y:13, w:10, h:6, code:':' },
+      { x:11, y:28, w:8, h:5, code:':' }
+    ],
+    decor:[{ on:'G', codes:['U','V','g'], rate:12, seed:4 }, { on:'G', codes:['4','n'], rate:17, seed:9 }],
+    doors:[{ x:37, y:9, to:'pebblewood_cavern', tx:14, ty:18 }],
+    hidden:{ '16,30':{ item:'cavernball', count:1 }, '34,16':{ item:'antidote', count:1 } },
+    npcs:[movedNpc('pebblewood', 0, 14, 22, 'right')],
+    edges:{ north:{ y:0, to:'woodfall', tx:22, ty:32 }, south:{ y:37, to:'crestrock', tx:22, ty:1 } }
+  });
+
+  updateRoute('glimcavern', {
+    fill:'#', pathCode:'s', pathRadius:1, tags:['route','cave'],
+    path:[[24,0],[24,5],[15,5],[15,11],[32,11],[32,16],[18,16],[18,22],[31,22],[31,30],[24,30],[24,37]],
+    branches:[
+      { points:[[15,11],[7,11],[7,23],[14,23]], code:'s', radius:1 },
+      { points:[[32,16],[40,16],[40,8],[37,8]], code:'s', radius:1 },
+      { points:[[18,22],[11,22],[11,29],[17,29]], code:'s', radius:1 }
+    ],
+    pockets:[
+      { x:5, y:19, w:10, h:6, code:':' },
+      { x:32, y:12, w:9, h:6, code:':' },
+      { x:11, y:27, w:8, h:5, code:':' }
+    ],
+    decor:[{ on:'#', codes:['T',')'], rate:13, seed:8 }, { on:'#', codes:['('], rate:18, seed:6 }],
+    doors:[{ x:37, y:8, to:'glimcavern_b1', tx:10, ty:1 }],
+    hidden:{ '17,29':{ item:'cavernball', count:1 }, '36,15':{ item:'greatball', count:1 } },
+    npcs:[movedNpc('glimcavern', 0, 11, 22, 'right'), movedNpc('glimcavern', 1, 35, 21, 'down')],
+    edges:{ north:{ y:0, to:'crestrock', tx:22, ty:32 }, south:{ y:37, to:'frostmere', tx:22, ty:1 } }
+  });
+
+  updateRoute('frostpeak', {
+    fill:'Q', pathCode:'6', pathRadius:1, tags:['route','snow'],
+    path:[[24,0],[24,4],[16,4],[16,10],[31,10],[31,16],[19,16],[19,22],[36,22],[36,30],[24,30],[24,37]],
+    branches:[
+      { points:[[16,10],[8,10],[8,21],[14,21]], code:'6', radius:1 },
+      { points:[[31,16],[41,16],[41,9],[37,9]], code:'6', radius:1 },
+      { points:[[19,22],[12,22],[12,30],[18,30]], code:'6', radius:1 }
+    ],
+    pockets:[
+      { x:6, y:17, w:9, h:6, code:':' },
+      { x:32, y:12, w:9, h:6, code:':' },
+      { x:13, y:28, w:8, h:5, code:':' }
+    ],
+    decor:[{ on:'Q', codes:['k','2'], rate:10, seed:6 }, { on:'Q', codes:['('], rate:19, seed:12 }],
+    doors:[{ x:37, y:9, to:'frostpeak_ice_cave', tx:14, ty:18 }],
+    hidden:{ '18,30':{ item:'ultraball', count:1 }, '35,15':{ item:'fullheal', count:1 } },
+    npcs:[movedNpc('frostpeak', 0, 38, 16, 'left')],
+    edges:{ north:{ y:0, to:'frostmere', tx:22, ty:32 }, south:{ y:37, to:'harborside', tx:22, ty:1 } }
+  });
+
+  updateRoute('searoute', {
+    fill:'O', pathCode:'t', pathRadius:1, tags:['route','water'],
+    path:[[24,0],[24,5],[15,5],[15,12],[31,12],[31,17],[18,17],[18,24],[35,24],[35,30],[24,30],[24,37]],
+    branches:[
+      { points:[[15,12],[7,12],[7,23],[13,23]], code:'u', radius:1 },
+      { points:[[31,17],[42,17],[42,8],[38,8]], code:'u', radius:1 },
+      { points:[[18,24],[11,24],[11,31],[17,31]], code:'u', radius:1 }
+    ],
+    pockets:[
+      { x:5, y:19, w:9, h:6, code:':' },
+      { x:33, y:13, w:9, h:6, code:':' },
+      { x:29, y:2, w:8, h:6, code:'W' },
+      { x:37, y:22, w:8, h:7, code:'W' }
+    ],
+    decor:[{ on:'O', codes:['3','s'], rate:9, seed:13 }, { on:'O', codes:['W'], rate:30, seed:4 }],
+    doors:[{ x:38, y:8, to:'searoute_tide_cavern', tx:14, ty:18 }],
+    hidden:{ '17,31':{ item:'quickball', count:1 }, '13,23':{ item:'superpotion', count:1 } },
+    npcs:[movedNpc('searoute', 0, 38, 17, 'left')],
+    edges:{ north:{ y:0, to:'harborside', tx:22, ty:32 }, south:{ y:37, to:'summitvale', tx:22, ty:1 } }
+  });
+
+  updateRoute('mountain', {
+    fill:'G', pathCode:'v', pathRadius:1, tags:['route','mountain'],
+    path:[[0,20],[6,20],[6,13],[15,13],[15,7],[28,7],[28,14],[39,14],[39,24],[31,24]],
+    branches:[
+      { points:[[15,13],[20,13],[20,22],[12,22]], code:'v', radius:1 },
+      { points:[[28,14],[35,14],[35,23]], code:'v', radius:1 },
+      { points:[[6,20],[6,29],[15,29]], code:'v', radius:1 }
+    ],
+    pockets:[
+      { x:9, y:19, w:9, h:6, code:':' },
+      { x:31, y:19, w:9, h:6, code:':' },
+      { x:11, y:27, w:8, h:5, code:':' }
+    ],
+    decor:[{ on:'G', codes:['#',')'], rate:10, seed:10 }, { on:'G', codes:['('], rate:15, seed:2 }],
+    hidden:{ '15,29':{ item:'quickball', count:1 }, '34,20':{ item:'greatball', count:1 } },
+    npcs:[movedNpc('mountain', 0, 35, 23, 'down')],
+    edges:{ west:{ x:0, to:'crestrock', tx:42, ty:17 } }
+  });
+
+  updateRoute('beach', {
+    fill:'O', pathCode:'u', pathRadius:1, tags:['route','water'],
+    path:[[0,20],[7,20],[7,12],[17,12],[17,7],[31,7],[31,15],[23,15],[23,25],[39,25]],
+    branches:[
+      { points:[[17,12],[10,12],[10,28],[18,28]], code:'t', radius:1 },
+      { points:[[31,15],[42,15],[42,8]], code:'t', radius:1 },
+      { points:[[23,25],[31,25],[31,31],[38,31]], code:'t', radius:1 }
+    ],
+    pockets:[
+      { x:8, y:24, w:10, h:6, code:':' },
+      { x:27, y:9, w:10, h:6, code:':' },
+      { x:39, y:1, w:8, h:30, code:'W' }
+    ],
+    decor:[{ on:'O', codes:['3','s'], rate:9, seed:4 }],
+    hidden:{ '18,28':{ item:'greatball', count:1 }, '38,31':{ item:'quickball', count:1 } },
+    npcs:[
+      { x:31, y:25, dir:'down', sprite:'npc_girl', name:'BEACHCOMBER RAE',
+        dialog:["Every tide leaves something interesting in a side pocket."] }
+    ],
+    edges:{ west:{ x:0, to:'harborside', tx:42, ty:17 } }
+  });
+
+  updateRoute('desert', {
+    name:'Sunbleach Desert Hub',
+    fill:'J', pathCode:'5', pathRadius:1, tags:['route','ruins'],
+    path:[[0,20],[6,20],[6,13],[16,13],[16,7],[30,7],[30,13],[38,13],[38,20],[47,20]],
+    branches:[
+      { points:[[16,13],[11,13],[11,26],[18,26]], code:'5', radius:1 },
+      { points:[[30,13],[34,13],[34,12]], code:'5', radius:1 },
+      { points:[[38,20],[38,29],[29,29]], code:'5', radius:1 }
+    ],
+    pockets:[
+      { x:8, y:23, w:11, h:6, code:':' },
+      { x:28, y:9, w:10, h:6, code:':' },
+      { x:27, y:26, w:10, h:5, code:':' },
+      { x:19, y:15, w:6, h:4, code:'W' }
+    ],
+    decor:[{ on:'J', codes:['3','O'], rate:9, seed:14 }, { on:'J', codes:['('], rate:16, seed:3 }],
+    doors:[{ x:34, y:12, to:'desert_ruins', tx:14, ty:18 }],
+    signs:{ '21,14':'SUNBLEACH DESERT - Oasis, ruins, and the Rodport loop.' },
+    hidden:{ '18,26':{ item:'quickball', count:1 }, '29,29':{ item:'ultraball', count:1 } },
+    npcs:[movedNpc('desert', 0, 29, 20, 'down')],
+    edges:{ west:{ x:0, to:'summitvale', tx:42, ty:17 }, east:{ x:47, to:'rodport', tx:1, ty:17 } }
+  });
+
+  updateExit('player_house', '3,6', 'rodport', 8, 9);
+  updateExit('rival_house', '3,6', 'rodport', 17, 9);
+  updateExit('lab', '5,8', 'rodport', 28, 8);
+  updateExit('pokecenter', '4,7', 'brindale', 8, 8);
+  updateExit('mart', '5,10', 'brindale', 18, 8);
+  updateExit('townhouse', '3,6', 'brindale', 8, 25);
+  updateExit('brindale_gym', '4,8', 'brindale', 29, 26);
+  updateExit('woodfall_center', '4,7', 'woodfall', 9, 9);
+  updateExit('woodfall_mart', '5,10', 'woodfall', 20, 9);
+  updateExit('woodfall_gym', '4,8', 'woodfall', 28, 27);
+  updateExit('crestrock_center', '4,7', 'crestrock', 8, 9);
+  updateExit('crestrock_mart', '5,10', 'crestrock', 19, 9);
+  updateExit('crestrock_gym', '4,8', 'crestrock', 28, 27);
+  updateExit('frostmere_center', '4,7', 'frostmere', 8, 9);
+  updateExit('frostmere_mart', '5,10', 'frostmere', 19, 9);
+  updateExit('frostmere_gym', '4,8', 'frostmere', 28, 27);
+  updateExit('harborside_center', '4,7', 'harborside', 8, 9);
+  updateExit('harborside_mart', '5,10', 'harborside', 19, 9);
+  updateExit('harborside_gym', '4,8', 'harborside', 27, 27);
+  updateExit('summitvale_center', '4,7', 'summitvale', 8, 9);
+  updateExit('summitvale_mart', '5,10', 'summitvale', 19, 9);
+  updateExit('summitvale_house', '3,6', 'summitvale', 33, 10);
+  MAPS.glimcavern_b1.tags = ['cave'];
+  updateExit('glimcavern_b1', '10,1', 'glimcavern', 37, 9);
+
+  MAPS.rodport_dockhouse = makeFlavorInterior('rodport_dockhouse', 'Dock House', 'rodport', 9, 26, {
+    x:5, y:4, dir:'down', sprite:'npc_old', name:'CAPTAIN EDA',
+    dialog:['The harbor used to be one pier and a rumor.','Now it has enough corners to lose a sandwich.']
+  });
+  MAPS.rodport_boathouse = makeFlavorInterior('rodport_boathouse', 'Boathouse', 'rodport', 35, 25, {
+    x:5, y:4, dir:'down', sprite:'npc_youth', name:'BOATWRIGHT NIX',
+    dialog:['Every route needs a few bends.','Straight roads make lazy boots.']
+  });
+  MAPS.brindale_school = makeFlavorInterior('brindale_school', 'Trainer School', 'brindale', 32, 9, {
+    x:5, y:4, dir:'down', sprite:'npc_girl', name:'TEACHER VERA',
+    dialog:['Lesson one: check your party stats.','Lesson two: do it before the Gym.']
+  });
+  MAPS.woodfall_lodge = makeFlavorInterior('woodfall_lodge', 'Forest Lodge', 'woodfall', 34, 10, {
+    x:5, y:4, dir:'down', sprite:'npc_old', name:'LODGE KEEPER',
+    dialog:['Pebblewood is wider now.','The quiet side paths are where items hide.']
+  });
+  MAPS.woodfall_cabin = makeFlavorInterior('woodfall_cabin', 'Leaf Cabin', 'woodfall', 11, 26, {
+    x:5, y:4, dir:'down', sprite:'npc_youth', name:'BUG WATCHER',
+    dialog:['I saw a Cavern Ball sparkle in the woods.','Then a Crawlbug sat on it.']
+  });
+  MAPS.crestrock_workshop = makeFlavorInterior('crestrock_workshop', 'Stone Workshop', 'crestrock', 33, 10, {
+    x:5, y:4, dir:'down', sprite:'npc_old', name:'FOREMAN IVO',
+    dialog:['Glimcavern got bigger after the last quake.','Take a Cavern Ball if you find one.']
+  });
+  MAPS.crestrock_house = makeFlavorInterior('crestrock_house', 'Terrace House', 'crestrock', 11, 26, {
+    x:5, y:4, dir:'down', sprite:'npc_girl', name:'TERRACE FAN',
+    dialog:['Highspire looks close on the map.','Your feet will disagree.']
+  });
+  MAPS.frostmere_inn = makeFlavorInterior('frostmere_inn', 'Warm Inn', 'frostmere', 33, 10, {
+    x:5, y:4, dir:'down', sprite:'npc_old', name:'INN AUNTIE',
+    dialog:['Warm hands, cold routes.','Check Frostpeak pockets for rare balls.']
+  });
+  MAPS.frostmere_cabin = makeFlavorInterior('frostmere_cabin', 'Snow Cabin', 'frostmere', 11, 26, {
+    x:5, y:4, dir:'down', sprite:'npc_girl', name:'SNOW ARTIST',
+    dialog:['The ice cave wall shines like a badge case.']
+  });
+  MAPS.harborside_warehouse = makeFlavorInterior('harborside_warehouse', 'Warehouse', 'harborside', 33, 10, {
+    x:5, y:4, dir:'down', sprite:'npc_youth', name:'WAREHOUSE CLERK',
+    dialog:['We stock Quick Balls near the exits.','Nobody buys them after a long fight.']
+  });
+  MAPS.harborside_fisher = makeFlavorInterior('harborside_fisher', 'Fisher House', 'harborside', 11, 26, {
+    x:5, y:4, dir:'down', sprite:'npc_old', name:'FISHER PIKE',
+    dialog:['Tide caverns are caves with opinions.','Cavern Balls still count.']
+  });
+  MAPS.summitvale_lookout = makeFlavorInterior('summitvale_lookout', 'Lookout House', 'summitvale', 11, 27, {
+    x:5, y:4, dir:'down', sprite:'npc_girl', name:'LOOKOUT ANA',
+    dialog:['Rodport, Desert, Summitvale...','A circle feels better from up here.']
+  });
+  MAPS.summitvale_hall = makeFlavorInterior('summitvale_hall', 'Summit Hall', 'summitvale', 33, 27, {
+    x:5, y:4, dir:'down', sprite:'npc_old', name:'HALL KEEPER',
+    dialog:['Champions like open plazas.','They need room for dramatic pauses.']
+  });
+
+  MAPS.route1_hollow = makeSideCave('route1_hollow', 'Route 1 Hollow', 'route1', 37, 10, {
+    seed:2,
+    hidden:{ '23,5':{ item:'greatball', count:1 }, '11,13':{ item:'potion', count:1 } },
+    encounters:[
+      { species:'pebra', minL:3, maxL:5, weight:3 },
+      { species:'cavewing', minL:3, maxL:5, weight:2 },
+      { species:'glimkit', minL:3, maxL:5, weight:1 }
+    ]
+  });
+  MAPS.pebblewood_cavern = makeSideCave('pebblewood_cavern', 'Pebblewood Cavern', 'pebblewood', 37, 10, {
+    seed:6,
+    hidden:{ '23,5':{ item:'cavernball', count:1 }, '11,13':{ item:'greatball', count:1 } }
+  });
+  MAPS.frostpeak_ice_cave = makeSideCave('frostpeak_ice_cave', 'Frostpeak Ice Cave', 'frostpeak', 37, 10, {
+    seed:11, tags:['cave','snow'],
+    hidden:{ '23,5':{ item:'ultraball', count:1 }, '11,13':{ item:'fullheal', count:1 } },
+    encounters:[
+      { species:'frostpup', minL:15, maxL:19, weight:4 },
+      { species:'snowox', minL:16, maxL:20, weight:3 },
+      { species:'crysthorn', minL:16, maxL:20, weight:2 }
+    ]
+  });
+  MAPS.searoute_tide_cavern = makeSideCave('searoute_tide_cavern', 'Tide Cavern', 'searoute', 38, 9, {
+    seed:15, tags:['cave','water'],
+    hidden:{ '23,5':{ item:'cavernball', count:1 }, '11,13':{ item:'quickball', count:1 } },
+    encounters:[
+      { species:'splashfin', minL:18, maxL:22, weight:3 },
+      { species:'cavewing', minL:18, maxL:22, weight:3 },
+      { species:'mistfin', minL:18, maxL:22, weight:2 }
+    ]
+  });
+  MAPS.desert_ruins = makeSideCave('desert_ruins', 'Sunbleach Ruins', 'desert', 34, 13, {
+    seed:18, tags:['cave','ruins'],
+    hidden:{ '23,5':{ item:'quickball', count:1 }, '11,13':{ item:'ultraball', count:1 } },
+    encounters:[
+      { species:'geistmite', minL:20, maxL:24, weight:4 },
+      { species:'stoneworm', minL:20, maxL:24, weight:3 },
+      { species:'crysthorn', minL:21, maxL:25, weight:2 }
+    ]
+  });
+
+  for (const map of Object.values(MAPS)) {
+    if (!map.tags) map.tags = map.interior ? ['interior'] : ['route'];
+  }
+}
+
+applyWorldExpansion(MAPS);
 
 window.PR_MAPS = { MAPS, TILE_PROPS, tileAt };

@@ -21,7 +21,8 @@
         bag: state.player.bag || {},
         steps: state.player.steps,
         badges: state.player.badges || [],
-        equipment: state.player.equipment || { trinket: null }
+        equipment: state.player.equipment || { trinket: null },
+        stats: state.player.stats || { battlesWon:0, catches:0 }
       },
       party: state.party,
       flags: state.flags,
