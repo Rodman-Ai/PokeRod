@@ -16,6 +16,31 @@ function px(ctx, x, y, w, h, color) {
 // world layer cleared to underneath - world.js now clears to grass green
 // so the gap blends in instead of showing as a black seam.
 const FOLIAGE_CODES = 'TYOKJQNUVEGbceghjklmn';
+const FIXTURE_CODES = 'Ddf[]';
+const WALL_CODES = 'B#@$?!0';
+
+function fixtureUnderlay(code, context) {
+  if (FIXTURE_CODES.indexOf(code) === -1 || !context || !context.map) return null;
+  const m = context.map;
+  const x = context.tx, y = context.ty;
+  const at = (xx, yy) => {
+    if (yy < 0 || yy >= m.tiles.length) return null;
+    const row = m.tiles[yy];
+    return xx >= 0 && xx < row.length ? row[xx] : null;
+  };
+  const candidates = [
+    at(x - 1, y), at(x + 1, y), at(x, y - 1), at(x, y + 1),
+    at(x - 1, y - 1), at(x + 1, y - 1)
+  ];
+  for (const c of candidates) {
+    if (c && WALL_CODES.indexOf(c) !== -1) return c;
+  }
+  for (const c of candidates) {
+    if (c && FIXTURE_CODES.indexOf(c) === -1) return c;
+  }
+  return null;
+}
+
 function drawTile(ctx, code, sx, sy, context) {
   const x = sx | 0, y = sy | 0;
   let drawX = x;
@@ -23,6 +48,8 @@ function drawTile(ctx, code, sx, sy, context) {
     drawX += Math.round(Math.sin((performance.now() + sx * 7 + sy * 11) / 700));
   }
   if (window.PR_ATLAS && window.PR_ATLAS.isReady()) {
+    const under = fixtureUnderlay(code, context);
+    if (under) window.PR_ATLAS.drawTileCode(ctx, under, drawX, y, context);
     if (window.PR_ATLAS.drawTileCode(ctx, code, drawX, y, context)) return;
   }
   // Atlas not yet ready: draw a placeholder grass-coloured tile.

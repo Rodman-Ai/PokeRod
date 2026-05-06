@@ -636,10 +636,20 @@
     }
     if (this.bannerTimer > 0) {
       this.bannerTimer -= 1/60;
-      const w = Math.min(VIEW_W - 20, this.bannerName.length * 6 + 16);
-      const x = (VIEW_W - w) / 2 | 0, y = 8;
-      window.PR_UI.box(ctx, x, y, w, 16, '#fff', '#202020');
-      window.PR_UI.drawText(ctx, this.bannerName, x + 8, y + 5, '#202020');
+      const label = String(this.bannerName || '');
+      const w = Math.min(VIEW_W - 20, Math.max(116, label.length * 6 + 42));
+      const x = (VIEW_W - w) / 2 | 0, y = 8, h = 30;
+      window.PR_UI.panel(ctx, x, y, w, h, {
+        fill:'#fff8e8', border:'#202020', shadow:'#b0702c', highlight:'#fff8f0'
+      });
+      window.PR_UI.header(ctx, 'NOW ENTERING', x + 4, y + 4, w - 8, {
+        fill:'#1a0204', line:'#f0c020', text:'#f0c020'
+      });
+      ctx.fillStyle = '#e83838';
+      ctx.fillRect(x + 8, y + 19, 5, 5);
+      ctx.fillStyle = '#fff8e8';
+      ctx.fillRect(x + 10, y + 20, 1, 3);
+      window.PR_UI.drawText(ctx, label.slice(0, Math.floor((w - 24) / 6)), x + 17, y + 19, '#202020');
     }
   };
 

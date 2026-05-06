@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.21.3';
-  const BUILD = '2026.05.06-73';
+  const VERSION = 'v0.21.4';
+  const BUILD = '2026.05.06-74';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -89,13 +89,10 @@
   function init() {
     const versionEl = document.getElementById('version');
     if (versionEl) {
-      versionEl.textContent = VERSION + ' · ' + BUILD;
-      versionEl.style.pointerEvents = 'auto';
-      versionEl.style.cursor = 'pointer';
-      versionEl.addEventListener('click', () => {
-        if (lastErr) alert(String(lastErr.stack || lastErr.message || lastErr));
-        else alert(VERSION + ' · ' + BUILD + '\n(no error captured)');
-      });
+      versionEl.textContent = VERSION + ' #' + BUILD.split('-').pop();
+      versionEl.style.pointerEvents = 'none';
+      versionEl.style.cursor = 'default';
+      versionEl.setAttribute('aria-hidden', 'true');
     }
     ensureSettings();
     applySettings();
@@ -199,7 +196,7 @@
         const msg = String(frameErr && frameErr.message || frameErr);
         if (window.PR_UI && window.PR_UI.drawText) {
           window.PR_UI.drawText(ctx, ('ERR: ' + msg).slice(0, 38), 4, VIEW_H - 18, '#f08080');
-          window.PR_UI.drawText(ctx, 'TAP VERSION TO COPY DETAILS', 4, VIEW_H - 8, '#ffd060');
+          window.PR_UI.drawText(ctx, 'SEE CONSOLE FOR DETAILS', 4, VIEW_H - 8, '#ffd060');
         }
         ctx.restore();
       } catch (_) {}
@@ -1809,25 +1806,16 @@
   }
 
   function drawWorldMap() {
-    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const x = 4, y = 4, w = VIEW_W - 8, h = VIEW_H - 8;
     window.PR_UI.panel(ctx, x, y, w, h, {
-      fill:'#152030', border:'#f0c020', shadow:'#5a1810', highlight:'#ffd060'
+      fill:'#f3dfae', border:'#202020', shadow:'#b0702c', highlight:'#fff2c8'
     });
     window.PR_UI.header(ctx, 'WORLD MAP', x + 4, y + 4, w - 8, {
       fill:'#1a0204', line:'#f0c020', text:'#f0c020'
     });
-    window.PR_UI.drawText(ctx, 'A:GO  B:BACK', x + w - 68, y + 8, '#c8a060');
+    window.PR_UI.drawText(ctx, 'A GO  B BACK', x + w - 78, y + 8, '#f0d080');
 
-    // Subtle biome flecks behind the route graph.
-    const flecks = [
-      [32,34,'#386840'], [184,35,'#78b878'], [192,92,'#806850'],
-      [122,132,'#b8e8f0'], [48,98,'#4088b0'], [66,42,'#c89048']
-    ];
-    for (const f of flecks) {
-      ctx.fillStyle = f[2];
-      ctx.fillRect(x + f[0], y + f[1], 12, 6);
-      ctx.fillRect(x + f[0] + 4, y + f[1] - 3, 6, 12);
-    }
+    drawWorldMapTerrain(x, y, w, h);
 
     for (const link of WORLD_LINKS) drawWorldLink(link);
 
@@ -1837,18 +1825,54 @@
       const isSel = i === state.map.idx;
       const isHere = i === currentIdx;
       const r = isSel ? 6 : 5;
-      ctx.fillStyle = '#101018';
-      ctx.fillRect(n.x - r - 1, n.y - r, r * 2 + 2, r * 2 + 2);
+      ctx.fillStyle = 'rgba(32,18,8,0.35)';
+      ctx.fillRect(n.x - r - 1, n.y - r + 2, r * 2 + 4, r * 2 + 3);
+      ctx.fillStyle = '#202020';
+      ctx.fillRect(n.x - r - 2, n.y - r - 2, r * 2 + 4, r * 2 + 4);
+      ctx.fillStyle = '#fff8d8';
+      ctx.fillRect(n.x - r - 1, n.y - r - 1, r * 2 + 2, r * 2 + 2);
       ctx.fillStyle = isSel ? '#f0c020' : n.color;
       ctx.fillRect(n.x - r, n.y - r, r * 2, r * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(n.x - r + 1, n.y - r + 1, r * 2 - 2, 2);
       ctx.fillStyle = isHere ? '#e83838' : '#fff';
       ctx.fillRect(n.x - 2, n.y - 2, 4, 4);
       if (isHere) window.PR_UI.drawText(ctx, '*', n.x + 6, n.y - 7, '#e83838');
-      window.PR_UI.drawText(ctx, n.short, n.x - 9, n.y + 8, isSel ? '#ffd060' : '#d8e8f8');
+      window.PR_UI.drawText(ctx, n.short, n.x - 9, n.y + 8, '#202020');
+      if (isSel) {
+        ctx.fillStyle = '#202020';
+        ctx.fillRect(n.x - r - 3, n.y - r - 5, r * 2 + 6, 2);
+        ctx.fillRect(n.x - r - 3, n.y + r + 3, r * 2 + 6, 2);
+      }
     }
 
     const sel = WORLD_NODES[state.map.idx];
     drawWorldAreaPopup(sel, currentIdx);
+  }
+
+  function drawWorldMapTerrain(x, y, w, h) {
+    ctx.fillStyle = '#d9c184';
+    ctx.fillRect(x + 8, y + 20, w - 16, h - 28);
+    ctx.fillStyle = 'rgba(255,255,255,0.26)';
+    for (let yy = y + 26; yy < y + h - 10; yy += 14) ctx.fillRect(x + 10, yy, w - 20, 1);
+    for (let xx = x + 14; xx < x + w - 10; xx += 18) ctx.fillRect(xx, y + 22, 1, h - 32);
+
+    const patches = [
+      [24,29,44,28,'#4c9e55'], [154,27,52,31,'#7fc96a'], [162,89,44,34,'#8d7860'],
+      [98,108,45,28,'#d8f4ff'], [23,91,48,31,'#58a8d8'], [50,30,38,25,'#d7a35a'],
+      [57,58,46,24,'#d88858'], [188,112,28,20,'#f0d070']
+    ];
+    for (const p of patches) {
+      ctx.fillStyle = p[4];
+      ctx.fillRect(x + p[0], y + p[1], p[2], p[3]);
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.fillRect(x + p[0] + 2, y + p[1] + 2, p[2] - 4, 2);
+    }
+    ctx.fillStyle = '#806040';
+    ctx.fillRect(x + 18, y + h - 19, 20, 2);
+    ctx.fillRect(x + 18, y + h - 19, 2, 10);
+    ctx.fillRect(x + 36, y + h - 19, 2, 10);
+    window.PR_UI.drawText(ctx, 'N', x + 26, y + h - 31, '#806040');
   }
 
   function drawWorldLink(link) {
@@ -1861,8 +1885,16 @@
     const ox = mx + (mx - cx) * bend;
     const oy = my + (my - cy) * bend;
     ctx.save();
+    ctx.strokeStyle = 'rgba(32,20,10,0.35)';
+    ctx.lineWidth = link.gate ? 3 : 4;
+    if (link.spur || link.gate) ctx.setLineDash([3, 2]);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y + 2);
+    ctx.quadraticCurveTo(ox, oy + 2, b.x, b.y + 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.strokeStyle = link.color;
-    ctx.lineWidth = link.gate ? 1.5 : 2;
+    ctx.lineWidth = link.gate ? 2 : 3;
     if (link.spur || link.gate) ctx.setLineDash([3, 2]);
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
@@ -1873,22 +1905,26 @@
 
   function drawWorldAreaPopup(sel, currentIdx) {
     const detail = WORLD_AREA_DETAILS[sel.id] || {};
-    const popW = 112, popH = 58;
-    let px = sel.x < VIEW_W / 2 ? 118 : 10;
-    let py = sel.y < VIEW_H / 2 ? 88 : 22;
+    const popW = 132, popH = 72;
+    let px = sel.x < VIEW_W / 2 ? 100 : 8;
+    let py = sel.y < VIEW_H / 2 ? 84 : 24;
     px = Math.max(8, Math.min(VIEW_W - popW - 8, px));
     py = Math.max(20, Math.min(VIEW_H - popH - 6, py));
     window.PR_UI.panel(ctx, px, py, popW, popH, {
-      fill:'#fff8e8', border:'#202020', shadow:'#c89048', highlight:'#fff8f0'
+      fill:'#fff8e8', border:'#202020', shadow:'#b0702c', highlight:'#fff8f0'
     });
-    drawAreaBadge(sel, detail.icon || 'town', px + 6, py + 7);
-    window.PR_UI.drawText(ctx, sel.name.slice(0, 12), px + 34, py + 6, '#202020');
-    window.PR_UI.chip(ctx, px + 34, py + 17, detail.tag || sel.kind, {
+    window.PR_UI.header(ctx, sel.name.slice(0, 16), px + 4, py + 4, popW - 8, {
+      fill:'#1a0204', line:sel.color || '#f0c020', text:'#f0c020'
+    });
+    drawAreaBadge(sel, detail.icon || 'town', px + 7, py + 21);
+    window.PR_UI.chip(ctx, px + 34, py + 21, detail.tag || sel.kind, {
       fill:'#e8f0ff', border:'#385890', text:'#202020'
     });
-    const lines = window.PR_UI.wrap(detail.detail || 'A curious place waits here.', 17);
+    const status = state.map.idx === currentIdx ? 'YOU ARE HERE' : 'FAST TRAVEL';
+    window.PR_UI.drawText(ctx, status, px + 34, py + 34, state.map.idx === currentIdx ? '#e83838' : '#385890');
+    const lines = window.PR_UI.wrap(detail.detail || 'A curious place waits here.', 20);
     for (let i = 0; i < Math.min(3, lines.length); i++) {
-      window.PR_UI.drawText(ctx, lines[i], px + 7, py + 33 + i * 8, '#604830');
+      window.PR_UI.drawText(ctx, lines[i], px + 7, py + 47 + i * 8, '#604830');
     }
   }
 

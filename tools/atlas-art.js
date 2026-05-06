@@ -949,10 +949,7 @@
   // ------------------------------------------------------------------
 
   regTile('d', 'door_blue', TILE, TILE, (c, x, y) => {
-    // Stone wall context.
-    px(c, x, y, TILE, TILE, '#98908a');
-    px(c, x, y, TILE, 2, '#685858');
-    // Door frame (slightly recessed).
+    // Door frame (slightly recessed); wall material is supplied by the map tile beneath.
     px(c, x + 5,  y + 3,  22, 28, '#382410');
     // Door body.
     px(c, x + 7,  y + 5,  18, 26, '#4878d8');
@@ -985,8 +982,6 @@
     // Awning trim.
     px(c, x, y, TILE, 1, '#382008');
     px(c, x, y + 9, TILE, 1, '#382008');
-    // Wall under awning.
-    px(c, x, y + 10, TILE, TILE - 10, '#98908a');
     // Door frame.
     px(c, x + 5, y + 11, 22, 21, '#382410');
     // Door body.
@@ -1002,13 +997,9 @@
     disc(c, x + 22, y + 27, 1, '#f0c020');
   });
 
-  // Window panes: '[' = left half of stone wall window, ']' = right half.
-  // Each is a full 32x32 tile with stone wall background and a window
-  // taking up the half closest to the centerline of a 64-wide window.
+  // Window panes: '[' = left half of a window, ']' = right half.
+  // The wall material is transparent so the renderer can match the host building.
   regTile('[', 'window_left', TILE, TILE, (c, x, y) => {
-    // Stone wall.
-    px(c, x, y, TILE, TILE, '#98908a');
-    for (let r = 0; r < TILE; r += 8) px(c, x, y + r, TILE, 1, '#685858');
     // Window: occupies right half of tile (so paired with windowR forms one window).
     px(c, x + 16, y + 6,  16, 18, '#382410');
     px(c, x + 18, y + 8,  14, 14, '#88c0f0');
@@ -1024,9 +1015,6 @@
   });
 
   regTile(']', 'window_right', TILE, TILE, (c, x, y) => {
-    // Stone wall.
-    px(c, x, y, TILE, TILE, '#98908a');
-    for (let r = 0; r < TILE; r += 8) px(c, x, y + r, TILE, 1, '#685858');
     // Window: occupies left half of tile.
     px(c, x,      y + 6,  16, 18, '#382410');
     px(c, x,      y + 8,  14, 14, '#88c0f0');
@@ -1393,8 +1381,6 @@
   });
 
   regTile('D', 'house_door', TILE, TILE, (c, x, y) => {
-    px(c, x, y, TILE, TILE, '#e8d8b0');
-    px(c, x, y, TILE, 2, '#a08858');
     px(c, x + 4, y + 2, 24, 30, '#604028');
     px(c, x + 6, y + 4, 20, 28, '#a86838');
     px(c, x + 6, y + 4, 20, 2, '#d8a868');
@@ -1811,7 +1797,6 @@
   }
 
   function gbaDoor(c, x, y, kind) {
-    gbaWall(c, x, y, { base:'#f0d8a8', dark:'#b98d58', light:'#fff0c8' });
     if (kind === 'shop') {
       for (let xx = 0; xx < TILE; xx += 4) px(c, x + xx, y + 2, 2, 8, (xx & 4) ? '#fff8e8' : '#e94c5f');
       px(c, x, y + 10, TILE, 2, '#403020');
@@ -1824,7 +1809,6 @@
   }
 
   function gbaWindow(c, x, y, side) {
-    gbaWall(c, x, y, { base:'#f0d8a8', dark:'#b98d58', light:'#fff0c8' });
     const wx = side === 'left' ? 15 : 1;
     px(c, x + wx, y + 8, 16, 14, '#3d2a20');
     px(c, x + wx + 2, y + 10, 12, 10, '#79c8ef');

@@ -9,11 +9,15 @@
   --shell-top: linear-gradient(180deg, #d83020 0%, #a01818 100%);
   --shell-top-text: #ffd060;
   --shell-top-shadow: #2a0604;
-  --shell-title: 'POKEROD COLOR';
+  --shell-title: 'PokeRod Advance';
   --bezel-bg: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
   --bezel-line: #5a1810;
   --bezel-label: #f0a020;
   --game-glow: rgba(255,160,40,0.15);
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #ff8060 0%, #d83020 50%, #8a0808 100%);
+  --abtn-a-shadow: #4a0808;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #ffb840 0%, #d8801a 50%, #6a3808 100%);
+  --abtn-b-shadow: #3a1c04;
 }
 
 body[data-graphics="gb_red"] {
@@ -21,11 +25,15 @@ body[data-graphics="gb_red"] {
   --shell-top: linear-gradient(180deg, #deddd1 0%, #9b9a8f 100%);
   --shell-top-text: #313a37;
   --shell-top-shadow: #5d5c55;
-  --shell-title: 'POKEROD DMG';
+  --shell-title: 'PokeRod Classic';
   --bezel-bg: linear-gradient(180deg, #5c6461 0%, #303634 100%);
   --bezel-line: #202624;
   --bezel-label: #9bbc0f;
   --game-glow: rgba(139,172,15,0.25);
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #b979c8 0%, #7c3f96 54%, #3e205f 100%);
+  --abtn-a-shadow: #2a1640;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #c98add 0%, #844aa4 54%, #432565 100%);
+  --abtn-b-shadow: #2a1640;
 }
 
 body[data-graphics="gbc_yellow"] {
@@ -33,11 +41,15 @@ body[data-graphics="gbc_yellow"] {
   --shell-top: linear-gradient(180deg, #ffe869 0%, #dfa51a 100%);
   --shell-top-text: #62401c;
   --shell-top-shadow: #7a5310;
-  --shell-title: 'POKEROD COLOR';
+  --shell-title: 'PokeRod Classic';
   --bezel-bg: linear-gradient(180deg, #6a4b26 0%, #2a2018 100%);
   --bezel-line: #9b6f1d;
   --bezel-label: #ffe27e;
   --game-glow: rgba(255,226,126,0.24);
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #c98add 0%, #8540aa 54%, #422060 100%);
+  --abtn-a-shadow: #2d1645;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #b979d8 0%, #744098 54%, #382058 100%);
+  --abtn-b-shadow: #2d1645;
 }
 
 body[data-graphics="gba_firered"] {
@@ -45,7 +57,7 @@ body[data-graphics="gba_firered"] {
   --shell-top: linear-gradient(180deg, #d83020 0%, #a01818 100%);
   --shell-top-text: #ffd060;
   --shell-top-shadow: #2a0604;
-  --shell-title: 'POKEROD COLOR';
+  --shell-title: 'PokeRod Advance';
   --bezel-bg: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
   --bezel-line: #5a1810;
   --bezel-label: #f0a020;
@@ -62,6 +74,10 @@ body[data-graphics="ds_diamond"] {
   --bezel-line: #3f4654;
   --bezel-label: #7fb6ff;
   --game-glow: rgba(127,182,255,0.16);
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #535865 0%, #171a22 56%, #030407 100%);
+  --abtn-a-shadow: #010104;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #4a4f5c 0%, #11141b 56%, #020306 100%);
+  --abtn-b-shadow: #010104;
 }
 
 * { box-sizing: border-box; }
@@ -115,17 +131,20 @@ html, body {
 
 #version {
   position: fixed;
-  bottom: calc(6px + env(safe-area-inset-bottom)); right: 8px;
+  top: 8px; right: 8px;
   z-index: 100;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 9px;
-  letter-spacing: 1px;
+  font-size: 8px;
+  letter-spacing: 0;
   color: rgba(255,224,160,0.55);
   background: rgba(0,0,0,0.3);
-  padding: 2px 6px;
+  padding: 1px 4px;
   border-radius: 3px;
   pointer-events: none;
   text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  max-width: 62px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #screen {
@@ -511,16 +530,16 @@ html, body {
   text-shadow: 0 1px 0 rgba(0,0,0,0.5);
 }
 .abtn[data-key="z"] {
-  background: radial-gradient(circle at 35% 30%, #ff8060 0%, #d83020 50%, #8a0808 100%);
+  background: var(--abtn-a-bg);
   box-shadow:
-    0 5px 0 #4a0808,
+    0 5px 0 var(--abtn-a-shadow),
     inset 0 -3px 6px rgba(0,0,0,0.4),
     inset 0 3px 4px rgba(255,255,255,0.2);
 }
 .abtn[data-key="x"] {
-  background: radial-gradient(circle at 35% 30%, #ffb840 0%, #d8801a 50%, #6a3808 100%);
+  background: var(--abtn-b-bg);
   box-shadow:
-    0 5px 0 #3a1c04,
+    0 5px 0 var(--abtn-b-shadow),
     inset 0 -3px 6px rgba(0,0,0,0.4),
     inset 0 3px 4px rgba(255,255,255,0.2);
 }

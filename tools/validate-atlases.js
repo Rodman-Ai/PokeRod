@@ -105,6 +105,17 @@ function opaqueColorSet(filePath) {
   return colors;
 }
 
+function frameHasTransparency(png, frame) {
+  if (!png || !frame || png.channels < 4) return false;
+  for (let yy = frame.y; yy < frame.y + frame.h; yy++) {
+    for (let xx = frame.x; xx < frame.x + frame.w; xx++) {
+      const i = (yy * png.width + xx) * png.channels;
+      if (png.data[i + 3] < 8) return true;
+    }
+  }
+  return false;
+}
+
 const context = { window:{}, console };
 vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'js/data.js'), 'utf8'), context);
 vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'js/maps.js'), 'utf8'), context);
@@ -139,6 +150,16 @@ for (const style of STYLES) {
   if (missingCodes.length) fail(`${style.id}: missing tile codes ${JSON.stringify(missingCodes)}`);
   for (const [code, key] of Object.entries(codeMap)) {
     if (!frames[key]) fail(`${style.id}: tile ${JSON.stringify(code)} references missing frame ${key}`);
+  }
+
+  if (fs.existsSync(imagePath)) {
+    const png = readPngPixels(imagePath);
+    for (const code of ['D', 'd', 'f', '[', ']']) {
+      const key = codeMap[code];
+      if (key && frames[key] && !frameHasTransparency(png, frames[key])) {
+        fail(`${style.id}: fixture tile ${JSON.stringify(code)} frame ${key} must keep transparent wall pixels`);
+      }
+    }
   }
 
   const variants = atlas.tile_variants || {};
