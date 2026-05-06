@@ -1608,6 +1608,13 @@ function applyWorldExpansion(MAPS) {
     return Object.assign({}, src || {}, { x, y, dir:dir || (src && src.dir) || 'down' });
   }
 
+  function roadTrainer(x, y, dir, sprite, name, dialog, team, reward, defeat) {
+    return {
+      x, y, dir, sprite, name, dialog,
+      trainer:{ team, reward, defeat }
+    };
+  }
+
   function updateRoute(id, cfg) {
     const map = MAPS[id];
     const doorTiles = (cfg.doors || []).map(d => ({ x:d.x, y:d.y, code:d.code || 'D' }));
@@ -1880,15 +1887,29 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[17,10],[8,10],[8,18],[14,18]], radius:1 },
       { points:[[30,15],[40,15],[40,9],[37,9]], radius:1 },
-      { points:[[20,22],[10,22],[10,29],[18,29]], radius:1 }
+      { points:[[20,22],[10,22],[10,29],[18,29]], radius:1 },
+      { points:[[24,5],[31,5],[31,10]], radius:1 },
+      { points:[[34,22],[42,22],[42,30],[34,30]], radius:1 },
+      { points:[[24,29],[24,33],[16,33],[16,29]], radius:1 }
     ],
     pockets:[
       { x:19, y:4, w:6, h:4, code:':' },
       { x:6, y:15, w:9, h:5, code:':' },
       { x:31, y:12, w:9, h:5, code:':' },
-      { x:12, y:27, w:8, h:5, code:':' }
+      { x:12, y:27, w:8, h:5, code:':' },
+      { x:35, y:27, w:8, h:5, code:':' },
+      { x:2, y:3, w:8, h:4, code:'1' },
+      { x:26, y:31, w:7, h:4, code:'c' }
     ],
-    decor:[{ on:'Y', codes:['K','E'], rate:15, seed:3 }, { on:'Y', codes:['c','e','1'], rate:10, seed:5 }],
+    rects:[
+      { x:3, y:23, w:6, h:4, code:"'" },
+      { x:27, y:2, w:4, h:3, code:'1' }
+    ],
+    decor:[{ on:'Y', codes:['K','E'], rate:15, seed:3 }, { on:'Y', codes:['c','e','1'], rate:8, seed:5 }],
+    tiles:[
+      { x:13, y:17, code:'<' }, { x:36, y:13, code:'|' },
+      { x:5, y:24, code:'{' }, { x:41, y:29, code:'(' }
+    ],
     doors:[{ x:37, y:9, to:'route1_hollow', tx:14, ty:18 }],
     signs:{ '18,6':'ROUTE 1 - The first road now has a few secrets.' },
     hidden:{ '18,29':{ item:'potion', count:1 }, '39,14':{ item:'rodball', count:2 } },
@@ -1924,7 +1945,17 @@ function applyWorldExpansion(MAPS) {
         { species:'flitwing',  minL:2, maxL:4, weight:1 }
       ] }
     ],
-    npcs:[movedNpc('route1', 0, 9, 18, 'right')],
+    npcs:[
+      movedNpc('route1', 0, 9, 18, 'right'),
+      roadTrainer(13, 18, 'left', 'trainer_bug_catcher', 'BUG CATCHER NOX',
+        ["This meadow is crawling with tiny champions!","Show me what you caught!"],
+        [['silkuttle',3],['venipip',4]], 180,
+        ["My net missed the big moment!","Back to the tall grass for me."]),
+      roadTrainer(36, 14, 'left', 'trainer_picnicker', 'PICNICKER SIA',
+        ["I found the prettiest hollow path.","Battle break? Battle break!"],
+        [['breezlet',4],['joltlet',4]], 220,
+        ["That was a breezy little lesson.","I'll picnic and train some more."])
+    ],
     edges:{ north:{ y:0, to:'rodport', tx:22, ty:32 }, south:{ y:37, to:'brindale', tx:22, ty:1 } }
   });
 
@@ -1934,17 +1965,37 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[15,9],[7,9],[7,16],[13,16]], radius:1 },
       { points:[[32,14],[41,14],[41,22],[34,22]], radius:1 },
-      { points:[[18,20],[25,20],[25,25],[31,25]], radius:1 }
+      { points:[[18,20],[25,20],[25,25],[31,25]], radius:1 },
+      { points:[[24,4],[34,4],[34,9],[32,9]], radius:1 },
+      { points:[[32,14],[38,14],[38,28],[24,28]], radius:1 },
+      { points:[[18,20],[18,31],[28,31],[28,28]], radius:1 }
     ],
     pockets:[
       { x:5, y:13, w:9, h:5, code:':' },
       { x:33, y:19, w:9, h:5, code:':' },
-      { x:21, y:23, w:9, h:5, code:':' }
+      { x:21, y:23, w:9, h:5, code:':' },
+      { x:30, y:3, w:7, h:5, code:':' },
+      { x:14, y:28, w:7, h:5, code:'1' }
     ],
-    decor:[{ on:'K', codes:['m','c','1'], rate:10, seed:7 }, { on:'K', codes:['E'], rate:18, seed:2 }],
+    rects:[
+      { x:2, y:24, w:9, h:4, code:"'" },
+      { x:40, y:25, w:5, h:5, code:'m' },
+      { x:28, y:10, w:4, h:3, code:'c' }
+    ],
+    decor:[{ on:'K', codes:['m','c','1'], rate:8, seed:7 }, { on:'K', codes:['E'], rate:18, seed:2 }],
+    tiles:[
+      { x:31, y:24, code:'<' }, { x:38, y:18, code:'|' },
+      { x:7, y:14, code:'{' }, { x:41, y:27, code:'(' }
+    ],
     signs:{ '16,5':'ROUTE 2 - Flower meadows hide longer bends.' },
     hidden:{ '35,22':{ item:'greatball', count:1 }, '12,16':{ item:'awakening', count:1 } },
-    npcs:[movedNpc('route2', 0, 7, 16, 'right')],
+    npcs:[
+      movedNpc('route2', 0, 7, 16, 'right'),
+      roadTrainer(31, 25, 'left', 'trainer_camper', 'CAMPER TAVI',
+        ["I looped around twice and still found a shortcut.","Let's see if your team can keep pace!"],
+        [['nibblet',6],['cinderpup',7],['fernsprout',7]], 320,
+        ["Guess I packed too light.","At least the flowers are nice."])
+    ],
     edges:{ north:{ y:0, to:'brindale', tx:22, ty:32 }, south:{ y:37, to:'woodfall', tx:22, ty:1 } }
   });
 
@@ -1954,17 +2005,37 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[14,11],[7,11],[7,22],[14,22]], code:'z', radius:1 },
       { points:[[29,17],[40,17],[40,9],[37,9]], code:'z', radius:1 },
-      { points:[[18,24],[10,24],[10,30],[16,30]], code:'z', radius:1 }
+      { points:[[18,24],[10,24],[10,30],[16,30]], code:'z', radius:1 },
+      { points:[[24,5],[33,5],[33,11],[29,11]], code:'z', radius:1 },
+      { points:[[29,17],[37,17],[37,25],[34,25],[34,24]], code:'z', radius:1 },
+      { points:[[18,24],[18,32],[25,32],[25,30]], code:'z', radius:1 }
     ],
     pockets:[
       { x:5, y:18, w:10, h:6, code:':' },
       { x:31, y:13, w:10, h:6, code:':' },
-      { x:11, y:28, w:8, h:5, code:':' }
+      { x:11, y:28, w:8, h:5, code:':' },
+      { x:29, y:3, w:8, h:5, code:'4' },
+      { x:34, y:23, w:8, h:5, code:':' }
     ],
-    decor:[{ on:'G', codes:['U','V','g'], rate:12, seed:4 }, { on:'G', codes:['4','n'], rate:17, seed:9 }],
+    rects:[
+      { x:2, y:26, w:6, h:5, code:'4' },
+      { x:20, y:13, w:5, h:3, code:'n' },
+      { x:41, y:4, w:4, h:9, code:'U' }
+    ],
+    decor:[{ on:'G', codes:['U','V','g'], rate:12, seed:4 }, { on:'G', codes:['4','n'], rate:14, seed:9 }],
+    tiles:[
+      { x:12, y:21, code:'|' }, { x:37, y:16, code:'(' },
+      { x:22, y:14, code:'{' }, { x:35, y:24, code:'<' }
+    ],
     doors:[{ x:37, y:9, to:'pebblewood_cavern', tx:14, ty:18 }],
     hidden:{ '16,30':{ item:'cavernball', count:1 }, '34,16':{ item:'antidote', count:1 } },
-    npcs:[movedNpc('pebblewood', 0, 14, 22, 'right')],
+    npcs:[
+      movedNpc('pebblewood', 0, 14, 22, 'right'),
+      roadTrainer(12, 22, 'right', 'trainer_ranger', 'RANGER MOSS',
+        ["Pebblewood opens up if you trust the side trails.","I'll guard this grove with a battle."],
+        [['sproutling',9],['bumblesting',10]], 460,
+        ["The grove likes you.","Mind your steps near the cavern."])
+    ],
     edges:{ north:{ y:0, to:'woodfall', tx:22, ty:32 }, south:{ y:37, to:'crestrock', tx:22, ty:1 } }
   });
 
@@ -1974,17 +2045,38 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[15,11],[7,11],[7,23],[14,23]], code:'s', radius:1 },
       { points:[[32,16],[40,16],[40,8],[37,8]], code:'s', radius:1 },
-      { points:[[18,22],[11,22],[11,29],[17,29]], code:'s', radius:1 }
+      { points:[[18,22],[11,22],[11,29],[17,29]], code:'s', radius:1 },
+      { points:[[24,5],[34,5],[34,11],[32,11]], code:'s', radius:1 },
+      { points:[[32,16],[38,16],[38,27],[31,27],[31,30]], code:'I', radius:1 },
+      { points:[[18,22],[22,22],[22,32],[24,32],[24,30]], code:'s', radius:1 }
     ],
     pockets:[
       { x:5, y:19, w:10, h:6, code:':' },
       { x:32, y:12, w:9, h:6, code:':' },
-      { x:11, y:27, w:8, h:5, code:':' }
+      { x:11, y:27, w:8, h:5, code:':' },
+      { x:28, y:3, w:9, h:5, code:'I' },
+      { x:24, y:25, w:8, h:5, code:':' }
     ],
-    decor:[{ on:'#', codes:['T',')'], rate:13, seed:8 }, { on:'#', codes:['('], rate:18, seed:6 }],
+    rects:[
+      { x:2, y:3, w:7, h:4, code:')' },
+      { x:41, y:19, w:4, h:7, code:'(' },
+      { x:21, y:9, w:5, h:3, code:'I' }
+    ],
+    decor:[{ on:'#', codes:['T',')'], rate:13, seed:8 }, { on:'#', codes:['('], rate:16, seed:6 }],
+    tiles:[
+      { x:34, y:14, code:'|' }, { x:28, y:26, code:'(' },
+      { x:38, y:26, code:'(' }, { x:22, y:31, code:'(' }
+    ],
     doors:[{ x:37, y:8, to:'glimcavern_b1', tx:10, ty:1 }],
     hidden:{ '17,29':{ item:'cavernball', count:1 }, '36,15':{ item:'greatball', count:1 } },
-    npcs:[movedNpc('glimcavern', 0, 11, 22, 'right'), movedNpc('glimcavern', 1, 35, 21, 'down')],
+    npcs:[
+      movedNpc('glimcavern', 0, 11, 22, 'right'),
+      movedNpc('glimcavern', 1, 35, 21, 'down'),
+      roadTrainer(34, 15, 'left', 'trainer_miner', 'MINER ROOK',
+        ["These tunnels fork more than my old pick.","Let's make some echoes!"],
+        [['pebra',13],['geistmite',13],['stoneworm',14]], 620,
+        ["Solid swing.","I'll mark the safer route with chalk."])
+    ],
     edges:{ north:{ y:0, to:'crestrock', tx:22, ty:32 }, south:{ y:37, to:'frostmere', tx:22, ty:1 } }
   });
 
@@ -1994,17 +2086,37 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[16,10],[8,10],[8,21],[14,21]], code:'6', radius:1 },
       { points:[[31,16],[41,16],[41,9],[37,9]], code:'6', radius:1 },
-      { points:[[19,22],[12,22],[12,30],[18,30]], code:'6', radius:1 }
+      { points:[[19,22],[12,22],[12,30],[18,30]], code:'6', radius:1 },
+      { points:[[24,4],[33,4],[33,10],[31,10]], code:'6', radius:1 },
+      { points:[[31,16],[39,16],[39,28],[36,28],[36,30]], code:'6', radius:1 },
+      { points:[[19,22],[23,22],[23,32],[24,32],[24,30]], code:'6', radius:1 }
     ],
     pockets:[
       { x:6, y:17, w:9, h:6, code:':' },
       { x:32, y:12, w:9, h:6, code:':' },
-      { x:13, y:28, w:8, h:5, code:':' }
+      { x:13, y:28, w:8, h:5, code:':' },
+      { x:28, y:2, w:8, h:5, code:'2' },
+      { x:34, y:25, w:8, h:5, code:':' }
     ],
-    decor:[{ on:'Q', codes:['k','2'], rate:10, seed:6 }, { on:'Q', codes:['('], rate:19, seed:12 }],
+    rects:[
+      { x:2, y:24, w:7, h:5, code:'2' },
+      { x:3, y:4, w:5, h:4, code:'W' },
+      { x:42, y:3, w:4, h:9, code:'k' }
+    ],
+    decor:[{ on:'Q', codes:['k','2'], rate:8, seed:6 }, { on:'Q', codes:['('], rate:17, seed:12 }],
+    tiles:[
+      { x:13, y:20, code:'<' }, { x:36, y:14, code:'|' },
+      { x:39, y:27, code:'(' }, { x:8, y:25, code:'(' }
+    ],
     doors:[{ x:37, y:9, to:'frostpeak_ice_cave', tx:14, ty:18 }],
     hidden:{ '18,30':{ item:'ultraball', count:1 }, '35,15':{ item:'fullheal', count:1 } },
-    npcs:[movedNpc('frostpeak', 0, 38, 16, 'left')],
+    npcs:[
+      movedNpc('frostpeak', 0, 38, 16, 'left'),
+      roadTrainer(13, 21, 'right', 'trainer_skier', 'SKIER LUMI',
+        ["The snow hides loops, shelves, and shortcuts.","I'll race you with a battle!"],
+        [['frostnip',16],['frostpup',17],['snowox',18]], 840,
+        ["You carved the cleaner line.","Watch for the ice cave side path."])
+    ],
     edges:{ north:{ y:0, to:'frostmere', tx:22, ty:32 }, south:{ y:37, to:'harborside', tx:22, ty:1 } }
   });
 
@@ -2014,18 +2126,38 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[15,12],[7,12],[7,23],[13,23]], code:'u', radius:1 },
       { points:[[31,17],[42,17],[42,8],[38,8]], code:'u', radius:1 },
-      { points:[[18,24],[11,24],[11,31],[17,31]], code:'u', radius:1 }
+      { points:[[18,24],[11,24],[11,31],[17,31]], code:'u', radius:1 },
+      { points:[[24,5],[34,5],[34,12],[31,12]], code:'t', radius:1 },
+      { points:[[31,17],[37,17],[37,24],[35,24]], code:'u', radius:1 },
+      { points:[[18,24],[23,24],[23,32],[24,32],[24,30]], code:'t', radius:1 }
     ],
     pockets:[
       { x:5, y:19, w:9, h:6, code:':' },
       { x:33, y:13, w:9, h:6, code:':' },
       { x:29, y:2, w:8, h:6, code:'W' },
-      { x:37, y:22, w:8, h:7, code:'W' }
+      { x:40, y:22, w:7, h:7, code:'W' },
+      { x:29, y:23, w:9, h:5, code:':' },
+      { x:19, y:30, w:8, h:4, code:'3' }
     ],
-    decor:[{ on:'O', codes:['3','s'], rate:9, seed:13 }, { on:'O', codes:['W'], rate:30, seed:4 }],
+    rects:[
+      { x:2, y:3, w:6, h:6, code:'W' },
+      { x:26, y:9, w:4, h:3, code:'s' },
+      { x:43, y:9, w:3, h:8, code:'3' }
+    ],
+    decor:[{ on:'O', codes:['3','s'], rate:8, seed:13 }, { on:'O', codes:['W'], rate:32, seed:4 }],
+    tiles:[
+      { x:37, y:23, code:'<' }, { x:8, y:22, code:'{' },
+      { x:34, y:14, code:'|' }, { x:22, y:31, code:'(' }
+    ],
     doors:[{ x:38, y:8, to:'searoute_tide_cavern', tx:14, ty:18 }],
     hidden:{ '17,31':{ item:'quickball', count:1 }, '13,23':{ item:'superpotion', count:1 } },
-    npcs:[movedNpc('searoute', 0, 38, 17, 'left')],
+    npcs:[
+      movedNpc('searoute', 0, 38, 17, 'left'),
+      roadTrainer(37, 24, 'left', 'trainer_sailor', 'SAILOR CORA',
+        ["This boardwalk bends with the tide.","Keep your balance and battle!"],
+        [['mistfin',21],['splashfin',21],['cavewing',22]], 1180,
+        ["You kept your sea legs.","The tide cave is worth a peek."])
+    ],
     edges:{ north:{ y:0, to:'harborside', tx:22, ty:32 }, south:{ y:37, to:'summitvale', tx:22, ty:1 } }
   });
 
@@ -2035,16 +2167,36 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[15,13],[20,13],[20,22],[12,22]], code:'v', radius:1 },
       { points:[[28,14],[35,14],[35,23]], code:'v', radius:1 },
-      { points:[[6,20],[6,29],[15,29]], code:'v', radius:1 }
+      { points:[[6,20],[6,29],[15,29]], code:'v', radius:1 },
+      { points:[[6,13],[12,13],[12,8],[15,8],[15,7]], code:'v', radius:1 },
+      { points:[[28,7],[36,7],[36,14],[39,14]], code:'v', radius:1 },
+      { points:[[20,22],[24,22],[24,29],[31,29],[31,24]], code:'v', radius:1 }
     ],
     pockets:[
       { x:9, y:19, w:9, h:6, code:':' },
       { x:31, y:19, w:9, h:6, code:':' },
-      { x:11, y:27, w:8, h:5, code:':' }
+      { x:11, y:27, w:8, h:5, code:':' },
+      { x:30, y:4, w:8, h:5, code:'2' },
+      { x:23, y:26, w:9, h:5, code:':' }
     ],
-    decor:[{ on:'G', codes:['#',')'], rate:10, seed:10 }, { on:'G', codes:['('], rate:15, seed:2 }],
+    rects:[
+      { x:2, y:4, w:5, h:7, code:')' },
+      { x:41, y:18, w:4, h:9, code:'(' },
+      { x:18, y:3, w:5, h:3, code:'2' }
+    ],
+    decor:[{ on:'G', codes:['#',')'], rate:10, seed:10 }, { on:'G', codes:['('], rate:13, seed:2 }],
+    tiles:[
+      { x:12, y:21, code:'<' }, { x:35, y:13, code:'|' },
+      { x:25, y:28, code:'(' }, { x:6, y:28, code:'(' }
+    ],
     hidden:{ '15,29':{ item:'quickball', count:1 }, '34,20':{ item:'greatball', count:1 } },
-    npcs:[movedNpc('mountain', 0, 35, 23, 'down')],
+    npcs:[
+      movedNpc('mountain', 0, 35, 23, 'down'),
+      roadTrainer(12, 22, 'right', 'trainer_hiker', 'HIKER BRAM',
+        ["The old climb was too straight for my boots.","Try the switchbacks, then try me!"],
+        [['pebra',24],['voltkit',24],['crysthorn',25]], 1360,
+        ["You found the firm footing.","Highspire opens up for careful walkers."])
+    ],
     edges:{ west:{ x:0, to:'crestrock', tx:42, ty:17 } }
   });
 
@@ -2054,18 +2206,36 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[17,12],[10,12],[10,28],[18,28]], code:'t', radius:1 },
       { points:[[31,15],[42,15],[42,8]], code:'t', radius:1 },
-      { points:[[23,25],[31,25],[31,31],[38,31]], code:'t', radius:1 }
+      { points:[[23,25],[31,25],[31,31],[38,31]], code:'t', radius:1 },
+      { points:[[7,12],[14,12],[14,7],[17,7]], code:'u', radius:1 },
+      { points:[[31,15],[36,15],[36,25],[31,25]], code:'t', radius:1 },
+      { points:[[10,28],[10,33],[23,33],[23,25]], code:'u', radius:1 }
     ],
     pockets:[
       { x:8, y:24, w:10, h:6, code:':' },
       { x:27, y:9, w:10, h:6, code:':' },
-      { x:39, y:1, w:8, h:30, code:'W' }
+      { x:39, y:1, w:8, h:30, code:'W' },
+      { x:12, y:3, w:8, h:5, code:'3' },
+      { x:28, y:27, w:8, h:5, code:':' }
     ],
-    decor:[{ on:'O', codes:['3','s'], rate:9, seed:4 }],
+    rects:[
+      { x:2, y:24, w:5, h:7, code:'W' },
+      { x:20, y:18, w:5, h:4, code:'3' },
+      { x:43, y:32, w:4, h:4, code:'W' }
+    ],
+    decor:[{ on:'O', codes:['3','s'], rate:8, seed:4 }],
+    tiles:[
+      { x:31, y:27, code:'<' }, { x:13, y:27, code:'{' },
+      { x:35, y:16, code:'|' }, { x:22, y:33, code:'(' }
+    ],
     hidden:{ '18,28':{ item:'greatball', count:1 }, '38,31':{ item:'quickball', count:1 } },
     npcs:[
       { x:31, y:25, dir:'down', sprite:'npc_girl', name:'BEACHCOMBER RAE',
-        dialog:["Every tide leaves something interesting in a side pocket."] }
+        dialog:["Every tide leaves something interesting in a side pocket."] },
+      roadTrainer(31, 28, 'up', 'trainer_ace', 'ACE TRAINER VALE',
+        ["A beach route with loops is perfect footwork practice.","Show me your cleanest battle line."],
+        [['galewing',22],['aquapup',23],['breezlet',24]], 1480,
+        ["Sharp footwork.","Even optional roads can make a team stronger."])
     ],
     edges:{ west:{ x:0, to:'harborside', tx:42, ty:17 } }
   });
@@ -2077,19 +2247,39 @@ function applyWorldExpansion(MAPS) {
     branches:[
       { points:[[16,13],[11,13],[11,26],[18,26]], code:'5', radius:1 },
       { points:[[30,13],[34,13],[34,12]], code:'5', radius:1 },
-      { points:[[38,20],[38,29],[29,29]], code:'5', radius:1 }
+      { points:[[38,20],[38,29],[29,29]], code:'5', radius:1 },
+      { points:[[6,13],[13,13],[13,7],[16,7]], code:'5', radius:1 },
+      { points:[[30,7],[42,7],[42,13],[38,13]], code:'5', radius:1 },
+      { points:[[18,26],[23,26],[23,32],[29,32],[29,29]], code:'5', radius:1 }
     ],
     pockets:[
       { x:8, y:23, w:11, h:6, code:':' },
       { x:28, y:9, w:10, h:6, code:':' },
       { x:27, y:26, w:10, h:5, code:':' },
-      { x:19, y:15, w:6, h:4, code:'W' }
+      { x:19, y:15, w:6, h:4, code:'W' },
+      { x:39, y:5, w:7, h:5, code:'3' },
+      { x:20, y:29, w:8, h:5, code:'3' }
     ],
-    decor:[{ on:'J', codes:['3','O'], rate:9, seed:14 }, { on:'J', codes:['('], rate:16, seed:3 }],
+    rects:[
+      { x:2, y:4, w:7, h:5, code:'3' },
+      { x:41, y:24, w:4, h:7, code:'(' },
+      { x:25, y:16, w:6, h:3, code:')' }
+    ],
+    decor:[{ on:'J', codes:['3','O'], rate:8, seed:14 }, { on:'J', codes:['('], rate:14, seed:3 }],
+    tiles:[
+      { x:28, y:28, code:'<' }, { x:12, y:25, code:'{' },
+      { x:34, y:11, code:'S' }, { x:43, y:8, code:'(' }
+    ],
     doors:[{ x:34, y:12, to:'desert_ruins', tx:14, ty:18 }],
     signs:{ '21,14':'SUNBLEACH DESERT - Oasis, ruins, and the Rodport loop.' },
     hidden:{ '18,26':{ item:'quickball', count:1 }, '29,29':{ item:'ultraball', count:1 } },
-    npcs:[movedNpc('desert', 0, 29, 20, 'down')],
+    npcs:[
+      movedNpc('desert', 0, 29, 20, 'down'),
+      roadTrainer(28, 29, 'up', 'trainer_ruin_maniac', 'RUIN MANIAC SOL',
+        ["The dunes spiral around old stones out here.","I dig up battles as often as relics."],
+        [['stoneworm',33],['crysthorn',34],['mindrop',34]], 1880,
+        ["A relic of a victory... yours, not mine.","The loop to Rodport lies beyond the heat."])
+    ],
     edges:{ west:{ x:0, to:'summitvale', tx:42, ty:17 }, east:{ x:47, to:'rodport', tx:1, ty:17 } }
   });
 

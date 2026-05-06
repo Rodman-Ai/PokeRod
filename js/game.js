@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.21.2';
-  const BUILD = '2026.05.06-72';
+  const VERSION = 'v0.21.3';
+  const BUILD = '2026.05.06-73';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;

@@ -2454,411 +2454,891 @@
       "w": 32,
       "h": 32
     },
-    "ball": {
+    "trainer_bug_catcher_down_0": {
       "x": 0,
       "y": 858,
       "w": 32,
       "h": 32
     },
-    "creature_emberkit": {
+    "trainer_bug_catcher_up_0": {
+      "x": 33,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_left_0": {
+      "x": 66,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_right_0": {
+      "x": 99,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_down_1": {
+      "x": 132,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_up_1": {
+      "x": 165,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_left_1": {
+      "x": 198,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_right_1": {
+      "x": 231,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_down_0": {
+      "x": 264,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_up_0": {
+      "x": 297,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_left_0": {
+      "x": 330,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_right_0": {
+      "x": 363,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_down_1": {
+      "x": 396,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_up_1": {
+      "x": 429,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_left_1": {
+      "x": 462,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_right_1": {
+      "x": 495,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_down_0": {
       "x": 0,
       "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_up_0": {
+      "x": 33,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_left_0": {
+      "x": 66,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_right_0": {
+      "x": 99,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_down_1": {
+      "x": 132,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_up_1": {
+      "x": 165,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_left_1": {
+      "x": 198,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_right_1": {
+      "x": 231,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_down_0": {
+      "x": 264,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_up_0": {
+      "x": 297,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_left_0": {
+      "x": 330,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_right_0": {
+      "x": 363,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_down_1": {
+      "x": 396,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_up_1": {
+      "x": 429,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_left_1": {
+      "x": 462,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_right_1": {
+      "x": 495,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_down_0": {
+      "x": 0,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_up_0": {
+      "x": 33,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_left_0": {
+      "x": 66,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_right_0": {
+      "x": 99,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_down_1": {
+      "x": 132,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_up_1": {
+      "x": 165,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_left_1": {
+      "x": 198,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_right_1": {
+      "x": 231,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_down_0": {
+      "x": 264,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_up_0": {
+      "x": 297,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_left_0": {
+      "x": 330,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_right_0": {
+      "x": 363,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_down_1": {
+      "x": 396,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_up_1": {
+      "x": 429,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_left_1": {
+      "x": 462,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_right_1": {
+      "x": 495,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_down_0": {
+      "x": 0,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_up_0": {
+      "x": 33,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_left_0": {
+      "x": 66,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_right_0": {
+      "x": 99,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_down_1": {
+      "x": 132,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_up_1": {
+      "x": 165,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_left_1": {
+      "x": 198,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_right_1": {
+      "x": 231,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_down_0": {
+      "x": 264,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_up_0": {
+      "x": 297,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_left_0": {
+      "x": 330,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_right_0": {
+      "x": 363,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_down_1": {
+      "x": 396,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_up_1": {
+      "x": 429,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_left_1": {
+      "x": 462,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_right_1": {
+      "x": 495,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_down_0": {
+      "x": 0,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_up_0": {
+      "x": 33,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_left_0": {
+      "x": 66,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_right_0": {
+      "x": 99,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_down_1": {
+      "x": 132,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_up_1": {
+      "x": 165,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_left_1": {
+      "x": 198,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_right_1": {
+      "x": 231,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_down_0": {
+      "x": 264,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_up_0": {
+      "x": 297,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_left_0": {
+      "x": 330,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_right_0": {
+      "x": 363,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_down_1": {
+      "x": 396,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_up_1": {
+      "x": 429,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_left_1": {
+      "x": 462,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_right_1": {
+      "x": 495,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "ball": {
+      "x": 0,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "creature_emberkit": {
+      "x": 0,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_flarebound": {
       "x": 65,
-      "y": 891,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_infernarok": {
       "x": 130,
-      "y": 891,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_aquapup": {
       "x": 195,
-      "y": 891,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_tideturtle": {
       "x": 260,
-      "y": 891,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_maelstroth": {
       "x": 325,
-      "y": 891,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_sproutling": {
       "x": 390,
-      "y": 891,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_leafurge": {
       "x": 455,
-      "y": 891,
+      "y": 1056,
       "w": 64,
       "h": 64
     },
     "creature_verdantsage": {
       "x": 0,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_zapret": {
       "x": 65,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_boltbeard": {
       "x": 130,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_pebra": {
       "x": 195,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_boulderon": {
       "x": 260,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_flitwing": {
       "x": 325,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_skylordan": {
       "x": 390,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_nibblet": {
       "x": 455,
-      "y": 956,
+      "y": 1121,
       "w": 64,
       "h": 64
     },
     "creature_whiskaroth": {
       "x": 0,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_crawlbug": {
       "x": 65,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_mothmane": {
       "x": 130,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_cavewing": {
       "x": 195,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_vampirothy": {
       "x": 260,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_splashfin": {
       "x": 325,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_levifin": {
       "x": 390,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_glimkit": {
       "x": 455,
-      "y": 1021,
+      "y": 1186,
       "w": 64,
       "h": 64
     },
     "creature_lustrofox": {
       "x": 0,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_cinderpup": {
       "x": 65,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_pyrohound": {
       "x": 130,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_magmaron": {
       "x": 195,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_mistfin": {
       "x": 260,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_tidalwhal": {
       "x": 325,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_glacierock": {
       "x": 390,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_fernsprout": {
       "x": 455,
-      "y": 1086,
+      "y": 1251,
       "w": 64,
       "h": 64
     },
     "creature_bramblewood": {
       "x": 0,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_thornedred": {
       "x": 65,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_voltkit": {
       "x": 130,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_voltlynx": {
       "x": 195,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_stormfangis": {
       "x": 260,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_stoneworm": {
       "x": 325,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_quakeworm": {
       "x": 390,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_tectonarch": {
       "x": 455,
-      "y": 1151,
+      "y": 1316,
       "w": 64,
       "h": 64
     },
     "creature_bumblesting": {
       "x": 0,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_hivequeen": {
       "x": 65,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_royalwasp": {
       "x": 130,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_galewing": {
       "x": 195,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_tempestir": {
       "x": 260,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_solarwing": {
       "x": 325,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_solarcrest": {
       "x": 390,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_frostpup": {
       "x": 455,
-      "y": 1216,
+      "y": 1381,
       "w": 64,
       "h": 64
     },
     "creature_snowox": {
       "x": 0,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_glacioxen": {
       "x": 65,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_crysthorn": {
       "x": 130,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_prismage": {
       "x": 195,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_geistmite": {
       "x": 260,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_shadefox": {
       "x": 325,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_umbrasire": {
       "x": 390,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_dreamilly": {
       "x": 455,
-      "y": 1281,
+      "y": 1446,
       "w": 64,
       "h": 64
     },
     "creature_reverieus": {
       "x": 0,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_rivettot": {
       "x": 65,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_mindrop": {
       "x": 130,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_pugpaw": {
       "x": 195,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_joltlet": {
       "x": 260,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_breezlet": {
       "x": 325,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_silkuttle": {
       "x": 390,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_venipip": {
       "x": 455,
-      "y": 1346,
+      "y": 1511,
       "w": 64,
       "h": 64
     },
     "creature_mudmote": {
       "x": 0,
-      "y": 1411,
+      "y": 1576,
       "w": 64,
       "h": 64
     },
     "creature_frostnip": {
       "x": 65,
-      "y": 1411,
+      "y": 1576,
       "w": 64,
       "h": 64
     },
     "creature_craglet": {
       "x": 130,
-      "y": 1411,
+      "y": 1576,
       "w": 64,
       "h": 64
     }

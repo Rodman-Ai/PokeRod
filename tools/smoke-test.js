@@ -135,6 +135,47 @@ async function main() {
       }
     }
 
+    const trainerRouteChecks = await page.evaluate(async () => {
+      const cases = [
+        { id:'gb_red', map:'route1', x:13, y:19, sprite:'trainer_bug_catcher' },
+        { id:'gbc_yellow', map:'route2', x:31, y:26, sprite:'trainer_camper' },
+        { id:'gba_firered', map:'searoute', x:37, y:25, sprite:'trainer_sailor' },
+        { id:'ds_diamond', map:'desert', x:28, y:30, sprite:'trainer_ruin_maniac' }
+      ];
+      const out = [];
+      for (const t of cases) {
+        const ok = await window.PR_ATLAS.setPreset(t.id);
+        const state = window.PR_GAME && window.PR_GAME.state;
+        if (state) {
+          state.mode = 'overworld';
+          state.player.map = t.map;
+          state.player.x = t.x;
+          state.player.y = t.y;
+          state.player.dir = 'up';
+          if (state.world) state.world.justEntered = true;
+        }
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const c = document.getElementById('game');
+        const cx = c.getContext('2d');
+        let sum = 0;
+        for (const [px, py] of [[60,60],[120,80],[180,100],[80,130],[200,40]]) {
+          const p = cx.getImageData(px, py, 1, 1).data;
+          sum += p[0] + p[1] + p[2] + p[3];
+        }
+        const map = window.PR_MAPS && window.PR_MAPS.MAPS && window.PR_MAPS.MAPS[t.map];
+        const hasNpc = !!(map && map.npcs && map.npcs.some((n) => n.sprite === t.sprite));
+        out.push({ id:t.id, map:t.map, sprite:t.sprite, ok, active:window.PR_ATLAS.getPreset(), hasNpc, sum });
+      }
+      return out;
+    });
+    console.log('trainer route checks:', trainerRouteChecks);
+    for (const check of trainerRouteChecks) {
+      if (!check.ok || check.active !== check.id || !check.hasNpc || check.sum === 0) {
+        console.error('trainer route render failed:', check);
+        exitCode = 2;
+      }
+    }
+
     // Force a battle by walking into tall grass repeatedly.
     for (let i = 0; i < 80; i++) {
       await page.keyboard.press('ArrowDown');

@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
 global.window = {};
 require('../js/data.js');
 require('../js/maps.js');
@@ -16,11 +19,38 @@ const REQUIRED_44x34 = [
   'rodport','brindale','woodfall','crestrock','frostmere',
   'harborside','summitvale'
 ];
+const ROOT = path.resolve(__dirname, '..');
+const ATLAS_STYLES = [
+  { id:'gb_red', json:'atlas-gb-red.json' },
+  { id:'gbc_yellow', json:'atlas-gbc-yellow.json' },
+  { id:'gba_firered', json:'atlas.json' },
+  { id:'ds_diamond', json:'atlas-ds-diamond.json' }
+];
 
 const errors = [];
+let atlasFramesByStyle = null;
 
 function fail(msg) {
   errors.push(msg);
+}
+
+function atlasFrames() {
+  if (atlasFramesByStyle) return atlasFramesByStyle;
+  atlasFramesByStyle = [];
+  for (const style of ATLAS_STYLES) {
+    const file = path.join(ROOT, 'assets', style.json);
+    if (!fs.existsSync(file)) {
+      fail(`${style.id}: missing assets/${style.json}`);
+      continue;
+    }
+    try {
+      const atlas = JSON.parse(fs.readFileSync(file, 'utf8'));
+      atlasFramesByStyle.push({ id:style.id, frames:atlas.frames || {} });
+    } catch (err) {
+      fail(`${style.id}: cannot read assets/${style.json}: ${err.message}`);
+    }
+  }
+  return atlasFramesByStyle;
 }
 
 function dims(map) {
@@ -48,6 +78,39 @@ function validateEncounterList(mapId, label, list) {
     if ((e.weight | 0) <= 0) fail(`${mapId}: ${label} ${e.species} has non-positive weight`);
     if ((e.minL | 0) < 1 || (e.maxL | 0) < (e.minL | 0)) {
       fail(`${mapId}: ${label} ${e.species} has invalid level range`);
+    }
+  }
+}
+
+function validateTrainerTeam(mapId, npc) {
+  if (!npc.trainer) return;
+  const team = npc.trainer.team;
+  if (!Array.isArray(team) || !team.length) {
+    fail(`${mapId}: trainer ${npc.name || npc.sprite} has missing team`);
+    return;
+  }
+  for (let i = 0; i < team.length; i++) {
+    const entry = team[i];
+    if (!Array.isArray(entry) || entry.length < 2) {
+      fail(`${mapId}: trainer ${npc.name || npc.sprite} team slot ${i} is invalid`);
+      continue;
+    }
+    const species = entry[0];
+    const level = entry[1] | 0;
+    if (!CREATURES[species]) fail(`${mapId}: trainer ${npc.name || npc.sprite} references unknown species ${species}`);
+    if (level < 1) fail(`${mapId}: trainer ${npc.name || npc.sprite} has invalid level ${level}`);
+  }
+}
+
+function validateNpcSprite(mapId, npc) {
+  if (!npc.sprite) return;
+  const framesByStyle = atlasFrames();
+  const keys = npc.sprite === 'ball'
+    ? ['ball']
+    : ['down','up','left','right'].flatMap((dir) => [0,1].map((f) => `${npc.sprite}_${dir}_${f}`));
+  for (const style of framesByStyle) {
+    for (const key of keys) {
+      if (!style.frames[key]) fail(`${mapId}: sprite ${npc.sprite} is missing atlas frame ${key} in ${style.id}`);
     }
   }
 }
@@ -171,6 +234,12 @@ for (const [id, map] of Object.entries(MAPS)) {
   if (map.npcs) {
     for (const npc of map.npcs) {
       if (!inBounds(map, npc.x, npc.y)) fail(`${id}: npc ${npc.name || npc.sprite} out of bounds at ${npc.x},${npc.y}`);
+      validateNpcSprite(id, npc);
+      validateTrainerTeam(id, npc);
+      if (npc.trainer && !npc.gym) {
+        if (!isWalkable(map, npc.x, npc.y)) fail(`${id}: trainer ${npc.name || npc.sprite} is not on a walkable tile at ${npc.x},${npc.y}`);
+        else anchors.push([npc.x, npc.y]);
+      }
     }
   }
 

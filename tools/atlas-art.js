@@ -2036,7 +2036,8 @@
       accent: seed.accent,
       pants: seed.pants || '#383028',
       pantsShade: seed.pants ? dim(seed.pants) : '#1a1410',
-      shoes:'#1a1a1a'
+      shoes:'#1a1a1a',
+      gear: seed.gear || null
     };
   }
 
@@ -2051,7 +2052,17 @@
     npc_youth: { hat:'#d83020', shirt:'#f0d020', accent:'#a08818', pants:'#383028' },
     npc_old:   { hat:'#b03020', shirt:'#587858', accent:'#283828', pants:'#382820' },
     nurse:     { hat:'#e83040', shirt:'#fff',    accent:'#e8c8c8', pants:'#fff'    },
-    clerk:     { hat:'#d83020', shirt:'#3858c8', accent:'#202858', pants:'#202858' }
+    clerk:     { hat:'#d83020', shirt:'#3858c8', accent:'#202858', pants:'#202858' },
+    trainer_bug_catcher: { hat:'#4fa83a', shirt:'#7ac65a', accent:'#f0e060', pants:'#284820', gear:'net' },
+    trainer_picnicker:   { hat:'#f060a0', shirt:'#ffd070', accent:'#d84070', pants:'#4068b0', gear:'flower' },
+    trainer_camper:      { hat:'#d87828', shirt:'#58a068', accent:'#f0d060', pants:'#685030', gear:'pack' },
+    trainer_ranger:      { hat:'#287848', shirt:'#3fa070', accent:'#d8e878', pants:'#304830', gear:'leaf' },
+    trainer_miner:       { hat:'#f0c020', shirt:'#6f6858', accent:'#f8f0a0', pants:'#383838', gear:'lamp' },
+    trainer_hiker:       { hat:'#a06030', shirt:'#b87848', accent:'#f0c890', pants:'#504038', gear:'pick' },
+    trainer_skier:       { hat:'#70b8e8', shirt:'#e8f8ff', accent:'#e84858', pants:'#4868a8', gear:'scarf' },
+    trainer_sailor:      { hat:'#f8f8f8', shirt:'#3868d8', accent:'#ffffff', pants:'#202858', gear:'anchor' },
+    trainer_ace:         { hat:'#7030c0', shirt:'#383848', accent:'#f0d060', pants:'#181828', gear:'star' },
+    trainer_ruin_maniac: { hat:'#d8b068', shirt:'#c89050', accent:'#705038', pants:'#584030', gear:'goggles' }
   };
 
   // ---- Sprite poses ----
@@ -2188,13 +2199,68 @@
     }
   }
 
+  function drawTrainerAccessory(ctx, x, y, p) {
+    const g = p.gear;
+    if (!g) return;
+    const o = p.outline;
+    const a = p.accent;
+    const s = p.shirtShade;
+    if (g === 'net') {
+      px(ctx, x + 24, y + 12, 2, 16, o);
+      px(ctx, x + 25, y + 13, 1, 14, a);
+      px(ctx, x + 20, y + 7, 9, 7, o);
+      px(ctx, x + 21, y + 8, 7, 5, '#e8f8d8');
+      px(ctx, x + 23, y + 8, 1, 5, a);
+      px(ctx, x + 21, y + 10, 7, 1, a);
+    } else if (g === 'flower') {
+      for (const [dx, dy] of [[0,1],[1,0],[1,2],[2,1]]) px(ctx, x + 21 + dx, y + 4 + dy, 1, 1, '#ffd0e0');
+      px(ctx, x + 22, y + 5, 1, 1, '#f0d020');
+    } else if (g === 'pack') {
+      px(ctx, x + 6, y + 16, 3, 10, o);
+      px(ctx, x + 7, y + 17, 2, 8, '#704820');
+      px(ctx, x + 23, y + 17, 3, 8, o);
+      px(ctx, x + 23, y + 18, 2, 6, '#704820');
+    } else if (g === 'leaf') {
+      px(ctx, x + 18, y + 5, 5, 3, '#e0f080');
+      px(ctx, x + 19, y + 4, 3, 5, '#4fa83a');
+      px(ctx, x + 21, y + 6, 3, 1, o);
+    } else if (g === 'lamp') {
+      px(ctx, x + 14, y + 2, 5, 2, o);
+      px(ctx, x + 15, y + 3, 3, 3, '#fff090');
+      px(ctx, x + 16, y + 3, 1, 1, '#ffffff');
+    } else if (g === 'pick') {
+      px(ctx, x + 22, y + 11, 2, 15, o);
+      px(ctx, x + 20, y + 10, 8, 2, '#c0b090');
+      px(ctx, x + 26, y + 12, 2, 2, o);
+    } else if (g === 'scarf') {
+      px(ctx, x + 9, y + 14, 14, 2, '#e84858');
+      px(ctx, x + 20, y + 16, 3, 6, '#b82030');
+    } else if (g === 'anchor') {
+      px(ctx, x + 15, y + 16, 2, 5, a);
+      px(ctx, x + 13, y + 18, 6, 1, a);
+      px(ctx, x + 12, y + 19, 2, 2, a);
+      px(ctx, x + 18, y + 19, 2, 2, a);
+    } else if (g === 'star') {
+      px(ctx, x + 16, y + 16, 1, 5, a);
+      px(ctx, x + 14, y + 18, 5, 1, a);
+      px(ctx, x + 15, y + 17, 3, 3, '#fff090');
+    } else if (g === 'goggles') {
+      px(ctx, x + 10, y + 6, 12, 2, o);
+      px(ctx, x + 11, y + 6, 4, 2, '#80d8f8');
+      px(ctx, x + 17, y + 6, 4, 2, '#80d8f8');
+      px(ctx, x + 15, y + 7, 2, 1, s);
+    }
+  }
+
   function drawCharDown(ctx, x, y, frame, p) {
     drawHead(ctx, x, y, p, { back: false });
     drawBody(ctx, x, y, p, 'down', frame);
+    drawTrainerAccessory(ctx, x, y, p);
   }
   function drawCharUp(ctx, x, y, frame, p) {
     drawHead(ctx, x, y, p, { back: true });
     drawBody(ctx, x, y, p, 'up', frame);
+    drawTrainerAccessory(ctx, x, y, p);
   }
   function drawCharSide(ctx, x, y, frame, p) {
     // Side-view head: hat brim slants slightly; one eye visible.
@@ -2219,6 +2285,7 @@
     px(ctx, x + 17, y + 13, 1, 1, p.outline);
     // Body.
     drawBody(ctx, x, y, p, 'side', frame);
+    drawTrainerAccessory(ctx, x, y, p);
   }
 
   // Mirrored side draw: paint to a temp 32x32 buffer then flip horizontally
@@ -2440,7 +2507,7 @@
       [206, 136, 218], [238, 178, 232], [42, 92, 88], [58, 130, 116],
       [78, 166, 146], [112, 202, 172], [164, 228, 198], [214, 246, 226],
       [72, 72, 82], [102, 102, 112], [136, 136, 144], [170, 170, 172],
-      [202, 202, 194], [230, 230, 212], [250, 250, 232], [255, 255, 248]
+      [202, 202, 194], [230, 230, 212], [250, 250, 232]
     ];
     for (let i = 0; i < data.length; i += 4) {
       if (data[i + 3] < 8) continue;
