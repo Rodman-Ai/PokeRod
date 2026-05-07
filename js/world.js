@@ -405,6 +405,102 @@
     }
   }
 
+  // Biome ambient particles. Each visible map gets a thin scattering of
+  // biome-appropriate particles drifting across the view: leaves in
+  // forests, snowflakes on cold maps, sand grains in deserts, faint
+  // sparkles in caves. Active only in DS Diamond mode and capped so a
+  // long session can't slowly leak particles. Each particle owns its
+  // own colour, drift vector, and life so we can mix biome behaviours
+  // cheaply.
+  function biomeFor(map) {
+    if (!map) return null;
+    const tags = map.tags || [];
+    const id = map.id || '';
+    const name = (map.name || '').toLowerCase();
+    if (tags.indexOf('snow') !== -1 || /frost|snow/.test(id) || /frost|snow/.test(name)) return 'snow';
+    if (tags.indexOf('desert') !== -1 || /desert|ruin/.test(id) || /desert|sandy|ruin/.test(name)) return 'desert';
+    if (tags.indexOf('forest') !== -1 || /pebblewood|woodfall|route1|route2/.test(id) || /forest|wood/.test(name)) return 'forest';
+    if (tags.indexOf('cave') !== -1 || /cavern|cave/.test(id) || /cavern|cave/.test(name)) return 'cave';
+    return null;
+  }
+  function spawnBiomeParticle(biome, viewW, viewH) {
+    if (biome === 'snow') {
+      return {
+        x: Math.random() * (viewW + 60) - 30,
+        y: -8,
+        vx: -10 - Math.random() * 8,
+        vy: 18 + Math.random() * 14,
+        life: 5.5, maxLife: 5.5,
+        color: '#f8f8ff',
+        size: Math.random() < 0.3 ? 2 : 1,
+        spin: 0
+      };
+    }
+    if (biome === 'desert') {
+      return {
+        x: viewW + 8,
+        y: 20 + Math.random() * (viewH - 40),
+        vx: -50 - Math.random() * 30,
+        vy: -2 + Math.random() * 4,
+        life: viewW / 50,
+        maxLife: viewW / 50,
+        color: 'rgba(232,200,140,0.85)',
+        size: 1,
+        spin: 0
+      };
+    }
+    if (biome === 'forest') {
+      const palette = ['#88c060', '#c8a040', '#e08038', '#a0c870'];
+      return {
+        x: Math.random() * (viewW + 40) - 20,
+        y: -10,
+        vx: -6 + Math.random() * 4,
+        vy: 14 + Math.random() * 8,
+        life: 6.5, maxLife: 6.5,
+        color: palette[Math.floor(Math.random() * palette.length)],
+        size: 2,
+        spin: Math.random() * 0.4 - 0.2
+      };
+    }
+    if (biome === 'cave') {
+      return {
+        x: Math.random() * viewW,
+        y: viewH + 4,
+        vx: -2 + Math.random() * 4,
+        vy: -10 - Math.random() * 6,
+        life: 3.5, maxLife: 3.5,
+        color: '#f0e898',
+        size: 1,
+        spin: 0
+      };
+    }
+    return null;
+  }
+  function tickBiomeParticles(particles, dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (p.spin) p.x += Math.sin(p.life * 4) * p.spin;
+      if (p.life <= 0 || p.x < -20 || p.x > VIEW_W + 20 || p.y > VIEW_H + 20 || p.y < -40) {
+        particles.splice(i, 1);
+      }
+    }
+  }
+  function drawBiomeParticles(ctx, particles) {
+    for (const p of particles) {
+      const k = Math.min(1, p.life / p.maxLife);
+      // Fade tail-end so particles disappear gracefully near the edges.
+      const fade = k > 0.9 ? (1 - (k - 0.9) / 0.1) : (k < 0.2 ? k / 0.2 : 1);
+      ctx.save();
+      ctx.globalAlpha = fade;
+      ctx.fillStyle = p.color;
+      ctx.fillRect((p.x - p.size) | 0, (p.y - p.size) | 0, p.size * 2, p.size * 2);
+      ctx.restore();
+    }
+  }
+
   function World(state) {
     this.state = state;
     this.player = state.player;
@@ -424,6 +520,11 @@
     // { x, y, t } where t counts down to 0 over ~0.35s after which
     // the tile renders normally again.
     this._sweptGrass = [];
+    // Biome ambient particles (snow/leaves/sand/sparkles). Reset
+    // when the map changes so a forest doesn't leak leaves into the
+    // next desert.
+    this._biomeParticles = [];
+    this._biomeSpawnTimer = 0;
   }
 
   World.prototype._initAmbient = function() {
@@ -713,6 +814,10 @@
     this.justEntered = true;
     this._initAmbient();
     this._resetFollower();
+    // Reset biome particles so a forest's leaves don't drift into the
+    // next desert; new biome will start spawning on the next tick.
+    this._biomeParticles = [];
+    this._biomeSpawnTimer = 0;
     if (this.state.onMapChange) this.state.onMapChange();
     if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('mapchange');
   };
@@ -875,6 +980,24 @@
         s.t -= dt;
         if (s.t <= 0) this._sweptGrass.splice(i, 1);
       }
+    }
+    // Biome ambient particles: tick existing, spawn at a low rate.
+    // Active only in DS Diamond mode; reduced-motion users opt out.
+    if (tiltActive() && !(window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion)) {
+      tickBiomeParticles(this._biomeParticles, dt);
+      const cur = this.currentMap();
+      const biome = biomeFor(cur);
+      if (biome && !cur.interior) {
+        this._biomeSpawnTimer -= dt;
+        if (this._biomeSpawnTimer <= 0 && this._biomeParticles.length < 18) {
+          const p = spawnBiomeParticle(biome, VIEW_W, VIEW_H);
+          if (p) this._biomeParticles.push(p);
+          this._biomeSpawnTimer = 0.15 + Math.random() * 0.25;
+        }
+      }
+    } else if (this._biomeParticles.length) {
+      // Snap to empty when the player toggles back to a non-DS preset.
+      this._biomeParticles.length = 0;
     }
 
     if (this.anim.moving) {
@@ -1070,6 +1193,13 @@
     // darkened image, mimicking how lamps pierce the gloom.
     if (cur && !cur.interior && cycleOn) {
       drawNightLights(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+    }
+
+    // Biome ambient particles. Drawn after night lights so leaves
+    // catch the warm glow of nearby lamps, but before the vignette
+    // and HUD so the corner darkening still frames everything.
+    if (this._biomeParticles && this._biomeParticles.length) {
+      drawBiomeParticles(ctx, this._biomeParticles);
     }
 
     // DS Diamond: subtle vignette over the whole world frame (the

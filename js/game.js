@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.27.0';
-  const BUILD = '2026.05.07-87';
+  const VERSION = 'v0.28.0';
+  const BUILD = '2026.05.07-88';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -592,7 +592,12 @@
     let step = 'init';
     try {
       step = 'sfx-play';
-      if (window.PR_SFX) window.PR_SFX.play('encounter');
+      if (window.PR_SFX) {
+        window.PR_SFX.play('encounter');
+        // Cry the trainer's lead mon so encounters feel personal.
+        const lead = npc && npc.trainer && npc.trainer.team && npc.trainer.team[0];
+        if (lead && window.PR_SFX.cry) window.PR_SFX.cry(lead[0]);
+      }
       step = 'music-play';
       if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
       step = 'check-data';
@@ -622,7 +627,10 @@
     let step = 'init';
     try {
       step = 'sfx-play';
-      if (window.PR_SFX) window.PR_SFX.play('encounter');
+      if (window.PR_SFX) {
+        window.PR_SFX.play('encounter');
+        if (window.PR_SFX.cry) window.PR_SFX.cry(species);
+      }
       step = 'music-play';
       if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
       step = 'check-data';
