@@ -82,6 +82,53 @@
       fill:'#1a0204', border:'#f0c020', text:'#f0c020'
     });
   }
+  // Phase icon, drawn top-left below the minimap (or at 4,4 on
+  // interior maps). Pure pixel-art via fillRect so it matches the
+  // rest of the HUD and doesn't require atlas regen.
+  function fillCirclePixel(ctx, cx, cy, r, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  function drawPhaseIcon(ctx, x, y, phaseName) {
+    const W = 18, H = 16;
+    // Backdrop + gold border, matching the clock chip.
+    ctx.fillStyle = 'rgba(20,16,12,0.7)';
+    ctx.fillRect(x, y, W, H);
+    ctx.fillStyle = '#f0c020';
+    ctx.fillRect(x, y, W, 1);
+    ctx.fillRect(x, y + H - 1, W, 1);
+    ctx.fillRect(x, y, 1, H);
+    ctx.fillRect(x + W - 1, y, 1, H);
+    const cx = x + 9, cy = y + 8;
+    if (phaseName === 'day') {
+      fillCirclePixel(ctx, cx, cy, 3, '#f8d030');
+      ctx.fillStyle = '#f8d030';
+      ctx.fillRect(cx - 1, y + 2, 2, 1);     // top ray
+      ctx.fillRect(cx - 1, y + H - 3, 2, 1); // bottom ray
+      ctx.fillRect(x + 2, cy - 1, 1, 2);     // left ray
+      ctx.fillRect(x + W - 3, cy - 1, 1, 2); // right ray
+    } else if (phaseName === 'night') {
+      fillCirclePixel(ctx, cx, cy, 4, '#e0e0f0');
+      // bite the moon to make a crescent
+      ctx.fillStyle = 'rgba(20,16,12,0.95)';
+      ctx.beginPath();
+      ctx.arc(cx + 2, cy - 1, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // a couple of stars
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 3, y + 4, 1, 1);
+      ctx.fillRect(x + W - 4, y + H - 5, 1, 1);
+    } else if (phaseName === 'dusk' || phaseName === 'dawn') {
+      // Half-disc rising/setting over a dark horizon line.
+      const sun = phaseName === 'dusk' ? '#f08030' : '#f8a8a8';
+      ctx.fillStyle = sun;
+      ctx.fillRect(cx - 3, cy - 1, 7, 4);
+      ctx.fillStyle = '#a04030';
+      ctx.fillRect(x + 2, cy + 3, W - 4, 1);
+    }
+  }
 
   // Minimap colors by tile category, derived from TILE_PROPS so every
   // tile code resolves to a sensible color (the previous lookup table
@@ -339,6 +386,24 @@
       ctx.fillRect((sx - 1) | 0, (sy - 1) | 0, 3, 2);
     }
   }
+  // Sweep overlay for tallgrass cells the player just walked through:
+  // two short slashes at the cell base that fade out as the timer
+  // counts down. Placed under NPCs/player so the player covers the
+  // marks at their current location.
+  function drawSweptGrass(ctx, swept, camX, camY) {
+    for (const s of swept) {
+      const cx = s.x * TS - camX + TS / 2;
+      const cy = s.y * TS - camY + TS - 10;
+      if (cx < -TS || cx > VIEW_W + TS || cy < -TS || cy > VIEW_H + TS) continue;
+      const k = Math.max(0, Math.min(1, s.t / 0.35));
+      ctx.fillStyle = 'rgba(168,232,128,' + (0.9 * k).toFixed(3) + ')';
+      // Two angled slashes flanking the centre, suggesting parted blades.
+      ctx.fillRect((cx - 6) | 0, (cy - 1) | 0, 4, 1);
+      ctx.fillRect((cx + 2) | 0, (cy - 1) | 0, 4, 1);
+      ctx.fillRect((cx - 5) | 0, (cy)     | 0, 3, 1);
+      ctx.fillRect((cx + 3) | 0, (cy)     | 0, 3, 1);
+    }
+  }
 
   function World(state) {
     this.state = state;
@@ -355,6 +420,10 @@
     this.follower = null;
     this._resetFollower();
     this._dust = [];
+    // Recently-swept tallgrass tiles. Each entry is
+    // { x, y, t } where t counts down to 0 over ~0.35s after which
+    // the tile renders normally again.
+    this._sweptGrass = [];
   }
 
   World.prototype._initAmbient = function() {
@@ -800,6 +869,13 @@
     this._updateFollower(dt);
 
     if (this._dust && this._dust.length) tickDust(this._dust, dt);
+    if (this._sweptGrass && this._sweptGrass.length) {
+      for (let i = this._sweptGrass.length - 1; i >= 0; i--) {
+        const s = this._sweptGrass[i];
+        s.t -= dt;
+        if (s.t <= 0) this._sweptGrass.splice(i, 1);
+      }
+    }
 
     if (this.anim.moving) {
       this.anim.t += dt;
@@ -818,6 +894,14 @@
         const reducedM = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
         if (tiltActive() && !reducedM && isDustyTile(code)) {
           this._spawnDustAtPlayer();
+        }
+        // Reactive tallgrass: when the player lands on tallgrass, mark
+        // the cell as "swept" for ~0.35s. The render layer draws a
+        // small disturbance overlay until the timer expires.
+        if (!reducedM && code === ':') {
+          this._sweptGrass.push({ x: this.player.x, y: this.player.y, t: 0.35 });
+          // Cap the swept list so a long walk doesn't accumulate.
+          if (this._sweptGrass.length > 12) this._sweptGrass.splice(0, this._sweptGrass.length - 12);
         }
         if (code === 'X' || this._atMapEdge(this.player.x, this.player.y)) {
           this.tryEdgeTransition(this.player.x, this.player.y);
@@ -885,6 +969,14 @@
     // pass so the shadow falls onto the next row's already-painted
     // ground without being clobbered.
     drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
+    // Tallgrass disturbance: the cells the player just walked through
+    // briefly show parted-blade marks. Drawn after tiles so the marks
+    // sit on top of the grass texture, but before NPCs/player so a
+    // sprite standing on a swept cell still occludes it.
+    if (this._sweptGrass && this._sweptGrass.length) {
+      drawSweptGrass(ctx, this._sweptGrass, camX, camY);
+    }
 
     // Ambient roaming creatures (drawn under NPCs/player).
     for (const a of this._ambient) {
@@ -987,6 +1079,19 @@
 
     // Minimap pip (small overview top-left).
     if (!cur.interior) drawMinimap(ctx, cur, this.player.x, this.player.y);
+
+    // Phase icon top-left. Sits below the minimap when one is shown,
+    // or at the canonical (4, 4) corner on interior maps. Gives a
+    // glanceable day/night indicator separate from the HH:MM clock.
+    {
+      const phaseName = phaseForSteps(this.player.steps || 0).name;
+      let iconX = 4, iconY = 4;
+      if (!cur.interior && cur.tiles && cur.tiles.length) {
+        const cell = 2;
+        iconY = 4 + cur.tiles.length * cell + 6;
+      }
+      drawPhaseIcon(ctx, iconX, iconY, phaseName);
+    }
 
     // In-game clock (top-right). Always shown in the overworld so the
     // player can read the time even if the cycle is visually disabled.

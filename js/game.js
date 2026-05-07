@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.26.0';
-  const BUILD = '2026.05.07-86';
+  const VERSION = 'v0.27.0';
+  const BUILD = '2026.05.07-87';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -542,8 +542,34 @@
     startBattleAgainstWild(pick.species, lvl);
   }
 
+  // Resolve current phase name for time-of-day encounter filtering.
+  // Falls back to 'day' if PR_TIME isn't loaded (atlas/intro boot).
+  function currentPhaseName() {
+    if (window.PR_TIME && window.PR_TIME.current) return window.PR_TIME.current();
+    return 'day';
+  }
+  // Encounter entries can opt in to a `time` field. Accepted forms:
+  //   time: 'day' | 'night' | 'dawn' | 'dusk'
+  //   time: ['day','dusk']  // any-of
+  // Entries without `time` appear at all hours (preserves existing
+  // behaviour). If every encounter happens to be time-gated and none
+  // match, fall back to the unfiltered list so the player is never
+  // stranded with no wild encounters at a particular hour.
+  function encounterMatchesPhase(entry, phaseName) {
+    if (!entry.time) return true;
+    if (Array.isArray(entry.time)) return entry.time.indexOf(phaseName) !== -1;
+    return entry.time === phaseName;
+  }
+  function filterEncountersByTime(list) {
+    if (!list || !list.length) return list;
+    const phase = currentPhaseName();
+    const filtered = list.filter(e => encounterMatchesPhase(e, phase));
+    return filtered.length ? filtered : list;
+  }
+
   function encounterPoolForMap(map) {
     if (!map) return [];
+    let list = null;
     if (Array.isArray(map.encounterZones)) {
       const px = state.player.x | 0, py = state.player.y | 0;
       for (const zone of map.encounterZones) {
@@ -551,11 +577,13 @@
         const zw = Math.max(1, zone.w | 0), zh = Math.max(1, zone.h | 0);
         if (px >= zx && px < zx + zw && py >= zy && py < zy + zh &&
             zone.encounters && zone.encounters.length) {
-          return zone.encounters;
+          list = zone.encounters;
+          break;
         }
       }
     }
-    return map.encounters || [];
+    if (!list) list = map.encounters || [];
+    return filterEncountersByTime(list);
   }
 
   // ---------- Battle setup helpers ----------
