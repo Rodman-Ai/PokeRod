@@ -452,6 +452,122 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, viewW, viewH);
   }
+  // God-ray shafts: thin diagonal yellow stripes drifting down-left
+  // from the top edge of tall tiles during the dawn/dusk band.
+  // Sparse - only every 3rd tall tile gets rays so the count stays
+  // bounded.
+  function drawGodRays(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const peakDawn = 1 - Math.min(1, Math.abs(t - 240) / 30);
+    const peakDusk = 1 - Math.min(1, Math.abs(t - 80)  / 30);
+    const peak = Math.max(peakDawn, peakDusk);
+    if (peak < 0.15) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(255,228,160,' + (0.10 * peak).toFixed(3) + ')';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (!isTallTile(row[wx])) continue;
+        // Only the topmost tile of a structure casts rays - skip the
+        // tile when there's another tall tile directly above it.
+        const above = (wy > 0) ? m.tiles[wy - 1][wx] : null;
+        if (above && isTallTile(above)) continue;
+        // Sparse: hash of the tile coord picks ~1 in 3 for rays.
+        if (((wx * 13 + wy * 7) & 3) !== 0) continue;
+        const sx0 = offX + tx * TS;
+        const sy0 = offY + ty * TS;
+        // Two thin parallelograms drifting down-left.
+        for (let r = 0; r < 2; r++) {
+          const off = r * 8;
+          ctx.beginPath();
+          ctx.moveTo(sx0 + 6 + off, sy0);
+          ctx.lineTo(sx0 + 9 + off, sy0);
+          ctx.lineTo(sx0 - 18 + off, sy0 + 56);
+          ctx.lineTo(sx0 - 21 + off, sy0 + 56);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+  // Heat shimmer: a few wavy horizontal bands in the lower half of
+  // the screen on desert maps during the day. Sub-pixel sine drift
+  // makes the bands feel like atmospheric distortion.
+  function drawHeatShimmer(ctx, m, viewW, viewH, steps) {
+    if (!tiltActive()) return;
+    if (biomeFor(m) !== 'desert') return;
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const isDay = t < 60 || t > 280;
+    if (!isDay) return;
+    const phase = performance.now() / 1000;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,240,200,0.14)';
+    for (let i = 0; i < 5; i++) {
+      const y = (viewH * 0.55) + i * 12 + Math.sin(phase * 1.5 + i * 0.7) * 2;
+      ctx.fillRect(0, y | 0, viewW, 1);
+    }
+    ctx.restore();
+  }
+  // Snow caps: 1-2 px white bar on the top edge of every tall tile in
+  // a snow-biome map, suggesting accumulated snow. Cheap.
+  function drawSnowCaps(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    if (!tiltActive()) return;
+    if (biomeFor(m) !== 'snow') return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.78)';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (!isTallTile(row[wx])) continue;
+        // Only the topmost tile of a stack accumulates snow.
+        const above = (wy > 0) ? m.tiles[wy - 1][wx] : null;
+        if (above && isTallTile(above)) continue;
+        const sx = offX + tx * TS;
+        const sy = offY + ty * TS;
+        ctx.fillRect(sx + 4, sy + 2, TS - 8, 1);
+        ctx.fillRect(sx + 6, sy + 1, TS - 12, 1);
+      }
+    }
+    ctx.restore();
+  }
+  // Pulse around uncollected hidden items so a perceptive player can
+  // spot them (tiles already lookup as hidden in the map data, but
+  // they had no visual hint until now). Brighter at night.
+  function drawHiddenPulses(ctx, m, camX, camY, viewW, viewH, steps, foundItems) {
+    if (!tiltActive()) return;
+    const hidden = m.hidden;
+    if (!hidden) return;
+    const phase = (performance.now() % 1500) / 1500;
+    const nFactor = nightness(steps);
+    const baseAlpha = 0.32 + 0.28 * nFactor;
+    ctx.save();
+    ctx.lineWidth = 1;
+    for (const key of Object.keys(hidden)) {
+      const found = foundItems && foundItems.has && foundItems.has(m.id + ':' + key);
+      if (found) continue;
+      const parts = key.split(',');
+      const hx = parts[0] | 0, hy = parts[1] | 0;
+      const sx = hx * 32 - camX + 16;
+      const sy = hy * 32 - camY + 16;
+      if (sx < -32 || sx > viewW + 32 || sy < -32 || sy > viewH + 32) continue;
+      const r = phase * 12 + 2;
+      const alpha = (1 - phase) * baseAlpha;
+      ctx.strokeStyle = 'rgba(248,224,144,' + alpha.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
   // Footstep dust particles: fade out over time, drift slightly upward.
   // Spawned by World.prototype._spawnDust on step completion when the
   // player lands on a dusty tile (sand, dirt path, gravel). Drawn
@@ -516,6 +632,7 @@
     if (tags.indexOf('desert') !== -1 || /desert|ruin/.test(id) || /desert|sandy|ruin/.test(name)) return 'desert';
     if (tags.indexOf('forest') !== -1 || /pebblewood|woodfall|route1|route2/.test(id) || /forest|wood/.test(name)) return 'forest';
     if (tags.indexOf('cave') !== -1 || /cavern|cave/.test(id) || /cavern|cave/.test(name)) return 'cave';
+    if (tags.indexOf('mountain') !== -1 || /mountain|highspire/.test(id) || /mountain|highspire/.test(name)) return 'mountain';
     return null;
   }
   function spawnBiomeParticle(biome, viewW, viewH, steps) {
@@ -585,6 +702,23 @@
         spin: 0
       };
     }
+    if (biome === 'mountain') {
+      // Slow horizontal fog blobs - large, soft, alpha-pulsing.
+      // We keep `size` larger than other particles and use a special
+      // 'fog' kind so drawBiomeParticles can render them as soft
+      // alpha rects rather than crisp pixels.
+      return {
+        kind: 'fog',
+        x: viewW + 30,
+        y: viewH * 0.4 + Math.random() * (viewH * 0.4),
+        vx: -8 - Math.random() * 6,
+        vy: 0,
+        life: 12, maxLife: 12,
+        color: 'rgba(200,210,224,1)',
+        size: 22 + Math.random() * 14,
+        spin: 0
+      };
+    }
     return null;
   }
   function tickBiomeParticles(particles, dt) {
@@ -605,9 +739,20 @@
       // Fade tail-end so particles disappear gracefully near the edges.
       const fade = k > 0.9 ? (1 - (k - 0.9) / 0.1) : (k < 0.2 ? k / 0.2 : 1);
       ctx.save();
-      ctx.globalAlpha = fade;
-      ctx.fillStyle = p.color;
-      ctx.fillRect((p.x - p.size) | 0, (p.y - p.size) | 0, p.size * 2, p.size * 2);
+      if (p.kind === 'fog') {
+        // Soft radial fog blob: low alpha, gradient falloff.
+        const rad = p.size;
+        const alpha = 0.16 * fade;
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
+        grad.addColorStop(0, 'rgba(220,224,232,' + alpha.toFixed(3) + ')');
+        grad.addColorStop(1, 'rgba(220,224,232,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect((p.x - rad) | 0, (p.y - rad) | 0, (rad * 2) | 0, (rad * 2) | 0);
+      } else {
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = p.color;
+        ctx.fillRect((p.x - p.size) | 0, (p.y - p.size) | 0, p.size * 2, p.size * 2);
+      }
       ctx.restore();
     }
   }
@@ -1220,9 +1365,19 @@
     // ground without being clobbered.
     drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
 
+    // Snow caps along the tops of tall tiles in snow-biome maps.
+    drawSnowCaps(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
     // Animated water shimmer. Subtle 1-2 px sparkles cycling per
     // frame on water tiles; sells movement when the player isn't.
     drawWaterShimmer(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
+    // Hidden item pulse: faint expanding ring around uncollected
+    // hidden items so a careful player can spot them. Active on
+    // exterior maps; interior caves still get them since they often
+    // contain hidden items.
+    drawHiddenPulses(ctx, m, camX, camY, VIEW_W, VIEW_H, this.player.steps || 0,
+      this.state.player && this.state.player.foundItems);
 
     // Tallgrass disturbance: the cells the player just walked through
     // briefly show parted-blade marks. Drawn after tiles so the marks
@@ -1331,6 +1486,19 @@
     // light source.
     if (cur && !cur.interior && cycleOn) {
       drawPlayerLantern(ctx, px.x - camX + TS / 2, px.y - camY + TS / 2, this.player.steps || 0);
+    }
+
+    // God-ray shafts at dawn/dusk: thin diagonal beams down-left from
+    // the tops of tall tiles. Cinematic accent for the warm bands of
+    // the day/night cycle.
+    if (cur && !cur.interior && cycleOn) {
+      drawGodRays(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+    }
+
+    // Heat shimmer for desert maps during the day band. Skipped at
+    // night and on non-desert maps.
+    if (cur && !cur.interior && cycleOn) {
+      drawHeatShimmer(ctx, m, VIEW_W, VIEW_H, this.player.steps || 0);
     }
 
     // Cinematic colour grade: warm-on-top / cool-on-bottom split tone
