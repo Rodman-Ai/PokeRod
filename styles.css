@@ -571,6 +571,16 @@ html, body {
   .ssbtn { width: 66px; }
 }
 
+@media (max-width: 320px) {
+  #touch { padding: 8px 4px var(--pad); }
+  #dpad {
+    grid-template-columns: repeat(3, 38px);
+    grid-template-rows: repeat(3, 38px);
+  }
+  .abtn { width: 44px; height: 44px; }
+  .ssbtn { width: 58px; letter-spacing: 2px; }
+}
+
 @media (orientation: landscape) and (max-height: 500px) {
   #app { padding: 0; }
   #screen { width: auto; height: calc(100vh - 60px); margin: 6px auto; }

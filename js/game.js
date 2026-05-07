@@ -343,7 +343,18 @@
 
   // ---------- Dialog ----------
   function openDialog(lines, onDone, source) {
-    state.dialog = { lines: lines.slice(), index:0, onDone: onDone || null, source: source || null };
+    // Pre-wrap each input line and chunk overflow into pages of 3
+    // visible lines, so long text never silently truncates.
+    const PAGE_LINES = 3, WRAP_W = 30;
+    const pages = [];
+    for (const line of lines) {
+      const wrapped = window.PR_UI.wrap(String(line == null ? '' : line), WRAP_W);
+      if (wrapped.length === 0) { pages.push(['']); continue; }
+      for (let i = 0; i < wrapped.length; i += PAGE_LINES) {
+        pages.push(wrapped.slice(i, i + PAGE_LINES));
+      }
+    }
+    state.dialog = { lines: pages, index:0, onDone: onDone || null, source: source || null };
     state.mode = 'dialog';
   }
   function updateDialog() {
@@ -368,9 +379,8 @@
   }
   function drawDialog() {
     const d = state.dialog;
-    const text = d.lines[d.index] || '';
-    const lines = window.PR_UI.wrap(text, 30);
-    window.PR_UI.drawDialog(ctx, lines.slice(0,3), VIEW_W, VIEW_H, true);
+    const page = d.lines[d.index] || [''];
+    window.PR_UI.drawDialog(ctx, page, VIEW_W, VIEW_H, true);
   }
 
   window.addEventListener('DOMContentLoaded', init);
@@ -768,13 +778,11 @@
       state.party.push(mon);
       state.flags.starterChosen = true;
       state.starterMenu = null;
-      state.mode = 'dialog';
       const name = window.PR_DATA.CREATURES[sp].name;
-      state.dialog = {
-        lines: ['You chose ' + name + '!','Take good care of it.'],
-        index: 0,
-        onDone: () => window.PR_SAVE.save(state)
-      };
+      openDialog(
+        ['You chose ' + name + '!','Take good care of it.'],
+        () => window.PR_SAVE.save(state)
+      );
     }
   }
   function drawStarter() {
@@ -1061,7 +1069,8 @@
     const cycle = (delta) => {
       if (row.type === 'bool') state.settings[row.key] = !state.settings[row.key];
       else {
-        const i = row.steps.indexOf(state.settings[row.key]);
+        let i = row.steps.indexOf(state.settings[row.key]);
+        if (i < 0) i = 0;
         const next = (i + delta + row.steps.length) % row.steps.length;
         state.settings[row.key] = row.steps[next];
       }
