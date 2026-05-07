@@ -239,6 +239,107 @@
     ctx.fillRect(0, 0, viewW, viewH);
   }
 
+  // 0 at noon, peaks at 1 around midnight. Used to gate / scale night-
+  // only effects (window glow, lamp halos). Steps 80..240 are the
+  // dusk-night-dawn band; we ramp up, peak at 160, ramp down.
+  function nightness(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    if (t <= 80 || t >= 240) return 0;
+    const dist = Math.abs(t - 160);
+    return Math.max(0, 1 - dist / 80);
+  }
+  // Soft additive radial glow. Used for lamp halos and window light.
+  // Set globalCompositeOperation to 'lighter' before calling so the
+  // glow lifts darkened tiles instead of just colour-blending.
+  function drawGlow(ctx, cx, cy, radius, color, alpha) {
+    if (alpha <= 0) return;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    grad.addColorStop(0, color);
+    grad.addColorStop(0.6, color);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = grad;
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx.restore();
+  }
+  // Draws lamp halos and window-light squares for visible tiles.
+  // Active only when tilt is active AND it's nighttime. Drawn AFTER
+  // the day/night tint so glows can lift the darkened image.
+  function drawNightLights(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    const nFactor = nightness(steps);
+    if (nFactor < 0.05) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        const code = row[wx];
+        const cx = offX + tx * TS + TS / 2;
+        const cy = offY + ty * TS + TS / 2;
+        if (code === '|' || code === 'I') {
+          // Streetlamp: tall halo from the head of the lamp downward.
+          drawGlow(ctx, cx, cy - 4, TS * 1.4, 'rgba(255,224,128,1)', 0.55 * nFactor);
+        } else if (code === '[' || code === ']') {
+          // Window: small halo + lit interior square.
+          drawGlow(ctx, cx, cy + 4, TS * 0.7, 'rgba(255,232,144,1)', 0.45 * nFactor);
+        }
+      }
+    }
+    ctx.restore();
+    // Lit-window square uses normal compositing so it shows as a solid
+    // golden pane rather than a pure additive bloom.
+    if (nFactor < 0.1) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,232,144,' + (0.45 * nFactor).toFixed(3) + ')';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        const code = row[wx];
+        if (code === '[' || code === ']') {
+          ctx.fillRect(offX + tx * TS + 6, offY + ty * TS + 8, TS - 12, TS - 18);
+        }
+      }
+    }
+    ctx.restore();
+  }
+  // Footstep dust particles: fade out over time, drift slightly upward.
+  // Spawned by World.prototype._spawnDust on step completion when the
+  // player lands on a dusty tile (sand, dirt path, gravel). Drawn
+  // before the day/night tint so they read like ground particles, not
+  // sparks.
+  function isDustyTile(code) {
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
+    if (!props || !props.walk) return false;
+    const n = props.name || '';
+    return n === 'sand' || n.indexOf('path') >= 0;
+  }
+  function tickDust(particles, dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life -= dt;
+      p.y += p.vy * dt;
+      p.vy *= 0.96; // gentle deceleration
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+  function drawDust(ctx, particles, camX, camY) {
+    for (const p of particles) {
+      const sx = p.x - camX, sy = p.y - camY;
+      if (sx < -8 || sx > VIEW_W + 8 || sy < -8 || sy > VIEW_H + 8) continue;
+      const k = p.life / p.maxLife;
+      ctx.fillStyle = 'rgba(216,184,120,' + (0.55 * k).toFixed(3) + ')';
+      ctx.fillRect((sx - 1) | 0, (sy - 1) | 0, 3, 2);
+    }
+  }
+
   function World(state) {
     this.state = state;
     this.player = state.player;
@@ -253,6 +354,7 @@
     this._initAmbient();
     this.follower = null;
     this._resetFollower();
+    this._dust = [];
   }
 
   World.prototype._initAmbient = function() {
@@ -287,6 +389,26 @@
     if (dy !== 0) return dy > 0 ? 'down' : 'up';
     return fallback || 'down';
   }
+
+  World.prototype._spawnDustAtPlayer = function() {
+    // 2 small puffs at the player's feet, drifting slightly opposite
+    // the direction of travel so they read as "kicked up".
+    const dir = this.player.dir;
+    const dx = dir === 'left' ? 4 : dir === 'right' ? -4 : 0;
+    const dy = dir === 'up' ? 4 : dir === 'down' ? -2 : 0;
+    const px = this.player.x * TS + 16;
+    const py = this.player.y * TS + 28;
+    for (let i = 0; i < 2; i++) {
+      this._dust.push({
+        x: px + dx + (Math.random() * 6 - 3),
+        y: py + dy + (Math.random() * 2 - 1),
+        vy: -8 - Math.random() * 6,
+        life: 0.5 + Math.random() * 0.2,
+        maxLife: 0.7
+      });
+    }
+    if (this._dust.length > 24) this._dust.splice(0, this._dust.length - 24);
+  };
 
   World.prototype._followerWalkable = function(x, y) {
     const code = this.tileAt(x, y);
@@ -677,6 +799,8 @@
     }
     this._updateFollower(dt);
 
+    if (this._dust && this._dust.length) tickDust(this._dust, dt);
+
     if (this.anim.moving) {
       this.anim.t += dt;
       const k = Math.min(1, this.anim.t / this.anim.duration);
@@ -689,6 +813,12 @@
         this.frame ^= 1;
         // Check for door / encounter / edge after step.
         const code = this.tileAt(this.player.x, this.player.y);
+        // Footstep dust on dusty surfaces. Skipped when reduced motion
+        // is on so we don't add unnecessary motion for that audience.
+        const reducedM = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+        if (tiltActive() && !reducedM && isDustyTile(code)) {
+          this._spawnDustAtPlayer();
+        }
         if (code === 'X' || this._atMapEdge(this.player.x, this.player.y)) {
           this.tryEdgeTransition(this.player.x, this.player.y);
           return;
@@ -825,6 +955,11 @@
       });
     }
 
+    // Footstep dust under the player. Drawn before the day/night
+    // tint so the dust gets darkened along with the rest of the
+    // ground, reading like a particle and not a spark.
+    if (this._dust && this._dust.length) drawDust(ctx, this._dust, camX, camY);
+
     // Smoothly interpolated day/night tint overlay. Skipped entirely
     // when the player has disabled the cycle in settings, in which
     // case the world stays at a flat noon look.
@@ -836,6 +971,13 @@
         ctx.fillStyle = tint;
         ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       }
+    }
+
+    // DS Diamond, night phase: lamp halos and lit windows. Drawn
+    // AFTER the day/night tint so the additive glows lift the
+    // darkened image, mimicking how lamps pierce the gloom.
+    if (cur && !cur.interior && cycleOn) {
+      drawNightLights(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
     }
 
     // DS Diamond: subtle vignette over the whole world frame (the
