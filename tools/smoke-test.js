@@ -219,10 +219,28 @@ async function main() {
       state.bagTarget = { itemId:'potion', def:window.PR_ITEMS.ITEMS.potion, idx:0, returnTo:'menu' };
       await nextFrame();
       const emptyTargetSum = sampleSum();
-      return { ok:true, boxSum, emptyTargetSum, mode:state.mode };
+      // Exercise the dex in two states: a caught entry (full image +
+      // stats + evos + moves) and an unknown entry (silhouette path).
+      const savedDex = state.dex, savedDexView = state.dexView, savedMode = state.mode;
+      state.dex = { seen: new Set(['emberkit']), caught: new Set(['emberkit']) };
+      state.dexView = { idx:0, scroll:0 };
+      state.mode = 'dex';
+      await nextFrame();
+      const dexCaughtSum = sampleSum();
+      state.dex = { seen: new Set(), caught: new Set() };
+      state.dexView = { idx:0, scroll:0 };
+      await nextFrame();
+      const dexUnknownSum = sampleSum();
+      // Restore so the next downstream check (bag-target → bag exit)
+      // sees the bagtarget state it set up earlier.
+      state.dex = savedDex; state.dexView = savedDexView; state.mode = savedMode;
+      await nextFrame();
+      return { ok:true, boxSum, emptyTargetSum, dexCaughtSum, dexUnknownSum, mode:state.mode };
     });
     console.log('ui mode checks:', uiModeChecks);
-    if (!uiModeChecks.ok || uiModeChecks.boxSum === 0 || uiModeChecks.emptyTargetSum === 0 || uiModeChecks.mode !== 'bagtarget') {
+    if (!uiModeChecks.ok || uiModeChecks.boxSum === 0 || uiModeChecks.emptyTargetSum === 0 ||
+        uiModeChecks.dexCaughtSum === 0 || uiModeChecks.dexUnknownSum === 0 ||
+        uiModeChecks.mode !== 'bagtarget') {
       console.error('ui mode render failed:', uiModeChecks);
       exitCode = 2;
     }

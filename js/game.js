@@ -1587,6 +1587,36 @@
     if (v.idx >= v.scroll + visibleRows) v.scroll = v.idx - visibleRows + 1;
   }
 
+  function dexEvolutionChain(speciesId) {
+    const C = window.PR_DATA.CREATURES;
+    // Walk backward to find the chain root.
+    let rootId = speciesId;
+    for (let guard = 0; guard < 8; guard++) {
+      let prev = null;
+      for (const id of Object.keys(C)) {
+        if (C[id].evolves && C[id].evolves.to === rootId) { prev = id; break; }
+      }
+      if (!prev) break;
+      rootId = prev;
+    }
+    // Walk forward from the root.
+    const chain = [];
+    let cur = rootId;
+    for (let guard = 0; guard < 8 && cur; guard++) {
+      chain.push(cur);
+      cur = C[cur].evolves ? C[cur].evolves.to : null;
+    }
+    return chain;
+  }
+
+  function dexTypeTextColor(hex) {
+    if (!hex || hex.length < 7) return '#202020';
+    const r = parseInt(hex.slice(1,3), 16) || 0;
+    const g = parseInt(hex.slice(3,5), 16) || 0;
+    const b = parseInt(hex.slice(5,7), 16) || 0;
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 140 ? '#202020' : '#ffffff';
+  }
+
   function drawDex() {
     ensureDex();
     const ids = dexEntries();
@@ -1594,48 +1624,140 @@
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     const seenN = state.dex.seen.size, caughtN = state.dex.caught.size;
     window.PR_UI.header(ctx, 'POKEDEX', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'SEEN ' + seenN + ' CAUGHT ' + caughtN, x + 60, y + 4, '#385890');
-    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, 'SEEN ' + seenN + ' CAUGHT ' + caughtN, x + 60, y + 4, '#f0c020');
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#f0c020');
 
-    // Left: scrollable list (8 rows).
-    const listX = x + 4, listY = y + 14, rowH = 12;
+    // Left: always-named scroll list. Names always visible (per design),
+    // status mark (* caught, . seen, blank otherwise) hints at progress.
+    const listX = x + 4, listY = y + 20, rowH = 12;
     const rows = 8;
     const v = state.dexView;
+    const listW = 104;
     for (let r = 0; r < rows; r++) {
       const i = v.scroll + r;
       if (i >= ids.length) break;
       const id = ids[i];
       const sp = window.PR_DATA.CREATURES[id];
       const cy = listY + r * rowH;
-      if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, 100, 11, true);
+      if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, listW, 11, true);
       const num = String(sp.dex).padStart(3, '0');
-      const seen = state.dex.seen.has(id);
       const caught = state.dex.caught.has(id);
+      const seen = state.dex.seen.has(id);
       const mark = caught ? '*' : seen ? '.' : ' ';
-      const name = seen ? sp.name : '???';
-      window.PR_UI.drawText(ctx, mark + num + ' ' + name, listX + 2, cy, '#202020');
+      window.PR_UI.drawText(ctx, mark + num + ' ' + sp.name.slice(0, 11), listX + 2, cy, '#202020');
     }
 
-    // Right: detail of selected.
+    // Right: detail panel for the selected entry.
     const selId = ids[v.idx];
     const sp = window.PR_DATA.CREATURES[selId];
-    const seen = state.dex.seen.has(selId);
-    const dx = x + 110, dy = y + 14, dw = w - 116, dh = h - 18;
+    const caught = state.dex.caught.has(selId);
+    const dx = x + 114, dy = y + 18, dw = w - 120, dh = h - 22;
     window.PR_UI.panel(ctx, dx, dy, dw, dh, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
-    if (seen) {
-      window.PR_MONS.drawCreature(ctx, selId, dx + 4, dy + 4, 32, false);
-      window.PR_UI.drawText(ctx, sp.name, dx + 40, dy + 4, '#202020');
-      window.PR_UI.drawText(ctx, sp.types.join('/'), dx + 40, dy + 14, '#385890');
-      window.PR_UI.drawText(ctx, 'HP ' + sp.baseStats.hp, dx + 4, dy + 40, '#202020');
-      window.PR_UI.drawText(ctx, 'AT ' + sp.baseStats.atk, dx + 40, dy + 40, '#202020');
-      window.PR_UI.drawText(ctx, 'DF ' + sp.baseStats.def, dx + 76, dy + 40, '#202020');
-      window.PR_UI.drawText(ctx, 'SP ' + sp.baseStats.spe, dx + 4, dy + 50, '#202020');
-      window.PR_UI.drawText(ctx, 'SA ' + sp.baseStats.spa, dx + 40, dy + 50, '#202020');
-      window.PR_UI.drawText(ctx, 'SD ' + sp.baseStats.spd, dx + 76, dy + 50, '#202020');
-      if (sp.evolves) window.PR_UI.drawText(ctx, '> LV ' + sp.evolves.level, dx + 4, dy + 62, '#a02828');
+
+    // Sprite: caught -> colored, otherwise -> silhouette. Always shown.
+    const spriteSize = 48;
+    const spriteX = dx + 6, spriteY = dy + 6;
+    if (caught) {
+      window.PR_MONS.drawCreature(ctx, selId, spriteX, spriteY, spriteSize, false);
     } else {
-      window.PR_UI.drawText(ctx, '???', dx + 4, dy + 4, '#202020');
-      window.PR_UI.drawText(ctx, 'Not yet seen.', dx + 4, dy + 16, '#806040');
+      window.PR_MONS.drawCreatureSilhouette(ctx, selId, spriteX, spriteY, spriteSize);
+    }
+
+    // Header block: name + dex# + type chips. Always visible.
+    const headX = spriteX + spriteSize + 6;
+    const num = String(sp.dex).padStart(3, '0');
+    window.PR_UI.drawText(ctx, sp.name, headX, dy + 6, '#202020');
+    window.PR_UI.drawText(ctx, '#' + num, headX, dy + 18, '#806040');
+    let chipX = headX, chipY = dy + 30;
+    for (const t of sp.types) {
+      const fill = window.PR_DATA.TYPE_COLOR[t] || '#a8a878';
+      const text = dexTypeTextColor(fill);
+      const wDrawn = window.PR_UI.chip(ctx, chipX, chipY, t, { fill, border:'#202020', text });
+      chipX += wDrawn + 2;
+    }
+
+    // Description: always visible. Wrap to a width that fits the right
+    // panel and clip to 4 lines so the rest of the panel layout stays
+    // stable.
+    const descX = dx + 6, descY = dy + spriteSize + 12;
+    const descW = dw - 12;
+    const descMaxChars = Math.max(20, Math.floor(descW / 6));
+    const descLines = window.PR_UI.wrap(sp.description || '', descMaxChars).slice(0, 4);
+    for (let i = 0; i < descLines.length; i++) {
+      window.PR_UI.drawText(ctx, descLines[i], descX, descY + i * 9, '#202020');
+    }
+
+    // Divider between the always-shown section and the caught-only
+    // detail block.
+    const divY = descY + 4 * 9 + 2;
+    ctx.fillStyle = '#385890';
+    ctx.fillRect(dx + 4, divY, dw - 8, 1);
+
+    if (!caught) {
+      window.PR_UI.drawText(ctx, 'Catch to reveal stats & moves.', dx + 6, divY + 6, '#806040');
+      return;
+    }
+
+    // Stats: 2 rows of 3.
+    const stY = divY + 6;
+    const colW = (dw - 12) / 3;
+    const stat = (label, val, col, row) => {
+      window.PR_UI.drawText(ctx,
+        label + ' ' + val,
+        dx + 6 + col * colW,
+        stY + row * 10,
+        '#202020');
+    };
+    stat('HP', sp.baseStats.hp,  0, 0);
+    stat('AT', sp.baseStats.atk, 1, 0);
+    stat('DF', sp.baseStats.def, 2, 0);
+    stat('SP', sp.baseStats.spe, 0, 1);
+    stat('SA', sp.baseStats.spa, 1, 1);
+    stat('SD', sp.baseStats.spd, 2, 1);
+
+    // Evolution chain.
+    const chain = dexEvolutionChain(selId);
+    const evoY = stY + 22;
+    window.PR_UI.drawText(ctx, 'EVOLUTION', dx + 6, evoY, '#385890');
+    if (chain.length <= 1) {
+      window.PR_UI.drawText(ctx, '(none)', dx + 6 + 60, evoY, '#806040');
+    } else {
+      let ex = dx + 6;
+      const ey = evoY + 10;
+      for (let i = 0; i < chain.length; i++) {
+        const id = chain[i];
+        const isCaughtStage = state.dex.caught.has(id);
+        if (isCaughtStage) {
+          window.PR_MONS.drawCreature(ctx, id, ex, ey, 24, false);
+        } else {
+          window.PR_MONS.drawCreatureSilhouette(ctx, id, ex, ey, 24);
+        }
+        ex += 24;
+        if (i < chain.length - 1) {
+          const lvNext = window.PR_DATA.CREATURES[id].evolves
+            ? window.PR_DATA.CREATURES[id].evolves.level
+            : '?';
+          window.PR_UI.drawText(ctx, '>', ex + 1, ey + 8, '#202020');
+          window.PR_UI.drawText(ctx, 'L' + lvNext, ex - 1, ey - 8, '#a02828');
+          ex += 12;
+        }
+      }
+    }
+
+    // Learnset: two columns, up to 8 entries.
+    const moveY = evoY + 38;
+    window.PR_UI.drawText(ctx, 'MOVES', dx + 6, moveY, '#385890');
+    const learn = (sp.learnset || []).slice(0, 8);
+    const moveColW = (dw - 12) / 2;
+    for (let i = 0; i < learn.length; i++) {
+      const [lv, mvId] = learn[i];
+      const mv = window.PR_DATA.MOVES[mvId];
+      const col = i >= 4 ? 1 : 0;
+      const row = i % 4;
+      const mx = dx + 6 + col * moveColW;
+      const my = moveY + 10 + row * 9;
+      const label = 'L' + String(lv).padStart(2, ' ') + ' ' + (mv ? mv.name : mvId);
+      window.PR_UI.drawText(ctx, label, mx, my, '#202020');
     }
   }
 
