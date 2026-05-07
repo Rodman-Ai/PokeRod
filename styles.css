@@ -591,3 +591,26 @@ html, body {
   }
 }
 
+/* Keyboard focus rings for the on-screen handheld buttons. */
+.dbtn:focus-visible,
+.abtn:focus-visible,
+.ssbtn:focus-visible,
+.overlay button:focus-visible {
+  outline: 2px solid #ffe060;
+  outline-offset: 2px;
+}
+
+/* Honor prefers-reduced-motion: kill the title-screen ambient animations. */
+@media (prefers-reduced-motion: reduce) {
+  .stars,
+  .rays,
+  .tufts span,
+  .logo,
+  .logo span,
+  .press,
+  .sub,
+  .cta {
+    animation: none !important;
+  }
+  .sub, .cta, .press { opacity: 1; transform: none; }
+}
