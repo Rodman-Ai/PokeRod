@@ -107,12 +107,39 @@
     ctx.fillRect(x+3, y+3, w-6, 1);
   }
 
+  function dsActive() {
+    return !!(window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond');
+  }
+
   function panel(ctx, x, y, w, h, opts) {
     opts = opts || {};
     const border = opts.border || '#202020';
     const fill = opts.fill || '#f8f8f8';
     const shadow = opts.shadow || '#806040';
     const hi = opts.highlight || '#ffffff';
+    if (dsActive()) {
+      // Soft shadow (offset).
+      ctx.fillStyle = 'rgba(8,8,24,0.55)';
+      ctx.fillRect(x + 2, y + 3, w, h);
+      // Outer border.
+      ctx.fillStyle = '#1a1426';
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = '#3a2a4c';
+      ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+      // Vertical gradient inner fill.
+      const grd = ctx.createLinearGradient(x, y + 2, x, y + h - 2);
+      grd.addColorStop(0, '#fffefa');
+      grd.addColorStop(0.55, '#f1ecff');
+      grd.addColorStop(1, '#d8d0ee');
+      ctx.fillStyle = grd;
+      ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+      // Top highlight stripe (1px) and bottom shadow stripe (1px).
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillRect(x + 3, y + 3, w - 6, 1);
+      ctx.fillStyle = 'rgba(80,60,120,0.30)';
+      ctx.fillRect(x + 3, y + h - 4, w - 6, 1);
+      return;
+    }
     ctx.fillStyle = '#101018';
     ctx.fillRect(x + 2, y + 3, w, h);
     ctx.fillStyle = border;
@@ -129,6 +156,24 @@
 
   function header(ctx, text, x, y, w, opts) {
     opts = opts || {};
+    if (dsActive()) {
+      const grd = ctx.createLinearGradient(x, y, x, y + 12);
+      grd.addColorStop(0, '#3c1840');
+      grd.addColorStop(1, '#702848');
+      ctx.fillStyle = grd;
+      ctx.fillRect(x, y, w, 12);
+      // Underline.
+      const grd2 = ctx.createLinearGradient(x, y + 10, x + w, y + 10);
+      grd2.addColorStop(0, '#f0c060');
+      grd2.addColorStop(0.5, '#ffe080');
+      grd2.addColorStop(1, '#f0c060');
+      ctx.fillStyle = grd2;
+      ctx.fillRect(x, y + 10, w, 2);
+      // Text shadow + body.
+      drawText(ctx, text, x + 5, y + 4, '#1a0820');
+      drawText(ctx, text, x + 5, y + 3, '#fff8e8');
+      return;
+    }
     ctx.fillStyle = opts.fill || '#202020';
     ctx.fillRect(x, y, w, 12);
     ctx.fillStyle = opts.line || '#f0c020';
@@ -137,6 +182,28 @@
   }
 
   function selectBar(ctx, x, y, w, h, active) {
+    if (dsActive()) {
+      if (active) {
+        const grd = ctx.createLinearGradient(x, y, x, y + h);
+        grd.addColorStop(0, '#fff0a8');
+        grd.addColorStop(0.5, '#f0c020');
+        grd.addColorStop(1, '#a06010');
+        ctx.fillStyle = grd;
+        ctx.fillRect(x, y, w, h);
+        // Top shine.
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fillRect(x + 1, y + 1, w - 2, 1);
+        // Bottom shadow.
+        ctx.fillStyle = 'rgba(64,32,0,0.45)';
+        ctx.fillRect(x, y + h - 2, w, 2);
+      } else {
+        ctx.fillStyle = 'rgba(80,60,120,0.18)';
+        ctx.fillRect(x, y, w, h);
+        ctx.fillStyle = 'rgba(40,24,64,0.18)';
+        ctx.fillRect(x, y + h - 1, w, 1);
+      }
+      return;
+    }
     ctx.fillStyle = active ? '#f0c020' : 'rgba(56,88,144,0.14)';
     ctx.fillRect(x, y, w, h);
     ctx.fillStyle = active ? '#b07010' : 'rgba(32,32,32,0.12)';
@@ -148,6 +215,21 @@
     const w = Math.max(18, textWidth(text) + 8);
     const fill = opts.fill || '#e8f0ff';
     const border = opts.border || '#385890';
+    if (dsActive()) {
+      // Notched-corner chip with a top highlight.
+      ctx.fillStyle = '#1a1426';
+      ctx.fillRect(x + 1, y, w - 2, 11);
+      ctx.fillRect(x, y + 1, w, 9);
+      const grd = ctx.createLinearGradient(x, y + 1, x, y + 10);
+      grd.addColorStop(0, '#f8f8ff');
+      grd.addColorStop(1, '#bcc0e0');
+      ctx.fillStyle = grd;
+      ctx.fillRect(x + 1, y + 1, w - 2, 9);
+      ctx.fillStyle = 'rgba(255,255,255,0.80)';
+      ctx.fillRect(x + 2, y + 2, w - 4, 1);
+      drawText(ctx, text, x + 4, y + 2, opts.text || '#1a0820');
+      return w;
+    }
     ctx.fillStyle = border;
     ctx.fillRect(x, y, w, 11);
     ctx.fillStyle = fill;
