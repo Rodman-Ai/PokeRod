@@ -217,8 +217,8 @@
     const ratio = Math.max(0, Math.min(1, hp / maxHp));
     const fillW = Math.ceil((w - 2) * ratio);
     let color = '#48d860';
-    if (ratio < 0.5) color = '#f0c020';
-    if (ratio < 0.2) color = '#e83838';
+    if (ratio <= 0.5) color = '#f0c020';
+    if (ratio <= 0.2) color = '#e83838';
     ctx.fillStyle = '#202020';
     ctx.fillRect(x, y, w, 5);
     ctx.fillStyle = '#f8f8f8';

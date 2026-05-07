@@ -571,6 +571,16 @@ html, body {
   .ssbtn { width: 66px; }
 }
 
+@media (max-width: 320px) {
+  #touch { padding: 8px 4px var(--pad); }
+  #dpad {
+    grid-template-columns: repeat(3, 38px);
+    grid-template-rows: repeat(3, 38px);
+  }
+  .abtn { width: 44px; height: 44px; }
+  .ssbtn { width: 58px; letter-spacing: 2px; }
+}
+
 @media (orientation: landscape) and (max-height: 500px) {
   #app { padding: 0; }
   #screen { width: auto; height: calc(100vh - 60px); margin: 6px auto; }
@@ -581,3 +591,26 @@ html, body {
   }
 }
 
+/* Keyboard focus rings for the on-screen handheld buttons. */
+.dbtn:focus-visible,
+.abtn:focus-visible,
+.ssbtn:focus-visible,
+.overlay button:focus-visible {
+  outline: 2px solid #ffe060;
+  outline-offset: 2px;
+}
+
+/* Honor prefers-reduced-motion: kill the title-screen ambient animations. */
+@media (prefers-reduced-motion: reduce) {
+  .stars,
+  .rays,
+  .tufts span,
+  .logo,
+  .logo span,
+  .press,
+  .sub,
+  .cta {
+    animation: none !important;
+  }
+  .sub, .cta, .press { opacity: 1; transform: none; }
+}

@@ -256,7 +256,11 @@
     if (code === 'L') {
       const after = this.tileAt(nx, ny + 1);
       const afterProps = window.PR_MAPS.TILE_PROPS[after];
-      if (afterProps && afterProps.walk === true) {
+      const canLand = !!afterProps && (
+        afterProps.walk === true ||
+        (after === 'W' && this.state.player.surfing)
+      );
+      if (canLand) {
         this.startMove(p.x, p.y, nx, ny + 1, 0.28);
         return;
       }

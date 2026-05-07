@@ -11,6 +11,21 @@
     drawLevelTuft(ctx, species, sx, sy, sizePx, subject);
   }
 
+  // Render a single-color silhouette of the creature sprite. Uses an
+  // offscreen canvas + 'source-in' composite so transparent pixels stay
+  // transparent and opaque pixels become the silhouette color.
+  function drawCreatureSilhouette(ctx, species, sx, sy, sizePx, color) {
+    if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
+    const oc = document.createElement('canvas');
+    oc.width = sizePx; oc.height = sizePx;
+    const octx = oc.getContext('2d');
+    if (!window.PR_ATLAS.drawKeyScaled(octx, 'creature_' + species, 0, 0, sizePx, sizePx)) return;
+    octx.globalCompositeOperation = 'source-in';
+    octx.fillStyle = color || '#1a0204';
+    octx.fillRect(0, 0, sizePx, sizePx);
+    ctx.drawImage(oc, sx | 0, sy | 0);
+  }
+
   function levelFromSubject(subject) {
     if (typeof subject === 'number') return subject | 0;
     if (subject && subject.level !== undefined) return subject.level | 0;
@@ -66,5 +81,5 @@
     }
   }
 
-  window.PR_MONS = { drawCreature };
+  window.PR_MONS = { drawCreature, drawCreatureSilhouette };
 })();

@@ -683,6 +683,7 @@ const MAPS = {
       { species:'nibblet',     minL:4, maxL:7, weight:4 },
       { species:'cinderpup',   minL:5, maxL:8, weight:2 },
       { species:'fernsprout',  minL:5, maxL:8, weight:2 },
+      { species:'budling',     minL:5, maxL:8, weight:2 },
       { species:'bumblesting', minL:4, maxL:7, weight:3 }
     ],
     edges: {
@@ -836,6 +837,9 @@ const MAPS = {
       { species:'bumblesting', minL:7, maxL:10, weight:4 },
       { species:'sproutling',  minL:6, maxL:9,  weight:3 },
       { species:'fernsprout',  minL:7, maxL:10, weight:3 },
+      { species:'mantilux',    minL:7, maxL:10, weight:3 },
+      { species:'dewfae',      minL:8, maxL:11, weight:2 },
+      { species:'clodlet',     minL:6, maxL:9,  weight:2 },
       { species:'glimkit',     minL:8, maxL:11, weight:1 }
     ],
     edges: {
@@ -993,6 +997,8 @@ const MAPS = {
       { species:'geistmite', minL:10, maxL:14, weight:4 },
       { species:'cavewing',  minL:10, maxL:14, weight:4 },
       { species:'stoneworm', minL:11, maxL:15, weight:3 },
+      { species:'wraithlet', minL:11, maxL:14, weight:2 },
+      { species:'rivetbolt', minL:11, maxL:14, weight:2 },
       { species:'crysthorn', minL:12, maxL:15, weight:1 }
     ],
     doors: {
@@ -1034,6 +1040,8 @@ const MAPS = {
       { species:'geistmite', minL:14, maxL:18, weight:5 },
       { species:'cavewing',  minL:14, maxL:18, weight:4 },
       { species:'stoneworm', minL:14, maxL:18, weight:3 },
+      { species:'wraithlet', minL:15, maxL:19, weight:3 },
+      { species:'rivetbolt', minL:15, maxL:19, weight:2 },
       { species:'crysthorn', minL:15, maxL:19, weight:2 }
     ],
     doors: {
@@ -1181,11 +1189,12 @@ const MAPS = {
                    defeat:["Aye... the slope respects your team."] } }
     ],
     encounters: [
-      { species:'frostpup',  minL:14, maxL:18, weight:5 },
-      { species:'snowox',    minL:14, maxL:18, weight:3 },
-      { species:'glimkit',   minL:14, maxL:18, weight:3 },
-      { species:'crysthorn', minL:15, maxL:19, weight:2 },
-      { species:'galewing',  minL:14, maxL:18, weight:3 }
+      { species:'frostpup',   minL:14, maxL:18, weight:5 },
+      { species:'snowox',     minL:14, maxL:18, weight:3 },
+      { species:'glimkit',    minL:14, maxL:18, weight:3 },
+      { species:'crysthorn',  minL:15, maxL:19, weight:2 },
+      { species:'frostbloom', minL:14, maxL:18, weight:3 },
+      { species:'galewing',   minL:14, maxL:18, weight:3 }
     ],
     edges: {
       north: { y:0,  to:'frostmere',  tx:7, ty:16 },
@@ -1339,7 +1348,8 @@ const MAPS = {
       { species:'mistfin',   minL:18, maxL:22, weight:4 },
       { species:'aquapup',   minL:18, maxL:22, weight:3 },
       { species:'galewing',  minL:18, maxL:22, weight:2 },
-      { species:'cavewing',  minL:18, maxL:22, weight:2 }
+      { species:'cavewing',  minL:18, maxL:22, weight:2 },
+      { species:'miasmite',  minL:18, maxL:22, weight:2 }
     ],
     edges: {
       north: { y:0,  to:'harborside', tx:7, ty:6 },
@@ -1568,7 +1578,9 @@ desert: {
       { species:'stoneworm', minL:16, maxL:20, weight:4 },
       { species:'crysthorn', minL:18, maxL:22, weight:2 },
       { species:'geistmite', minL:16, maxL:20, weight:2 },
-      { species:'snowox',    minL:18, maxL:22, weight:2 }
+      { species:'snowox',    minL:18, maxL:22, weight:2 },
+      { species:'draekit',   minL:18, maxL:22, weight:2 },
+      { species:'clawmonk',  minL:16, maxL:20, weight:2 }
     ],
     edges: {
       west: { x:0, to:'crestrock', tx:18, ty:15 }
