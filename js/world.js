@@ -86,32 +86,27 @@
     return phaseForSteps(s).name;
   }};
 
-  // Billboard-tilt + drop-shadow effect for the DS Diamond style.
-  // Active only when the user has selected that graphics preset, and
-  // only on movable sprites (player, NPCs, follower, ambient
-  // creatures) where the sprite background is transparent so the
-  // vertical squash doesn't reveal grass underneath. Tile sprites
-  // (trees, buildings, etc.) stay flat because their cells are fully
-  // painted and any squash would show the ground-clear color through
-  // the gap at the top of the cell.
+  // Drop-shadow effect for the DS Diamond style. Active only when
+  // settings.graphics === 'ds_diamond'; other styles render unchanged.
+  // Earlier we also applied a vertical squash via ctx.scale(1, 0.88),
+  // but the browser's sub-pixel rendering during scale produced visible
+  // pink/red horizontal artifacts under sprites (the squashed bottom
+  // row interpolated against the level-tuft red baked into atlas
+  // frames). Shadow-only keeps the 2.5D 'grounded' feel without the
+  // artifact.
   function tiltActive() {
     return window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond';
   }
   function drawShadow(ctx, cx, by, w) {
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.beginPath();
-    ctx.ellipse(cx, by, w * 0.42, Math.max(2, w * 0.14), 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, by, w * 0.4, Math.max(2, w * 0.13), 0, 0, Math.PI * 2);
     ctx.fill();
   }
   function withTilt(ctx, sx, sy, sw, sh, draw) {
     if (!tiltActive()) { draw(); return; }
-    const SQUASH = 0.88;
     drawShadow(ctx, sx + sw / 2, sy + sh - 1, sw);
-    ctx.save();
-    ctx.translate(0, (1 - SQUASH) * (sy + sh));
-    ctx.scale(1, SQUASH);
     draw();
-    ctx.restore();
   }
 
   function World(state) {
