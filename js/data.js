@@ -85,6 +85,12 @@ const MOVES = {
   screech:   { name:'Screech',   type:'NORMAL',   power:0,  accuracy:85,  kind:'status',   pp:40, statChange:{target:'foe',  stat:'def', stages:-2} },
   toxicspike:{ name:'Toxic Spike',type:'POISON',  power:50, accuracy:100, kind:'physical', pp:20, poisonChance:0.3 },
   shockwave: { name:'Shockwave', type:'ELECTRIC', power:60, accuracy:100, kind:'special',  pp:20, paralyzeChance:0.1 },
+  spectralhowl:{ name:'Spectral Howl',type:'GHOST', power:0, accuracy:100, kind:'status',   pp:20, statChange:{target:'foe', stat:'spa', stages:-1} },
+  ghostgrip:{ name:'Ghost Grip', type:'GHOST',    power:55, accuracy:100, kind:'physical', pp:20 },
+  dragonbreath:{ name:'Dragon Breath',type:'DRAGON',power:55, accuracy:100, kind:'special',  pp:20, paralyzeChance:0.1 },
+  dragonclaw:{ name:'Dragon Claw',type:'DRAGON',  power:70, accuracy:95,  kind:'physical', pp:15 },
+  fairykiss: { name:'Fairy Kiss', type:'FAIRY',   power:45, accuracy:100, kind:'special',  pp:25 },
+  moonbeam:  { name:'Moon Beam',  type:'FAIRY',   power:65, accuracy:95,  kind:'special',  pp:15 },
   splash:    { name:'Splash',    type:'NORMAL',   power:0,  accuracy:100, kind:'status',   pp:40, dud:true }
 };
 
@@ -647,6 +653,86 @@ const CREATURES = {
     catchRate:190,
     design:{ palette:['#9a8870','#5a4a38','#c8b898'], shape:'rock', accent:'pebble', tuftX:16, tuftY:9 },
     description:'A stubborn shard with stubborn eyes. It has plans, and they are slow.'
+  },
+  wraithlet: {
+    id:'wraithlet', name:'Wraithlet', dex:68, types:['GHOST'],
+    baseStats:{hp:42, atk:55, def:38, spa:75, spd:62, spe:90},
+    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[10,'shimmer'],[14,'screech'],[20,'spectralhowl'],[26,'ghostgrip'],[32,'dazzle'] ],
+    catchRate:90,
+    design:{ palette:['#9080a8','#3a304a','#e8c8ff'], shape:'bat', accent:'wings', tuftX:16, tuftY:9 },
+    description:'A whisper given form. It glides through walls and apologizes by the next room.'
+  },
+  draekit: {
+    id:'draekit', name:'Draekit', dex:69, types:['DRAGON'],
+    baseStats:{hp:50, atk:75, def:55, spa:65, spd:55, spe:60},
+    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[10,'harden'],[14,'dragonbreath'],[20,'screech'],[26,'dragonclaw'],[32,'agility'] ],
+    catchRate:60,
+    design:{ palette:['#605898','#a8a8e8','#180828'], shape:'fox', accent:'tail', big:true, tuftX:16, tuftY:8 },
+    description:'A small wyrm with old eyes. Its breath leaves the air smelling like rain.'
+  },
+  dewfae: {
+    id:'dewfae', name:'Dewfae', dex:70, types:['FAIRY'],
+    baseStats:{hp:50, atk:35, def:45, spa:80, spd:80, spe:65},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'shimmer'],[10,'dazzle'],[14,'fairykiss'],[20,'agility'],[26,'moonbeam'],[32,'lullaby'] ],
+    catchRate:90,
+    design:{ palette:['#f8c8e8','#fff8ff','#a07898'], shape:'blob', accent:'glow', tuftX:16, tuftY:10 },
+    description:'Mist with a heartbeat. It heals small bruises just by being nearby.'
+  },
+  clawmonk: {
+    id:'clawmonk', name:'Clawmonk', dex:71, types:['FIGHTING'],
+    baseStats:{hp:55, atk:80, def:50, spa:35, spd:50, spe:75},
+    learnset:[ [1,'tackle'],[1,'focusjab'],[5,'quickjab'],[10,'sandattack'],[14,'palmstrike'],[20,'screech'],[26,'agility'] ],
+    catchRate:90,
+    design:{ palette:['#a86040','#e8c0a0','#382010'], shape:'mouse', accent:'tail', tuftX:16, tuftY:8 },
+    description:'A martial student of the foothills. Bows precede every kick.'
+  },
+  rivetbolt: {
+    id:'rivetbolt', name:'Rivetbolt', dex:72, types:['STEEL'],
+    baseStats:{hp:60, atk:80, def:95, spa:35, spd:55, spe:35},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'rocktoss'],[10,'harden'],[14,'ironswipe'],[20,'earthbump'],[26,'chromebash'],[32,'screech'] ],
+    catchRate:90,
+    design:{ palette:['#a0a8c0','#505868','#202830'], shape:'rock', accent:'pebble', tuftX:16, tuftY:9 },
+    description:'A boulder fortified with bolts and braces. It sleeps standing in old quarries.'
+  },
+  frostbloom: {
+    id:'frostbloom', name:'Frostbloom', dex:73, types:['ICE','GRASS'],
+    baseStats:{hp:50, atk:45, def:55, spa:70, spd:65, spe:50},
+    learnset:[ [1,'tackle'],[1,'growl'],[5,'vinelash'],[10,'harden'],[14,'freezewind'],[20,'leafcut'],[26,'shimmer'],[32,'agility'] ],
+    catchRate:90,
+    design:{ palette:['#c8e8ff','#ffffff','#386890'], shape:'plant', accent:'bud' },
+    description:'A blossom that opens only in deep frost. It hums a slow, glassy chime.'
+  },
+  mantilux: {
+    id:'mantilux', name:'Mantilux', dex:74, types:['BUG'],
+    baseStats:{hp:45, atk:50, def:55, spa:55, spd:50, spe:60},
+    learnset:[ [1,'tackle'],[1,'growl'],[5,'bugbite'],[10,'harden'],[14,'pinmissile'],[20,'shimmer'],[26,'sandattack'] ],
+    catchRate:120,
+    design:{ palette:['#80b078','#284820','#f8f0a0'], shape:'caterpillar', accent:'segments' },
+    description:'Its bands glow from within. Lost travelers follow its trail home.'
+  },
+  clodlet: {
+    id:'clodlet', name:'Clodlet', dex:75, types:['GROUND'],
+    baseStats:{hp:60, atk:65, def:80, spa:30, spd:45, spe:30},
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'earthbump'],[10,'harden'],[14,'rocktoss'],[20,'sandattack'],[26,'screech'] ],
+    catchRate:120,
+    design:{ palette:['#a87850','#604028','#d8b890'], shape:'turtle', accent:'shell' },
+    description:'Its shell is a shovel. It hauls roots and stones with patient grunting.'
+  },
+  budling: {
+    id:'budling', name:'Budling', dex:76, types:['GRASS'],
+    baseStats:{hp:45, atk:50, def:45, spa:55, spd:50, spe:65},
+    learnset:[ [1,'tackle'],[1,'growl'],[5,'gust'],[10,'vinelash'],[14,'sandattack'],[20,'leafcut'],[26,'airslash'] ],
+    catchRate:150,
+    design:{ palette:['#88c878','#f0e890','#284820'], shape:'bird', accent:'wings' },
+    description:'It sows wildflowers from its feathers. Spring tends to follow its flightpath.'
+  },
+  miasmite: {
+    id:'miasmite', name:'Miasmite', dex:77, types:['POISON'],
+    baseStats:{hp:50, atk:50, def:48, spa:65, spd:55, spe:60},
+    learnset:[ [1,'tackle'],[1,'poisonsting'],[5,'bubble'],[10,'acidspray'],[14,'screech'],[20,'toxicspike'],[26,'bite'] ],
+    catchRate:120,
+    design:{ palette:['#9050a8','#502878','#e8b8e8'], shape:'fish', accent:'fins' },
+    description:'It nests in stagnant pools. Its fin tips weep a bright, wary smoke.'
   }
 };
 
