@@ -72,13 +72,15 @@
     const phase = phaseForSteps(steps);
     const pad = (n) => (n < 10 ? '0' : '') + n;
     const text = pad(hm.h) + ':' + pad(hm.m) + ' ' + (PHASE_LABEL[phase.name] || phase.name.toUpperCase());
-    // chip() auto-sizes from text width; place top-right with a 4px
-    // margin so it sits clear of the screen edge and the entry banner.
     const textW = window.PR_UI.textWidth(text);
     const w = Math.max(18, textW + 8);
-    const x = viewW - w - 4;
-    const y = 4;
-    window.PR_UI.chip(ctx, x, y, text, {
+    // Phase icon + clock chip share the top-right corner. Icon hugs
+    // the chip on its left so the player reads them as a single
+    // 'time of day' indicator instead of two separate badges.
+    const iconW = 18, gap = 2, margin = 4;
+    const iconX = viewW - margin - w - gap - iconW;
+    drawPhaseIcon(ctx, iconX, 3, phase.name);
+    window.PR_UI.chip(ctx, iconX + iconW + gap, 4, text, {
       fill:'#1a0204', border:'#f0c020', text:'#f0c020'
     });
   }
@@ -220,10 +222,11 @@
     const r = Math.max(2, w * (opts.rxScale || 0.42));
     const ry = Math.max(2, w * (opts.ryScale || 0.14));
     const cAlpha = opts.centerAlpha != null ? opts.centerAlpha : 0.45;
+    const colorBase = opts.color || '0,0,0';
     const grad = ctx.createRadialGradient(cx, by, 0, cx, by, r);
-    grad.addColorStop(0, 'rgba(0,0,0,' + cAlpha + ')');
-    grad.addColorStop(0.65, 'rgba(0,0,0,' + (cAlpha * 0.4) + ')');
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    grad.addColorStop(0, 'rgba(' + colorBase + ',' + cAlpha + ')');
+    grad.addColorStop(0.65, 'rgba(' + colorBase + ',' + (cAlpha * 0.4) + ')');
+    grad.addColorStop(1, 'rgba(' + colorBase + ',0)');
     ctx.save();
     ctx.translate(cx, by);
     ctx.scale(1, ry / r);
@@ -253,21 +256,50 @@
     if (code === 'W' || code === 'L' || code === 'X') return false;
     return true;
   }
-  function drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+  // The tile only casts a ground shadow if the cell directly below it
+  // is walkable - that is, the shadow lands on real ground, not on the
+  // wall of the same building. Roofs and second-row walls sit on top
+  // of other blockers so they pass this test as 'no shadow', leaving
+  // only the bottom-most blocker of any structure to cast onto the
+  // path. Trees / rocks / fences with grass below still cast normally.
+  function tileShouldCastShadow(map, x, y) {
+    if (!isTallTile(map.tiles[y][x])) return false;
+    if (y + 1 >= map.tiles.length) return false;
+    const belowRow = map.tiles[y + 1];
+    if (!belowRow || x >= belowRow.length) return false;
+    const below = belowRow[x];
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[below];
+    return !!(props && props.walk);
+  }
+  // Per-phase shadow tint: warm at sunset, cool at midnight, neutral
+  // at noon. Reads as the sun shifting through the sky.
+  function phaseShadowOpts(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    let opts = { rxScale: 0.42, ryScale: 0.13, centerAlpha: 0.32, color: '0,0,0' };
+    // dusk band (60..100): warm
+    if (t > 60 && t < 100) opts.color = '40,10,30';
+    // night (140..180): cool
+    else if (t > 140 && t < 180) opts.color = '10,16,40';
+    // dawn (220..260): warm-ish
+    else if (t > 220 && t < 260) opts.color = '40,16,30';
+    return opts;
+  }
+  function drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
     if (!tiltActive()) return;
+    const opts = phaseShadowOpts(steps);
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
         if (wy < 0 || wy >= m.tiles.length) continue;
         const row = m.tiles[wy];
         if (wx < 0 || wx >= row.length) continue;
-        if (!isTallTile(row[wx])) continue;
+        if (!tileShouldCastShadow(m, wx, wy)) continue;
         const cx = offX + tx * TS + TS / 2;
         // Anchor the cast shadow at the bottom of the cell, slightly
         // inside so it doesn't drift onto the next row's painted
         // ground.
         const by = offY + ty * TS + TS - 3;
-        drawShadow(ctx, cx, by, TS, { rxScale: 0.42, ryScale: 0.13, centerAlpha: 0.32 });
+        drawShadow(ctx, cx, by, TS, opts);
       }
     }
   }
@@ -357,6 +389,69 @@
     }
     ctx.restore();
   }
+  // Player-attached lantern: a soft warm radial glow around the player
+  // at night. Reuses drawGlow under additive composite so the cone
+  // 'lifts' the darkened image. Falls off to nothing during the day.
+  function drawPlayerLantern(ctx, px, py, steps) {
+    if (!tiltActive()) return;
+    const n = nightness(steps);
+    if (n < 0.1) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    drawGlow(ctx, px, py, 88, 'rgba(255,200,128,1)', 0.34 * n);
+    ctx.restore();
+  }
+  // Subtle 1-2 pixel sparkle on water tiles. Cycle is driven by wall-
+  // clock time so the shimmer keeps moving even when the player is
+  // stationary. Skipped on non-DS presets.
+  function drawWaterShimmer(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    if (!tiltActive()) return;
+    const phase = (performance.now() / 280) | 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (row[wx] !== 'W') continue;
+        const seed = (wx * 7 + wy * 13 + phase) & 7;
+        if (seed < 2) {
+          const px = offX + tx * TS + 4 + seed * 4;
+          const py = offY + ty * TS + 8 + (seed % 3) * 8;
+          ctx.fillRect(px, py, 2, 1);
+        }
+        const seed2 = (wx * 11 + wy * 5 + phase + 3) & 7;
+        if (seed2 === 0) {
+          const px = offX + tx * TS + 18;
+          const py = offY + ty * TS + 22;
+          ctx.fillRect(px, py, 1, 1);
+        }
+      }
+    }
+  }
+  // Cinematic color grade: warm-on-top / cool-on-bottom split tone
+  // applied at low alpha during the dawn/dusk bands. Skipped at noon
+  // so the daytime brightness isn't flattened.
+  function drawColorGrade(ctx, viewW, viewH, steps) {
+    if (!tiltActive()) return;
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const peakDawn = 1 - Math.min(1, Math.abs(t - 240) / 40);
+    const peakDusk = 1 - Math.min(1, Math.abs(t - 80)  / 40);
+    const intensity = Math.max(peakDawn, peakDusk, 0);
+    if (intensity < 0.1) return;
+    const grad = ctx.createLinearGradient(0, 0, 0, viewH);
+    const isDawn = peakDawn > peakDusk;
+    if (isDawn) {
+      grad.addColorStop(0, 'rgba(255,200,180,' + (0.18 * intensity).toFixed(3) + ')');
+      grad.addColorStop(1, 'rgba(120,140,200,' + (0.16 * intensity).toFixed(3) + ')');
+    } else {
+      grad.addColorStop(0, 'rgba(255,160,90,'  + (0.20 * intensity).toFixed(3) + ')');
+      grad.addColorStop(1, 'rgba(80,80,140,'   + (0.18 * intensity).toFixed(3) + ')');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, viewW, viewH);
+  }
   // Footstep dust particles: fade out over time, drift slightly upward.
   // Spawned by World.prototype._spawnDust on step completion when the
   // player lands on a dusty tile (sand, dirt path, gravel). Drawn
@@ -423,7 +518,23 @@
     if (tags.indexOf('cave') !== -1 || /cavern|cave/.test(id) || /cavern|cave/.test(name)) return 'cave';
     return null;
   }
-  function spawnBiomeParticle(biome, viewW, viewH) {
+  function spawnBiomeParticle(biome, viewW, viewH, steps) {
+    // Forests at night swap leaves for fireflies — slow yellow-green
+    // sparkles that drift upward instead of drifting down.
+    const n = steps != null ? nightness(steps) : 0;
+    if (biome === 'forest' && n > 0.3) {
+      return {
+        x: Math.random() * viewW,
+        y: viewH - 8 + Math.random() * 12,
+        vx: -4 + Math.random() * 8,
+        vy: -6 - Math.random() * 8,
+        life: 4.5 + Math.random() * 2,
+        maxLife: 6,
+        color: '#f8f0a0',
+        size: 1,
+        spin: 0
+      };
+    }
     if (biome === 'snow') {
       return {
         x: Math.random() * (viewW + 60) - 30,
@@ -990,7 +1101,7 @@
       if (biome && !cur.interior) {
         this._biomeSpawnTimer -= dt;
         if (this._biomeSpawnTimer <= 0 && this._biomeParticles.length < 18) {
-          const p = spawnBiomeParticle(biome, VIEW_W, VIEW_H);
+          const p = spawnBiomeParticle(biome, VIEW_W, VIEW_H, this.player.steps || 0);
           if (p) this._biomeParticles.push(p);
           this._biomeSpawnTimer = 0.15 + Math.random() * 0.25;
         }
@@ -1062,8 +1173,24 @@
   World.prototype.render = function(ctx) {
     const m = this.currentMap();
     const px = this.getPlayerPx();
-    const camX = Math.max(0, Math.min(m.tiles[0].length * TS - VIEW_W, px.x - VIEW_W/2 + TS/2));
-    const camY = Math.max(0, Math.min(m.tiles.length * TS - VIEW_H, px.y - VIEW_H/2 + TS/2));
+    const targetCamX = Math.max(0, Math.min(m.tiles[0].length * TS - VIEW_W, px.x - VIEW_W/2 + TS/2));
+    const targetCamY = Math.max(0, Math.min(m.tiles.length * TS - VIEW_H, px.y - VIEW_H/2 + TS/2));
+    // Cinematic camera: lerp toward the target instead of snapping.
+    // Tile rendering already handles fractional offsets, so the camera
+    // can sit at sub-pixel positions and drift smoothly into place.
+    // Bypassed for non-DS presets and reduced-motion users so retro
+    // styles keep their tile-snapped look.
+    const reducedM = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+    if (!tiltActive() || reducedM) {
+      this._camX = targetCamX;
+      this._camY = targetCamY;
+    } else {
+      if (this._camX === undefined) { this._camX = targetCamX; this._camY = targetCamY; }
+      this._camX += (targetCamX - this._camX) * 0.22;
+      this._camY += (targetCamY - this._camY) * 0.22;
+    }
+    const camX = this._camX;
+    const camY = this._camY;
 
     // Clear to grass green rather than black so the 1-px gap that the
     // foliage sway leaves behind blends in instead of showing as a black
@@ -1091,7 +1218,11 @@
     // tile (trees, buildings, fences, rocks). Drawn after the tile
     // pass so the shadow falls onto the next row's already-painted
     // ground without being clobbered.
-    drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+    drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+
+    // Animated water shimmer. Subtle 1-2 px sparkles cycling per
+    // frame on water tiles; sells movement when the player isn't.
+    drawWaterShimmer(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
 
     // Tallgrass disturbance: the cells the player just walked through
     // briefly show parted-blade marks. Drawn after tiles so the marks
@@ -1195,6 +1326,18 @@
       drawNightLights(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
     }
 
+    // Player lantern: warm cone around the player at night. Drawn
+    // alongside the lamp halos so the player has their own portable
+    // light source.
+    if (cur && !cur.interior && cycleOn) {
+      drawPlayerLantern(ctx, px.x - camX + TS / 2, px.y - camY + TS / 2, this.player.steps || 0);
+    }
+
+    // Cinematic colour grade: warm-on-top / cool-on-bottom split tone
+    // applied during the dawn / dusk bands. Skipped at noon to keep
+    // the daytime look bright.
+    if (cycleOn) drawColorGrade(ctx, VIEW_W, VIEW_H, this.player.steps || 0);
+
     // Biome ambient particles. Drawn after night lights so leaves
     // catch the warm glow of nearby lamps, but before the vignette
     // and HUD so the corner darkening still frames everything.
@@ -1210,21 +1353,10 @@
     // Minimap pip (small overview top-left).
     if (!cur.interior) drawMinimap(ctx, cur, this.player.x, this.player.y);
 
-    // Phase icon top-left. Sits below the minimap when one is shown,
-    // or at the canonical (4, 4) corner on interior maps. Gives a
-    // glanceable day/night indicator separate from the HH:MM clock.
-    {
-      const phaseName = phaseForSteps(this.player.steps || 0).name;
-      let iconX = 4, iconY = 4;
-      if (!cur.interior && cur.tiles && cur.tiles.length) {
-        const cell = 2;
-        iconY = 4 + cur.tiles.length * cell + 6;
-      }
-      drawPhaseIcon(ctx, iconX, iconY, phaseName);
-    }
-
-    // In-game clock (top-right). Always shown in the overworld so the
-    // player can read the time even if the cycle is visually disabled.
+    // In-game clock (top-right). The phase icon now sits inside the
+    // same top-right cluster (drawn by drawWorldClock) so the player
+    // reads them as a single time indicator. Always shown in the
+    // overworld so the time is visible even with the cycle disabled.
     drawWorldClock(ctx, VIEW_W, this.player.steps || 0);
 
     // Map name banner on entry.
@@ -1237,7 +1369,26 @@
       this.bannerTimer -= 1/60;
       const label = String(this.bannerName || '');
       const w = Math.min(VIEW_W - 20, Math.max(116, label.length * 6 + 42));
-      const x = (VIEW_W - w) / 2 | 0, y = 8, h = 30;
+      // Animated slide-in / slide-out: ease the banner Y offset from
+      // above the screen down into place over the first 0.3s, hold,
+      // then ease back up out of view in the final 0.3s. Reduced-
+      // motion users get an instant pop instead.
+      const reducedB = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+      const elapsed = 1.6 - this.bannerTimer;
+      let yOffset = 0;
+      if (!reducedB && tiltActive()) {
+        if (elapsed < 0.3) {
+          const k = elapsed / 0.3;
+          // ease-out cubic: faster at start, settles at end
+          const e = 1 - Math.pow(1 - k, 3);
+          yOffset = -42 * (1 - e);
+        } else if (this.bannerTimer < 0.3) {
+          const k = this.bannerTimer / 0.3;
+          const e = Math.pow(k, 3); // ease-in cubic
+          yOffset = -42 * (1 - e);
+        }
+      }
+      const x = (VIEW_W - w) / 2 | 0, y = 8 + yOffset, h = 30;
       window.PR_UI.panel(ctx, x, y, w, h, {
         fill:'#fff8e8', border:'#202020', shadow:'#b0702c', highlight:'#fff8f0'
       });
