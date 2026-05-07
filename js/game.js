@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.22.0';
-  const BUILD = '2026.05.07-77';
+  const VERSION = 'v0.22.1';
+  const BUILD = '2026.05.07-78';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -212,8 +212,9 @@
       state._prevMode = state.mode;
       state.errorLogged = false;
     }
-    // Global: Select toggles audio mute.
-    if (window.PR_INPUT.consumePressed('Shift')) {
+    // Global: Select toggles audio mute, except in the Pokedex
+    // where it cycles the all/seen/got filter (handled in updateDex).
+    if (state.mode !== 'dex' && window.PR_INPUT.consumePressed('Shift')) {
       const A = window.PR_AUDIO;
       if (A) {
         A.unlock();
@@ -1560,29 +1561,54 @@
 
   function openDex() {
     ensureDex();
-    state.dexView = { idx: 0, scroll: 0 };
+    state.dexView = { idx: 0, scroll: 0, filter: 'all' };
     state.mode = 'dex';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
-  function dexEntries() {
+  const DEX_FILTERS = ['all', 'seen', 'got'];
+  const DEX_FILTER_LABELS = { all:'ALL', seen:'SEEN', got:'GOT' };
+
+  function dexEntries(filter) {
     const C = window.PR_DATA.CREATURES;
-    const ids = Object.keys(C).sort((a,b) => (C[a].dex|0) - (C[b].dex|0));
+    let ids = Object.keys(C).sort((a,b) => (C[a].dex|0) - (C[b].dex|0));
+    if (filter === 'seen' && state.dex) ids = ids.filter(id => state.dex.seen.has(id));
+    else if (filter === 'got' && state.dex) ids = ids.filter(id => state.dex.caught.has(id));
     return ids;
   }
 
   function updateDex() {
     const I = window.PR_INPUT;
     const v = state.dexView;
-    const ids = dexEntries();
+    if (!v.filter) v.filter = 'all';
+    // SELECT cycles the filter. Try to keep the previously selected
+    // species highlighted across the filter change; otherwise clamp.
+    if (I.consumePressed('Shift')) {
+      const prevIds = dexEntries(v.filter);
+      const prevSelId = prevIds[v.idx] || null;
+      const cur = DEX_FILTERS.indexOf(v.filter);
+      v.filter = DEX_FILTERS[(cur + 1) % DEX_FILTERS.length];
+      const nextIds = dexEntries(v.filter);
+      const keep = prevSelId ? nextIds.indexOf(prevSelId) : -1;
+      v.idx = keep >= 0 ? keep : 0;
+      v.scroll = 0;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+    }
+    const ids = dexEntries(v.filter);
     const max = ids.length;
+    if (max === 0) {
+      if (I.consumePressed('x')) { state.dexView = null; state.mode = 'menu'; return; }
+      v.idx = 0; v.scroll = 0;
+      return;
+    }
+    if (v.idx >= max) v.idx = max - 1;
     if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('ArrowRight')) { v.idx = Math.min(max - 1, v.idx + 6); }
     if (I.consumePressed('ArrowLeft'))  { v.idx = Math.max(0, v.idx - 6); }
     if (I.consumePressed('x')) { state.dexView = null; state.mode = 'menu'; return; }
     // Keep selection visible.
-    const visibleRows = 8;
+    const visibleRows = 9;
     if (v.idx < v.scroll) v.scroll = v.idx;
     if (v.idx >= v.scroll + visibleRows) v.scroll = v.idx - visibleRows + 1;
   }
@@ -1619,21 +1645,23 @@
 
   function drawDex() {
     ensureDex();
-    const ids = dexEntries();
+    const v = state.dexView;
+    if (!v.filter) v.filter = 'all';
+    const ids = dexEntries(v.filter);
     const x = 2, y = 2, w = VIEW_W - 4, h = VIEW_H - 4;
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
 
-    // Header: title + caught counter + back hint, all sized to fit 232px.
-    const caughtN = state.dex.caught.size;
+    // Header: title + filter label + count + back hint, sized to fit 232px.
+    const filterLabel = DEX_FILTER_LABELS[v.filter];
+    const total = Object.keys(window.PR_DATA.CREATURES).length;
     window.PR_UI.header(ctx, 'POKEDEX', x + 2, y + 2, w - 4, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'GOT ' + caughtN + '/' + ids.length, x + 56, y + 4, '#f0c020');
+    window.PR_UI.drawText(ctx, filterLabel + ' ' + ids.length + '/' + total, x + 56, y + 4, '#f0c020');
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#f0c020');
 
     // Left: scrollable list. Mark glyphs (*=caught, .=seen) shown
-    // alongside name; legend below the list explains them.
+    // alongside name; legend + filter hint below the list.
     const listX = x + 4, listY = y + 16, rowH = 11;
     const rows = 9;
-    const v = state.dexView;
     const listW = 86;
     for (let r = 0; r < rows; r++) {
       const i = v.scroll + r;
@@ -1648,16 +1676,28 @@
       const mark = caught ? '*' : seen ? '.' : ' ';
       window.PR_UI.drawText(ctx, mark + num + ' ' + sp.name.slice(0, 8), listX + 2, cy, '#202020');
     }
-    // Legend so the dot/star marks are self-explanatory.
+    if (ids.length === 0) {
+      window.PR_UI.drawText(ctx, '(empty)', listX + 4, listY + 4, '#806040');
+    }
+    // Legend + filter cycle hint below the list.
     const legendY = listY + rows * rowH + 2;
     window.PR_UI.drawText(ctx, '*=GOT .=SEEN', listX, legendY, '#806040');
+    window.PR_UI.drawText(ctx, 'SEL: ' + filterLabel, listX, legendY + 9, '#385890');
 
-    // Right: detail panel.
+    // Right: detail panel. If the filter yields no entries, show an
+    // empty-state message and skip species rendering entirely.
+    const dx = x + 92, dy = y + 16, dw = w - 94, dh = h - 20;
+    window.PR_UI.panel(ctx, dx, dy, dw, dh, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
+    if (ids.length === 0) {
+      const msg = v.filter === 'got' ? 'Catch some' : v.filter === 'seen' ? 'See some' : 'No entries';
+      window.PR_UI.drawText(ctx, msg, dx + 6, dy + 6, '#202020');
+      window.PR_UI.drawText(ctx, 'creatures first.', dx + 6, dy + 16, '#806040');
+      window.PR_UI.drawText(ctx, 'SEL: change view.', dx + 6, dy + 30, '#385890');
+      return;
+    }
     const selId = ids[v.idx];
     const sp = window.PR_DATA.CREATURES[selId];
     const caught = state.dex.caught.has(selId);
-    const dx = x + 92, dy = y + 16, dw = w - 94, dh = h - 20;
-    window.PR_UI.panel(ctx, dx, dy, dw, dh, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
 
     // Sprite + header strip. Sprite is 24px so name/dex/types fit beside it.
     const spriteSize = 24;
