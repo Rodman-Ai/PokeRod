@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.33.0';
-  const BUILD = '2026.05.07-94';
+  const VERSION = 'v0.33.1';
+  const BUILD = '2026.05.07-95';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -229,6 +229,7 @@
       if (state.battle.forceWin() && !hadBadge) showFlash('KONAMI WIN!');
       return;
     }
+    if (state.healAnim) updateHealAnim(dt);
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
     else if (state.mode === 'overworld') state.world.update(dt);
@@ -785,7 +786,16 @@
   }
 
   function healAtCenter() {
-    openDialog(['Healing your team...','All set! Have a great day!'], () => {
+    state.healAnim = { t: 0, duration: 2.0, healed: false };
+    openDialog(['Healing your team...', 'All set! Have a great day!']);
+  }
+
+  function updateHealAnim(dt) {
+    const h = state.healAnim;
+    if (!h) return;
+    h.t += dt;
+    if (!h.healed && h.t >= 1.0) {
+      h.healed = true;
       window.PR_SFX && window.PR_SFX.play('heal');
       for (const m of state.party) {
         m.hp = m.stats.hp;
@@ -793,7 +803,8 @@
         for (const mv of m.moves) mv.pp = mv.ppMax;
       }
       window.PR_SAVE.save(state);
-    });
+    }
+    if (h.t >= h.duration + 0.5) state.healAnim = null;
   }
 
   // ---------- Starter selection ----------
