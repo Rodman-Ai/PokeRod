@@ -256,20 +256,27 @@
     if (code === 'W' || code === 'L' || code === 'X') return false;
     return true;
   }
-  // The tile only casts a ground shadow if the cell directly below it
-  // is walkable - that is, the shadow lands on real ground, not on the
-  // wall of the same building. Roofs and second-row walls sit on top
-  // of other blockers so they pass this test as 'no shadow', leaving
-  // only the bottom-most blocker of any structure to cast onto the
-  // path. Trees / rocks / fences with grass below still cast normally.
+  // Explicit shadow-caster set, replacing the earlier 'tile-below-is-
+  // walkable' heuristic. That heuristic was too clever in practice:
+  //  - It hid shadows for stacked trees in dense forests (only the
+  //    bottom row of a vertical cluster cast, the rest looked
+  //    floating).
+  //  - It still allowed a wall sitting on top of a door to cast a
+  //    soft round 'puddle' shadow that bled onto the door tile.
+  // Walls, roofs, windows, doors, fences and fixtures are flat
+  // structural surfaces - they shouldn't drop a round elliptical
+  // shadow on the ground. Trees, hostile foliage and large rocks
+  // are organic / round shapes whose silhouette reads as a circular
+  // ground footprint. Limit casting to that explicit set.
+  const SHADOW_CASTER_TREES = 'TYOKJQNUVEG';
+  const SHADOW_CASTER_HOSTILE = 'gh';   // thornbush, hedge
+  const SHADOW_CASTER_ROCKS = ')';      // large_rock
   function tileShouldCastShadow(map, x, y) {
-    if (!isTallTile(map.tiles[y][x])) return false;
-    if (y + 1 >= map.tiles.length) return false;
-    const belowRow = map.tiles[y + 1];
-    if (!belowRow || x >= belowRow.length) return false;
-    const below = belowRow[x];
-    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[below];
-    return !!(props && props.walk);
+    const code = map.tiles[y][x];
+    if (SHADOW_CASTER_TREES.indexOf(code) !== -1) return true;
+    if (SHADOW_CASTER_HOSTILE.indexOf(code) !== -1) return true;
+    if (SHADOW_CASTER_ROCKS.indexOf(code) !== -1) return true;
+    return false;
   }
   // Per-phase shadow tint: warm at sunset, cool at midnight, neutral
   // at noon. Reads as the sun shifting through the sky.
