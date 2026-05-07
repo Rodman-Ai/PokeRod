@@ -691,6 +691,38 @@
       ctx.fillRect((cx + 3) | 0, (cy)     | 0, 3, 1);
     }
   }
+  // Foreground tall grass: when a movable sprite (player, NPC, ambient
+  // creature) stands on a `:` tile, paint a row of grass blades OVER
+  // the sprite's lower half so the sprite reads as wading through.
+  // Classic Pokemon-style 2.5D look. Active only in DS Diamond.
+  function drawForegroundTallgrass(ctx, tx, ty, camX, camY) {
+    if (!tiltActive()) return;
+    const sx = tx * TS - camX;
+    const sy = ty * TS - camY;
+    if (sx < -TS || sx > VIEW_W || sy < -TS || sy > VIEW_H) return;
+    // Front row of darker blades (closer to camera).
+    ctx.fillStyle = 'rgba(36,86,40,0.95)';
+    for (let i = 0; i < 8; i++) {
+      const bx = sx + 1 + i * 4 + (i & 1);
+      const by = sy + TS - 8;
+      ctx.fillRect(bx | 0, by | 0, 1, 5);
+      ctx.fillRect((bx + 1) | 0, (by + 1) | 0, 1, 4);
+    }
+    // Mid row of brighter blade tips peeking through.
+    ctx.fillStyle = 'rgba(108,196,72,0.92)';
+    for (let i = 0; i < 6; i++) {
+      const bx = sx + 4 + i * 5;
+      const by = sy + TS - 6;
+      ctx.fillRect(bx | 0, by | 0, 1, 3);
+    }
+    // Highlight pixels at the tips.
+    ctx.fillStyle = 'rgba(196,240,144,0.85)';
+    for (let i = 0; i < 4; i++) {
+      const bx = sx + 6 + i * 7;
+      const by = sy + TS - 7;
+      ctx.fillRect(bx | 0, by | 0, 1, 1);
+    }
+  }
 
   // Biome ambient particles. Each visible map gets a thin scattering of
   // biome-appropriate particles drifting across the view: leaves in
@@ -1586,6 +1618,28 @@
       withTilt(ctx, psx, psy, TS, TS, () => {
         window.PR_CHARS.drawPlayer(ctx, psx, psy, this.player.dir, walkFrame);
       });
+    }
+
+    // Foreground tall grass: paint a row of blades OVER any movable
+    // sprite that's currently standing on a `:` tile so the sprite
+    // looks like it's wading through. Player first, then ambient
+    // creatures, then NPCs - any of which might be in tall grass.
+    if (tiltActive()) {
+      if (this.tileAt(this.player.x, this.player.y) === ':') {
+        drawForegroundTallgrass(ctx, this.player.x, this.player.y, camX, camY);
+      }
+      for (const a of this._ambient) {
+        if (this.tileAt(a.x, a.y) === ':') {
+          drawForegroundTallgrass(ctx, a.x, a.y, camX, camY);
+        }
+      }
+      if (m.npcs) {
+        for (const n of m.npcs) {
+          if (this.tileAt(n.x, n.y) === ':') {
+            drawForegroundTallgrass(ctx, n.x, n.y, camX, camY);
+          }
+        }
+      }
     }
 
     // Footstep dust under the player. Drawn before the day/night
