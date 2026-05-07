@@ -84,6 +84,34 @@
     return phaseForSteps(s).name;
   }};
 
+  // Billboard-tilt + drop-shadow effect for the DS Diamond style.
+  // Active only when the user has selected that graphics preset, and
+  // only on movable sprites (player, NPCs, follower, ambient
+  // creatures) where the sprite background is transparent so the
+  // vertical squash doesn't reveal grass underneath. Tile sprites
+  // (trees, buildings, etc.) stay flat because their cells are fully
+  // painted and any squash would show the ground-clear color through
+  // the gap at the top of the cell.
+  function tiltActive() {
+    return window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond';
+  }
+  function drawShadow(ctx, cx, by, w) {
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.beginPath();
+    ctx.ellipse(cx, by, w * 0.42, Math.max(2, w * 0.14), 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  function withTilt(ctx, sx, sy, sw, sh, draw) {
+    if (!tiltActive()) { draw(); return; }
+    const SQUASH = 0.88;
+    drawShadow(ctx, sx + sw / 2, sy + sh - 1, sw);
+    ctx.save();
+    ctx.translate(0, (1 - SQUASH) * (sy + sh));
+    ctx.scale(1, SQUASH);
+    draw();
+    ctx.restore();
+  }
+
   function World(state) {
     this.state = state;
     this.player = state.player;
@@ -609,7 +637,10 @@
       const bob = a.anim.moving
         ? -Math.round(Math.sin(Math.min(1, a.anim.t / a.anim.duration) * Math.PI))
         : (a.frame ? -1 : 0);
-      window.PR_MONS.drawCreature(ctx, a.species, sx - 2, sy - 4 + bob, 20, false);
+      const cdx = sx - 2, cdy = sy - 4 + bob;
+      withTilt(ctx, cdx, cdy, 20, 20, () => {
+        window.PR_MONS.drawCreature(ctx, a.species, cdx, cdy, 20, false);
+      });
     }
 
     // NPCs
@@ -622,7 +653,9 @@
           // Hide ball if starter taken.
           if (this.state.flags.starterChosen && n.ballSlot !== undefined) continue;
         }
-        window.PR_CHARS.drawNpc(ctx, sx, sy, n.sprite, n.dir, this.npcFrame);
+        withTilt(ctx, sx, sy, TS, TS, () => {
+          window.PR_CHARS.drawNpc(ctx, sx, sy, n.sprite, n.dir, this.npcFrame);
+        });
       }
     }
 
@@ -637,7 +670,10 @@
         const reduced = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
         const bob = f.anim.moving && !reduced ? -Math.round(Math.sin(p * Math.PI)) : (f.frame ? -1 : 0);
         const dogFrame = f.frame ^ (p > 0.5 ? 1 : 0);
-        window.PR_CHARS.drawDog(ctx, sx, sy + bob, f.dir, dogFrame);
+        const dy = sy + bob;
+        withTilt(ctx, sx, dy, TS, TS, () => {
+          window.PR_CHARS.drawDog(ctx, sx, dy, f.dir, dogFrame);
+        });
       }
     }
 
@@ -649,7 +685,12 @@
       bobY = reduced ? 0 : -Math.round(Math.sin(p * Math.PI));
       walkFrame = this.frame ^ (p > 0.5 ? 1 : 0);
     }
-    window.PR_CHARS.drawPlayer(ctx, px.x - camX, (px.y - camY) + bobY, this.player.dir, walkFrame);
+    {
+      const psx = px.x - camX, psy = (px.y - camY) + bobY;
+      withTilt(ctx, psx, psy, TS, TS, () => {
+        window.PR_CHARS.drawPlayer(ctx, psx, psy, this.player.dir, walkFrame);
+      });
+    }
 
     // Day/night tint overlay.
     const cur = this.currentMap();
