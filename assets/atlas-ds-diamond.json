@@ -1974,1431 +1974,2031 @@
       "w": 32,
       "h": 32
     },
-    "player_down_0": {
+    "decor_bench_park_brown": {
+      "x": 297,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_park_green": {
+      "x": 330,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_marble_white": {
+      "x": 363,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_stone_grey": {
+      "x": 396,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_picnic_red": {
+      "x": 429,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_log": {
+      "x": 462,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_garden_iron": {
+      "x": 495,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_pier_wood": {
       "x": 0,
       "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_books": {
+      "x": 33,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_potions": {
+      "x": 66,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_pokeballs": {
+      "x": 99,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_berries": {
+      "x": 132,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_tms": {
+      "x": 165,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_souvenirs": {
+      "x": 198,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_clothing": {
+      "x": 231,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_food": {
+      "x": 264,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_displays_glass": {
+      "x": 297,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_empty_wooden": {
+      "x": 330,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_post_arrow": {
+      "x": 363,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_post_wood": {
+      "x": 396,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_billboard_yellow": {
+      "x": 429,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_billboard_blue": {
+      "x": 462,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_gym_red": {
+      "x": 495,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_gym_blue": {
+      "x": 0,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_warning": {
+      "x": 33,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_marker_stone": {
+      "x": 66,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_grey_lid": {
+      "x": 99,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_blue_recycle": {
+      "x": 132,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_green_compost": {
+      "x": 165,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_dumpster": {
+      "x": 198,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_basket_wicker": {
+      "x": 231,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_urn_park": {
+      "x": 264,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_terracotta_red": {
+      "x": 297,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_ceramic_blue": {
+      "x": 330,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_painted_yellow": {
+      "x": 363,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_marble_white": {
+      "x": 396,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_hanging_basket": {
+      "x": 429,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_window_box": {
+      "x": 462,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_succulent_small": {
+      "x": 495,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_tall_lily": {
+      "x": 0,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_hedge_round": {
+      "x": 33,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_hedge_long": {
+      "x": 66,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_herb_box": {
+      "x": 99,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_flowerbed_oval": {
+      "x": 132,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_raised_wood": {
+      "x": 165,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_zen_stone": {
+      "x": 198,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_wood_round": {
+      "x": 231,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_wood_square": {
+      "x": 264,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_marble_round": {
+      "x": 297,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_glass_modern": {
+      "x": 330,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_dining_long": {
+      "x": 363,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_picnic_red_check": {
+      "x": 396,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_workbench": {
+      "x": 429,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_round_chess": {
+      "x": 462,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_low_tea": {
+      "x": 495,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_long_buffet": {
+      "x": 0,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_potions_counter": {
+      "x": 33,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_pokeballs_rack": {
+      "x": 66,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_clothing_rack": {
+      "x": 99,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_food_counter": {
+      "x": 132,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_register": {
+      "x": 165,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_souvenir": {
+      "x": 198,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_glass_case": {
+      "x": 231,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_basket": {
+      "x": 264,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_idle": {
+      "x": 297,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_glow1": {
+      "x": 330,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_glow2": {
+      "x": 363,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_complete": {
+      "x": 396,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_console": {
+      "x": 429,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_bed_left": {
+      "x": 462,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_ornate_gold": {
+      "x": 495,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_oil_brass": {
+      "x": 0,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_modern_chrome": {
+      "x": 33,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_paper_lantern": {
+      "x": 66,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_table_brass": {
+      "x": 99,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_floor_tall": {
+      "x": 132,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bookshelf_tall": {
+      "x": 165,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_dresser_wood": {
+      "x": 198,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_nightstand": {
+      "x": 231,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bed_single_blue": {
+      "x": 264,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bed_single_pink": {
+      "x": 297,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_rug_round_red": {
+      "x": 330,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_rug_long_persian": {
+      "x": 363,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_picture_frame_landscape": {
+      "x": 396,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wall_clock_round": {
+      "x": 429,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_calendar_wall": {
+      "x": 462,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_coat_rack": {
+      "x": 495,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_umbrella_stand": {
+      "x": 0,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_vending_drinks_blue": {
+      "x": 33,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_vending_snacks_red": {
+      "x": 66,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_water_fountain_round": {
+      "x": 99,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wishing_well": {
+      "x": 132,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_basketball_hoop": {
+      "x": 165,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pedestal_statue": {
+      "x": 198,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_street_clock": {
+      "x": 231,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bus_stop_sign": {
+      "x": 264,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bike_rack": {
+      "x": 297,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_parking_meter": {
+      "x": 330,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bollard": {
+      "x": 363,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_streetlamp_ornate_double": {
+      "x": 396,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "player_down_0": {
+      "x": 0,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "player_up_0": {
       "x": 33,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "player_left_0": {
       "x": 66,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "player_right_0": {
       "x": 99,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "player_down_1": {
       "x": 132,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "player_up_1": {
       "x": 165,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "player_left_1": {
       "x": 198,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "player_right_1": {
       "x": 231,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_down_0": {
       "x": 264,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_up_0": {
       "x": 297,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_left_0": {
       "x": 330,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_right_0": {
       "x": 363,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_down_1": {
       "x": 396,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_up_1": {
       "x": 429,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_left_1": {
       "x": 462,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_oak_right_1": {
       "x": 495,
-      "y": 693,
+      "y": 891,
       "w": 32,
       "h": 32
     },
     "npc_mom_down_0": {
       "x": 0,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_mom_up_0": {
       "x": 33,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_mom_left_0": {
       "x": 66,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_mom_right_0": {
       "x": 99,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_mom_down_1": {
       "x": 132,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_mom_up_1": {
       "x": 165,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_mom_left_1": {
       "x": 198,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_mom_right_1": {
       "x": 231,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_down_0": {
       "x": 264,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_up_0": {
       "x": 297,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_left_0": {
       "x": 330,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_right_0": {
       "x": 363,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_down_1": {
       "x": 396,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_up_1": {
       "x": 429,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_left_1": {
       "x": 462,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_sis_right_1": {
       "x": 495,
-      "y": 726,
+      "y": 924,
       "w": 32,
       "h": 32
     },
     "npc_rival_down_0": {
       "x": 0,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_rival_up_0": {
       "x": 33,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_rival_left_0": {
       "x": 66,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_rival_right_0": {
       "x": 99,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_rival_down_1": {
       "x": 132,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_rival_up_1": {
       "x": 165,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_rival_left_1": {
       "x": 198,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_rival_right_1": {
       "x": 231,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_down_0": {
       "x": 264,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_up_0": {
       "x": 297,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_left_0": {
       "x": 330,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_right_0": {
       "x": 363,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_down_1": {
       "x": 396,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_up_1": {
       "x": 429,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_left_1": {
       "x": 462,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_girl_right_1": {
       "x": 495,
-      "y": 759,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_youth_down_0": {
       "x": 0,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_youth_up_0": {
       "x": 33,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_youth_left_0": {
       "x": 66,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_youth_right_0": {
       "x": 99,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_youth_down_1": {
       "x": 132,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_youth_up_1": {
       "x": 165,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_youth_left_1": {
       "x": 198,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_youth_right_1": {
       "x": 231,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_down_0": {
       "x": 264,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_up_0": {
       "x": 297,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_left_0": {
       "x": 330,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_right_0": {
       "x": 363,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_down_1": {
       "x": 396,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_up_1": {
       "x": 429,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_left_1": {
       "x": 462,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_old_right_1": {
       "x": 495,
-      "y": 792,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "nurse_down_0": {
       "x": 0,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "nurse_up_0": {
       "x": 33,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "nurse_left_0": {
       "x": 66,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "nurse_right_0": {
       "x": 99,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "nurse_down_1": {
       "x": 132,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "nurse_up_1": {
       "x": 165,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "nurse_left_1": {
       "x": 198,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "nurse_right_1": {
       "x": 231,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_down_0": {
       "x": 264,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_up_0": {
       "x": 297,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_left_0": {
       "x": 330,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_right_0": {
       "x": 363,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_down_1": {
       "x": 396,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_up_1": {
       "x": 429,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_left_1": {
       "x": 462,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "clerk_right_1": {
       "x": 495,
-      "y": 825,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_down_0": {
       "x": 0,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_up_0": {
       "x": 33,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_left_0": {
       "x": 66,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_right_0": {
       "x": 99,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_down_1": {
       "x": 132,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_up_1": {
       "x": 165,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_left_1": {
       "x": 198,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_right_1": {
       "x": 231,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_down_0": {
       "x": 264,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_up_0": {
       "x": 297,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_left_0": {
       "x": 330,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_right_0": {
       "x": 363,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_down_1": {
       "x": 396,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_up_1": {
       "x": 429,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_left_1": {
       "x": 462,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_right_1": {
       "x": 495,
-      "y": 858,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "trainer_camper_down_0": {
       "x": 0,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_camper_up_0": {
       "x": 33,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_camper_left_0": {
       "x": 66,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_camper_right_0": {
       "x": 99,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_camper_down_1": {
       "x": 132,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_camper_up_1": {
       "x": 165,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_camper_left_1": {
       "x": 198,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_camper_right_1": {
       "x": 231,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_down_0": {
       "x": 264,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_up_0": {
       "x": 297,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_left_0": {
       "x": 330,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_right_0": {
       "x": 363,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_down_1": {
       "x": 396,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_up_1": {
       "x": 429,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_left_1": {
       "x": 462,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_right_1": {
       "x": 495,
-      "y": 891,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_miner_down_0": {
       "x": 0,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_miner_up_0": {
       "x": 33,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_miner_left_0": {
       "x": 66,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_miner_right_0": {
       "x": 99,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_miner_down_1": {
       "x": 132,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_miner_up_1": {
       "x": 165,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_miner_left_1": {
       "x": 198,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_miner_right_1": {
       "x": 231,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_down_0": {
       "x": 264,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_up_0": {
       "x": 297,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_left_0": {
       "x": 330,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_right_0": {
       "x": 363,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_down_1": {
       "x": 396,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_up_1": {
       "x": 429,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_left_1": {
       "x": 462,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_right_1": {
       "x": 495,
-      "y": 924,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_skier_down_0": {
       "x": 0,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_skier_up_0": {
       "x": 33,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_skier_left_0": {
       "x": 66,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_skier_right_0": {
       "x": 99,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_skier_down_1": {
       "x": 132,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_skier_up_1": {
       "x": 165,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_skier_left_1": {
       "x": 198,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_skier_right_1": {
       "x": 231,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_down_0": {
       "x": 264,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_up_0": {
       "x": 297,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_left_0": {
       "x": 330,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_right_0": {
       "x": 363,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_down_1": {
       "x": 396,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_up_1": {
       "x": 429,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_left_1": {
       "x": 462,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_right_1": {
       "x": 495,
-      "y": 957,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ace_down_0": {
       "x": 0,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ace_up_0": {
       "x": 33,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ace_left_0": {
       "x": 66,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ace_right_0": {
       "x": 99,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ace_down_1": {
       "x": 132,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ace_up_1": {
       "x": 165,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ace_left_1": {
       "x": 198,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ace_right_1": {
       "x": 231,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_down_0": {
       "x": 264,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_up_0": {
       "x": 297,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_left_0": {
       "x": 330,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_right_0": {
       "x": 363,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_down_1": {
       "x": 396,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_up_1": {
       "x": 429,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_left_1": {
       "x": 462,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_right_1": {
       "x": 495,
-      "y": 990,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "ball": {
       "x": 0,
-      "y": 1023,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "creature_emberkit": {
       "x": 0,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_flarebound": {
       "x": 65,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_infernarok": {
       "x": 130,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_aquapup": {
       "x": 195,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_tideturtle": {
       "x": 260,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_maelstroth": {
       "x": 325,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_sproutling": {
       "x": 390,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_leafurge": {
       "x": 455,
-      "y": 1056,
+      "y": 1254,
       "w": 64,
       "h": 64
     },
     "creature_verdantsage": {
       "x": 0,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_zapret": {
       "x": 65,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_boltbeard": {
       "x": 130,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_pebra": {
       "x": 195,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_boulderon": {
       "x": 260,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_flitwing": {
       "x": 325,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_skylordan": {
       "x": 390,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_nibblet": {
       "x": 455,
-      "y": 1121,
+      "y": 1319,
       "w": 64,
       "h": 64
     },
     "creature_whiskaroth": {
       "x": 0,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_crawlbug": {
       "x": 65,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_mothmane": {
       "x": 130,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_cavewing": {
       "x": 195,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_vampirothy": {
       "x": 260,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_splashfin": {
       "x": 325,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_levifin": {
       "x": 390,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_glimkit": {
       "x": 455,
-      "y": 1186,
+      "y": 1384,
       "w": 64,
       "h": 64
     },
     "creature_lustrofox": {
       "x": 0,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_cinderpup": {
       "x": 65,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_pyrohound": {
       "x": 130,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_magmaron": {
       "x": 195,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_mistfin": {
       "x": 260,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_tidalwhal": {
       "x": 325,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_glacierock": {
       "x": 390,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_fernsprout": {
       "x": 455,
-      "y": 1251,
+      "y": 1449,
       "w": 64,
       "h": 64
     },
     "creature_bramblewood": {
       "x": 0,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_thornedred": {
       "x": 65,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_voltkit": {
       "x": 130,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_voltlynx": {
       "x": 195,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_stormfangis": {
       "x": 260,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_stoneworm": {
       "x": 325,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_quakeworm": {
       "x": 390,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_tectonarch": {
       "x": 455,
-      "y": 1316,
+      "y": 1514,
       "w": 64,
       "h": 64
     },
     "creature_bumblesting": {
       "x": 0,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_hivequeen": {
       "x": 65,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_royalwasp": {
       "x": 130,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_galewing": {
       "x": 195,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_tempestir": {
       "x": 260,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_solarwing": {
       "x": 325,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_solarcrest": {
       "x": 390,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_frostpup": {
       "x": 455,
-      "y": 1381,
+      "y": 1579,
       "w": 64,
       "h": 64
     },
     "creature_snowox": {
       "x": 0,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_glacioxen": {
       "x": 65,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_crysthorn": {
       "x": 130,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_prismage": {
       "x": 195,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_geistmite": {
       "x": 260,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_shadefox": {
       "x": 325,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_umbrasire": {
       "x": 390,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_dreamilly": {
       "x": 455,
-      "y": 1446,
+      "y": 1644,
       "w": 64,
       "h": 64
     },
     "creature_reverieus": {
       "x": 0,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_rivettot": {
       "x": 65,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_mindrop": {
       "x": 130,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_pugpaw": {
       "x": 195,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_joltlet": {
       "x": 260,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_breezlet": {
       "x": 325,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_silkuttle": {
       "x": 390,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_venipip": {
       "x": 455,
-      "y": 1511,
+      "y": 1709,
       "w": 64,
       "h": 64
     },
     "creature_mudmote": {
       "x": 0,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_frostnip": {
       "x": 65,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_craglet": {
       "x": 130,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_wraithlet": {
       "x": 195,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_draekit": {
       "x": 260,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_dewfae": {
       "x": 325,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_clawmonk": {
       "x": 390,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_rivetbolt": {
       "x": 455,
-      "y": 1576,
+      "y": 1774,
       "w": 64,
       "h": 64
     },
     "creature_frostbloom": {
       "x": 0,
-      "y": 1641,
+      "y": 1839,
       "w": 64,
       "h": 64
     },
     "creature_mantilux": {
       "x": 65,
-      "y": 1641,
+      "y": 1839,
       "w": 64,
       "h": 64
     },
     "creature_clodlet": {
       "x": 130,
-      "y": 1641,
+      "y": 1839,
       "w": 64,
       "h": 64
     },
     "creature_budling": {
       "x": 195,
-      "y": 1641,
+      "y": 1839,
       "w": 64,
       "h": 64
     },
     "creature_miasmite": {
       "x": 260,
-      "y": 1641,
+      "y": 1839,
       "w": 64,
       "h": 64
     }

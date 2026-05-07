@@ -1558,6 +1558,19 @@
       drawSweptGrass(ctx, this._sweptGrass, camX, camY);
     }
 
+    // Decoration layer: arbitrary atlas keys placed via
+    // map.decorations = [{ x, y, key }]. Drawn between the tile pass
+    // and the sprite layer so movable sprites occlude items they
+    // walk past correctly.
+    if (m.decorations && window.PR_ATLAS && window.PR_ATLAS.isReady()) {
+      for (const d of m.decorations) {
+        const sx = d.x * TS - camX;
+        const sy = d.y * TS - camY;
+        if (sx < -TS * 2 || sx > VIEW_W + TS || sy < -TS * 2 || sy > VIEW_H + TS) continue;
+        window.PR_ATLAS.drawKey(ctx, 'decor_' + d.key, sx, sy);
+      }
+    }
+
     // Ambient roaming creatures (drawn under NPCs/player).
     for (const a of this._ambient) {
       let ax = a.x, ay = a.y;

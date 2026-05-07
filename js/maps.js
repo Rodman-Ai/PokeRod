@@ -600,6 +600,12 @@ const MAPS = {
         dialog:["Welcome to the POKEROD CENTER!","Step up and I'll heal your team."],
         healer:true }
     ],
+    decorations: [
+      { x:5, y:5, key:'rug_round_red' },
+      { x:6, y:6, key:'lamp_floor_tall' },
+      { x:5, y:3, key:'wall_clock_round' },
+      { x:7, y:5, key:'display_glass_case' }
+    ],
     doors: {
       '4,7': { to:'brindale', x:5, y:6 }
     }
@@ -624,6 +630,16 @@ const MAPS = {
       { x:5, y:4, dir:'down', sprite:'clerk', name:'BRINDALE MART',
         dialog:["Welcome to the BRINDALE MART!"],
         shop:{ greeting:["Welcome to the BRINDALE MART!","How can I help you?"] } }
+    ],
+    decorations: [
+      { x:2, y:1, key:'shelf_potions' },
+      { x:5, y:1, key:'shelf_pokeballs' },
+      { x:8, y:1, key:'shelf_berries' },
+      { x:5, y:3, key:'display_register' },
+      { x:3, y:6, key:'display_basket' },
+      { x:7, y:6, key:'display_souvenir' },
+      { x:3, y:8, key:'shelf_clothing' },
+      { x:7, y:8, key:'shelf_food' }
     ],
     doors: {
       '5,10': { to:'brindale', x:12, y:6 }
