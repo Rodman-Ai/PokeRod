@@ -408,17 +408,17 @@ html, body {
   align-items: end;
   align-content: end;
   justify-items: center;
-  justify-content: center;
+  justify-content: space-between;
   column-gap: clamp(8px, 3vw, 18px);
   row-gap: 10px;
   width: min(100vw, 760px);
-  padding: 12px clamp(8px, 3vw, 18px) var(--pad);
+  padding: 12px clamp(12px, 4vw, 28px) var(--pad);
   margin: 4px auto 0;
   flex: 1 1 auto;
 }
-#dpad      { grid-area: dpad; align-self: end; margin-top: clamp(10px, 3vw, 20px); }
+#dpad      { grid-area: dpad; align-self: end; justify-self: start; margin-top: clamp(10px, 3vw, 20px); }
 #startsel  { grid-area: startsel; display: flex; flex-direction: row; gap: 8px; justify-self: center; transform: none; }
-#abuttons  { grid-area: abuttons; align-self: end; }
+#abuttons  { grid-area: abuttons; align-self: end; justify-self: end; transform: translateY(calc(-1 * clamp(18px, 5vw, 32px))); }
 
 #dpad {
   display: grid;
