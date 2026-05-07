@@ -97,21 +97,79 @@
   function tiltActive() {
     return window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond';
   }
-  function drawShadow(ctx, cx, by, w) {
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  // Soft elliptical drop shadow with a radial-gradient falloff so the
+  // shadow has a dark centre and feathers out to nothing at the edge.
+  // Saving + scaling lets us reuse the radial-gradient API for an
+  // ellipse without a separate ellipse gradient API.
+  function drawShadow(ctx, cx, by, w, opts) {
+    opts = opts || {};
+    const r = Math.max(2, w * (opts.rxScale || 0.42));
+    const ry = Math.max(2, w * (opts.ryScale || 0.14));
+    const cAlpha = opts.centerAlpha != null ? opts.centerAlpha : 0.45;
+    const grad = ctx.createRadialGradient(cx, by, 0, cx, by, r);
+    grad.addColorStop(0, 'rgba(0,0,0,' + cAlpha + ')');
+    grad.addColorStop(0.65, 'rgba(0,0,0,' + (cAlpha * 0.4) + ')');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.save();
+    ctx.translate(cx, by);
+    ctx.scale(1, ry / r);
+    ctx.translate(-cx, -by);
+    ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.ellipse(cx, by, w * 0.42, Math.max(2, w * 0.14), 0, 0, Math.PI * 2);
+    ctx.arc(cx, by, r, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
   }
+  // Shadow-only billboard tilt: PR #8 dropped the vertical squash
+  // because the canvas Y scale interpolated against the red level-tuft
+  // pixels baked into atlas frames and produced pink artifacts at the
+  // sprite base. The drop shadow alone keeps the 2.5D 'grounded' feel.
   function withTilt(ctx, sx, sy, sw, sh, draw) {
     if (!tiltActive()) { draw(); return; }
-    const SQUASH = 0.88;
     drawShadow(ctx, sx + sw / 2, sy + sh - 1, sw);
-    ctx.save();
-    ctx.translate(0, (1 - SQUASH) * (sy + sh));
-    ctx.scale(1, SQUASH);
     draw();
-    ctx.restore();
+  }
+  // Tall-tile shadow: drops a soft elliptical shadow at the base of
+  // every tile that's a vertical structure (tree, building, fence,
+  // rock). Skips ground tiles (W water, L ledge, X edge) so we don't
+  // shadow the open ground.
+  function isTallTile(code) {
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
+    if (!props || props.walk) return false;
+    if (code === 'W' || code === 'L' || code === 'X') return false;
+    return true;
+  }
+  function drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    if (!tiltActive()) return;
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (!isTallTile(row[wx])) continue;
+        const cx = offX + tx * TS + TS / 2;
+        // Anchor the cast shadow at the bottom of the cell, slightly
+        // inside so it doesn't drift onto the next row's painted
+        // ground.
+        const by = offY + ty * TS + TS - 3;
+        drawShadow(ctx, cx, by, TS, { rxScale: 0.42, ryScale: 0.13, centerAlpha: 0.32 });
+      }
+    }
+  }
+  // Soft vignette applied at the very end of overworld render. Subtle
+  // - just enough to round the corners and give the screen a touch of
+  // cinematic framing.
+  function drawVignette(ctx, viewW, viewH) {
+    if (!tiltActive()) return;
+    const grad = ctx.createRadialGradient(
+      viewW / 2, viewH / 2, viewH * 0.42,
+      viewW / 2, viewH / 2, viewH * 0.78
+    );
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(8,4,16,0.38)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, viewW, viewH);
   }
 
   function World(state) {
@@ -625,6 +683,12 @@
       }
     }
 
+    // DS Diamond: cast a ground shadow at the base of every tall
+    // tile (trees, buildings, fences, rocks). Drawn after the tile
+    // pass so the shadow falls onto the next row's already-painted
+    // ground without being clobbered.
+    drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
     // Ambient roaming creatures (drawn under NPCs/player).
     for (const a of this._ambient) {
       let ax = a.x, ay = a.y;
@@ -703,6 +767,10 @@
         ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       }
     }
+
+    // DS Diamond: subtle vignette over the whole world frame (the
+    // minimap and banner are drawn after this so they stay readable).
+    if (cur && !cur.interior) drawVignette(ctx, VIEW_W, VIEW_H);
 
     // Minimap pip (small overview top-left).
     if (!cur.interior) drawMinimap(ctx, cur, this.player.x, this.player.y);
