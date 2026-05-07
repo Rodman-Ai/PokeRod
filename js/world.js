@@ -16,31 +16,63 @@
   ];
   function phaseForSteps(s) { return PHASES[(Math.floor(s / 80)) % PHASES.length]; }
 
-  // Tile -> minimap color.
-  const MINI_COLOR = {
-    'T':'#1c4818', '.':'#5cae4c', ',':'#d8b878', ':':'#3a8030',
-    'W':'#4878d8', 's':'#e8d090', 'F':'#d8c098', 'B':'#a08068',
-    'R':'#c84848', 'P':'#e070a0', 'M':'#4878d8', 'C':'#c89858',
-    'H':'#e8a8c8', 'D':'#604028', 'S':'#604028', 'L':'#604028',
-    'X':'#000000'
-  };
+  // Minimap colors by tile category, derived from TILE_PROPS so every
+  // tile code resolves to a sensible color (the previous lookup table
+  // covered ~17 of 80+ tile codes; everything else fell through to
+  // dark gray, which made most maps look like noise).
+  const MINI_FALLBACK_WALK = '#9cd078';
+  const MINI_FALLBACK_BLOCK = '#605040';
+  function miniColorFor(code) {
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
+    if (!props) return code === 'X' ? '#000000' : MINI_FALLBACK_BLOCK;
+    const n = props.name || '';
+    if (n === 'water')              return '#4878d8';
+    if (n === 'tallgrass')          return '#388830';
+    if (n === 'sand' || n.indexOf('sand') >= 0) return '#e8d090';
+    if (n === 'ledge')              return '#8a6a40';
+    if (n.indexOf('path') >= 0)     return '#d8b878';
+    if (props.door)                 return '#a86038';
+    if (n.indexOf('rock') >= 0)     return '#888070';
+    if (n.indexOf('fence') >= 0)    return '#806848';
+    if (n.indexOf('roof') >= 0 || n === 'roof')   return '#a04848';
+    if (n.indexOf('wall') >= 0 || n === 'mart' || n === 'center' || n === 'healer' || n === 'counter')
+                                    return '#806848';
+    if (n.indexOf('window') >= 0)   return '#a8c8e8';
+    if (n.indexOf('tree') >= 0 || n === 'oak' || n === 'palm' || n === 'cherry' ||
+        n === 'birch' || n === 'willow' || n === 'mushroomtree')
+                                    return '#1c4818';
+    if (n.indexOf('bush') >= 0 || n === 'hedge' || n === 'thorncluster')
+                                    return '#3a703a';
+    if (n.indexOf('grass') >= 0)    return '#5cae4c';
+    if (n === 'floor' || n === 'rug') return '#e8d8b8';
+    return props.walk ? MINI_FALLBACK_WALK : MINI_FALLBACK_BLOCK;
+  }
   function drawMinimap(ctx, m, px, py) {
     if (!m.tiles || !m.tiles.length) return;
     const cols = m.tiles[0].length, rows = m.tiles.length;
-    const cell = 2;
+    // 1px cells keep the minimap compact (~48x38 for a route map)
+    // instead of the previous 96x76 which dominated the viewport.
+    const cell = 1;
     const w = cols * cell, h = rows * cell;
     const x = 4, y = 4;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
+    // Translucent backdrop + 1px border for legibility against the
+    // world below.
+    ctx.fillStyle = 'rgba(20,16,12,0.55)';
+    ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+    ctx.fillStyle = '#f0c020';
+    ctx.fillRect(x - 1, y - 1, w + 2, 1);
+    ctx.fillRect(x - 1, y + h, w + 2, 1);
+    ctx.fillRect(x - 1, y - 1, 1, h + 2);
+    ctx.fillRect(x + w, y - 1, 1, h + 2);
     for (let ry = 0; ry < rows; ry++) {
       const row = m.tiles[ry];
       for (let rx = 0; rx < cols; rx++) {
-        const c = row[rx];
-        ctx.fillStyle = MINI_COLOR[c] || '#3a3a3a';
+        ctx.fillStyle = miniColorFor(row[rx]);
         ctx.fillRect(x + rx * cell, y + ry * cell, cell, cell);
       }
     }
-    // Player pip blink.
+    // Player pip blink. 2x2 square with a 1px highlight to stay visible
+    // against any background tile.
     const blink = (Math.floor(performance.now() / 250) & 1);
     if (blink) {
       ctx.fillStyle = '#ffd060';
