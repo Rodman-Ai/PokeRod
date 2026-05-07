@@ -588,10 +588,10 @@ const MAPS = {
     tiles: [
       'BBBBBBBBB',
       'B}>>>>>}B',
-      'BF/FF9FFB',
+      'BFFFF9FFB',
       'BFCCCFFFB',
       'BFCHCFFFB',
-      'BFFFFFFFB',
+      'BF/FFFFFB',
       'B{FFFFF{B',
       'BBBBDBBBB'
     ],
@@ -601,10 +601,13 @@ const MAPS = {
         healer:true }
     ],
     decorations: [
-      { x:5, y:5, key:'rug_round_red' },
+      { x:2, y:2, key:'pod_bed_left' },
+      { x:3, y:2, key:'pod_healing_idle', anim:'pod' },
+      { x:4, y:2, key:'pod_console' },
+      { x:1, y:5, key:'rug_round_red' },
       { x:6, y:6, key:'lamp_floor_tall' },
-      { x:5, y:3, key:'wall_clock_round' },
-      { x:7, y:5, key:'display_glass_case' }
+      { x:5, y:6, key:'wall_clock_round' },
+      { x:7, y:6, key:'display_glass_case' }
     ],
     doors: {
       '4,7': { to:'brindale', x:5, y:6 }

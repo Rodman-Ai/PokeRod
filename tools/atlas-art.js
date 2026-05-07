@@ -2898,7 +2898,7 @@
 
   // Variant factory for NPCs from a 4-color seed mirroring NPC_PALETTES.
   // seed: { hat, hair, shirt, accent }
-  function npcPalette(seed) {
+  function npcPalette(seed, kind) {
     const dim = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
@@ -2917,7 +2917,8 @@
       pants: seed.pants || '#383028',
       pantsShade: seed.pants ? dim(seed.pants) : '#1a1410',
       shoes:'#1a1a1a',
-      gear: seed.gear || null
+      gear: seed.gear || null,
+      kind: kind || null
     };
   }
 
@@ -2931,7 +2932,7 @@
     npc_girl:  { hat:'#e84030', shirt:'#f08080', accent:'#c04040', pants:'#a02040' },
     npc_youth: { hat:'#d83020', shirt:'#f0d020', accent:'#a08818', pants:'#383028' },
     npc_old:   { hat:'#b03020', shirt:'#587858', accent:'#283828', pants:'#382820' },
-    nurse:     { hat:'#e83040', shirt:'#fff',    accent:'#e8c8c8', pants:'#fff'    },
+    nurse:     { hat:'#fff8e8', shirt:'#fff8f8', accent:'#f098c0', pants:'#fff8f8' },
     clerk:     { hat:'#d83020', shirt:'#3858c8', accent:'#202858', pants:'#202858' },
     trainer_bug_catcher: { hat:'#4fa83a', shirt:'#7ac65a', accent:'#f0e060', pants:'#284820', gear:'net' },
     trainer_picnicker:   { hat:'#f060a0', shirt:'#ffd070', accent:'#d84070', pants:'#4068b0', gear:'flower' },
@@ -2947,6 +2948,54 @@
 
   // ---- Sprite poses ----
   // Each pose function takes (ctx, x, y, frame, p) where p is a palette object.
+
+  // Nurse hat overlay: a small red cross, plus pink hair tufts at the
+  // brim line. Called after the base hat has been painted in `p.hat`
+  // (which is white for the nurse palette).
+  function drawNurseHatFront(ctx, x, y, p) {
+    // Red cross centered on the hat front (vertical bar + horizontal bar).
+    const red = '#e02838';
+    const redShade = '#a01828';
+    px(ctx, x + 15, y + 3, 2, 4, red);
+    px(ctx, x + 14, y + 4, 4, 2, red);
+    // 1px shadow under the cross for legibility on white.
+    px(ctx, x + 14, y + 6, 4, 1, redShade);
+    px(ctx, x + 15, y + 7, 2, 1, p.outline);
+    // Pink hair tufts on either side of the brim.
+    const hair = p.accent || '#f098c0';
+    const hairShade = '#c8688c';
+    px(ctx, x + 7,  y + 7, 2, 3, hair);
+    px(ctx, x + 23, y + 7, 2, 3, hair);
+    px(ctx, x + 7,  y + 9, 2, 1, hairShade);
+    px(ctx, x + 23, y + 9, 2, 1, hairShade);
+    px(ctx, x + 6,  y + 7, 1, 3, p.outline);
+    px(ctx, x + 25, y + 7, 1, 3, p.outline);
+  }
+  function drawNurseHatBack(ctx, x, y, p) {
+    // Smaller red cross visible on the rear of the cap.
+    const red = '#e02838';
+    px(ctx, x + 15, y + 4, 2, 3, red);
+    px(ctx, x + 14, y + 5, 4, 1, red);
+    // Hair tufts on either side.
+    const hair = p.accent || '#f098c0';
+    const hairShade = '#c8688c';
+    px(ctx, x + 7,  y + 7, 2, 3, hair);
+    px(ctx, x + 23, y + 7, 2, 3, hair);
+    px(ctx, x + 7,  y + 9, 2, 1, hairShade);
+    px(ctx, x + 23, y + 9, 2, 1, hairShade);
+    px(ctx, x + 6,  y + 7, 1, 3, p.outline);
+    px(ctx, x + 25, y + 7, 1, 3, p.outline);
+  }
+  function drawNurseHatSide(ctx, x, y, p) {
+    // Side view: a 2px red bar across the side of the cap.
+    const red = '#e02838';
+    px(ctx, x + 14, y + 3, 4, 1, red);
+    px(ctx, x + 14, y + 4, 4, 2, red);
+    // Hair tuft visible behind the brim.
+    const hair = p.accent || '#f098c0';
+    px(ctx, x + 9,  y + 7, 2, 3, hair);
+    px(ctx, x + 8,  y + 7, 1, 3, p.outline);
+  }
 
   // Helper: draw an outlined head with hat (used by all front-facing poses).
   function drawHead(ctx, x, y, p, opts) {
@@ -2974,8 +3023,10 @@
       px(ctx, x + 8,  y + 8,  1, 6, p.outline);
       px(ctx, x + 23, y + 8,  1, 6, p.outline);
       px(ctx, x + 9,  y + 14, 14, 1, p.outline);
+      if (p.kind === 'nurse') drawNurseHatBack(ctx, x, y, p);
       return;
     }
+    if (p.kind === 'nurse') drawNurseHatFront(ctx, x, y, p);
     // Face skin block.
     px(ctx, x + 9,  y + 8,  14, 6, p.skin);
     // Skin shadow on right cheek.
@@ -3152,6 +3203,7 @@
     px(ctx, x + 10, y + 4, 1, 3, p.outline);
     px(ctx, x + 25, y + 4, 1, 3, p.outline);
     px(ctx, x + 10, y + 7, 16, 1, p.outline);
+    if (p.kind === 'nurse') drawNurseHatSide(ctx, x, y, p);
     // Face.
     px(ctx, x + 11, y + 8,  14, 6, p.skin);
     px(ctx, x + 23, y + 9,  2, 4, p.skinShade);
@@ -3195,7 +3247,7 @@
     // Each NPC kind (except 'ball'): 4 dirs × 2 frames.
     for (const kind of Object.keys(NPC_SEEDS)) {
       if (kind === 'player') continue;
-      const pal = npcPalette(NPC_SEEDS[kind]);
+      const pal = npcPalette(NPC_SEEDS[kind], kind);
       for (let f = 0; f < 2; f++) {
         regChar(kind + '_down_'  + f, ((ff, pp) => (c, x, y) => drawCharDown    (c, x, y, ff, pp))(f, pal));
         regChar(kind + '_up_'    + f, ((ff, pp) => (c, x, y) => drawCharUp      (c, x, y, ff, pp))(f, pal));

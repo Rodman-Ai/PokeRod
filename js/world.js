@@ -1563,11 +1563,32 @@
     // and the sprite layer so movable sprites occlude items they
     // walk past correctly.
     if (m.decorations && window.PR_ATLAS && window.PR_ATLAS.isReady()) {
+      const healAnim = this.state && this.state.healAnim;
       for (const d of m.decorations) {
         const sx = d.x * TS - camX;
         const sy = d.y * TS - camY;
         if (sx < -TS * 2 || sx > VIEW_W + TS || sy < -TS * 2 || sy > VIEW_H + TS) continue;
-        window.PR_ATLAS.drawKey(ctx, 'decor_' + d.key, sx, sy);
+        let key = d.key;
+        if (d.anim === 'pod' && healAnim) {
+          if (healAnim.t >= healAnim.duration) {
+            key = 'pod_healing_complete';
+          } else {
+            key = (Math.floor(healAnim.t * 6) & 1) ? 'pod_healing_glow1' : 'pod_healing_glow2';
+          }
+        }
+        window.PR_ATLAS.drawKey(ctx, 'decor_' + key, sx, sy);
+        if (d.anim === 'pod' && healAnim && healAnim.t < healAnim.duration) {
+          const pulse = 0.45 + 0.35 * Math.sin(healAnim.t * 8);
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = pulse;
+          const grd = ctx.createRadialGradient(sx + TS / 2, sy + TS / 2, 2, sx + TS / 2, sy + TS / 2, TS);
+          grd.addColorStop(0, '#ffe8a0');
+          grd.addColorStop(1, 'rgba(255,200,128,0)');
+          ctx.fillStyle = grd;
+          ctx.fillRect(sx - TS / 2, sy - TS / 2, TS * 2, TS * 2);
+          ctx.restore();
+        }
       }
     }
 
