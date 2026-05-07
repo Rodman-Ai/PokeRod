@@ -7,14 +7,81 @@
   const VIEW_TX = VIEW_W / TS; // 15
   const VIEW_TY = VIEW_H / TS; // 10
 
-  // Day -> Dusk -> Night -> Dawn -> Day. ~80 steps per phase.
+  // Day -> Dusk -> Night -> Dawn -> Day. 80 steps per phase, 320 per
+  // full cycle. The anchor colours below are blended continuously
+  // every frame (see currentTint) so transitions are gradual rather
+  // than four hard cuts.
   const PHASES = [
     { name:'day',   tint:null },
     { name:'dusk',  tint:'rgba(240,140,40,0.20)' },
     { name:'night', tint:'rgba(20,30,80,0.40)' },
     { name:'dawn',  tint:'rgba(255,180,140,0.18)' }
   ];
-  function phaseForSteps(s) { return PHASES[(Math.floor(s / 80)) % PHASES.length]; }
+  const CYCLE_STEPS = 320;
+  const ANCHOR_TINTS = [
+    { at:0,   name:'day',   r:0,   g:0,   b:0,   a:0    },
+    { at:80,  name:'dusk',  r:240, g:140, b:40,  a:0.20 },
+    { at:160, name:'night', r:20,  g:30,  b:80,  a:0.40 },
+    { at:240, name:'dawn',  r:255, g:180, b:140, a:0.18 }
+  ];
+  function phaseForSteps(s) {
+    // Snap to the nearest anchor for callers that branch on phase
+    // name (chatter, shop greetings). Smooth visual blending is done
+    // separately in currentTint.
+    const t = (((s % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    let best = ANCHOR_TINTS[0];
+    let bestDist = CYCLE_STEPS;
+    for (const a of ANCHOR_TINTS) {
+      const d = Math.min(Math.abs(t - a.at), CYCLE_STEPS - Math.abs(t - a.at));
+      if (d < bestDist) { bestDist = d; best = a; }
+    }
+    return PHASES.find(p => p.name === best.name) || PHASES[0];
+  }
+  function currentTint(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    // Find segment [a, b] whose at-range contains t.
+    let i = 0;
+    for (let j = 0; j < ANCHOR_TINTS.length; j++) {
+      if (ANCHOR_TINTS[j].at <= t) i = j;
+    }
+    const a = ANCHOR_TINTS[i];
+    const b = ANCHOR_TINTS[(i + 1) % ANCHOR_TINTS.length];
+    const span = b.at > a.at ? b.at - a.at : (CYCLE_STEPS - a.at) + b.at;
+    const k = span > 0 ? (t - a.at) / span : 0;
+    const r  = Math.round(a.r + (b.r - a.r) * k);
+    const g  = Math.round(a.g + (b.g - a.g) * k);
+    const bl = Math.round(a.b + (b.b - a.b) * k);
+    const al = a.a + (b.a - a.a) * k;
+    if (al < 0.005) return null;
+    return 'rgba(' + r + ',' + g + ',' + bl + ',' + al.toFixed(3) + ')';
+  }
+  // 320 steps = 24 in-game hours. Step 0 starts at noon so the cycle
+  // anchors line up with intuitive times: day=12:00, dusk=18:00,
+  // night=00:00, dawn=06:00.
+  function clockHM(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const hours24 = (t / CYCLE_STEPS) * 24 + 12;
+    const total = hours24 % 24;
+    const h = Math.floor(total);
+    const m = Math.floor((total - h) * 60);
+    return { h, m };
+  }
+  const PHASE_LABEL = { day:'DAY', dusk:'DSK', night:'NIT', dawn:'DWN' };
+  function drawWorldClock(ctx, viewW, steps) {
+    const hm = clockHM(steps);
+    const phase = phaseForSteps(steps);
+    const pad = (n) => (n < 10 ? '0' : '') + n;
+    const text = pad(hm.h) + ':' + pad(hm.m) + ' ' + (PHASE_LABEL[phase.name] || phase.name.toUpperCase());
+    // chip() auto-sizes from text width; place top-right with a 4px
+    // margin so it sits clear of the screen edge and the entry banner.
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = viewW - w - 4;
+    const y = 4;
+    window.PR_UI.chip(ctx, x, y, text, {
+      fill:'#1a0204', border:'#f0c020', text:'#f0c020'
+    });
+  }
 
   // Minimap colors by tile category, derived from TILE_PROPS so every
   // tile code resolves to a sensible color (the previous lookup table
@@ -758,22 +825,30 @@
       });
     }
 
-    // Day/night tint overlay.
+    // Smoothly interpolated day/night tint overlay. Skipped entirely
+    // when the player has disabled the cycle in settings, in which
+    // case the world stays at a flat noon look.
     const cur = this.currentMap();
-    if (!cur || !cur.interior) {
-      const phase = phaseForSteps(this.player.steps || 0);
-      if (phase.tint) {
-        ctx.fillStyle = phase.tint;
+    const cycleOn = !(window.PR_SETTINGS && window.PR_SETTINGS.dayNightCycle === false);
+    if (cycleOn && (!cur || !cur.interior)) {
+      const tint = currentTint(this.player.steps || 0);
+      if (tint) {
+        ctx.fillStyle = tint;
         ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       }
     }
 
     // DS Diamond: subtle vignette over the whole world frame (the
-    // minimap and banner are drawn after this so they stay readable).
+    // minimap, clock and banner are drawn after this so they stay
+    // readable).
     if (cur && !cur.interior) drawVignette(ctx, VIEW_W, VIEW_H);
 
     // Minimap pip (small overview top-left).
     if (!cur.interior) drawMinimap(ctx, cur, this.player.x, this.player.y);
+
+    // In-game clock (top-right). Always shown in the overworld so the
+    // player can read the time even if the cycle is visually disabled.
+    drawWorldClock(ctx, VIEW_W, this.player.steps || 0);
 
     // Map name banner on entry.
     if (this.justEntered) {
