@@ -284,6 +284,8 @@ html, body {
   position: relative;
   z-index: 2;
   font-size: clamp(36px, 9vmin, 76px);
+  line-height: 1.25;
+  padding-top: 0.1em;
   margin: 0 0 4px;
   letter-spacing: 4px;
   font-weight: 900;

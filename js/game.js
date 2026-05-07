@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.33.2';
-  const BUILD = '2026.05.07-96';
+  const VERSION = 'v0.33.3';
+  const BUILD = '2026.05.07-97';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1076,7 +1076,7 @@
   }
   // ---------- Settings ----------
   const SETTINGS_DEFAULTS = {
-    graphics: 'gba_firered',
+    graphics: 'ds_diamond',
     sfxVol: 'med',     // off | low | med | high
     musicVol: 'med',
     textSpeed: 'normal', // slow | normal | fast
