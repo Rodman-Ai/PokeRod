@@ -66,6 +66,12 @@
   function regTile(code, name, w, h, draw) {
     TILES.push({ key: 'tile_' + name, code, w, h, draw });
   }
+  // Decoration: an atlas key drawn on a transparent background, placed
+  // via map.decorations = [{x,y,key}] at runtime. Use for furniture
+  // and props that sit on top of an existing ground tile.
+  function regDecor(name, w, h, draw) {
+    TILES.push({ key: 'decor_' + name, code: null, w, h, draw });
+  }
   function regTileVariant(code, name, draw, opts) {
     opts = opts || {};
     const key = 'tile_' + name;
@@ -1980,6 +1986,896 @@
   regTile('9', 'gba_vending', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 7, y + 2, 18, 28, '#d83b32'); px(c, x + 9, y + 5, 10, 10, '#79c8ef'); px(c, x + 20, y + 6, 3, 14, '#ffd861'); for (let yy = 18; yy < 27; yy += 4) px(c, x + 10, y + yy, 8, 1, '#fff8e8'); });
   regTile('}', 'gba_potted_plant', TILE, TILE, (c, x, y) => { gbaFloor(c, x, y); px(c, x + 9, y + 19, 14, 10, '#b85f3a'); px(c, x + 7, y + 18, 18, 3, '#7b3a25'); disc(c, x + 12, y + 12, 5, '#3f963f'); disc(c, x + 20, y + 11, 5, '#3f963f'); disc(c, x + 16, y + 7, 5, '#6fc45a'); });
   regTile("'", 'gba_gardenbed', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 3, y + 5, 26, 22, '#8d5b32'); px(c, x + 3, y + 5, 26, 1, '#d49a5f'); px(c, x + 3, y + 26, 26, 1, '#4c2d1c'); for (const yy of [11,20]) for (const xx of [9,16,23]) { px(c, x + xx, y + yy, 1, 4, '#3f963f'); px(c, x + xx - 2, y + yy, 2, 1, '#6fc45a'); px(c, x + xx + 1, y + yy, 2, 1, '#6fc45a'); } });
+
+  // ------------------------------------------------------------------
+  // === DECORATIONS ===================================================
+  // Furniture / props rendered on a transparent background, placed in
+  // maps via map.decorations = [{ x, y, key }]. Drawn by world.js
+  // between the tile pass and the sprite layer so movable sprites
+  // occlude items they walk past correctly. ~100 items here, mostly
+  // 32x32 single-tile sprites; the healing pod is a 2-tile structure.
+  // ------------------------------------------------------------------
+
+  // ----- BENCHES (8) --------------------------------------------------
+  function decorBench(c, x, y, plank, plankShade, leg, legShade, accent) {
+    // Backrest slats
+    px(c, x + 4,  y + 4,  TILE - 8, 1, plankShade);
+    px(c, x + 4,  y + 5,  TILE - 8, 2, plank);
+    px(c, x + 5,  y + 7,  1, 8, plankShade);
+    px(c, x + TILE - 6, y + 7, 1, 8, plankShade);
+    // Seat plank
+    px(c, x + 3,  y + 14, TILE - 6, 4, plank);
+    px(c, x + 3,  y + 14, TILE - 6, 1, accent || plank);
+    px(c, x + 3,  y + 17, TILE - 6, 1, plankShade);
+    // Legs
+    px(c, x + 5,  y + 18, 3, 8, leg);
+    px(c, x + TILE - 8, y + 18, 3, 8, leg);
+    px(c, x + 5,  y + 18, 1, 8, legShade);
+    px(c, x + TILE - 8, y + 18, 1, 8, legShade);
+  }
+  regDecor('bench_park_brown',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#a06838', '#704a20', '#382010', '#1a0a04', '#c89058'));
+  regDecor('bench_park_green',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#388a40', '#1c4818', '#202020', '#0a0a0a', '#5cae4c'));
+  regDecor('bench_marble_white',TILE, TILE, (c, x, y) => decorBench(c, x, y, '#f0f0f0', '#a0a0a0', '#a0a0a0', '#606060', '#fff'));
+  regDecor('bench_stone_grey',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#808078', '#403838', '#303028', '#181810', '#a0a098'));
+  regDecor('bench_picnic_red',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#d83838', '#7a1408', '#a06838', '#704a20', '#f08080'));
+  regDecor('bench_log',         TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 14, TILE - 4, 6, '#7a4818');
+    px(c, x + 2, y + 14, TILE - 4, 1, '#a06838');
+    px(c, x + 2, y + 19, TILE - 4, 1, '#3a2010');
+    for (let i = 4; i < TILE - 4; i += 6) px(c, x + i, y + 16, 1, 2, '#3a2010');
+    px(c, x + 6, y + 20, 4, 6, '#3a2010');
+    px(c, x + TILE - 10, y + 20, 4, 6, '#3a2010');
+  });
+  regDecor('bench_garden_iron', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 6, TILE - 4, 1, '#202028');
+    for (let i = 0; i < 6; i++) px(c, x + 4 + i*4, y + 7, 1, 7, '#181820');
+    px(c, x + 2, y + 14, TILE - 4, 3, '#383848');
+    px(c, x + 2, y + 14, TILE - 4, 1, '#5860a0');
+    px(c, x + 5, y + 17, 2, 9, '#181820');
+    px(c, x + TILE - 7, y + 17, 2, 9, '#181820');
+  });
+  regDecor('bench_pier_wood',   TILE, TILE, (c, x, y) => decorBench(c, x, y, '#c8a060', '#806838', '#604030', '#3a2410', '#e8c890'));
+
+  // ----- SHELVES & MART DISPLAYS (10) --------------------------------
+  function shelfBack(c, x, y, frame, shelfShade) {
+    px(c, x + 2, y + 2,  TILE - 4, TILE - 4, frame);
+    px(c, x + 2, y + 2,  TILE - 4, 1, shelfShade);
+    px(c, x + 2, y + TILE - 3, TILE - 4, 1, shelfShade);
+    for (const ly of [11, 19]) px(c, x + 3, y + ly, TILE - 6, 1, shelfShade);
+  }
+  regDecor('shelf_books', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    const books = ['#d83838','#3878d8','#48a040','#f0c020','#a040a0'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 6; i++) {
+      px(c, x + 3 + i*4, y + sy, 3, 6, books[(i + sy) % books.length]);
+    }
+  });
+  regDecor('shelf_potions', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#383848', '#787890');
+    const colors = ['#e83838','#f0c020','#48a040','#5898d8','#a040a0'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + sy + 1, 3, 5, colors[i]);
+      px(c, x + 4 + i*5, y + sy, 3, 1, '#80c0e8');
+    }
+  });
+  regDecor('shelf_pokeballs', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#382020', '#806060');
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      const cx = x + 5 + i*5, cy = y + sy + 2;
+      disc(c, cx, cy, 2, '#e83838');
+      px(c, cx - 2, cy + 1, 5, 1, '#202020');
+      px(c, cx - 1, cy + 2, 3, 1, '#fff');
+    }
+  });
+  regDecor('shelf_berries', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    const berries = ['#e83020','#a040a0','#f0c020','#48a040','#f098c0'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 6; i++) {
+      const cx = x + 4 + i*4, cy = y + sy + 2;
+      disc(c, cx, cy, 2, berries[(i + sy) % berries.length]);
+      px(c, cx - 1, cy - 2, 1, 1, '#3a6028');
+    }
+  });
+  regDecor('shelf_tms', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#202028', '#5060a0');
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 4; i++) {
+      px(c, x + 4 + i*6, y + sy, 5, 6, '#5860a0');
+      px(c, x + 5 + i*6, y + sy + 2, 3, 1, '#fff');
+      px(c, x + 5 + i*6, y + sy + 4, 3, 1, '#a0c8f0');
+    }
+  });
+  regDecor('shelf_souvenirs', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    px(c, x + 4,  y + 4,  4, 5, '#f0c020');
+    disc(c, x + 11, y + 6, 2, '#f098c0');
+    px(c, x + 16, y + 4, 4, 5, '#5898d8');
+    disc(c, x + 24, y + 6, 2, '#48a040');
+    for (let i = 0; i < 5; i++) px(c, x + 4 + i*5, y + 13, 4, 5, ['#e83838','#48a040','#5898d8','#f0c020','#a040a0'][i]);
+    for (let i = 0; i < 6; i++) px(c, x + 4 + i*4, y + 21, 3, 5, ['#a06838','#704a20','#604028','#a06838','#704a20','#a06838'][i]);
+  });
+  regDecor('shelf_clothing', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    const colors = ['#e83838','#f0c020','#48a040','#5898d8','#a040a0','#604028'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + sy, 4, 6, colors[(i + sy) % colors.length]);
+      px(c, x + 4 + i*5, y + sy, 4, 1, '#fff8e0');
+    }
+  });
+  regDecor('shelf_food', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    for (let i = 0; i < 6; i++) px(c, x + 3 + i*4, y + 4, 3, 5, ['#a06038','#3a8030','#e83838','#f0c020','#704020','#48a040'][i]);
+    for (let i = 0; i < 6; i++) disc(c, x + 4 + i*4, y + 14, 1, ['#e83838','#f0c020','#48a040','#a040a0','#5898d8','#704020'][i]);
+    for (let i = 0; i < 5; i++) px(c, x + 4 + i*5, y + 21, 4, 5, ['#fff8e0','#f0c020','#fff8e0','#704020','#48a040'][i]);
+  });
+  regDecor('shelf_displays_glass', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#a0a0b0', '#e8e8f0');
+    px(c, x + 3, y + 3, TILE - 6, TILE - 6, 'rgba(160,200,232,0.30)');
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + sy, 3, 5, ['#f098c0','#5898d8','#48a040','#f0c020','#fff8e0'][i]);
+    }
+    px(c, x + 2, y + 2, 1, TILE - 4, '#fff8e0');
+  });
+  regDecor('shelf_empty_wooden', TILE, TILE, (c, x, y) => shelfBack(c, x, y, '#604028', '#a06838'));
+
+  // ----- SIGNS (8) ----------------------------------------------------
+  regDecor('sign_post_arrow', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#604028');
+    px(c, x + 4, y + 6, 22, 8, '#c89058');
+    px(c, x + 4, y + 6, 22, 1, '#f0c890');
+    px(c, x + 4, y + 13, 22, 1, '#604028');
+    for (let i = 0; i < 6; i++) px(c, x + 22, y + 4 + i, 1 + Math.min(i, 6 - i), 1, '#604028');
+  });
+  regDecor('sign_post_wood', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#604028');
+    px(c, x + 4, y + 4, 24, 12, '#a06838');
+    px(c, x + 4, y + 4, 24, 1, '#c89058');
+    px(c, x + 4, y + 15, 24, 1, '#604028');
+    px(c, x + 8, y + 8, 16, 1, '#3a2010');
+    px(c, x + 8, y + 11, 14, 1, '#3a2010');
+  });
+  regDecor('sign_billboard_yellow', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 18, 4, 12, '#604028');
+    px(c, x + 1, y + 2, 30, 16, '#f0c020');
+    px(c, x + 1, y + 2, 30, 1, '#fff080');
+    px(c, x + 1, y + 17, 30, 1, '#806010');
+    px(c, x + 1, y + 2, 1, 16, '#806010');
+    px(c, x + 30, y + 2, 1, 16, '#806010');
+    px(c, x + 4, y + 6, 24, 1, '#604028');
+    px(c, x + 4, y + 9, 22, 1, '#604028');
+    px(c, x + 4, y + 12, 26, 1, '#604028');
+  });
+  regDecor('sign_billboard_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 18, 4, 12, '#604028');
+    px(c, x + 1, y + 2, 30, 16, '#3878d8');
+    px(c, x + 1, y + 2, 30, 1, '#80b8f0');
+    px(c, x + 1, y + 17, 30, 1, '#1a3868');
+    px(c, x + 4, y + 6, 24, 1, '#fff8e0');
+    px(c, x + 4, y + 9, 22, 1, '#fff8e0');
+    px(c, x + 4, y + 12, 26, 1, '#fff8e0');
+  });
+  regDecor('sign_gym_red', TILE, TILE, (c, x, y) => {
+    px(c, x + 13, y + 16, 6, 14, '#3a2410');
+    px(c, x + 4, y + 4, 24, 12, '#a01828');
+    px(c, x + 4, y + 4, 24, 1, '#e85060');
+    px(c, x + 4, y + 15, 24, 1, '#400810');
+    px(c, x + 14, y + 6, 4, 8, '#fff8e0');
+    px(c, x + 12, y + 8, 8, 4, '#fff8e0');
+  });
+  regDecor('sign_gym_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 13, y + 16, 6, 14, '#3a2410');
+    px(c, x + 4, y + 4, 24, 12, '#1a3868');
+    px(c, x + 4, y + 4, 24, 1, '#5898d8');
+    px(c, x + 4, y + 15, 24, 1, '#0a1830');
+    px(c, x + 14, y + 6, 4, 8, '#fff8e0');
+    px(c, x + 12, y + 8, 8, 4, '#fff8e0');
+  });
+  regDecor('sign_warning', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 16, 4, 14, '#604028');
+    px(c, x + 8, y + 4, 16, 12, '#f0c020');
+    px(c, x + 7, y + 5, 18, 10, '#f0c020');
+    px(c, x + 7, y + 5, 18, 1, '#fff080');
+    px(c, x + 7, y + 14, 18, 1, '#806010');
+    px(c, x + 15, y + 7, 2, 5, '#202020');
+    px(c, x + 15, y + 13, 2, 1, '#202020');
+  });
+  regDecor('sign_marker_stone', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 4, 16, 24, '#787870');
+    px(c, x + 8, y + 4, 16, 1, '#a0a098');
+    px(c, x + 8, y + 27, 16, 1, '#404038');
+    px(c, x + 7, y + 5, 1, 22, '#404038');
+    px(c, x + 24, y + 5, 1, 22, '#404038');
+    px(c, x + 11, y + 8, 10, 1, '#404038');
+    px(c, x + 11, y + 12, 10, 1, '#404038');
+    px(c, x + 11, y + 16, 8, 1, '#404038');
+  });
+
+  // ----- TRASH CANS (6) -----------------------------------------------
+  regDecor('trash_grey_lid', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 8, 16, 22, '#605850');
+    px(c, x + 8, y + 8, 16, 1, '#80786a');
+    px(c, x + 8, y + 29, 16, 1, '#302820');
+    px(c, x + 7, y + 5, 18, 4, '#383028');
+    px(c, x + 7, y + 5, 18, 1, '#605850');
+    px(c, x + 14, y + 3, 4, 2, '#605850');
+    for (let i = 0; i < 3; i++) px(c, x + 10 + i*5, y + 16, 1, 8, '#80786a');
+  });
+  regDecor('trash_blue_recycle', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 8, 16, 22, '#3878d8');
+    px(c, x + 8, y + 8, 16, 1, '#80b8f0');
+    px(c, x + 8, y + 29, 16, 1, '#1a3868');
+    px(c, x + 7, y + 5, 18, 4, '#1a3868');
+    px(c, x + 14, y + 14, 4, 4, '#fff8e0');
+    px(c, x + 13, y + 16, 6, 1, '#fff8e0');
+    px(c, x + 14, y + 21, 4, 1, '#fff8e0');
+  });
+  regDecor('trash_green_compost', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 8, 16, 22, '#388a40');
+    px(c, x + 8, y + 8, 16, 1, '#5cae4c');
+    px(c, x + 8, y + 29, 16, 1, '#1c4818');
+    px(c, x + 7, y + 5, 18, 4, '#1c4818');
+    disc(c, x + 16, y + 18, 3, '#5cae4c');
+    px(c, x + 14, y + 16, 4, 1, '#a8d878');
+  });
+  regDecor('trash_dumpster', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 12, 28, 16, '#383830');
+    px(c, x + 2, y + 12, 28, 1, '#605850');
+    px(c, x + 2, y + 27, 28, 1, '#181810');
+    px(c, x + 4, y + 8, 24, 5, '#202020');
+    px(c, x + 4, y + 8, 24, 1, '#404038');
+    px(c, x + 8, y + 16, 8, 8, '#605850');
+    px(c, x + 18, y + 16, 8, 8, '#605850');
+  });
+  regDecor('trash_basket_wicker', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 10, 16, 20, '#a06838');
+    px(c, x + 8, y + 10, 16, 1, '#c89058');
+    for (let i = 0; i < 5; i++) px(c, x + 9, y + 13 + i*4, 14, 1, '#704a20');
+    for (let i = 0; i < 4; i++) px(c, x + 11 + i*3, y + 11, 1, 18, '#704a20');
+    px(c, x + 8, y + 8, 16, 2, '#3a2010');
+  });
+  regDecor('trash_urn_park', TILE, TILE, (c, x, y) => {
+    px(c, x + 10, y + 14, 12, 16, '#605850');
+    px(c, x + 8, y + 12, 16, 4, '#383028');
+    px(c, x + 9, y + 8, 14, 4, '#605850');
+    px(c, x + 9, y + 8, 14, 1, '#80786a');
+    px(c, x + 11, y + 28, 10, 2, '#202020');
+  });
+
+  // ----- FLOWERPOTS (8) -----------------------------------------------
+  function potBase(c, x, y, potColor, potShade, lipColor) {
+    px(c, x + 9, y + 18, 14, 12, potColor);
+    px(c, x + 9, y + 18, 14, 1, lipColor);
+    px(c, x + 9, y + 29, 14, 1, potShade);
+    px(c, x + 8, y + 19, 1, 10, potShade);
+    px(c, x + 23, y + 19, 1, 10, potShade);
+  }
+  regDecor('pot_terracotta_red', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#c8704c', '#7a2810', '#e89070');
+    disc(c, x + 12, y + 12, 3, '#5cae4c');
+    disc(c, x + 20, y + 11, 3, '#5cae4c');
+    disc(c, x + 16, y + 8, 3, '#48a040');
+    disc(c, x + 13, y + 8, 2, '#e83838');
+    disc(c, x + 19, y + 9, 2, '#f0c020');
+  });
+  regDecor('pot_ceramic_blue', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#3878d8', '#1a3868', '#80b8f0');
+    px(c, x + 12, y + 22, 8, 1, '#fff8e0');
+    disc(c, x + 12, y + 12, 3, '#48a040');
+    disc(c, x + 20, y + 11, 3, '#48a040');
+    disc(c, x + 16, y + 8, 3, '#5cae4c');
+    disc(c, x + 14, y + 9, 2, '#f098c0');
+  });
+  regDecor('pot_painted_yellow', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#f0c020', '#806010', '#fff080');
+    for (let i = 0; i < 3; i++) px(c, x + 12 + i*4, y + 23, 2, 2, '#e83838');
+    disc(c, x + 16, y + 12, 4, '#5cae4c');
+    disc(c, x + 12, y + 11, 3, '#48a040');
+    disc(c, x + 20, y + 11, 3, '#48a040');
+    disc(c, x + 16, y + 8, 2, '#fff8e0');
+  });
+  regDecor('pot_marble_white', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#e8e8e8', '#a0a0a0', '#fff');
+    for (let i = 0; i < 4; i++) px(c, x + 10 + i*4, y + 22, 1, 6, 'rgba(120,120,120,0.5)');
+    disc(c, x + 16, y + 10, 5, '#a040a0');
+    disc(c, x + 12, y + 12, 3, '#a040a0');
+    disc(c, x + 20, y + 12, 3, '#a040a0');
+    disc(c, x + 16, y + 8, 2, '#f098c0');
+  });
+  regDecor('pot_hanging_basket', TILE, TILE, (c, x, y) => {
+    px(c, x + 16, y + 0, 1, 6, '#383028');
+    px(c, x + 14, y + 6, 1, 4, '#383028');
+    px(c, x + 18, y + 6, 1, 4, '#383028');
+    px(c, x + 9, y + 10, 14, 8, '#a06838');
+    px(c, x + 9, y + 10, 14, 1, '#c89058');
+    px(c, x + 9, y + 17, 14, 1, '#3a2010');
+    disc(c, x + 12, y + 14, 4, '#5cae4c');
+    disc(c, x + 20, y + 14, 4, '#5cae4c');
+    disc(c, x + 14, y + 18, 3, '#48a040');
+    disc(c, x + 19, y + 19, 3, '#48a040');
+    disc(c, x + 13, y + 8, 2, '#e83838');
+    disc(c, x + 19, y + 8, 2, '#f0c020');
+  });
+  regDecor('pot_window_box', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 16, 24, 14, '#a06838');
+    px(c, x + 4, y + 16, 24, 1, '#c89058');
+    px(c, x + 4, y + 29, 24, 1, '#3a2010');
+    for (let i = 0; i < 5; i++) {
+      const px_ = x + 6 + i*5;
+      disc(c, px_, y + 12, 3, '#5cae4c');
+      disc(c, px_, y + 9, 2, ['#e83838','#f0c020','#a040a0','#5898d8','#fff8e0'][i]);
+    }
+  });
+  regDecor('pot_succulent_small', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 22, 8, 8, '#a06838');
+    px(c, x + 12, y + 22, 8, 1, '#c89058');
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2;
+      const dx = Math.round(Math.cos(a) * 3);
+      const dy = Math.round(Math.sin(a) * 3) - 1;
+      px(c, x + 16 + dx, y + 16 + dy, 2, 2, '#48a040');
+      px(c, x + 16 + dx, y + 16 + dy, 1, 1, '#a8d878');
+    }
+    px(c, x + 16, y + 14, 1, 1, '#f098c0');
+  });
+  regDecor('pot_tall_lily', TILE, TILE, (c, x, y) => {
+    px(c, x + 11, y + 22, 10, 8, '#c8704c');
+    px(c, x + 11, y + 22, 10, 1, '#e89070');
+    px(c, x + 16, y + 8, 1, 14, '#388a40');
+    for (let i = 0; i < 4; i++) px(c, x + 12 + i*2, y + 14 + i, 4, 1, '#48a040');
+    disc(c, x + 16, y + 6, 3, '#fff8e0');
+    px(c, x + 16, y + 7, 1, 1, '#f0c020');
+  });
+
+  // ----- PLANTERS (6) -------------------------------------------------
+  regDecor('planter_hedge_round', TILE, TILE, (c, x, y) => {
+    px(c, x + 6, y + 22, 20, 8, '#3a2010');
+    px(c, x + 6, y + 22, 20, 1, '#604028');
+    disc(c, x + 16, y + 14, 8, '#388a40');
+    disc(c, x + 11, y + 16, 4, '#5cae4c');
+    disc(c, x + 21, y + 14, 4, '#5cae4c');
+    disc(c, x + 16, y + 10, 3, '#a8d878');
+  });
+  regDecor('planter_hedge_long', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 22, 30, 8, '#3a2010');
+    px(c, x + 1, y + 22, 30, 1, '#604028');
+    px(c, x + 1, y + 12, 30, 10, '#388a40');
+    px(c, x + 1, y + 12, 30, 1, '#5cae4c');
+    for (let i = 0; i < 6; i++) px(c, x + 3 + i*5, y + 10, 3, 2, '#5cae4c');
+    for (let i = 0; i < 4; i++) px(c, x + 5 + i*7, y + 14, 2, 2, '#a8d878');
+  });
+  regDecor('planter_herb_box', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 18, 24, 12, '#a06838');
+    px(c, x + 4, y + 18, 24, 1, '#c89058');
+    px(c, x + 4, y + 29, 24, 1, '#3a2010');
+    px(c, x + 6, y + 22, 20, 4, '#604028');
+    for (let i = 0; i < 5; i++) {
+      const px_ = x + 7 + i*4;
+      px(c, px_, y + 16, 2, 6, '#388a40');
+      px(c, px_, y + 14, 2, 2, '#5cae4c');
+    }
+  });
+  regDecor('planter_flowerbed_oval', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 22, 24, 6, '#604028');
+    px(c, x + 6, y + 21, 20, 1, '#a06838');
+    px(c, x + 6, y + 28, 20, 1, '#3a2010');
+    for (let i = 0; i < 5; i++) {
+      disc(c, x + 6 + i*5, y + 16, 2, '#388a40');
+      px(c, x + 6 + i*5, y + 12, 1, 1, ['#e83838','#f0c020','#a040a0','#5898d8','#f098c0'][i]);
+    }
+  });
+  regDecor('planter_raised_wood', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 14, 28, 16, '#a06838');
+    px(c, x + 2, y + 14, 28, 1, '#c89058');
+    px(c, x + 2, y + 29, 28, 1, '#3a2010');
+    for (let i = 0; i < 4; i++) px(c, x + 7 + i*6, y + 14, 1, 16, '#604028');
+    px(c, x + 4, y + 16, 24, 6, '#388a40');
+    for (let i = 0; i < 4; i++) disc(c, x + 8 + i*5, y + 12, 2, ['#e83838','#f0c020','#5898d8','#f098c0'][i]);
+  });
+  regDecor('planter_zen_stone', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 18, 28, 12, '#787870');
+    px(c, x + 2, y + 18, 28, 1, '#a0a098');
+    px(c, x + 2, y + 29, 28, 1, '#383830');
+    for (let i = 0; i < 6; i++) px(c, x + 4, y + 22 + (i & 1), 24, 1, 'rgba(255,255,255,0.20)');
+    disc(c, x + 9, y + 14, 4, '#403838');
+    disc(c, x + 16, y + 12, 5, '#503838');
+    disc(c, x + 23, y + 13, 4, '#403838');
+  });
+
+  // ----- TABLES (10) --------------------------------------------------
+  function tableSurface(c, x, y, top, edge, leg) {
+    px(c, x + 2, y + 8, 28, 8, top);
+    px(c, x + 2, y + 8, 28, 1, edge);
+    px(c, x + 2, y + 15, 28, 1, edge);
+    px(c, x + 6, y + 16, 3, 14, leg);
+    px(c, x + TILE - 9, y + 16, 3, 14, leg);
+  }
+  regDecor('table_wood_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 12, 12, '#a06838');
+    disc(c, x + 16, y + 12, 11, '#c89058');
+    px(c, x + 14, y + 16, 4, 14, '#604028');
+  });
+  regDecor('table_wood_square', TILE, TILE, (c, x, y) => tableSurface(c, x, y, '#a06838', '#604028', '#604028'));
+  regDecor('table_marble_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 12, 12, '#a0a0a0');
+    disc(c, x + 16, y + 12, 11, '#e8e8e8');
+    px(c, x + 13, y + 9, 6, 1, 'rgba(120,120,120,0.6)');
+    px(c, x + 14, y + 16, 4, 14, '#606060');
+  });
+  regDecor('table_glass_modern', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 8, 28, 6, 'rgba(180,220,240,0.4)');
+    px(c, x + 2, y + 8, 28, 1, '#fff');
+    px(c, x + 2, y + 13, 28, 1, '#5898d8');
+    px(c, x + 5, y + 14, 3, 16, '#a0a0a0');
+    px(c, x + TILE - 8, y + 14, 3, 16, '#a0a0a0');
+  });
+  regDecor('table_dining_long', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 10, 30, 6, '#a06838');
+    px(c, x + 1, y + 10, 30, 1, '#c89058');
+    px(c, x + 1, y + 15, 30, 1, '#604028');
+    for (let i = 0; i < 4; i++) px(c, x + 3 + i*8, y + 16, 2, 14, '#604028');
+  });
+  regDecor('table_picnic_red_check', TILE, TILE, (c, x, y) => {
+    tableSurface(c, x, y, '#fff', '#202020', '#604028');
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      if ((i + j) & 1) px(c, x + 4 + i*7, y + 9 + j*2, 5, 1, '#e83838');
+    }
+  });
+  regDecor('table_workbench', TILE, TILE, (c, x, y) => {
+    tableSurface(c, x, y, '#704a20', '#3a2010', '#3a2010');
+    for (let i = 0; i < 4; i++) px(c, x + 5 + i*6, y + 11, 2, 1, '#202020');
+    px(c, x + 22, y + 11, 6, 2, '#a0a0a0');
+    px(c, x + 6, y + 13, 8, 1, '#a0a098');
+  });
+  regDecor('table_round_chess', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 12, 12, '#a06838');
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      if ((i + j) & 1) px(c, x + 9 + i*4, y + 5 + j*4, 4, 4, '#3a2010');
+      else px(c, x + 9 + i*4, y + 5 + j*4, 4, 4, '#fff8e0');
+    }
+    disc(c, x + 16, y + 12, 12, 'rgba(0,0,0,0)'); // outline trick
+    disc(c, x + 16, y + 12, 12, 'rgba(255,255,255,0.05)');
+    px(c, x + 14, y + 16, 4, 14, '#604028');
+  });
+  regDecor('table_low_tea', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 18, 24, 4, '#a06838');
+    px(c, x + 4, y + 18, 24, 1, '#c89058');
+    px(c, x + 4, y + 21, 24, 1, '#604028');
+    px(c, x + 6, y + 22, 2, 8, '#604028');
+    px(c, x + 24, y + 22, 2, 8, '#604028');
+    disc(c, x + 12, y + 16, 2, '#fff8e0');
+    disc(c, x + 20, y + 16, 2, '#fff8e0');
+  });
+  regDecor('table_long_buffet', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 6, 30, 12, '#604028');
+    px(c, x + 1, y + 6, 30, 1, '#a06838');
+    px(c, x + 1, y + 17, 30, 1, '#3a2010');
+    px(c, x + 3, y + 8, 8, 8, '#fff8e0');
+    px(c, x + 13, y + 9, 6, 6, '#e83838');
+    px(c, x + 21, y + 8, 8, 8, '#5898d8');
+    for (let i = 0; i < 3; i++) px(c, x + 8 + i*8, y + 18, 2, 12, '#3a2010');
+  });
+
+  // ----- MART SHOP DISPLAYS (8) --------------------------------------
+  regDecor('display_potions_counter', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 12, 30, 18, '#a06838');
+    px(c, x + 1, y + 12, 30, 1, '#c89058');
+    px(c, x + 1, y + 29, 30, 1, '#3a2010');
+    for (let i = 0; i < 5; i++) {
+      const px_ = x + 4 + i*5;
+      px(c, px_, y + 6, 4, 6, ['#e83838','#5898d8','#48a040','#f0c020','#a040a0'][i]);
+      px(c, px_, y + 4, 4, 2, '#80c0e8');
+    }
+  });
+  regDecor('display_pokeballs_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 4, 28, 26, '#604028');
+    px(c, x + 2, y + 4, 28, 1, '#a06838');
+    for (const sy of [6, 14, 22]) for (let i = 0; i < 4; i++) {
+      const cx = x + 6 + i*7, cy = y + sy + 1;
+      disc(c, cx, cy, 3, '#e83838');
+      px(c, cx - 3, cy + 1, 7, 1, '#202020');
+      px(c, cx - 1, cy + 2, 3, 1, '#fff');
+    }
+  });
+  regDecor('display_clothing_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 4, 1, 26, '#202020');
+    px(c, x + 29, y + 4, 1, 26, '#202020');
+    px(c, x + 2, y + 4, 28, 1, '#202020');
+    for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + 6, 4, 14, ['#e83838','#5898d8','#f0c020','#48a040','#a040a0'][i]);
+      px(c, x + 4 + i*5, y + 6, 4, 1, 'rgba(255,255,255,0.4)');
+    }
+    px(c, x + 4, y + 28, 24, 2, '#604028');
+  });
+  regDecor('display_food_counter', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 14, 30, 16, '#fff8e0');
+    px(c, x + 1, y + 14, 30, 1, '#f0c020');
+    px(c, x + 1, y + 29, 30, 1, '#806010');
+    px(c, x + 2, y + 4, 28, 10, 'rgba(180,220,240,0.5)');
+    px(c, x + 2, y + 4, 28, 1, '#fff');
+    px(c, x + 2, y + 13, 28, 1, '#5898d8');
+    for (let i = 0; i < 4; i++) {
+      px(c, x + 4 + i*7, y + 6, 5, 6, ['#e83838','#48a040','#f0c020','#a06838'][i]);
+    }
+  });
+  regDecor('display_register', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 16, 24, 14, '#383830');
+    px(c, x + 4, y + 16, 24, 1, '#605850');
+    px(c, x + 4, y + 29, 24, 1, '#181810');
+    px(c, x + 8, y + 4, 16, 12, '#202020');
+    px(c, x + 9, y + 5, 14, 8, '#48a040');
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 4; j++) {
+      px(c, x + 8 + j*5, y + 18 + i*4, 4, 3, '#787068');
+      px(c, x + 8 + j*5, y + 18 + i*4, 4, 1, '#a8a098');
+    }
+  });
+  regDecor('display_souvenir', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 8, 28, 22, '#a06838');
+    px(c, x + 2, y + 8, 28, 1, '#c89058');
+    px(c, x + 2, y + 17, 28, 1, '#604028');
+    px(c, x + 2, y + 26, 28, 1, '#604028');
+    for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + 10, 3, 5, ['#a040a0','#5898d8','#f0c020','#48a040','#e83838'][i]);
+    }
+    for (let i = 0; i < 5; i++) {
+      disc(c, x + 6 + i*5, y + 22, 2, ['#f0c020','#a06838','#fff','#f098c0','#5898d8'][i]);
+    }
+  });
+  regDecor('display_glass_case', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 4, 30, 26, 'rgba(180,220,240,0.30)');
+    px(c, x + 1, y + 4, 30, 1, '#fff');
+    px(c, x + 1, y + 4, 1, 26, '#80b8f0');
+    px(c, x + 30, y + 4, 1, 26, '#80b8f0');
+    px(c, x + 1, y + 29, 30, 1, '#5898d8');
+    px(c, x + 4, y + 16, 24, 4, '#604028');
+    disc(c, x + 10, y + 12, 3, '#f0c020');
+    disc(c, x + 16, y + 13, 4, '#a040a0');
+    disc(c, x + 23, y + 11, 3, '#5898d8');
+  });
+  regDecor('display_basket', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 18, 24, 12, '#a06838');
+    px(c, x + 4, y + 18, 24, 1, '#c89058');
+    for (let i = 0; i < 5; i++) px(c, x + 5, y + 20 + i*2, 22, 1, '#704a20');
+    for (let i = 0; i < 5; i++) px(c, x + 6 + i*5, y + 18, 1, 12, '#704a20');
+    for (let i = 0; i < 4; i++) {
+      disc(c, x + 8 + i*5, y + 14, 3, ['#e83838','#f0c020','#a040a0','#48a040'][i]);
+    }
+  });
+
+  // ----- HEALING POD (6 keys; pod is 2 tiles wide) -------------------
+  function podBase(c, x, y, glowColor, glowIntensity) {
+    // Pod bed with ergonomic curve
+    px(c, x + 2, y + 14, 28, 14, '#787890');
+    px(c, x + 2, y + 14, 28, 1, '#a0a8c0');
+    px(c, x + 2, y + 27, 28, 1, '#383848');
+    // Glass canopy
+    px(c, x + 2, y + 4, 28, 10, 'rgba(180,220,240,0.4)');
+    px(c, x + 2, y + 4, 28, 1, '#fff');
+    px(c, x + 2, y + 13, 28, 1, '#80b8f0');
+    px(c, x + 2, y + 4, 1, 10, '#80b8f0');
+    px(c, x + 30, y + 4, 1, 10, '#80b8f0');
+    // Cushion (where mons would lie)
+    px(c, x + 6, y + 18, 20, 6, '#383848');
+    px(c, x + 6, y + 18, 20, 1, '#5860a0');
+    // Side accents
+    px(c, x + 6, y + 28, 20, 2, '#181820');
+    // Glow if requested
+    if (glowIntensity > 0) {
+      const a = Math.min(1, glowIntensity);
+      px(c, x + 4, y + 8, 24, 2, 'rgba(' + glowColor + ',' + (a * 0.5) + ')');
+      px(c, x + 6, y + 18, 20, 4, 'rgba(' + glowColor + ',' + (a * 0.4) + ')');
+    }
+  }
+  regDecor('pod_healing_idle',     TILE, TILE, (c, x, y) => podBase(c, x, y, '255,200,128', 0.0));
+  regDecor('pod_healing_glow1',    TILE, TILE, (c, x, y) => podBase(c, x, y, '255,176,200', 0.6));
+  regDecor('pod_healing_glow2',    TILE, TILE, (c, x, y) => podBase(c, x, y, '255,232,160', 0.9));
+  regDecor('pod_healing_complete', TILE, TILE, (c, x, y) => podBase(c, x, y, '160,232,176', 0.5));
+  regDecor('pod_console', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 14, 24, 16, '#383848');
+    px(c, x + 4, y + 14, 24, 1, '#5860a0');
+    px(c, x + 6, y + 8, 20, 8, '#202028');
+    px(c, x + 7, y + 9, 18, 6, '#48a040');
+    for (let i = 0; i < 3; i++) px(c, x + 9 + i*6, y + 11, 4, 1, '#a8d878');
+    for (let i = 0; i < 4; i++) {
+      disc(c, x + 8 + i*5, y + 22, 2, ['#e83838','#f0c020','#48a040','#5898d8'][i]);
+    }
+  });
+  regDecor('pod_bed_left', TILE, TILE, (c, x, y) => {
+    // Left half of a 2-wide pod (mirror image of pod_healing_idle's left side)
+    px(c, x + 12, y + 14, 20, 14, '#787890');
+    px(c, x + 12, y + 14, 20, 1, '#a0a8c0');
+    px(c, x + 12, y + 27, 20, 1, '#383848');
+    px(c, x + 12, y + 4, 20, 10, 'rgba(180,220,240,0.4)');
+    px(c, x + 12, y + 4, 20, 1, '#fff');
+    px(c, x + 12, y + 13, 20, 1, '#80b8f0');
+    px(c, x + 12, y + 4, 1, 10, '#80b8f0');
+    px(c, x + 14, y + 18, 18, 6, '#383848');
+    px(c, x + 14, y + 18, 18, 1, '#5860a0');
+    px(c, x + 14, y + 28, 18, 2, '#181820');
+  });
+
+  // ----- LAMPS & LIGHTS (6) ------------------------------------------
+  regDecor('lamp_ornate_gold', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 16, 4, 14, '#806010');
+    px(c, x + 12, y + 28, 8, 2, '#f0c020');
+    px(c, x + 10, y + 6, 12, 10, '#806010');
+    px(c, x + 10, y + 6, 12, 1, '#f0c020');
+    px(c, x + 11, y + 7, 10, 8, '#fff080');
+    px(c, x + 13, y + 9, 6, 4, '#fff8e0');
+    px(c, x + 14, y + 4, 4, 2, '#806010');
+  });
+  regDecor('lamp_oil_brass', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 18, 8, 12, '#a06838');
+    px(c, x + 12, y + 18, 8, 1, '#c89058');
+    px(c, x + 12, y + 29, 8, 1, '#3a2010');
+    px(c, x + 14, y + 8, 4, 10, '#604028');
+    px(c, x + 12, y + 4, 8, 6, '#a06838');
+    px(c, x + 13, y + 5, 6, 4, '#fff080');
+    px(c, x + 14, y + 6, 4, 2, '#fff8e0');
+  });
+  regDecor('lamp_modern_chrome', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 4, 4, 26, '#a0a0b0');
+    px(c, x + 14, y + 4, 4, 1, '#e8e8f0');
+    px(c, x + 8, y + 28, 16, 2, '#383848');
+    px(c, x + 10, y + 4, 12, 6, '#383848');
+    px(c, x + 11, y + 5, 10, 4, '#fff080');
+    px(c, x + 12, y + 6, 8, 2, '#fff8e0');
+  });
+  regDecor('lamp_paper_lantern', TILE, TILE, (c, x, y) => {
+    px(c, x + 16, y + 0, 1, 8, '#202020');
+    disc(c, x + 16, y + 14, 8, '#e83838');
+    disc(c, x + 16, y + 14, 7, '#f08080');
+    px(c, x + 16, y + 7, 1, 14, 'rgba(255,200,200,0.55)');
+    px(c, x + 9, y + 14, 14, 1, 'rgba(0,0,0,0.4)');
+    px(c, x + 16, y + 22, 1, 4, '#202020');
+    px(c, x + 14, y + 26, 4, 1, '#202020');
+  });
+  regDecor('lamp_table_brass', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 24, 8, 6, '#a06838');
+    px(c, x + 12, y + 24, 8, 1, '#c89058');
+    px(c, x + 15, y + 14, 2, 10, '#a06838');
+    px(c, x + 9, y + 6, 14, 10, '#604028');
+    px(c, x + 9, y + 6, 14, 1, '#a06838');
+    px(c, x + 11, y + 8, 10, 6, '#fff080');
+    px(c, x + 13, y + 10, 6, 2, '#fff8e0');
+  });
+  regDecor('lamp_floor_tall', TILE, TILE, (c, x, y) => {
+    px(c, x + 10, y + 28, 12, 2, '#604028');
+    px(c, x + 15, y + 8, 2, 22, '#383028');
+    px(c, x + 8, y + 4, 16, 8, '#604028');
+    px(c, x + 10, y + 5, 12, 6, '#fff080');
+    px(c, x + 12, y + 6, 8, 4, '#fff8e0');
+    px(c, x + 8, y + 4, 16, 1, '#a06838');
+  });
+
+  // ----- MISC INDOOR (12) --------------------------------------------
+  regDecor('bookshelf_tall', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 0, 28, 30, '#604028');
+    px(c, x + 2, y + 0, 28, 1, '#a06838');
+    px(c, x + 2, y + 29, 28, 1, '#3a2010');
+    for (const sy of [3, 11, 19, 27]) px(c, x + 3, y + sy, 26, 1, '#3a2010');
+    const books = ['#d83838','#3878d8','#48a040','#f0c020','#a040a0','#704020'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 6; i++) {
+      px(c, x + 4 + i*4, y + sy, 3, 7, books[(i + sy) % books.length]);
+    }
+  });
+  regDecor('dresser_wood', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 6, 28, 24, '#a06838');
+    px(c, x + 2, y + 6, 28, 1, '#c89058');
+    px(c, x + 2, y + 29, 28, 1, '#3a2010');
+    for (const sy of [10, 18, 26]) px(c, x + 3, y + sy, 26, 1, '#3a2010');
+    for (const sy of [8, 16, 24]) {
+      px(c, x + 14, y + sy, 4, 1, '#383028');
+      px(c, x + 14, y + sy + 1, 4, 1, '#383028');
+    }
+  });
+  regDecor('nightstand', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 12, 16, 18, '#a06838');
+    px(c, x + 8, y + 12, 16, 1, '#c89058');
+    px(c, x + 8, y + 29, 16, 1, '#3a2010');
+    px(c, x + 9, y + 19, 14, 1, '#3a2010');
+    px(c, x + 14, y + 16, 4, 2, '#383028');
+    px(c, x + 14, y + 23, 4, 2, '#383028');
+    disc(c, x + 16, y + 8, 3, '#fff8a0');
+    px(c, x + 14, y + 6, 4, 2, '#a06838');
+  });
+  regDecor('bed_single_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 12, 28, 16, '#604028');
+    px(c, x + 2, y + 12, 28, 1, '#a06838');
+    px(c, x + 2, y + 27, 28, 1, '#3a2010');
+    px(c, x + 4, y + 14, 24, 8, '#3878d8');
+    px(c, x + 4, y + 14, 24, 1, '#80b8f0');
+    px(c, x + 4, y + 8, 8, 8, '#fff8e0');
+    px(c, x + 4, y + 8, 8, 1, '#a0a0a0');
+  });
+  regDecor('bed_single_pink', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 12, 28, 16, '#604028');
+    px(c, x + 2, y + 12, 28, 1, '#a06838');
+    px(c, x + 2, y + 27, 28, 1, '#3a2010');
+    px(c, x + 4, y + 14, 24, 8, '#f098c0');
+    px(c, x + 4, y + 14, 24, 1, '#fff0f8');
+    px(c, x + 4, y + 8, 8, 8, '#fff8e0');
+    px(c, x + 4, y + 8, 8, 1, '#a0a0a0');
+  });
+  regDecor('rug_round_red', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 16, 13, '#a01828');
+    disc(c, x + 16, y + 16, 11, '#d83838');
+    disc(c, x + 16, y + 16, 8, '#f0c020');
+    disc(c, x + 16, y + 16, 5, '#a01828');
+    disc(c, x + 16, y + 16, 2, '#fff');
+  });
+  regDecor('rug_long_persian', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 8, 30, 16, '#a01828');
+    px(c, x + 1, y + 8, 30, 1, '#604018');
+    px(c, x + 1, y + 23, 30, 1, '#604018');
+    for (let i = 0; i < 4; i++) {
+      const cx = x + 5 + i*7;
+      px(c, cx, y + 12, 4, 8, '#f0c020');
+      px(c, cx + 1, y + 14, 2, 4, '#a01828');
+    }
+    for (let i = 0; i < 7; i++) px(c, x + 1 + i*5, y + 6, 1, 1, '#fff8e0');
+    for (let i = 0; i < 7; i++) px(c, x + 1 + i*5, y + 25, 1, 1, '#fff8e0');
+  });
+  regDecor('picture_frame_landscape', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 4, 28, 20, '#a06838');
+    px(c, x + 4, y + 6, 24, 16, '#5898d8');
+    px(c, x + 4, y + 16, 24, 6, '#48a040');
+    px(c, x + 4, y + 18, 24, 4, '#388a40');
+    disc(c, x + 22, y + 9, 3, '#fff080');
+    for (let i = 0; i < 4; i++) px(c, x + 6 + i*4, y + 13, 2, 1, '#fff8e0');
+  });
+  regDecor('wall_clock_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 16, 12, '#604028');
+    disc(c, x + 16, y + 16, 11, '#fff8e0');
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6 - Math.PI / 2;
+      const cx = Math.round(x + 16 + Math.cos(a) * 9);
+      const cy = Math.round(y + 16 + Math.sin(a) * 9);
+      px(c, cx, cy, 1, 1, '#202020');
+    }
+    px(c, x + 16, y + 10, 1, 7, '#202020');
+    px(c, x + 16, y + 16, 6, 1, '#202020');
+    disc(c, x + 16, y + 16, 1, '#202020');
+  });
+  regDecor('calendar_wall', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 4, 24, 24, '#fff8e0');
+    px(c, x + 4, y + 4, 24, 1, '#a0a0a0');
+    px(c, x + 4, y + 27, 24, 1, '#3a2010');
+    px(c, x + 4, y + 4, 24, 6, '#a01828');
+    for (let r = 0; r < 4; r++) for (let c2 = 0; c2 < 7; c2++) {
+      px(c, x + 5 + c2*3, y + 11 + r*4, 2, 2, ((r+c2) & 1) ? '#fff8e0' : '#e8e0c8');
+    }
+  });
+  regDecor('coat_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 28, 16, 2, '#3a2010');
+    px(c, x + 15, y + 6, 2, 22, '#604028');
+    px(c, x + 8, y + 4, 16, 4, '#604028');
+    px(c, x + 11, y + 8, 4, 8, '#3878d8');
+    px(c, x + 18, y + 9, 4, 6, '#a01828');
+    px(c, x + 12, y + 14, 8, 1, '#202020');
+  });
+  regDecor('umbrella_stand', TILE, TILE, (c, x, y) => {
+    px(c, x + 11, y + 18, 10, 12, '#a06838');
+    px(c, x + 11, y + 18, 10, 1, '#c89058');
+    px(c, x + 11, y + 29, 10, 1, '#3a2010');
+    px(c, x + 13, y + 6, 1, 14, '#383028');
+    px(c, x + 18, y + 8, 1, 12, '#383028');
+    disc(c, x + 13, y + 5, 4, '#3878d8');
+    disc(c, x + 18, y + 7, 4, '#e83838');
+  });
+
+  // ----- MISC OUTDOOR (12) -------------------------------------------
+  regDecor('vending_drinks_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 2, 24, 28, '#3878d8');
+    px(c, x + 4, y + 2, 24, 1, '#80b8f0');
+    px(c, x + 4, y + 29, 24, 1, '#1a3868');
+    px(c, x + 6, y + 5, 20, 12, '#202020');
+    px(c, x + 7, y + 6, 18, 10, '#80c0f8');
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
+      const cx = x + 9 + i*7, cy = y + 7 + j*4;
+      px(c, cx, cy, 4, 3, ['#e83838','#48a040','#f0c020'][i]);
+    }
+    px(c, x + 6, y + 19, 20, 8, '#1a3868');
+    px(c, x + 8, y + 21, 16, 1, '#fff8e0');
+  });
+  regDecor('vending_snacks_red', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 2, 24, 28, '#a01828');
+    px(c, x + 4, y + 2, 24, 1, '#e85060');
+    px(c, x + 4, y + 29, 24, 1, '#400810');
+    px(c, x + 6, y + 5, 20, 16, '#202020');
+    px(c, x + 7, y + 6, 18, 14, 'rgba(180,220,240,0.4)');
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      px(c, x + 9 + i*6, y + 7 + j*4, 4, 3, ['#f0c020','#48a040','#a040a0'][(i+j)%3]);
+    }
+    px(c, x + 6, y + 22, 20, 6, '#400810');
+    px(c, x + 14, y + 24, 4, 2, '#fff8e0');
+  });
+  regDecor('water_fountain_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 18, 12, '#787870');
+    disc(c, x + 16, y + 18, 10, '#a0a098');
+    disc(c, x + 16, y + 18, 9, '#5898d8');
+    px(c, x + 14, y + 8, 4, 12, '#a0a098');
+    disc(c, x + 16, y + 6, 3, '#787870');
+    for (let i = 0; i < 6; i++) px(c, x + 13 + i, y + 4 + (i&1)*2, 1, 2, 'rgba(180,220,240,0.7)');
+  });
+  regDecor('wishing_well', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 12, 24, 16, '#787870');
+    px(c, x + 4, y + 12, 24, 1, '#a0a098');
+    px(c, x + 4, y + 27, 24, 1, '#383830');
+    for (let i = 0; i < 5; i++) px(c, x + 4 + i*5, y + 16, 1, 12, '#383830');
+    px(c, x + 7, y + 20, 18, 4, '#202028');
+    px(c, x + 6, y + 6, 20, 6, '#704a20');
+    px(c, x + 6, y + 6, 20, 1, '#a06838');
+    px(c, x + 14, y + 4, 4, 8, '#604028');
+  });
+  regDecor('basketball_hoop', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#383028');
+    px(c, x + 6, y + 4, 20, 6, '#fff8e0');
+    px(c, x + 6, y + 4, 20, 1, '#a0a0a0');
+    px(c, x + 6, y + 9, 20, 1, '#3a2010');
+    px(c, x + 13, y + 11, 6, 1, '#a01828');
+    for (let i = 0; i < 5; i++) px(c, x + 12 + i, y + 11 + (i&1), 1, 4, '#fff');
+  });
+  regDecor('pedestal_statue', TILE, TILE, (c, x, y) => {
+    px(c, x + 6, y + 22, 20, 8, '#787870');
+    px(c, x + 6, y + 22, 20, 1, '#a0a098');
+    px(c, x + 6, y + 29, 20, 1, '#383830');
+    px(c, x + 12, y + 8, 8, 14, '#a0a098');
+    px(c, x + 13, y + 9, 6, 13, '#e8e8e8');
+    px(c, x + 14, y + 4, 4, 4, '#a0a098');
+    disc(c, x + 16, y + 6, 2, '#fff');
+    px(c, x + 12, y + 14, 8, 1, '#a0a098');
+  });
+  regDecor('street_clock', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#383028');
+    px(c, x + 12, y + 28, 8, 2, '#202020');
+    disc(c, x + 16, y + 8, 7, '#383028');
+    disc(c, x + 16, y + 8, 6, '#fff8e0');
+    px(c, x + 16, y + 4, 1, 5, '#202020');
+    px(c, x + 16, y + 8, 4, 1, '#202020');
+    disc(c, x + 16, y + 8, 1, '#202020');
+  });
+  regDecor('bus_stop_sign', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#383028');
+    px(c, x + 4, y + 4, 24, 12, '#3878d8');
+    px(c, x + 4, y + 4, 24, 1, '#80b8f0');
+    px(c, x + 4, y + 15, 24, 1, '#1a3868');
+    px(c, x + 12, y + 6, 8, 8, '#fff8e0');
+    px(c, x + 14, y + 8, 4, 4, '#3878d8');
+  });
+  regDecor('bike_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 24, 24, 6, '#604028');
+    for (let i = 0; i < 4; i++) {
+      px(c, x + 6 + i*6, y + 8, 1, 16, '#a0a098');
+      px(c, x + 6 + i*6, y + 8, 4, 1, '#a0a098');
+      px(c, x + 9 + i*6, y + 8, 1, 16, '#a0a098');
+    }
+  });
+  regDecor('parking_meter', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 16, 4, 14, '#383028');
+    px(c, x + 12, y + 28, 8, 2, '#202020');
+    px(c, x + 11, y + 8, 10, 10, '#604028');
+    px(c, x + 11, y + 8, 10, 1, '#a06838');
+    px(c, x + 13, y + 10, 6, 6, '#fff8e0');
+    px(c, x + 14, y + 12, 4, 1, '#202020');
+    px(c, x + 14, y + 14, 4, 1, '#202020');
+  });
+  regDecor('bollard', TILE, TILE, (c, x, y) => {
+    px(c, x + 13, y + 28, 6, 2, '#202020');
+    px(c, x + 13, y + 12, 6, 18, '#a0a098');
+    px(c, x + 13, y + 12, 6, 1, '#e8e8e8');
+    px(c, x + 13, y + 16, 6, 1, '#e83838');
+    disc(c, x + 16, y + 11, 3, '#a0a098');
+  });
+  regDecor('streetlamp_ornate_double', TILE, TILE, (c, x, y) => {
+    px(c, x + 15, y + 14, 2, 16, '#202020');
+    px(c, x + 12, y + 28, 8, 2, '#383028');
+    px(c, x + 6, y + 12, 20, 2, '#202020');
+    px(c, x + 6, y + 4, 6, 8, '#604028');
+    px(c, x + 7, y + 5, 4, 6, '#fff080');
+    px(c, x + 8, y + 6, 2, 4, '#fff8e0');
+    px(c, x + 20, y + 4, 6, 8, '#604028');
+    px(c, x + 21, y + 5, 4, 6, '#fff080');
+    px(c, x + 22, y + 6, 2, 4, '#fff8e0');
+  });
 
   // ------------------------------------------------------------------
   // === CHARACTERS ===================================================
