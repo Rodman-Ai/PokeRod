@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.24.0';
-  const BUILD = '2026.05.07-84';
+  const VERSION = 'v0.25.0';
+  const BUILD = '2026.05.07-85';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1004,7 +1004,8 @@
     musicVol: 'med',
     textSpeed: 'normal', // slow | normal | fast
     reducedMotion: false,
-    colorblind: false
+    colorblind: false,
+    dayNightCycle: true
   };
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
@@ -1057,7 +1058,8 @@
     { key:'musicVol',      label:'MUSIC VOLUME', type:'enum', steps:VOL_STEPS },
     { key:'textSpeed',     label:'TEXT SPEED',   type:'enum', steps:TEXT_SPEED_STEPS },
     { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
-    { key:'colorblind',    label:'COLOR-BLIND', type:'bool' }
+    { key:'colorblind',    label:'COLOR-BLIND', type:'bool' },
+    { key:'dayNightCycle', label:'DAY/NIGHT', type:'bool' }
   ];
 
   function updateSettings() {
