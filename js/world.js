@@ -50,9 +50,11 @@
   function drawMinimap(ctx, m, px, py) {
     if (!m.tiles || !m.tiles.length) return;
     const cols = m.tiles[0].length, rows = m.tiles.length;
-    // 1px cells keep the minimap compact (~48x38 for a route map)
-    // instead of the previous 96x76 which dominated the viewport.
-    const cell = 1;
+    // 2px cells per tile keep the minimap legible. Earlier we tried 1px
+    // for compactness, but that made small interior maps unreadably
+    // tiny. The category-based palette below means even at 2px the
+    // minimap is no longer the noise-blob it used to be.
+    const cell = 2;
     const w = cols * cell, h = rows * cell;
     const x = 4, y = 4;
     // Translucent backdrop + 1px border for legibility against the

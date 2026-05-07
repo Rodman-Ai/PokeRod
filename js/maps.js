@@ -1585,6 +1585,96 @@ desert: {
     edges: {
       west: { x:0, to:'crestrock', tx:18, ty:15 }
     }
+  },
+
+  pokerod_farm: {
+    id:'pokerod_farm', name:'PokeRod Farm', tags:['farm'],
+    tiles: [
+      'YYYYYYYYYYYYYYYYYYYYYYYYYYYY',
+      'Y..........RRRRRR..........Y',
+      'Y..........RRRRRR..........Y',
+      'Y..........BB[]BB..........Y',
+      'Y...::::....,,......::::...Y',
+      'Y...::::....,,......::::...Y',
+      'Y...::::....,,......::::...Y',
+      'Y...........,,.............Y',
+      'Y...::::....,,......::::...Y',
+      'Y...::::....,,......::::...Y',
+      'Y...::::....,,......::::...Y',
+      'Y...........,,.............Y',
+      'Y...::::....,,......::::...Y',
+      'Y...::::....,,......::::...Y',
+      'Y...::::....,,......::::...Y',
+      'Y...........,,.............Y',
+      'Y...::::....,,......::::...Y',
+      'Y...::::....,,......::::...Y',
+      'X,,,,,,,,,,,,,,,,,,,,,S,,,,Y',
+      'YYYYYYYYYYYYYYYYYYYYYYYYYYYY'
+    ],
+    npcs: [
+      { x:13, y:7, dir:'down', sprite:'npc_old', name:'FARMER WREN',
+        dialog:[
+          "Welcome to POKEROD FARM!",
+          "We keep two of every type here.",
+          "It's a fine place to study them up close."
+        ] }
+    ],
+    // Two ambient creatures per type, grouped roughly by element.
+    // Single-species types (GHOST/DRAGON/FAIRY) appear twice as the
+    // same species since the roster only has one representative.
+    ambient: [
+      // NORMAL + FIRE pen (top-left)
+      { species:'nibblet',     x:5,  y:5,  range:1 },
+      { species:'glimkit',     x:7,  y:5,  range:1 },
+      { species:'emberkit',    x:5,  y:6,  range:1 },
+      { species:'cinderpup',   x:7,  y:6,  range:1 },
+      // WATER + ELECTRIC pen (top-right)
+      { species:'aquapup',     x:21, y:5,  range:1 },
+      { species:'mistfin',     x:23, y:5,  range:1 },
+      { species:'zapret',      x:21, y:6,  range:1 },
+      { species:'voltkit',     x:23, y:6,  range:1 },
+      // GRASS + ICE pen (mid-left)
+      { species:'sproutling',  x:5,  y:9,  range:1 },
+      { species:'fernsprout',  x:7,  y:9,  range:1 },
+      { species:'frostpup',    x:5,  y:10, range:1 },
+      { species:'frostnip',    x:7,  y:10, range:1 },
+      // FIGHTING + POISON pen (mid-right)
+      { species:'pugpaw',      x:21, y:9,  range:1 },
+      { species:'clawmonk',    x:23, y:9,  range:1 },
+      { species:'bumblesting', x:21, y:10, range:1 },
+      { species:'venipip',     x:23, y:10, range:1 },
+      // GROUND + FLYING pen (lower-left)
+      { species:'stoneworm',   x:5,  y:13, range:1 },
+      { species:'mudmote',     x:7,  y:13, range:1 },
+      { species:'flitwing',    x:5,  y:14, range:1 },
+      { species:'breezlet',    x:7,  y:14, range:1 },
+      // PSYCHIC + BUG pen (lower-right)
+      { species:'mindrop',     x:21, y:13, range:1 },
+      { species:'dreamilly',   x:23, y:13, range:1 },
+      { species:'crawlbug',    x:21, y:14, range:1 },
+      { species:'silkuttle',   x:23, y:14, range:1 },
+      // ROCK + DARK pen (bottom-left)
+      { species:'pebra',       x:5,  y:17, range:1 },
+      { species:'craglet',     x:7,  y:17, range:1 },
+      { species:'geistmite',   x:5,  y:16, range:1 },
+      { species:'shadefox',    x:7,  y:16, range:1 },
+      // STEEL + GHOST pen (bottom-right)
+      { species:'rivettot',    x:21, y:17, range:1 },
+      { species:'rivetbolt',   x:23, y:17, range:1 },
+      { species:'wraithlet',   x:21, y:16, range:1 },
+      { species:'wraithlet',   x:23, y:16, range:1 },
+      // DRAGON + FAIRY (rare types) wandering near the central path
+      { species:'draekit',     x:13, y:9,  range:1 },
+      { species:'draekit',     x:14, y:9,  range:1 },
+      { species:'dewfae',      x:13, y:13, range:1 },
+      { species:'dewfae',      x:14, y:13, range:1 }
+    ],
+    signs: {
+      '22,18': "POKEROD FARM - Two of every type, fed at dawn."
+    },
+    edges: {
+      west: { x:0, to:'mountain', tx:46, ty:18 }
+    }
   }
 };
 
@@ -2182,7 +2272,10 @@ function applyWorldExpansion(MAPS) {
       { points:[[6,20],[6,29],[15,29]], code:'v', radius:1 },
       { points:[[6,13],[12,13],[12,8],[15,8],[15,7]], code:'v', radius:1 },
       { points:[[28,7],[36,7],[36,14],[39,14]], code:'v', radius:1 },
-      { points:[[20,22],[24,22],[24,29],[31,29],[31,24]], code:'v', radius:1 }
+      { points:[[20,22],[24,22],[24,29],[31,29],[31,24]], code:'v', radius:1 },
+      // Farm road: branches east off the (39,14)-(39,24) ridge run to
+      // reach the new pokerod_farm zone at the east map edge.
+      { points:[[39,18],[47,18]], code:'v', radius:1 }
     ],
     pockets:[
       { x:9, y:19, w:9, h:6, code:':' },
@@ -2209,7 +2302,10 @@ function applyWorldExpansion(MAPS) {
         [['pebra',24],['voltkit',24],['crysthorn',25]], 1360,
         ["You found the firm footing.","Highspire opens up for careful walkers."])
     ],
-    edges:{ west:{ x:0, to:'crestrock', tx:42, ty:17 } }
+    edges:{
+      west:{ x:0, to:'crestrock', tx:42, ty:17 },
+      east:{ x:47, to:'pokerod_farm', tx:1, ty:18 }
+    }
   });
 
   updateRoute('beach', {

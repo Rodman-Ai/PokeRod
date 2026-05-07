@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.23.0';
-  const BUILD = '2026.05.07-81';
+  const VERSION = 'v0.23.1';
+  const BUILD = '2026.05.07-82';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -2304,7 +2304,13 @@
       // Faint to last visited center: respawn at start of current town with full heal.
       for (const m of state.party) { m.hp = m.stats.hp; m.status = null; for (const mv of m.moves) mv.pp = mv.ppMax; }
       state.player.map = 'rodport';
-      state.player.x = 4; state.player.y = 5; state.player.dir = 'down';
+      // Path intersection at the city centre: applyWorldExpansion always
+      // carves a horizontal cobble at row 17 and a vertical cobble at
+      // col 22, so (22,17) is guaranteed walkable. The old (4,5) coord
+      // was correct for the 20x18 rodport but applyWorldExpansion blew
+      // the city out to 44x34 with `Y` (oak tree) fill, leaving the old
+      // respawn standing on a tree.
+      state.player.x = 22; state.player.y = 17; state.player.dir = 'down';
     }
     if (outcome === 'won' && battle.opts && battle.opts.npcKey) state.defeatedTrainers.add(battle.opts.npcKey);
     if (outcome === 'won') {
