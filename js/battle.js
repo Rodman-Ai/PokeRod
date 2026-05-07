@@ -276,8 +276,8 @@
       return;
     }
     if (attacker.status === 'asleep') {
-      attacker.sleepTurns = (attacker.sleepTurns || 0) - 1;
-      if (attacker.sleepTurns > 0 && Math.random() > 0.25) {
+      if ((attacker.sleepTurns || 0) > 0 && Math.random() > 0.25) {
+        attacker.sleepTurns--;
         this.queue(attacker.nickname + ' is fast asleep!');
         return;
       }
@@ -717,7 +717,7 @@
   // queueing battle messages. Used for both the active battler and bench
   // mons (party-wide XP / exp-share-on behaviour).
   Battle.prototype.applyXpToMon = function(mon, gain) {
-    if (!mon || mon.hp <= 0 || mon.level >= 100 || gain <= 0) return;
+    if (!mon || mon.level >= 100 || gain <= 0) return;
     mon.xp += gain;
     this.queue(mon.nickname + ' gained ' + gain + ' XP!');
     let lv = window.PR_DATA.levelFromXp(mon.xp);
@@ -775,8 +775,10 @@
     // ahead of bench updates.
     const order = party.slice().sort((a, b) => (a === this.me ? -1 : b === this.me ? 1 : 0));
     for (const mon of order) {
-      if (!mon || mon.hp <= 0) continue;
+      if (!mon) continue;
       const isActive = (mon === this.me);
+      // Active battler must be conscious to gain XP; bench can faint and still share.
+      if (isActive && mon.hp <= 0) continue;
       const ratio = window.PR_DATA.xpShareRatio(isActive);
       const mult = window.PR_DATA.xpMultiplier(this.state, mon);
       const gain = Math.max(1, Math.floor(base * ratio * mult));

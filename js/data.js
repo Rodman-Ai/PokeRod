@@ -605,6 +605,8 @@ function makeMon(speciesId, level, opts) {
     stats,
     hp: stats.hp,
     status: null,
+    sleepTurns: 0,
+    confusionTurns: 0,
     statStages: { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 }
   };
 }
