@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.33.1';
-  const BUILD = '2026.05.07-95';
+  const VERSION = 'v0.33.2';
+  const BUILD = '2026.05.07-96';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -230,6 +230,10 @@
       return;
     }
     if (state.healAnim) updateHealAnim(dt);
+    if (state.menuAnim) {
+      state.menuAnim.t += dt;
+      if (state.menuAnim.t >= state.menuAnim.duration) state.menuAnim = null;
+    }
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
     else if (state.mode === 'overworld') state.world.update(dt);
@@ -861,9 +865,20 @@
     PROFILE:'profile', QUEST:'map', PVP:'party', SETTINGS:'gear', SAVE:'save', EXIT:'x'
   };
 
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+  function startMenuAnim() {
+    if (window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond' && !reducedMotion()) {
+      state.menuAnim = { t: 0, duration: 0.18 };
+    } else {
+      state.menuAnim = null;
+    }
+  }
   function openPauseMenu() {
     state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
+    startMenuAnim();
   }
   function updateMenu() {
     const I = window.PR_INPUT;
@@ -922,10 +937,24 @@
     if (m.viewing === 'party') {
       drawPartyView(); return;
     }
-    ctx.fillStyle = 'rgba(8,12,20,0.42)';
+    const anim = state.menuAnim;
+    let kAnim = 1, animY = 0;
+    if (anim) {
+      kAnim = Math.max(0, Math.min(1, anim.t / anim.duration));
+      animY = -(1 - kAnim) * 8;
+    }
+    ctx.fillStyle = 'rgba(8,12,20,' + (0.42 * kAnim).toFixed(3) + ')';
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     const w = 154, h = 144;
     const x = VIEW_W - w - 6, y = 8;
+    let pushedAlpha = false;
+    if (anim) {
+      ctx.save();
+      ctx.globalAlpha = kAnim;
+      ctx.translate(0, animY);
+      pushedAlpha = true;
+    }
+    state._drawMenuRestore = pushedAlpha;
     window.PR_UI.panel(ctx, x, y, w, h, {
       fill:'#f8f0d8', border:'#202020', shadow:'#c89048', highlight:'#fff8e8'
     });
@@ -962,6 +991,7 @@
       window.PR_UI.panel(ctx, 40, 70, 160, 20, { fill:'#fff', border:'#202020' });
       window.PR_UI.drawText(ctx, m.flash, 50, 76, '#202020');
     }
+    if (state._drawMenuRestore) { ctx.restore(); state._drawMenuRestore = false; }
   }
 
   function ensurePlayerStats() {
@@ -1096,6 +1126,7 @@
     ensureSettings();
     state.settingsView = { idx: 0 };
     state.mode = 'settings';
+    startMenuAnim();
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
@@ -1134,6 +1165,15 @@
 
   function drawSettings() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const anim = state.menuAnim;
+    let pushed = false;
+    if (anim) {
+      const k = Math.max(0, Math.min(1, anim.t / anim.duration));
+      ctx.save();
+      ctx.globalAlpha = k;
+      ctx.translate(0, -(1 - k) * 8);
+      pushed = true;
+    }
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     window.PR_UI.header(ctx, 'SETTINGS', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
@@ -1148,6 +1188,7 @@
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 92, cy, '#385890');
     }
     window.PR_UI.drawText(ctx, 'A/RIGHT: NEXT  LEFT: PREV', x + 8, y + h - 12, '#806040');
+    if (pushed) ctx.restore();
   }
 
   // ---------- Rival duel (PvP-style mirror match) ----------
