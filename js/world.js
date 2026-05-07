@@ -568,6 +568,82 @@
     }
     ctx.restore();
   }
+  // Water reflections: for each visible W tile, look at the tile
+  // directly above; if it's tall, draw a vertically-flipped low-alpha
+  // copy of it into the water cell so the structure 'reflects' on
+  // the surface. Cheapest possible reflection without atlas regen.
+  function drawWaterReflections(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    if (!tiltActive()) return;
+    if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
+    const phaseOffset = Math.sin(performance.now() / 600) * 1; // gentle ripple
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 1 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (row[wx] !== 'W') continue;
+        const aboveRow = m.tiles[wy - 1];
+        if (!aboveRow || wx >= aboveRow.length) continue;
+        const above = aboveRow[wx];
+        if (!isTallTile(above)) continue;
+        const sx = offX + tx * TS;
+        const sy = offY + ty * TS;
+        ctx.save();
+        ctx.globalAlpha = 0.32;
+        // Flip vertically: scale(1,-1) about the tile's TOP edge so
+        // the flipped image sits below it (in the water cell).
+        ctx.translate(sx + phaseOffset, sy + TS);
+        ctx.scale(1, -1);
+        // Paint the tile-above into the flipped frame. drawTileCode
+        // returns false if the atlas has no entry for this code, in
+        // which case nothing renders.
+        window.PR_ATLAS.drawTileCode(ctx, above, 0, 0, { map:m, tx:wx, ty:wy - 1 });
+        ctx.restore();
+      }
+    }
+  }
+  // Tilt-shift bands: blur the top and bottom strips of the rendered
+  // canvas to suggest depth-of-field. Cached offscreen canvas keeps
+  // alloc cost bounded; ctx.filter does the actual blur.
+  let _tiltShiftCache = null;
+  function drawTiltShift(ctx, viewW, viewH) {
+    if (!tiltActive()) return;
+    if (typeof ctx.filter !== 'string') return; // unsupported browser
+    if (!_tiltShiftCache) _tiltShiftCache = document.createElement('canvas');
+    if (_tiltShiftCache.width !== viewW || _tiltShiftCache.height !== viewH) {
+      _tiltShiftCache.width = viewW;
+      _tiltShiftCache.height = viewH;
+    }
+    const oc = _tiltShiftCache.getContext('2d');
+    oc.clearRect(0, 0, viewW, viewH);
+    oc.drawImage(ctx.canvas, 0, 0);
+    ctx.save();
+    ctx.filter = 'blur(1.5px)';
+    ctx.globalAlpha = 0.45;
+    // Top strip
+    ctx.drawImage(_tiltShiftCache, 0, 0, viewW, 36, 0, 0, viewW, 36);
+    // Bottom strip
+    ctx.drawImage(_tiltShiftCache, 0, viewH - 36, viewW, 36, 0, viewH - 36, viewW, 36);
+    ctx.restore();
+  }
+  // Rain particles: slanted streaks falling from off-screen-top to
+  // off-screen-bottom. Rendered via drawBiomeParticles' fog-vs-pixel
+  // dispatch, so they share the same particle pool.
+  function spawnRainParticle(viewW) {
+    return {
+      kind: 'rain',
+      x: Math.random() * (viewW + 80) - 40,
+      y: -12,
+      vx: -40,
+      vy: 280,
+      life: 0.9,
+      maxLife: 0.9,
+      color: 'rgba(180,210,240,0.55)',
+      size: 1,
+      spin: 0
+    };
+  }
   // Footstep dust particles: fade out over time, drift slightly upward.
   // Spawned by World.prototype._spawnDust on step completion when the
   // player lands on a dusty tile (sand, dirt path, gravel). Drawn
@@ -748,6 +824,16 @@
         grad.addColorStop(1, 'rgba(220,224,232,0)');
         ctx.fillStyle = grad;
         ctx.fillRect((p.x - rad) | 0, (p.y - rad) | 0, (rad * 2) | 0, (rad * 2) | 0);
+      } else if (p.kind === 'rain') {
+        // Diagonal 1-px streak from current position back along the
+        // velocity direction. ~6 px tail for visible motion blur.
+        ctx.globalAlpha = fade;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + 0.6, p.y - 5);
+        ctx.stroke();
       } else {
         ctx.globalAlpha = fade;
         ctx.fillStyle = p.color;
@@ -781,6 +867,13 @@
     // next desert.
     this._biomeParticles = [];
     this._biomeSpawnTimer = 0;
+    // Weather state. _rainParticles share lifetime with the map;
+    // _lightningTimer counts down to the next flash, _lightningFlash
+    // is the brief 0..1 fade of the active flash.
+    this._rainParticles = [];
+    this._rainSpawnTimer = 0;
+    this._lightningTimer = 6 + Math.random() * 8;
+    this._lightningFlash = 0;
   }
 
   World.prototype._initAmbient = function() {
@@ -1074,6 +1167,10 @@
     // next desert; new biome will start spawning on the next tick.
     this._biomeParticles = [];
     this._biomeSpawnTimer = 0;
+    this._rainParticles = [];
+    this._rainSpawnTimer = 0;
+    this._lightningTimer = 6 + Math.random() * 8;
+    this._lightningFlash = 0;
     if (this.state.onMapChange) this.state.onMapChange();
     if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('mapchange');
   };
@@ -1239,7 +1336,8 @@
     }
     // Biome ambient particles: tick existing, spawn at a low rate.
     // Active only in DS Diamond mode; reduced-motion users opt out.
-    if (tiltActive() && !(window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion)) {
+    const dsActive = tiltActive() && !(window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion);
+    if (dsActive) {
       tickBiomeParticles(this._biomeParticles, dt);
       const cur = this.currentMap();
       const biome = biomeFor(cur);
@@ -1254,6 +1352,35 @@
     } else if (this._biomeParticles.length) {
       // Snap to empty when the player toggles back to a non-DS preset.
       this._biomeParticles.length = 0;
+    }
+    // Weather tick: rain particles + periodic lightning flash. Map's
+    // `weather` property opts a map into the weather system; only
+    // 'rain' is supported for now. Lightning is part of the rain
+    // package - flash + audio cue every 6-14s.
+    const cur2 = this.currentMap();
+    const rainy = dsActive && cur2 && cur2.weather === 'rain' && !cur2.interior;
+    if (rainy) {
+      tickBiomeParticles(this._rainParticles, dt);
+      this._rainSpawnTimer -= dt;
+      while (this._rainSpawnTimer <= 0 && this._rainParticles.length < 80) {
+        this._rainParticles.push(spawnRainParticle(VIEW_W));
+        this._rainSpawnTimer += 0.04;
+      }
+      this._lightningTimer -= dt;
+      if (this._lightningTimer <= 0) {
+        this._lightningFlash = 1;
+        this._lightningTimer = 6 + Math.random() * 9;
+        if (window.PR_AUDIO && window.PR_AUDIO._internal && window.PR_AUDIO._internal.tone) {
+          const A = window.PR_AUDIO._internal;
+          const t = A.ctx ? A.ctx.currentTime : 0;
+          A.tone(60, t,        0.18, { gain:0.18, type:'sawtooth', bend:0.3 });
+          A.noiseBurst && A.noiseBurst(t + 0.05, 0.30, { gain:0.12, cutoff:1200 });
+        }
+      }
+      if (this._lightningFlash > 0) this._lightningFlash = Math.max(0, this._lightningFlash - dt * 4);
+    } else if (this._rainParticles.length) {
+      this._rainParticles.length = 0;
+      this._lightningFlash = 0;
     }
 
     if (this.anim.moving) {
@@ -1367,6 +1494,11 @@
 
     // Snow caps along the tops of tall tiles in snow-biome maps.
     drawSnowCaps(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
+    // Water reflections: flipped silhouettes of tall tiles directly
+    // above any visible water tile. Drawn before the shimmer so the
+    // sparkles sit on top of the reflection.
+    drawWaterReflections(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
 
     // Animated water shimmer. Subtle 1-2 px sparkles cycling per
     // frame on water tiles; sells movement when the player isn't.
@@ -1512,6 +1644,25 @@
     if (this._biomeParticles && this._biomeParticles.length) {
       drawBiomeParticles(ctx, this._biomeParticles);
     }
+
+    // Rain streaks (active only when current map opts in via
+    // weather:'rain'). Drawn over biome particles so falling rain
+    // sits in front of fog blobs.
+    if (this._rainParticles && this._rainParticles.length) {
+      drawBiomeParticles(ctx, this._rainParticles);
+    }
+
+    // Lightning flash: brief screen-wide white tint that fades over
+    // ~0.25s. Only fires on rainy maps.
+    if (this._lightningFlash > 0) {
+      ctx.fillStyle = 'rgba(255,255,240,' + (0.55 * this._lightningFlash).toFixed(3) + ')';
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    }
+
+    // Tilt-shift band blur: blurs the top and bottom 36 px of the
+    // canvas to suggest depth-of-field. Drawn before vignette so the
+    // vignette darkens the (now-blurred) edges further.
+    if (cur && !cur.interior) drawTiltShift(ctx, VIEW_W, VIEW_H);
 
     // DS Diamond: subtle vignette over the whole world frame (the
     // minimap, clock and banner are drawn after this so they stay

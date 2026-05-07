@@ -1318,7 +1318,7 @@ const MAPS = {
   },
 
   searoute: {
-    id:'searoute', name:'Searoute',
+    id:'searoute', name:'Searoute', weather:'rain',
     tiles: makeWindingTiles({
       fill:'O', pathCode:'t', pathRadius:1,
       path:[[7,0],[7,4],[14,4],[14,10],[9,10],[9,15],[22,15],[22,11],[28,11],[28,20],[18,20],[18,27]],
@@ -1731,6 +1731,7 @@ function applyWorldExpansion(MAPS) {
     if (cfg.encounterZones) map.encounterZones = cfg.encounterZones;
     map.doors = {};
     for (const d of cfg.doors || []) map.doors[d.x + ',' + d.y] = { to:d.to, x:d.tx, y:d.ty };
+    if (cfg.weather) map.weather = cfg.weather;
   }
 
   const rodportBuildings = [
@@ -2223,7 +2224,7 @@ function applyWorldExpansion(MAPS) {
   });
 
   updateRoute('searoute', {
-    fill:'O', pathCode:'t', pathRadius:1, tags:['route','water'],
+    fill:'O', pathCode:'t', pathRadius:1, tags:['route','water'], weather:'rain',
     path:[[24,0],[24,5],[15,5],[15,12],[31,12],[31,17],[18,17],[18,24],[35,24],[35,30],[24,30],[24,37]],
     branches:[
       { points:[[15,12],[7,12],[7,23],[13,23]], code:'u', radius:1 },
