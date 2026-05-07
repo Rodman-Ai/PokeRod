@@ -491,14 +491,14 @@ const MAPS = {
     },
     encounters: [
       { species:'nibblet',     minL:2, maxL:4, weight:5 },
-      { species:'flitwing',    minL:2, maxL:4, weight:4 },
-      { species:'crawlbug',    minL:2, maxL:3, weight:3 },
+      { species:'flitwing',    minL:2, maxL:4, weight:4, time:['day','dawn','dusk'] },
+      { species:'crawlbug',    minL:2, maxL:3, weight:3, time:['day','dawn'] },
       { species:'zapret',      minL:3, maxL:5, weight:2 },
-      { species:'cinderpup',   minL:3, maxL:5, weight:2 },
-      { species:'fernsprout',  minL:3, maxL:5, weight:2 },
+      { species:'cinderpup',   minL:3, maxL:5, weight:2, time:['day','dusk'] },
+      { species:'fernsprout',  minL:3, maxL:5, weight:2, time:['day','dawn','dusk'] },
       { species:'voltkit',     minL:3, maxL:5, weight:2 },
-      { species:'bumblesting', minL:2, maxL:4, weight:2 },
-      { species:'galewing',    minL:3, maxL:5, weight:2 },
+      { species:'bumblesting', minL:2, maxL:4, weight:3, time:['day','dusk'] },
+      { species:'galewing',    minL:3, maxL:5, weight:2, time:['day','dawn','dusk'] },
       { species:'glimkit',     minL:3, maxL:5, weight:1 },
       { species:'geistmite',   minL:3, maxL:5, weight:1 }
     ],
@@ -994,10 +994,10 @@ const MAPS = {
     ],
     encounters: [
       { species:'pebra',     minL:10, maxL:14, weight:5 },
-      { species:'geistmite', minL:10, maxL:14, weight:4 },
-      { species:'cavewing',  minL:10, maxL:14, weight:4 },
+      { species:'geistmite', minL:10, maxL:14, weight:4, time:['night','dusk','dawn'] },
+      { species:'cavewing',  minL:10, maxL:14, weight:4, time:['night','dusk','dawn'] },
       { species:'stoneworm', minL:11, maxL:15, weight:3 },
-      { species:'wraithlet', minL:11, maxL:14, weight:2 },
+      { species:'wraithlet', minL:11, maxL:14, weight:3, time:'night' },
       { species:'rivetbolt', minL:11, maxL:14, weight:2 },
       { species:'crysthorn', minL:12, maxL:15, weight:1 }
     ],
@@ -1037,10 +1037,10 @@ const MAPS = {
     ],
     encounters: [
       { species:'pebra',     minL:14, maxL:18, weight:4 },
-      { species:'geistmite', minL:14, maxL:18, weight:5 },
-      { species:'cavewing',  minL:14, maxL:18, weight:4 },
+      { species:'geistmite', minL:14, maxL:18, weight:5, time:['night','dusk','dawn'] },
+      { species:'cavewing',  minL:14, maxL:18, weight:4, time:['night','dusk','dawn'] },
       { species:'stoneworm', minL:14, maxL:18, weight:3 },
-      { species:'wraithlet', minL:15, maxL:19, weight:3 },
+      { species:'wraithlet', minL:15, maxL:19, weight:4, time:'night' },
       { species:'rivetbolt', minL:15, maxL:19, weight:2 },
       { species:'crysthorn', minL:15, maxL:19, weight:2 }
     ],
