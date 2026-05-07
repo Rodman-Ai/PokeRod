@@ -406,6 +406,7 @@ html, body {
     'dpad abuttons'
     'startsel startsel';
   align-items: end;
+  align-content: end;
   justify-items: center;
   justify-content: center;
   column-gap: clamp(8px, 3vw, 18px);
