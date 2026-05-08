@@ -1922,8 +1922,9 @@
     // readable).
     if (cur && !cur.interior) drawVignette(ctx, VIEW_W, VIEW_H);
 
-    // Minimap pip (small overview top-left).
-    if (!cur.interior) drawMinimap(ctx, cur, this.player.x, this.player.y);
+    // Minimap pip (small overview top-left). Hidden in DS Diamond
+    // because the bottom screen already shows the same minimap.
+    if (!cur.interior && !tiltActive()) drawMinimap(ctx, cur, this.player.x, this.player.y);
 
     // In-game clock (top-right). The phase icon now sits inside the
     // same top-right cluster (drawn by drawWorldClock) so the player
