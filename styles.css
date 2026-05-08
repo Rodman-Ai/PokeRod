@@ -162,6 +162,34 @@ html, body {
   overflow: visible;
   flex: 0 0 auto;
 }
+
+#screen-bottom { display: none; }
+body[data-graphics="ds_diamond"] #app::before { display: none; }
+body[data-graphics="ds_diamond"] #screen { margin: 6px auto 0; }
+body[data-graphics="ds_diamond"] #screen-bottom {
+  display: block;
+  position: relative;
+  width: min(92vw, 720px);
+  aspect-ratio: 2 / 1;
+  margin: 6px auto 8px;
+  padding: 10px 14px 14px;
+  background: var(--bezel-bg);
+  border-radius: 18px 18px 22px 22px;
+  box-shadow:
+    inset 0 0 0 3px var(--bezel-line),
+    inset 0 6px 14px rgba(0,0,0,0.7),
+    0 6px 16px rgba(0,0,0,0.45);
+  flex: 0 0 auto;
+}
+body[data-graphics="ds_diamond"] #game-bottom {
+  width: 100%; height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+  background: #d8e8f8;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #1a0204, 0 0 12px var(--game-glow) inset;
+}
 #screen::after {
   content: 'PR-DOT MATRIX';
   position: absolute;

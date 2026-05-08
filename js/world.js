@@ -1852,4 +1852,5 @@
   };
 
   window.PR_WORLD = { World };
+  window.PR_HUD = { drawMinimap, drawWorldClock, drawPhaseIcon, miniColorFor, phaseForSteps, clockHM };
 })();

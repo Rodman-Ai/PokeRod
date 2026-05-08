@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.33.4';
-  const BUILD = '2026.05.07-98';
+  const VERSION = 'v0.34.0';
+  const BUILD = '2026.05.07-99';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -316,9 +316,9 @@
     finally { ctx.restore(); }
   }
   function render() {
-    if (state.mode === 'title') { withScale2(drawFlash); return; }
-    if (state.mode === 'intro') { withScale2(() => { drawIntro(); drawFlash(); }); return; }
-    if (state.mode === 'battle') { withScale2(() => { state.battle.render(ctx); drawFlash(); }); return; }
+    if (state.mode === 'title') { withScale2(drawFlash); renderBottom(); return; }
+    if (state.mode === 'intro') { withScale2(() => { drawIntro(); drawFlash(); }); renderBottom(); return; }
+    if (state.mode === 'battle') { withScale2(() => { state.battle.render(ctx); drawFlash(); }); renderBottom(); return; }
     state.world.render(ctx);
     withScale2(() => {
       if (state.mode === 'dialog') drawDialog();
@@ -336,6 +336,11 @@
       else if (state.mode === 'starter') drawStarter();
       drawFlash();
     });
+    renderBottom();
+  }
+
+  function renderBottom() {
+    if (window.PR_BOTTOM) window.PR_BOTTOM.render(state);
   }
 
   function drawFlash() {
