@@ -230,11 +230,12 @@ function stampBuilding(grid, b, pathCode, hub) {
   return { x: doorX, y: doorY };
 }
 
-// Paint a themed border ring (thick edge band) into the grid. This
-// gives each town a recognisable silhouette before paths even exist:
-// forest -> 2-tile ring of trees, water -> ring of water on chosen
-// edges, rocks -> rocky outcrops, snow -> snowy pines + bushes,
-// hedge -> formal hedge ring, mixed -> random mix.
+// Paint a themed border ring (edge band) into the grid. Each cell
+// is filled per a deterministic hash so the same town always looks
+// the same. The codes list mixes 'tall' (tree/rock) and 'short'
+// (bush/grass/flower) entries; short ones break up the otherwise
+// gridlike wall and make the border read as natural foliage instead
+// of a fence.
 function applyBorderRing(grid, kind, opts) {
   if (!kind) return;
   opts = opts || {};
@@ -242,15 +243,19 @@ function applyBorderRing(grid, kind, opts) {
   const edges = opts.edges || { north:true, south:true, east:true, west:true };
   const codes = (() => {
     switch (kind) {
-      case 'forest': return ['Y','Y','T','c'];
-      case 'darkforest': return ['G','G','U','V'];
-      case 'pines':  return ['Q','Q','k','Q'];
-      case 'rocks':  return ['(',')','(','(',')'];
-      case 'palms':  return ['O','O','3','c'];
-      case 'hedge':  return ['h','h','c'];
-      case 'birch':  return ['N','N','1','('];
-      case 'autumn': return ['E','E','j','1'];
-      default:       return ['Y','c'];
+      // Tall blocking codes mixed with walkable ground-cover ('c'
+      // flowerbush, '1' flowergrass, 'k' snowybush, 'b' bush) so
+      // the border has rhythm — tree, tree, BUSH, tree, GRASS,
+      // tree — instead of a solid wall.
+      case 'forest':     return ['Y','T','c','Y','b','T','1'];
+      case 'darkforest': return ['G','U','V','c','G','j','b'];
+      case 'pines':      return ['Q','k','Q','2','Q','c'];
+      case 'rocks':      return ['(',')','(','3','(','b'];
+      case 'palms':      return ['O','3','O','c','O','1'];
+      case 'hedge':      return ['h','c','h','1','h'];
+      case 'birch':      return ['N','1','N','(','c','N'];
+      case 'autumn':     return ['E','j','E','1','E','c'];
+      default:           return ['Y','c','1'];
     }
   })();
   const W = CITY_W, H = CITY_H;
@@ -2042,11 +2047,13 @@ function applyWorldExpansion(MAPS) {
       { x:21, y:17, key:'bench_park_brown' },
       { x:28, y:17, key:'bench_park_brown' },
       { x:24, y:14, key:'water_fountain_round' },
-      // Cottage-front pots.
-      { x:6,  y:10, key:'pot_terracotta_red' },
-      { x:9,  y:10, key:'pot_terracotta_red' },
-      { x:15, y:10, key:'pot_painted_yellow' },
-      { x:18, y:10, key:'pot_painted_yellow' },
+      // Cottage-front pots — placed in the gaps between cottages
+      // (not directly under walls) so they read as garden bouquets
+      // instead of items glued to the building.
+      { x:10, y:11, key:'pot_terracotta_red' },
+      { x:11, y:11, key:'pot_painted_yellow' },
+      { x:19, y:11, key:'pot_painted_yellow' },
+      { x:20, y:11, key:'pot_terracotta_red' },
       // Pier oil lamps.
       { x:28, y:22, key:'lamp_oil_brass' },
       { x:32, y:22, key:'lamp_oil_brass' },
@@ -2497,8 +2504,8 @@ function applyWorldExpansion(MAPS) {
     decorations:[
       // ICE SCULPTURE landmark in the south plaza.
       { x:28, y:25, key:'ice_sculpture' },
-      // Paper lanterns lining the lake edge.
-      { x:14, y:18, key:'lamp_paper_lantern' },
+      // Paper lanterns lining the dry edges (not in the lake).
+      { x:18, y:18, key:'lamp_paper_lantern' },
       { x:18, y:27, key:'lamp_paper_lantern' },
       // Lanterns at the inn plaza.
       { x:31, y:13, key:'lamp_paper_lantern' },
@@ -2641,9 +2648,9 @@ function applyWorldExpansion(MAPS) {
       // Pier-wood benches along east pier.
       { x:32, y:21, key:'bench_pier_wood' },
       { x:36, y:21, key:'bench_pier_wood' },
-      // Picnic benches near the gym.
-      { x:17, y:14, key:'bench_picnic_red' },
-      { x:23, y:14, key:'bench_picnic_red' },
+      // Picnic benches in the plaza junction (clear of the gym roof).
+      { x:9,  y:18, key:'bench_picnic_red' },
+      { x:23, y:18, key:'bench_picnic_red' },
       // Herb-box planters at building corners.
       { x:13, y:5,  key:'planter_herb_box' },
       { x:32, y:5,  key:'planter_herb_box' },
@@ -2776,9 +2783,12 @@ function applyWorldExpansion(MAPS) {
       { x:11, y:16, key:'bench_marble_white' },
       { x:32, y:16, key:'bench_marble_white' },
       { x:22, y:11, key:'bench_marble_white' },
-      // Stone benches inside the plaza.
-      { x:20, y:19, key:'bench_stone_grey' },
-      { x:24, y:19, key:'bench_stone_grey' },
+      // Stone benches along the SW + SE diagonals (well clear of
+      // the corner statues so the silhouettes don't overlap).
+      { x:14, y:13, key:'bench_stone_grey' },
+      { x:30, y:13, key:'bench_stone_grey' },
+      { x:14, y:19, key:'bench_stone_grey' },
+      { x:30, y:19, key:'bench_stone_grey' },
       // Zen + marble pots at the entrances.
       { x:21, y:5,  key:'planter_zen_stone' },
       { x:23, y:5,  key:'planter_zen_stone' },
