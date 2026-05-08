@@ -1901,6 +1901,7 @@ function applyWorldExpansion(MAPS) {
     map.npcs = cfg.npcs || [];
     map.ambient = cfg.ambient || [];
     map.decorations = cfg.decorations || [];
+    map.birds = cfg.birds || [];
     map.edges = cfg.edgeDefs || map.edges || {};
     if (cfg.hidden) map.hidden = cfg.hidden;
   }
@@ -1933,6 +1934,7 @@ function applyWorldExpansion(MAPS) {
     map.hidden = cfg.hidden || {};
     map.npcs = cfg.npcs || [];
     map.decorations = cfg.decorations || [];
+    map.birds = cfg.birds || [];
     if (cfg.encounters) map.encounters = cfg.encounters;
     if (cfg.encounterZones) map.encounterZones = cfg.encounterZones;
     map.doors = {};
@@ -2066,7 +2068,18 @@ function applyWorldExpansion(MAPS) {
     ambient:[
       { species:'nibblet', x:16, y:13, range:2 },
       { species:'flitwing', x:34, y:29, range:2 },
-      { species:'glimkit', x:7, y:23, range:2 }
+      { species:'glimkit', x:7, y:23, range:2 },
+      { species:'chicken', x:14, y:14, range:6 },
+      { species:'chicken', x:24, y:18, range:6 },
+      { species:'chicken', x:11, y:23, range:6 }
+    ],
+    birds:[
+      // Home positions chosen near roof tiles or tree clusters.
+      { kind:'sparrow', x:6,  y:6,  range:8 }, // player_house roof
+      { kind:'sparrow', x:15, y:6,  range:8 }, // rival_house roof
+      { kind:'pigeon',  x:25, y:5,  range:8 }, // lab roof
+      { kind:'pigeon',  x:36, y:21, range:8 }, // lighthouse top
+      { kind:'crow',    x:1,  y:3,  range:10 } // forest border
     ],
     edgeDefs:{
       west:{ x:0, to:'desert', tx:46, ty:20, gate:{ minBadges:6, message:'The desert loop is too harsh without six BADGES.' } },
@@ -2187,7 +2200,17 @@ function applyWorldExpansion(MAPS) {
     ambient:[
       { species:'glimkit', x:12, y:16, range:2 },
       { species:'splashfin', x:31, y:14, range:2 },
-      { species:'nibblet', x:8, y:24, range:2 }
+      { species:'nibblet', x:8, y:24, range:2 },
+      { species:'chicken', x:14, y:18, range:6 },
+      { species:'chicken', x:28, y:18, range:6 },
+      { species:'chicken', x:22, y:25, range:6 }
+    ],
+    birds:[
+      { kind:'sparrow', x:7,  y:5,  range:8 },
+      { kind:'sparrow', x:36, y:5,  range:8 },
+      { kind:'pigeon',  x:7,  y:14, range:8 },
+      { kind:'pigeon',  x:36, y:14, range:8 },
+      { kind:'crow',    x:22, y:24, range:10 }
     ],
     edgeDefs:{
       north:{ y:0, to:'route1', tx:24, ty:36 },
@@ -2297,7 +2320,17 @@ function applyWorldExpansion(MAPS) {
     ambient:[
       { species:'sproutling', x:8, y:14, range:3 },
       { species:'crawlbug', x:33, y:16, range:2 },
-      { species:'fernsprout', x:18, y:27, range:2 }
+      { species:'fernsprout', x:18, y:27, range:2 },
+      { species:'chicken', x:14, y:14, range:6 },
+      { species:'chicken', x:28, y:14, range:6 },
+      { species:'chicken', x:22, y:21, range:6 }
+    ],
+    birds:[
+      { kind:'sparrow', x:8,  y:6,  range:8 },
+      { kind:'pigeon',  x:34, y:6,  range:8 },
+      { kind:'pigeon',  x:21, y:16, range:8 }, // ancient oak top
+      { kind:'crow',    x:36, y:18, range:10 },
+      { kind:'sparrow', x:6,  y:18, range:8 }
     ],
     edgeDefs:{
       north:{ y:0, to:'route2', tx:24, ty:36 },
@@ -2417,7 +2450,17 @@ function applyWorldExpansion(MAPS) {
     ambient:[
       { species:'pebra', x:9, y:14, range:2 },
       { species:'geistmite', x:32, y:16, range:2 },
-      { species:'voltkit', x:14, y:25, range:2 }
+      { species:'voltkit', x:14, y:25, range:2 },
+      { species:'chicken', x:18, y:14, range:6 },
+      { species:'chicken', x:18, y:21, range:6 },
+      { species:'chicken', x:28, y:21, range:6 }
+    ],
+    birds:[
+      { kind:'pigeon',  x:7,  y:4,  range:8 },
+      { kind:'pigeon',  x:33, y:4,  range:8 },
+      { kind:'crow',    x:36, y:13, range:10 }, // mining cart area
+      { kind:'sparrow', x:5,  y:14, range:8 },
+      { kind:'crow',    x:22, y:24, range:10 }
     ],
     edgeDefs:{
       north:{ y:0, to:'pebblewood', tx:24, ty:36 },
@@ -2535,7 +2578,17 @@ function applyWorldExpansion(MAPS) {
     ambient:[
       { species:'frostpup', x:8, y:14, range:2 },
       { species:'snowox', x:34, y:17, range:2 },
-      { species:'glimkit', x:18, y:25, range:2 }
+      { species:'glimkit', x:18, y:25, range:2 },
+      { species:'chicken', x:24, y:11, range:6 },
+      { species:'chicken', x:18, y:23, range:6 },
+      { species:'chicken', x:34, y:13, range:6 }
+    ],
+    birds:[
+      { kind:'pigeon',  x:8,  y:5,  range:8 },
+      { kind:'pigeon',  x:34, y:5,  range:8 },
+      { kind:'crow',    x:36, y:18, range:10 },
+      { kind:'crow',    x:22, y:23, range:10 },
+      { kind:'sparrow', x:1,  y:14, range:8 }
     ],
     edgeDefs:{
       north:{ y:0, to:'glimcavern', tx:24, ty:36 },
@@ -2668,7 +2721,17 @@ function applyWorldExpansion(MAPS) {
     ambient:[
       { species:'aquapup', x:10, y:14, range:2 },
       { species:'splashfin', x:34, y:21, range:2 },
-      { species:'mistfin', x:16, y:25, range:2 }
+      { species:'mistfin', x:16, y:25, range:2 },
+      { species:'chicken', x:11, y:14, range:6 },
+      { species:'chicken', x:14, y:18, range:6 },
+      { species:'chicken', x:23, y:18, range:6 }
+    ],
+    birds:[
+      { kind:'pigeon',  x:7,  y:5,  range:8 },
+      { kind:'pigeon',  x:17, y:5,  range:8 },
+      { kind:'crow',    x:40, y:18, range:10 }, // lighthouse top
+      { kind:'sparrow', x:7,  y:14, range:8 },
+      { kind:'sparrow', x:18, y:25, range:8 }   // fish market
     ],
     edgeDefs:{
       north:{ y:0, to:'frostpeak', tx:24, ty:36 },
@@ -2807,7 +2870,17 @@ function applyWorldExpansion(MAPS) {
     ambient:[
       { species:'emberkit', x:11, y:15, range:2 },
       { species:'voltkit', x:34, y:15, range:2 },
-      { species:'glimkit', x:19, y:26, range:2 }
+      { species:'glimkit', x:19, y:26, range:2 },
+      { species:'chicken', x:11, y:11, range:6 },
+      { species:'chicken', x:33, y:11, range:6 },
+      { species:'chicken', x:22, y:23, range:6 }
+    ],
+    birds:[
+      { kind:'pigeon',  x:7,  y:5,  range:8 },
+      { kind:'pigeon',  x:36, y:5,  range:8 },
+      { kind:'crow',    x:22, y:15, range:10 }, // obelisk top
+      { kind:'crow',    x:36, y:14, range:10 },
+      { kind:'sparrow', x:7,  y:14, range:8 }
     ],
     edgeDefs:{
       north:{ y:0, to:'searoute', tx:24, ty:36 },
@@ -2890,6 +2963,12 @@ function applyWorldExpansion(MAPS) {
         [['breezlet',4],['joltlet',4]], 220,
         ["That was a breezy little lesson.","I'll picnic and train some more."])
     ],
+    birds:[
+      { kind:'sparrow', x:8,  y:6,  range:10 },
+      { kind:'sparrow', x:38, y:8,  range:10 },
+      { kind:'crow',    x:24, y:18, range:10 },
+      { kind:'pigeon',  x:14, y:30, range:10 }
+    ],
     edges:{ north:{ y:0, to:'rodport', tx:22, ty:32 }, south:{ y:37, to:'brindale', tx:22, ty:1 } }
   });
 
@@ -2930,6 +3009,12 @@ function applyWorldExpansion(MAPS) {
         [['nibblet',6],['cinderpup',7],['fernsprout',7]], 320,
         ["Guess I packed too light.","At least the flowers are nice."])
     ],
+    birds:[
+      { kind:'sparrow', x:10, y:6,  range:10 },
+      { kind:'pigeon',  x:32, y:8,  range:10 },
+      { kind:'crow',    x:20, y:20, range:10 },
+      { kind:'sparrow', x:36, y:30, range:10 }
+    ],
     edges:{ north:{ y:0, to:'brindale', tx:22, ty:32 }, south:{ y:37, to:'woodfall', tx:22, ty:1 } }
   });
 
@@ -2969,6 +3054,13 @@ function applyWorldExpansion(MAPS) {
         ["Pebblewood opens up if you trust the side trails.","I'll guard this grove with a battle."],
         [['sproutling',9],['bumblesting',10]], 460,
         ["The grove likes you.","Mind your steps near the cavern."])
+    ],
+    birds:[
+      { kind:'sparrow', x:8,  y:6,  range:10 },
+      { kind:'crow',    x:30, y:10, range:10 },
+      { kind:'pigeon',  x:18, y:22, range:10 },
+      { kind:'sparrow', x:38, y:28, range:10 },
+      { kind:'crow',    x:6,  y:32, range:10 }
     ],
     edges:{ north:{ y:0, to:'woodfall', tx:22, ty:32 }, south:{ y:37, to:'crestrock', tx:22, ty:1 } }
   });
@@ -3011,6 +3103,11 @@ function applyWorldExpansion(MAPS) {
         [['pebra',13],['geistmite',13],['stoneworm',14]], 620,
         ["Solid swing.","I'll mark the safer route with chalk."])
     ],
+    birds:[
+      { kind:'crow',    x:10, y:8,  range:10 },
+      { kind:'crow',    x:32, y:12, range:10 },
+      { kind:'sparrow', x:20, y:24, range:10 }
+    ],
     edges:{ north:{ y:0, to:'crestrock', tx:22, ty:32 }, south:{ y:37, to:'frostmere', tx:22, ty:1 } }
   });
 
@@ -3050,6 +3147,12 @@ function applyWorldExpansion(MAPS) {
         ["The snow hides loops, shelves, and shortcuts.","I'll race you with a battle!"],
         [['frostnip',16],['frostpup',17],['snowox',18]], 840,
         ["You carved the cleaner line.","Watch for the ice cave side path."])
+    ],
+    birds:[
+      { kind:'crow',    x:8,  y:6,  range:10 },
+      { kind:'crow',    x:32, y:8,  range:10 },
+      { kind:'pigeon',  x:18, y:18, range:10 },
+      { kind:'sparrow', x:36, y:28, range:10 }
     ],
     edges:{ north:{ y:0, to:'frostmere', tx:22, ty:32 }, south:{ y:37, to:'harborside', tx:22, ty:1 } }
   });
@@ -3091,6 +3194,12 @@ function applyWorldExpansion(MAPS) {
         ["This boardwalk bends with the tide.","Keep your balance and battle!"],
         [['mistfin',21],['splashfin',21],['cavewing',22]], 1180,
         ["You kept your sea legs.","The tide cave is worth a peek."])
+    ],
+    birds:[
+      { kind:'pigeon',  x:8,  y:6,  range:10 },
+      { kind:'pigeon',  x:34, y:10, range:10 },
+      { kind:'sparrow', x:20, y:20, range:10 },
+      { kind:'crow',    x:10, y:30, range:10 }
     ],
     edges:{ north:{ y:0, to:'harborside', tx:22, ty:32 }, south:{ y:37, to:'summitvale', tx:22, ty:1 } }
   });

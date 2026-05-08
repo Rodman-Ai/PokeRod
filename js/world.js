@@ -20,9 +20,9 @@
   const CYCLE_STEPS = 320;
   const ANCHOR_TINTS = [
     { at:0,   name:'day',   r:0,   g:0,   b:0,   a:0    },
-    { at:80,  name:'dusk',  r:240, g:140, b:40,  a:0.20 },
-    { at:160, name:'night', r:20,  g:30,  b:80,  a:0.40 },
-    { at:240, name:'dawn',  r:255, g:180, b:140, a:0.18 }
+    { at:80,  name:'dusk',  r:240, g:120, b:50,  a:0.30 },
+    { at:160, name:'night', r:14,  g:22,  b:62,  a:0.62 },
+    { at:240, name:'dawn',  r:255, g:170, b:130, a:0.26 }
   ];
   function phaseForSteps(s) {
     // Snap to the nearest anchor for callers that branch on phase
@@ -556,12 +556,12 @@
         const cy = tileY + TS / 2;
         if (code === '|' || code === 'I') {
           // Streetlamp: tall halo from the head of the lamp downward.
-          drawGlow(ctx, cx, cy - 4, TS * 1.05, 'rgba(255,224,128,1)', 0.32 * nFactor);
+          drawGlow(ctx, cx, cy - 4, TS * 1.15, 'rgba(255,224,128,1)', 0.42 * nFactor);
         } else if (code === '[' || code === ']') {
           // Window: halo centered on the actual glass pane (off-tile-center).
           const gx = tileX + (code === '[' ? 23 : 9);
           const gy = tileY + 15;
-          drawGlow(ctx, gx, gy, TS * 0.55, 'rgba(255,232,144,1)', 0.22 * nFactor);
+          drawGlow(ctx, gx, gy, TS * 0.70, 'rgba(255,232,144,1)', 0.42 * nFactor);
         }
       }
     }
@@ -582,8 +582,8 @@
         const cy = sy + TS / 2 - 4;
         // Big lamps (streetlamps + lanterns) glow further than table/floor lamps.
         const big = d.key.indexOf('streetlamp_') === 0 || d.key.indexOf('lantern') >= 0 || d.key === 'lamp_floor_tall';
-        const radius = big ? TS * 1.05 : TS * 0.7;
-        const alpha = (big ? 0.30 : 0.20) * nFactor;
+        const radius = big ? TS * 1.15 : TS * 0.80;
+        const alpha = (big ? 0.38 : 0.28) * nFactor;
         drawGlow(ctx, cx, cy, radius, 'rgba(255,224,128,1)', alpha);
       }
     }
@@ -592,7 +592,7 @@
     // golden pane rather than a pure additive bloom.
     if (nFactor < 0.1) return;
     ctx.save();
-    ctx.fillStyle = 'rgba(255,232,144,' + (0.32 * nFactor).toFixed(3) + ')';
+    ctx.fillStyle = 'rgba(255,232,144,' + (0.55 * nFactor).toFixed(3) + ')';
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -1108,6 +1108,8 @@
     this._ambient = [];
     this._initAmbient();
     this._initNpcWander();
+    this._birds = [];
+    this._initBirds();
     this.follower = null;
     this._resetFollower();
     this._dust = [];
@@ -1145,6 +1147,123 @@
         nextDelay: 1.5 + Math.random() * 2,
         frame: 0, frameTimer: 0
       });
+    }
+  };
+
+  // Bird wildlife. Birds perch on roofs / trees (non-walkable
+  // tiles) and periodically fly to a new perch within `range`.
+  // m.birds = [{ kind:'sparrow'|'pigeon'|'crow', x, y, range }].
+  const PERCH_TILES = 'TYOKJQNUVEG+-=*%&78PMghn';
+  World.prototype._isPerchable = function(x, y) {
+    const m = this.currentMap();
+    if (!m || !m.tiles) return false;
+    if (y < 0 || y >= m.tiles.length) return false;
+    const row = m.tiles[y];
+    if (!row || x < 0 || x >= row.length) return false;
+    const code = row[x];
+    return PERCH_TILES.indexOf(code) >= 0;
+  };
+  World.prototype._initBirds = function() {
+    const m = this.currentMap();
+    this._birds = [];
+    if (!m || !m.birds) return;
+    for (const b of m.birds) {
+      // If the configured home tile isn't perchable, scan outward
+      // (Manhattan radius) for the nearest perchable tile so the
+      // bird doesn't spawn floating on a path or grass.
+      let hx = b.x, hy = b.y;
+      if (!this._isPerchable(hx, hy)) {
+        const r = b.range || 8;
+        outer: for (let d = 1; d <= r; d++) {
+          for (let dy = -d; dy <= d; dy++) {
+            for (let dx = -d; dx <= d; dx++) {
+              if (Math.abs(dx) + Math.abs(dy) !== d) continue;
+              if (this._isPerchable(b.x + dx, b.y + dy)) {
+                hx = b.x + dx; hy = b.y + dy;
+                break outer;
+              }
+            }
+          }
+        }
+      }
+      this._birds.push({
+        kind: b.kind || 'sparrow',
+        x: hx, y: hy,
+        homeX: hx, homeY: hy,
+        range: b.range || 8,
+        mode: 'perched',
+        perchTimer: 2 + Math.random() * 6,
+        anim: { moving:false, t:0, duration:1.2,
+                fromX:hx, fromY:hy, toX:hx, toY:hy },
+        flapTimer: 0, flapFrame: 0
+      });
+    }
+  };
+  World.prototype._updateBirds = function(dt) {
+    if (!this._birds || !this._birds.length) return;
+    for (const b of this._birds) {
+      b.flapTimer += dt;
+      const flapRate = b.mode === 'flying' ? 0.08 : 0.45;
+      if (b.flapTimer > flapRate) { b.flapTimer = 0; b.flapFrame ^= 1; }
+      if (b.mode === 'flying') {
+        b.anim.t += dt;
+        if (b.anim.t >= b.anim.duration) {
+          b.x = b.anim.toX; b.y = b.anim.toY;
+          b.anim.moving = false;
+          b.mode = 'perched';
+          b.perchTimer = 4 + Math.random() * 8;
+        }
+        continue;
+      }
+      // Perched — countdown to next flight.
+      b.perchTimer -= dt;
+      if (b.perchTimer > 0) continue;
+      // Try a few random perch tiles within range, fly to first that
+      // is perchable and not the current spot.
+      const tries = 12;
+      let target = null;
+      for (let i = 0; i < tries; i++) {
+        const dx = Math.floor(Math.random() * (b.range * 2 + 1)) - b.range;
+        const dy = Math.floor(Math.random() * (b.range * 2 + 1)) - b.range;
+        const nx = b.homeX + dx, ny = b.homeY + dy;
+        if (nx === b.x && ny === b.y) continue;
+        if (!this._isPerchable(nx, ny)) continue;
+        target = { x: nx, y: ny };
+        break;
+      }
+      if (!target) {
+        b.perchTimer = 1 + Math.random() * 2;
+        continue;
+      }
+      b.mode = 'flying';
+      b.anim.moving = true;
+      b.anim.t = 0;
+      b.anim.duration = 0.9 + Math.random() * 0.5;
+      b.anim.fromX = b.x; b.anim.fromY = b.y;
+      b.anim.toX = target.x; b.anim.toY = target.y;
+    }
+  };
+  World.prototype._renderBirds = function(ctx, camX, camY) {
+    if (!this._birds || !this._birds.length) return;
+    const atlas = window.PR_ATLAS;
+    if (!atlas || !atlas.isReady()) return;
+    for (const b of this._birds) {
+      let bx = b.x, by = b.y;
+      let liftY = 0;
+      if (b.mode === 'flying') {
+        const k = Math.min(1, b.anim.t / b.anim.duration);
+        bx = b.anim.fromX + (b.anim.toX - b.anim.fromX) * k;
+        by = b.anim.fromY + (b.anim.toY - b.anim.fromY) * k;
+        // Parabolic lift: sin gives 0 at endpoints, peaks at mid-flight.
+        liftY = -10 * Math.sin(k * Math.PI);
+      }
+      const sx = bx * TS - camX;
+      const sy = by * TS - camY + liftY;
+      if (sx < -TS || sx > VIEW_W + TS || sy < -TS || sy > VIEW_H + TS) continue;
+      const key = 'decor_wildlife_' + b.kind + '_' + (b.mode === 'flying'
+        ? 'flying'
+        : (b.flapFrame ? 'perched' : 'perched')); // perched anim reuses single sprite
+      atlas.drawKey(ctx, key, sx, sy);
     }
   };
 
@@ -1501,6 +1620,7 @@
     this.justEntered = true;
     this._initAmbient();
     this._initNpcWander();
+    this._initBirds();
     this._resetFollower();
     // Reset biome particles so a forest's leaves don't drift into the
     // next desert; new biome will start spawning on the next tick.
@@ -1675,6 +1795,8 @@
     }
     try { this._updateNpcWander(dt); }
     catch (err) { console.error('[PokeRod] npc wander tick error:', err); }
+    try { this._updateBirds(dt); }
+    catch (err) { console.error('[PokeRod] bird tick error:', err); }
     this._updateFollower(dt);
 
     if (this._dust && this._dust.length) tickDust(this._dust, dt);
@@ -1912,6 +2034,11 @@
       }
     }
 
+    // Wildlife birds — perch on roofs/trees, occasionally fly.
+    // Drawn after decorations / before ambient creatures so the
+    // player walks in front of low-perched birds.
+    this._renderBirds(ctx, camX, camY);
+
     // Ambient roaming creatures (drawn under NPCs/player).
     for (const a of this._ambient) {
       let ax = a.x, ay = a.y;
@@ -1926,10 +2053,20 @@
       const bob = a.anim.moving
         ? -Math.round(Math.sin(Math.min(1, a.anim.t / a.anim.duration) * Math.PI))
         : (a.frame ? -1 : 0);
-      const cdx = sx - 2, cdy = sy - 4 + bob;
-      withTilt(ctx, cdx, cdy, 20, 20, () => {
-        window.PR_MONS.drawCreature(ctx, a.species, cdx, cdy, 20, false);
-      });
+      // Chickens use the NPC character pipeline (4 dirs × 2 frames)
+      // instead of the creature renderer; everything else falls
+      // through to the existing PR_MONS.drawCreature path.
+      if (a.species === 'chicken') {
+        const sxC = sx + bob, syC = sy + bob;
+        withTilt(ctx, sxC, syC, TS, TS, () => {
+          window.PR_CHARS.drawNpc(ctx, sxC, syC, 'chicken', a.dir || 'down', a.frame || 0);
+        });
+      } else {
+        const cdx = sx - 2, cdy = sy - 4 + bob;
+        withTilt(ctx, cdx, cdy, 20, 20, () => {
+          window.PR_MONS.drawCreature(ctx, a.species, cdx, cdy, 20, false);
+        });
+      }
     }
 
     // NPCs

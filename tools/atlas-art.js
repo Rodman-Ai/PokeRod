@@ -3320,6 +3320,71 @@
     px(c, x + 24, y + 8, 1, 12, '#382010');
   });
 
+  // === WILDLIFE BIRDS ================================================
+  // Six small (16-22px) sprites: each kind has a perched + flying
+  // variant. Drawn into the lower-right of the 32x32 cell so they sit
+  // visually on top of a tile (roof or tree) when stacked at the same
+  // grid coordinate as the perch.
+  function birdBody(c, x, y, body, head, beak, wing, eye) {
+    // Perched silhouette: body 8x6 with a small head bump and tail.
+    px(c, x + 14, y + 16, 4, 6, body);             // tail
+    px(c, x + 11, y + 14, 8, 6, body);             // body
+    px(c, x + 11, y + 14, 8, 1, wing);             // back highlight
+    px(c, x + 17, y + 12, 3, 4, head);             // head
+    px(c, x + 19, y + 13, 1, 1, eye);              // eye
+    px(c, x + 20, y + 13, 1, 1, beak);             // beak
+    // Wing fold.
+    px(c, x + 13, y + 16, 3, 2, wing);
+    // Outline pass.
+    px(c, x + 10, y + 14, 1, 6, '#1a1a1a');
+    px(c, x + 19, y + 14, 1, 4, '#1a1a1a');
+    px(c, x + 11, y + 13, 7, 1, '#1a1a1a');
+    px(c, x + 11, y + 20, 8, 1, '#1a1a1a');
+    px(c, x + 17, y + 11, 3, 1, '#1a1a1a');
+    px(c, x + 21, y + 13, 1, 1, '#1a1a1a');
+    // Feet.
+    px(c, x + 13, y + 21, 1, 1, '#1a1a1a');
+    px(c, x + 16, y + 21, 1, 1, '#1a1a1a');
+  }
+  function birdFlying(c, x, y, body, head, wingTop, wingTip, beak, eye) {
+    // Wings spread (M-shape from above), body in the middle.
+    px(c, x + 13, y + 14, 6, 4, body);
+    px(c, x + 18, y + 13, 3, 3, head);
+    px(c, x + 20, y + 14, 1, 1, eye);
+    px(c, x + 21, y + 14, 1, 1, beak);
+    // Left wing (sweeping up-left).
+    px(c, x + 9,  y + 12, 2, 2, wingTip);
+    px(c, x + 11, y + 13, 2, 2, wingTop);
+    // Right wing (sweeping up-right).
+    px(c, x + 19, y + 12, 2, 2, wingTip);
+    px(c, x + 17, y + 13, 2, 2, wingTop);
+    // Outline.
+    px(c, x + 12, y + 14, 1, 4, '#1a1a1a');
+    px(c, x + 19, y + 14, 1, 3, '#1a1a1a');
+    px(c, x + 13, y + 13, 6, 1, '#1a1a1a');
+    px(c, x + 13, y + 18, 6, 1, '#1a1a1a');
+    px(c, x + 18, y + 12, 3, 1, '#1a1a1a');
+    px(c, x + 22, y + 14, 1, 1, '#1a1a1a');
+    // Tail.
+    px(c, x + 11, y + 16, 1, 2, body);
+    px(c, x + 10, y + 17, 1, 1, '#1a1a1a');
+  }
+  // Sparrow — small brown with white belly.
+  regDecor('wildlife_sparrow_perched', TILE, TILE, (c, x, y) =>
+    birdBody(c, x, y, '#a06038', '#604028', '#f0c020', '#f0d8b0', '#1a1a1a'));
+  regDecor('wildlife_sparrow_flying', TILE, TILE, (c, x, y) =>
+    birdFlying(c, x, y, '#a06038', '#604028', '#a06038', '#604028', '#f0c020', '#1a1a1a'));
+  // Pigeon — grey with white head splash.
+  regDecor('wildlife_pigeon_perched', TILE, TILE, (c, x, y) =>
+    birdBody(c, x, y, '#8898a8', '#a8b8c8', '#d8a838', '#c8d8e8', '#1a1a1a'));
+  regDecor('wildlife_pigeon_flying', TILE, TILE, (c, x, y) =>
+    birdFlying(c, x, y, '#8898a8', '#a8b8c8', '#8898a8', '#586878', '#d8a838', '#1a1a1a'));
+  // Crow — black silhouette with deep purple sheen.
+  regDecor('wildlife_crow_perched', TILE, TILE, (c, x, y) =>
+    birdBody(c, x, y, '#181820', '#101018', '#383028', '#3a3848', '#f0c020'));
+  regDecor('wildlife_crow_flying', TILE, TILE, (c, x, y) =>
+    birdFlying(c, x, y, '#181820', '#101018', '#101018', '#383848', '#383028', '#f0c020'));
+
   // ------------------------------------------------------------------
   // === CHARACTERS ===================================================
   // 32x32 trainer-style sprites with outlined silhouette, multi-tone
@@ -3835,6 +3900,88 @@
     }
     // Pokeball pickup.
     regChar('ball', drawBallSprite);
+    // Wandering chickens — registered with the same 4-dir × 2-frame
+    // shape as NPCs so the existing character render path works
+    // unchanged. drawChicken bypasses the humanoid drawHead/drawBody.
+    // Convention: spriteKey() in js/sprites_chars.js swaps left↔right
+    // at lookup time (atlas was generated with side sprite facing
+    // right-by-default), so the `_left_` keys must contain the
+    // right-facing pose and vice versa.
+    for (let f = 0; f < 2; f++) {
+      regChar('chicken_down_'  + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'down'))(f));
+      regChar('chicken_up_'    + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'up'))(f));
+      regChar('chicken_left_'  + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'right'))(f));
+      regChar('chicken_right_' + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'left'))(f));
+    }
+  }
+
+  // Standalone chicken sprite — plump white body, red comb,
+  // yellow beak/feet. Two frames simulate a small step.
+  function drawChicken(c, x, y, frame, dir) {
+    const f = frame & 1;
+    const body = '#fff8e8';
+    const shade = '#d8c8a8';
+    const comb = '#e83838';
+    const beak = '#f0c020';
+    const eye = '#1a1a1a';
+    const out = '#1a1a1a';
+    // Body: 14x10 oval-ish, centred bottom-2/3 of cell.
+    px(c, x + 9,  y + 16, 14, 10, body);
+    px(c, x + 9,  y + 16, 14, 1, '#ffffff');
+    px(c, x + 9,  y + 25, 14, 1, shade);
+    px(c, x + 8,  y + 17, 1, 8, out);
+    px(c, x + 23, y + 17, 1, 8, out);
+    px(c, x + 9,  y + 16, 14, 1, out);
+    px(c, x + 9,  y + 26, 14, 1, out);
+    // Wing dimple on the side.
+    px(c, x + 13, y + 19, 5, 3, shade);
+    // Tail feather flick — alternates per frame.
+    const tx = (dir === 'right') ? x + 6 : x + 22;
+    const tdir = (dir === 'right') ? -1 : 1;
+    px(c, tx, y + 14, 4, 2, body);
+    px(c, tx, y + 14, 4, 1, out);
+    px(c, tx, y + 16, 4, 1, out);
+    px(c, tx + (tdir < 0 ? 0 : 3), y + 14, 1, 2, out);
+    // Head + comb position depends on facing.
+    let hx = x + 17, hy = y + 9;
+    if (dir === 'left')  { hx = x + 9;  }
+    if (dir === 'right') { hx = x + 17; }
+    if (dir === 'up')    { hy = y + 8; }
+    px(c, hx, hy, 6, 7, body);
+    px(c, hx, hy, 6, 1, out);
+    px(c, hx, hy + 6, 6, 1, out);
+    px(c, hx, hy + 1, 1, 5, out);
+    px(c, hx + 5, hy + 1, 1, 5, out);
+    // Comb on top.
+    px(c, hx + 1, hy - 2, 4, 2, comb);
+    px(c, hx + 1, hy - 2, 1, 1, comb);
+    px(c, hx + 3, hy - 2, 1, 1, comb);
+    // Beak.
+    if (dir === 'left') {
+      px(c, hx - 2, hy + 3, 2, 2, beak);
+      px(c, hx + 2, hy + 2, 1, 1, eye);
+    } else if (dir === 'right') {
+      px(c, hx + 6, hy + 3, 2, 2, beak);
+      px(c, hx + 3, hy + 2, 1, 1, eye);
+    } else if (dir === 'up') {
+      // Beak hidden behind comb when facing away — show comb only.
+      px(c, hx + 2, hy + 2, 2, 1, eye);
+    } else {
+      px(c, hx + 2, hy + 5, 2, 2, beak);
+      px(c, hx + 1, hy + 2, 1, 1, eye);
+      px(c, hx + 4, hy + 2, 1, 1, eye);
+    }
+    // Feet — two yellow stick legs that swap per frame.
+    const legY = y + 27;
+    if (f === 0) {
+      px(c, x + 12, legY, 1, 3, beak);
+      px(c, x + 18, legY, 1, 3, beak);
+    } else {
+      px(c, x + 13, legY, 1, 3, beak);
+      px(c, x + 19, legY, 1, 3, beak);
+    }
+    px(c, x + 11, legY + 3, 3, 1, beak);
+    px(c, x + 17, legY + 3, 3, 1, beak);
   }
 
   function drawBallSprite(c, x, y) {

@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.39.1';
-  const BUILD = '2026.05.08-109';
+  const VERSION = 'v0.40.0';
+  const BUILD = '2026.05.08-110';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -153,7 +153,10 @@
 
   function startNewGame() {
     window.PR_SAVE.clear();
-    state.player = { name:'YOU', map:'rodport', x:8, y:9, dir:'down', money:500, balls:5, steps:0,
+    // Spawn on the cottage-row path just south of player_house's
+    // door tile in the post-redesign rodport (player_house is at
+    // x:3,y:6,w:7 with door at (6,9) → walkable spur at (6,11)).
+    state.player = { name:'YOU', map:'rodport', x:6, y:11, dir:'down', money:500, balls:5, steps:0,
                      bag: { rodball:5, potion:3, antidote:1, oranberry:1 },
                      equipment: { trinket: null },
                      stats: { battlesWon:0, catches:0 } };
