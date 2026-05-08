@@ -213,27 +213,47 @@
   function tiltActive() {
     return window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond';
   }
-  // Soft elliptical drop shadow with a radial-gradient falloff so the
-  // shadow has a dark centre and feathers out to nothing at the edge.
-  // Saving + scaling lets us reuse the radial-gradient API for an
-  // ellipse without a separate ellipse gradient API.
+  // Soft elliptical drop shadow with a radial-gradient falloff. Two
+  // layers (tight inner core + softer outer halo) give an
+  // atmospheric-looking shadow without doubling cost. opts.offsetX /
+  // offsetY shift the shadow center in the sun-projection direction;
+  // opts.lengthScale stretches the major axis so shadows elongate at
+  // low sun; opts.alphaScale fades them out at deep night.
   function drawShadow(ctx, cx, by, w, opts) {
     opts = opts || {};
-    const r = Math.max(2, w * (opts.rxScale || 0.42));
+    const ox = opts.offsetX || 0;
+    const oy = opts.offsetY || 0;
+    const len = opts.lengthScale != null ? opts.lengthScale : 1;
+    const aMul = opts.alphaScale != null ? opts.alphaScale : 1;
+    const r = Math.max(2, w * (opts.rxScale || 0.42) * len);
     const ry = Math.max(2, w * (opts.ryScale || 0.14));
-    const cAlpha = opts.centerAlpha != null ? opts.centerAlpha : 0.45;
+    const cAlpha = (opts.centerAlpha != null ? opts.centerAlpha : 0.45) * aMul;
+    if (cAlpha <= 0.01) return;
     const colorBase = opts.color || '0,0,0';
-    const grad = ctx.createRadialGradient(cx, by, 0, cx, by, r);
-    grad.addColorStop(0, 'rgba(' + colorBase + ',' + cAlpha + ')');
-    grad.addColorStop(0.65, 'rgba(' + colorBase + ',' + (cAlpha * 0.4) + ')');
-    grad.addColorStop(1, 'rgba(' + colorBase + ',0)');
+    const sx = cx + ox, sy = by + oy;
     ctx.save();
-    ctx.translate(cx, by);
+    ctx.translate(sx, sy);
     ctx.scale(1, ry / r);
-    ctx.translate(-cx, -by);
+    ctx.translate(-sx, -sy);
+    // Outer halo — wider, very soft. Goes first so the inner core
+    // paints over it without lightening from the gradient overlap.
+    const haloR = r * 1.32;
+    const haloGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, haloR);
+    haloGrad.addColorStop(0,   'rgba(' + colorBase + ',' + (cAlpha * 0.30) + ')');
+    haloGrad.addColorStop(0.6, 'rgba(' + colorBase + ',' + (cAlpha * 0.12) + ')');
+    haloGrad.addColorStop(1,   'rgba(' + colorBase + ',0)');
+    ctx.fillStyle = haloGrad;
+    ctx.beginPath();
+    ctx.arc(sx, sy, haloR, 0, Math.PI * 2);
+    ctx.fill();
+    // Inner core — tighter, darker.
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
+    grad.addColorStop(0,    'rgba(' + colorBase + ',' + cAlpha + ')');
+    grad.addColorStop(0.55, 'rgba(' + colorBase + ',' + (cAlpha * 0.55) + ')');
+    grad.addColorStop(1,    'rgba(' + colorBase + ',0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(cx, by, r, 0, Math.PI * 2);
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -243,7 +263,7 @@
   // sprite base. The drop shadow alone keeps the 2.5D 'grounded' feel.
   function withTilt(ctx, sx, sy, sw, sh, draw) {
     if (!tiltActive()) { draw(); return; }
-    drawShadow(ctx, sx + sw / 2, sy + sh - 1, sw);
+    drawShadow(ctx, sx + sw / 2, sy + sh - 1, sw, spriteShadowOpts());
     draw();
   }
   // Tall-tile shadow: drops a soft elliptical shadow at the base of
@@ -278,11 +298,36 @@
     if (SHADOW_CASTER_ROCKS.indexOf(code) !== -1) return true;
     return false;
   }
-  // Per-phase shadow tint: warm at sunset, cool at midnight, neutral
-  // at noon. Reads as the sun shifting through the sky.
+  // Per-phase shadow tint AND sun vector. The cycle starts at noon
+  // (step 0) so:
+  //   t=0   noon       — sun overhead, short shadow, no x-offset
+  //   t=80  sunset     — sun west, long shadow, +x offset (eastward)
+  //   t=160 midnight   — no sun, alphaScale -> 0
+  //   t=240 sunrise    — sun east, long shadow, -x offset (westward)
+  // offsetY is always positive (shadow projects toward bottom of
+  // screen, matching the 2.5D top-down camera convention). lengthScale
+  // is the rx multiplier — short at noon, long at low sun.
   function phaseShadowOpts(steps) {
     const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
-    let opts = { rxScale: 0.42, ryScale: 0.13, centerAlpha: 0.32, color: '0,0,0' };
+    // sunHeight: 1 at noon, 0 at midnight, ~0.4 at dusk/dawn.
+    // Use cosine over the full cycle so the curve is smooth.
+    const phase = (t / CYCLE_STEPS) * Math.PI * 2; // 0 at noon, PI at midnight
+    const sunHeight = Math.max(0, Math.cos(phase));   // 1 noon -> 0 night
+    // sunAzimuth: sin(phase). Negative in morning (sun east), positive
+    // in afternoon (sun west). Multiply by 2.4 px to bias the shadow
+    // east (-) or west (+) accordingly. Capped to small values so
+    // sprites don't drift too far from their feet.
+    const azim = Math.sin(phase);
+    const opts = {
+      rxScale: 0.42,
+      ryScale: 0.13,
+      centerAlpha: 0.36,
+      color: '0,0,0',
+      offsetX: -azim * 2.4,                 // -ve early, +ve late
+      offsetY: 1 + (1 - sunHeight) * 4,     // 1 at noon, 5 at low sun
+      lengthScale: 0.85 + (1 - sunHeight) * 0.95,  // 0.85 noon, 1.8 dusk
+      alphaScale: 0.25 + sunHeight * 0.85   // 0.25 night, 1.10 noon
+    };
     // dusk band (60..100): warm
     if (t > 60 && t < 100) opts.color = '40,10,30';
     // night (140..180): cool
@@ -290,6 +335,15 @@
     // dawn (220..260): warm-ish
     else if (t > 220 && t < 260) opts.color = '40,16,30';
     return opts;
+  }
+  // Sprite-style shadow under a billboard tile: pulls the latest sun
+  // vector so player / NPC / ambient / follower shadows all follow the
+  // same direction as tall-tile and decoration shadows. Stored on the
+  // World instance so we recompute once per frame, not per sprite.
+  function spriteShadowOpts() {
+    const game = window.PR_GAME && window.PR_GAME.state;
+    const steps = (game && game.player && game.player.steps) || 0;
+    return phaseShadowOpts(steps);
   }
   function drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
     if (!tiltActive()) return;
@@ -309,6 +363,112 @@
         drawShadow(ctx, cx, by, TS, opts);
       }
     }
+  }
+
+  // Per-decoration-key shadow shape. Returns null for items that
+  // shouldn't cast a shadow (rugs, wall mounts, hanging items).
+  function decorShadowSpec(key) {
+    if (!key) return null;
+    if (key.indexOf('rug_') === 0) return null;
+    if (key.indexOf('wall_') === 0) return null;
+    if (key.indexOf('picture_frame') === 0) return null;
+    if (key.indexOf('lamp_') === 0 || key.indexOf('streetlamp_') === 0 || key.indexOf('paper_lantern') >= 0 || key.indexOf('lantern') >= 0) {
+      return { rxScale: 0.30, ryScale: 0.10, alphaBoost: 1.10 };
+    }
+    if (key === 'pedestal_statue' || key === 'water_fountain_round' || key === 'wishing_well' || key.indexOf('pod_') === 0) {
+      return { rxScale: 0.46, ryScale: 0.16, alphaBoost: 1.0 };
+    }
+    if (key.indexOf('bench_') === 0 || key.indexOf('bed_') === 0 || key.indexOf('table_') === 0 || key.indexOf('display_') === 0 || key.indexOf('shelf_') === 0) {
+      return { rxScale: 0.50, ryScale: 0.13, alphaBoost: 0.9 };
+    }
+    if (key.indexOf('pot_') === 0 || key.indexOf('planter_') === 0 || key.indexOf('trash_') === 0) {
+      return { rxScale: 0.32, ryScale: 0.13, alphaBoost: 0.95 };
+    }
+    if (key.indexOf('vending_') === 0 || key.indexOf('bus_stop') === 0 || key.indexOf('sign_') === 0 || key === 'parking_meter' || key === 'bollard' || key === 'bike_rack' || key === 'street_clock') {
+      return { rxScale: 0.36, ryScale: 0.12, alphaBoost: 1.0 };
+    }
+    // Fall back to a small generic ground-plant shadow for unknown
+    // keys that aren't explicitly excluded.
+    return { rxScale: 0.34, ryScale: 0.12, alphaBoost: 0.9 };
+  }
+  function drawDecorationShadows(ctx, m, offX, offY, startTx, startTy, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    if (!m.decorations || !m.decorations.length) return;
+    const baseOpts = phaseShadowOpts(steps);
+    for (const d of m.decorations) {
+      const spec = decorShadowSpec(d.key);
+      if (!spec) continue;
+      const tx = d.x - startTx, ty = d.y - startTy;
+      if (tx < -1 || tx > viewTx + 1 || ty < -1 || ty > viewTy + 1) continue;
+      const cx = offX + tx * TS + TS / 2;
+      const by = offY + ty * TS + TS - 3;
+      drawShadow(ctx, cx, by, TS, {
+        rxScale: spec.rxScale,
+        ryScale: spec.ryScale,
+        centerAlpha: (baseOpts.centerAlpha || 0.36) * (spec.alphaBoost || 1),
+        color: baseOpts.color,
+        offsetX: baseOpts.offsetX,
+        offsetY: baseOpts.offsetY,
+        lengthScale: baseOpts.lengthScale,
+        alphaScale: baseOpts.alphaScale
+      });
+    }
+  }
+  // Building-base shadow strip: rectangular soft strip painted on
+  // the ground tile directly south of any structural tile (wall,
+  // roof, door, window, fence). Replaces the old round 'puddle'
+  // shadow under buildings (PR #19) with the architectural projection
+  // a real DS game would draw.
+  function isStructuralTile(props) {
+    if (!props) return false;
+    if (props.walk) return false;
+    const n = props.name || '';
+    if (n.indexOf('roof') >= 0) return true;
+    if (n.indexOf('wall') >= 0) return true;
+    if (n.indexOf('door') >= 0) return true;
+    if (n.indexOf('window') >= 0) return true;
+    if (n.indexOf('fence') >= 0) return true;
+    if (n === 'mart' || n === 'center' || n === 'healer' || n === 'counter') return true;
+    return false;
+  }
+  function drawBuildingShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    const baseOpts = phaseShadowOpts(steps);
+    // Skip in deep night — no sun, no architectural shadow.
+    if ((baseOpts.alphaScale || 0) < 0.25) return;
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS;
+    if (!props) return;
+    // Strip height grows from 3px at noon to 9px at low sun.
+    // baseOpts.lengthScale ranges 0.85..1.8, so this lerps 3..9.
+    const stripH = Math.max(2, Math.min(10, 1.5 + (baseOpts.lengthScale || 1) * 4));
+    const alpha = 0.30 * (baseOpts.alphaScale || 1);
+    if (alpha < 0.04) return;
+    const colorBase = baseOpts.color || '0,0,0';
+    ctx.save();
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length - 1) continue;
+        const row = m.tiles[wy];
+        const below = m.tiles[wy + 1];
+        if (!row || !below) continue;
+        if (wx < 0 || wx >= row.length || wx >= below.length) continue;
+        const here = props[row[wx]];
+        const beneath = props[below[wx]];
+        if (!isStructuralTile(here)) continue;
+        if (!beneath || !beneath.walk) continue;
+        // Paint a soft rectangular strip on the ground tile beneath.
+        const sx = offX + tx * TS + 1;
+        const baseY = offY + (ty + 1) * TS;
+        const grad = ctx.createLinearGradient(0, baseY, 0, baseY + stripH);
+        grad.addColorStop(0,    'rgba(' + colorBase + ',' + alpha.toFixed(3) + ')');
+        grad.addColorStop(0.55, 'rgba(' + colorBase + ',' + (alpha * 0.55).toFixed(3) + ')');
+        grad.addColorStop(1,    'rgba(' + colorBase + ',0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(sx, baseY, TS - 2, stripH);
+      }
+    }
+    ctx.restore();
   }
   // Soft vignette applied at the very end of overworld render. Subtle
   // - just enough to round the corners and give the screen a touch of
@@ -1683,6 +1843,12 @@
     // ground without being clobbered.
     drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
 
+    // Building-base shadow strips: rectangular soft strip along the
+    // south edge of every wall/roof/door/window/fence footprint. Runs
+    // after tall-tile shadows so trees still puddle and only buildings
+    // get the architectural strip projection.
+    drawBuildingShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+
     // Snow caps along the tops of tall tiles in snow-biome maps.
     drawSnowCaps(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
 
@@ -1713,7 +1879,9 @@
     // Decoration layer: arbitrary atlas keys placed via
     // map.decorations = [{ x, y, key }]. Drawn between the tile pass
     // and the sprite layer so movable sprites occlude items they
-    // walk past correctly.
+    // walk past correctly. Soft shadow pass first so the shadow sits
+    // under the decoration sprite, not on top.
+    drawDecorationShadows(ctx, m, offX, offY, startTx, startTy, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
     if (m.decorations && window.PR_ATLAS && window.PR_ATLAS.isReady()) {
       const healAnim = this.state && this.state.healAnim;
       for (const d of m.decorations) {
