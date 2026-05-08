@@ -2972,6 +2972,354 @@
     px(c, x + 22, y + 6, 2, 4, '#fff8e0');
   });
 
+  // === LANDMARKS (towns redesign) ===================================
+  // Multi-tile composites stack vertically (top + bot) — engine
+  // already renders decorations Y-stacked correctly.
+
+  regDecor('lighthouse_base', TILE, TILE, (c, x, y) => {
+    // Stone base, 22 wide, with arched door.
+    px(c, x + 5, y + 4, 22, 28, '#787870');
+    px(c, x + 5, y + 4, 22, 1, '#a8a8a0');
+    px(c, x + 5, y + 31, 22, 1, '#383830');
+    // Stone joints.
+    for (let yy = 8; yy < 32; yy += 4) px(c, x + 5, y + yy, 22, 1, '#5a5a52');
+    for (let i = 0; i < 4; i++) {
+      const xs = x + 8 + i * 5;
+      px(c, xs, y + 6, 1, 26, '#5a5a52');
+    }
+    // Door.
+    px(c, x + 13, y + 18, 6, 14, '#382410');
+    px(c, x + 14, y + 19, 4, 12, '#604018');
+    px(c, x + 16, y + 25, 1, 1, '#f0c020');
+    // Trim ring at top.
+    px(c, x + 4, y + 4, 24, 2, '#a8a8a0');
+    px(c, x + 4, y + 4, 24, 1, '#dcdcd0');
+  });
+  regDecor('lighthouse_tower', TILE, TILE, (c, x, y) => {
+    // Tapered red-and-white striped tower body.
+    px(c, x + 7, y, 18, TILE, '#f0f0e8');
+    px(c, x + 7, y, 18, 8, '#e83838');
+    px(c, x + 7, y + 16, 18, 8, '#e83838');
+    // Outline.
+    px(c, x + 6, y, 1, TILE, '#383028');
+    px(c, x + 25, y, 1, TILE, '#383028');
+    // Highlight.
+    px(c, x + 7, y, 18, 1, '#ffffff');
+    // Window.
+    px(c, x + 14, y + 11, 4, 4, '#383028');
+    px(c, x + 15, y + 12, 2, 2, '#80c8f8');
+    px(c, x + 15, y + 12, 1, 2, '#ffffff');
+  });
+  regDecor('lighthouse_top', TILE, TILE, (c, x, y) => {
+    // Glass lantern room + dome.
+    // Walkway.
+    px(c, x + 5, y + 24, 22, 3, '#383028');
+    px(c, x + 5, y + 24, 22, 1, '#787870');
+    // Glass enclosure + lantern (warm glow).
+    px(c, x + 8, y + 12, 16, 12, '#202020');
+    px(c, x + 9, y + 13, 14, 10, '#fff080');
+    px(c, x + 10, y + 14, 12, 8, '#ffffa0');
+    // Mullions.
+    px(c, x + 13, y + 13, 1, 10, '#202020');
+    px(c, x + 18, y + 13, 1, 10, '#202020');
+    px(c, x + 9, y + 17, 14, 1, '#202020');
+    // Dome cap.
+    disc(c, x + 16, y + 9, 7, '#383028');
+    disc(c, x + 16, y + 9, 6, '#a01818');
+    disc(c, x + 16, y + 9, 4, '#e83838');
+    px(c, x + 16, y + 1, 1, 4, '#383028');
+    px(c, x + 15, y + 1, 3, 1, '#f0c020');
+  });
+
+  regDecor('obelisk_base', TILE, TILE, (c, x, y) => {
+    // Wide pedestal with engraved plaque.
+    px(c, x + 4, y + 6, 24, 24, '#888880');
+    px(c, x + 4, y + 6, 24, 1, '#b0b0a8');
+    px(c, x + 4, y + 29, 24, 1, '#383830');
+    px(c, x + 6, y + 28, 20, 2, '#5a5a52');
+    px(c, x + 4, y + 6, 1, 24, '#5a5a52');
+    px(c, x + 27, y + 6, 1, 24, '#5a5a52');
+    // Plaque.
+    px(c, x + 9, y + 14, 14, 8, '#383028');
+    px(c, x + 10, y + 15, 12, 6, '#604018');
+    for (let yy = 16; yy <= 19; yy += 2) px(c, x + 12, y + yy, 8, 1, '#f0c020');
+    // Top trim.
+    px(c, x + 3, y + 4, 26, 2, '#b0b0a8');
+    px(c, x + 3, y + 4, 26, 1, '#dcdcd0');
+  });
+  regDecor('obelisk_top', TILE, TILE, (c, x, y) => {
+    // Tapered shaft narrowing to a gold cap.
+    px(c, x + 8, y + 8, 16, TILE - 8, '#a8a8a0');
+    px(c, x + 9, y + 8, 14, TILE - 8, '#c8c8c0');
+    px(c, x + 8, y + 8, 1, TILE - 8, '#787870');
+    px(c, x + 23, y + 8, 1, TILE - 8, '#787870');
+    // Tapering toward the top.
+    px(c, x + 10, y + 6, 12, 2, '#a8a8a0');
+    px(c, x + 11, y + 4, 10, 2, '#c8c8c0');
+    px(c, x + 12, y + 2, 8, 2, '#a8a8a0');
+    // Gold cap.
+    px(c, x + 13, y, 6, 2, '#f0c020');
+    px(c, x + 14, y, 4, 1, '#fff080');
+    // Carved line.
+    px(c, x + 16, y + 8, 1, TILE - 10, '#787870');
+  });
+
+  regDecor('ancient_oak_bot', TILE, TILE, (c, x, y) => {
+    // Massive trunk with exposed roots.
+    px(c, x + 9, y, 14, TILE, '#5a3818');
+    px(c, x + 9, y, 14, TILE, '#5a3818');
+    px(c, x + 8, y, 1, TILE, '#382008');
+    px(c, x + 23, y, 1, TILE, '#382008');
+    // Bark grain.
+    for (let yy = 2; yy < TILE; yy += 5) px(c, x + 11, y + yy, 1, 3, '#382008');
+    for (let yy = 4; yy < TILE; yy += 6) px(c, x + 18, y + yy, 1, 3, '#382008');
+    // Knot.
+    disc(c, x + 14, y + 12, 2, '#382008');
+    disc(c, x + 14, y + 12, 1, '#5a3818');
+    // Roots fanning out at the base.
+    px(c, x + 4, y + 28, 6, 4, '#5a3818');
+    px(c, x + 4, y + 28, 6, 1, '#382008');
+    px(c, x + 4, y + 31, 6, 1, '#1a0e04');
+    px(c, x + 22, y + 28, 6, 4, '#5a3818');
+    px(c, x + 22, y + 28, 6, 1, '#382008');
+    px(c, x + 22, y + 31, 6, 1, '#1a0e04');
+    px(c, x + 6, y + 30, 4, 1, '#3a2008');
+    px(c, x + 22, y + 30, 4, 1, '#3a2008');
+  });
+  regDecor('ancient_oak_top', TILE, TILE, (c, x, y) => {
+    // Huge canopy filling the cell.
+    disc(c, x + 16, y + 18, 16, '#0e3010');
+    disc(c, x + 14, y + 14, 14, '#1c4818');
+    disc(c, x + 18, y + 12, 12, '#2a6824');
+    disc(c, x + 14, y + 10, 10, '#48a838');
+    disc(c, x + 20, y + 16, 8,  '#5cae4c');
+    // Highlight specks.
+    px(c, x + 12, y + 6,  2, 2, '#a8d878');
+    px(c, x + 22, y + 14, 2, 2, '#a8d878');
+    // Trunk peeking from below.
+    px(c, x + 13, y + 28, 6, 4, '#5a3818');
+  });
+
+  regDecor('meteor_pedestal', TILE, TILE, (c, x, y) => {
+    // Cracked rock pedestal cradling a glowing crystal shard.
+    // Pedestal.
+    px(c, x + 6, y + 18, 20, 12, '#787068');
+    px(c, x + 6, y + 18, 20, 1, '#a8a098');
+    px(c, x + 6, y + 29, 20, 1, '#383028');
+    px(c, x + 8, y + 22, 16, 1, '#5a5048');
+    px(c, x + 6, y + 18, 1, 12, '#5a5048');
+    px(c, x + 25, y + 18, 1, 12, '#5a5048');
+    // Crystal — magenta-violet glow with white core.
+    px(c, x + 13, y + 6, 6, 14, '#382048');
+    px(c, x + 14, y + 6, 4, 14, '#603880');
+    px(c, x + 15, y + 6, 2, 14, '#a868c8');
+    px(c, x + 15, y + 8, 2, 5, '#f0c8ff');
+    // Tip + base nubs.
+    px(c, x + 14, y + 4, 4, 2, '#a868c8');
+    px(c, x + 15, y + 2, 2, 2, '#f0c8ff');
+    // Glow specks around the crystal.
+    px(c, x + 11, y + 12, 1, 1, '#f0c8ff');
+    px(c, x + 21, y + 14, 1, 1, '#f0c8ff');
+    px(c, x + 12, y + 20, 1, 1, '#a868c8');
+  });
+
+  regDecor('ice_sculpture', TILE, TILE, (c, x, y) => {
+    // Translucent creature-shaped ice statue on a snow base.
+    // Snow base.
+    px(c, x + 6, y + 28, 20, 4, '#f0f4ff');
+    px(c, x + 6, y + 28, 20, 1, '#a0c0e0');
+    px(c, x + 6, y + 31, 20, 1, '#80a0c0');
+    // Body silhouette.
+    px(c, x + 11, y + 8, 10, 20, '#88c0e8');
+    px(c, x + 12, y + 9, 8, 18, '#a8d8f0');
+    px(c, x + 13, y + 10, 6, 16, '#c8e8f8');
+    // Head.
+    px(c, x + 12, y + 4, 8, 6, '#88c0e8');
+    px(c, x + 13, y + 5, 6, 4, '#c8e8f8');
+    // Highlights.
+    px(c, x + 14, y + 6, 1, 18, '#ffffff');
+    px(c, x + 19, y + 12, 1, 8, '#e0f0ff');
+    // Outline.
+    px(c, x + 10, y + 8, 1, 20, '#608090');
+    px(c, x + 21, y + 8, 1, 20, '#608090');
+    px(c, x + 11, y + 4, 1, 4, '#608090');
+    px(c, x + 20, y + 4, 1, 4, '#608090');
+  });
+
+  regDecor('anchor', TILE, TILE, (c, x, y) => {
+    // Rusty iron anchor leaning against a wood post.
+    px(c, x + 14, y + 6, 4, 22, '#383830');
+    px(c, x + 15, y + 7, 2, 21, '#787870');
+    // Top ring.
+    disc(c, x + 16, y + 5, 3, '#383830');
+    disc(c, x + 16, y + 5, 2, '#787870');
+    px(c, x + 16, y + 5, 1, 1, '#383830');
+    // Crossbar.
+    px(c, x + 9, y + 11, 14, 2, '#383830');
+    px(c, x + 9, y + 11, 14, 1, '#787870');
+    // Hooks (the bottom curve).
+    px(c, x + 7, y + 22, 4, 4, '#383830');
+    px(c, x + 7, y + 22, 4, 1, '#787870');
+    px(c, x + 21, y + 22, 4, 4, '#383830');
+    px(c, x + 21, y + 22, 4, 1, '#787870');
+    px(c, x + 5, y + 25, 6, 2, '#383830');
+    px(c, x + 21, y + 25, 6, 2, '#383830');
+    // Rust streaks.
+    px(c, x + 16, y + 14, 1, 8, '#a05030');
+    px(c, x + 9, y + 13, 1, 1, '#a05030');
+    px(c, x + 22, y + 13, 1, 1, '#a05030');
+    // Drop shadow tag.
+    px(c, x + 6, y + 28, 20, 1, '#382008');
+  });
+
+  regDecor('mining_cart', TILE, TILE, (c, x, y) => {
+    // Wooden cart on stone rails carrying ore.
+    // Rails.
+    px(c, x + 2, y + 26, TILE - 4, 1, '#787870');
+    px(c, x + 2, y + 28, TILE - 4, 1, '#787870');
+    // Sleepers.
+    for (let xx = 3; xx < TILE - 4; xx += 6) px(c, x + xx, y + 27, 3, 1, '#5a3818');
+    // Cart body.
+    px(c, x + 6, y + 12, 20, 14, '#5a3818');
+    px(c, x + 6, y + 12, 20, 1, '#7a4818');
+    px(c, x + 6, y + 25, 20, 1, '#382008');
+    px(c, x + 6, y + 12, 1, 14, '#382008');
+    px(c, x + 25, y + 12, 1, 14, '#382008');
+    // Wood planks.
+    for (let xx = 9; xx < 25; xx += 4) px(c, x + xx, y + 13, 1, 12, '#382008');
+    // Iron rim.
+    px(c, x + 5, y + 11, 22, 2, '#383830');
+    px(c, x + 5, y + 11, 22, 1, '#a8a098');
+    // Ore lump.
+    px(c, x + 11, y + 8, 10, 6, '#383830');
+    px(c, x + 12, y + 9, 8, 4, '#605850');
+    px(c, x + 14, y + 10, 1, 1, '#a868c8');
+    px(c, x + 18, y + 11, 1, 1, '#f0c8ff');
+    // Wheels.
+    disc(c, x + 10, y + 26, 3, '#202020');
+    disc(c, x + 10, y + 26, 2, '#604028');
+    disc(c, x + 22, y + 26, 3, '#202020');
+    disc(c, x + 22, y + 26, 2, '#604028');
+  });
+
+  regDecor('torii_gate', TILE, TILE, (c, x, y) => {
+    // Red wooden Japanese-style gate over a path.
+    const red = '#c83020';
+    const redS = '#8a1808';
+    const black = '#202020';
+    // Pillars.
+    px(c, x + 6, y + 8, 4, 24, red);
+    px(c, x + 6, y + 8, 1, 24, redS);
+    px(c, x + 9, y + 8, 1, 24, redS);
+    px(c, x + 22, y + 8, 4, 24, red);
+    px(c, x + 22, y + 8, 1, 24, redS);
+    px(c, x + 25, y + 8, 1, 24, redS);
+    // Lower crossbeam.
+    px(c, x + 4, y + 14, 24, 3, red);
+    px(c, x + 4, y + 14, 24, 1, '#f08060');
+    px(c, x + 4, y + 16, 24, 1, redS);
+    // Upper curved roof beam.
+    px(c, x + 2, y + 6, 28, 4, black);
+    px(c, x + 3, y + 7, 26, 2, red);
+    px(c, x + 3, y + 7, 26, 1, '#f08060');
+    px(c, x + 1, y + 5, 30, 1, black);
+    // Roof curls (turned-up ends).
+    px(c, x, y + 4, 3, 2, black);
+    px(c, x + 29, y + 4, 3, 2, black);
+    px(c, x, y + 3, 1, 1, black);
+    px(c, x + 31, y + 3, 1, 1, black);
+    // Center plaque.
+    px(c, x + 14, y + 9, 4, 5, '#f0c020');
+    px(c, x + 15, y + 10, 2, 3, '#382008');
+  });
+
+  regDecor('cherry_arch', TILE, TILE, (c, x, y) => {
+    // Pink cherry-blossom arch over a path.
+    // Posts.
+    px(c, x + 5, y + 10, 3, 22, '#604018');
+    px(c, x + 5, y + 10, 1, 22, '#382008');
+    px(c, x + 24, y + 10, 3, 22, '#604018');
+    px(c, x + 24, y + 10, 1, 22, '#382008');
+    // Arch top.
+    disc(c, x + 16, y + 12, 13, '#a04060');
+    disc(c, x + 16, y + 12, 11, '#d870a0');
+    disc(c, x + 14, y + 10, 8, '#f088b0');
+    disc(c, x + 18, y + 8, 6, '#fff0f8');
+    // Petals.
+    px(c, x + 8,  y + 16, 1, 1, '#fff0f8');
+    px(c, x + 24, y + 14, 1, 1, '#fff0f8');
+    px(c, x + 16, y + 4,  1, 1, '#fff0f8');
+    px(c, x + 11, y + 6,  1, 1, '#fff0f8');
+    // Floating petals on the path.
+    px(c, x + 12, y + 26, 1, 1, '#f088b0');
+    px(c, x + 20, y + 28, 1, 1, '#f088b0');
+  });
+
+  regDecor('fish_market_stall', TILE, TILE, (c, x, y) => {
+    // Striped awning + crate of fish + ice display.
+    // Stall base + counter.
+    px(c, x + 4, y + 18, 24, 14, '#604028');
+    px(c, x + 4, y + 18, 24, 1, '#7a5030');
+    px(c, x + 4, y + 31, 24, 1, '#382008');
+    // Ice + fish display.
+    px(c, x + 6, y + 20, 20, 4, '#c8e8f8');
+    px(c, x + 6, y + 20, 20, 1, '#ffffff');
+    // Fish.
+    px(c, x + 8, y + 21, 4, 2, '#3878d8');
+    px(c, x + 14, y + 21, 4, 2, '#5898e8');
+    px(c, x + 20, y + 21, 4, 2, '#a83020');
+    // Awning posts.
+    px(c, x + 3, y + 4, 2, 14, '#604028');
+    px(c, x + 27, y + 4, 2, 14, '#604028');
+    // Striped awning (red + white).
+    px(c, x + 2, y + 4, 28, 6, '#a01818');
+    for (let i = 0; i < 7; i++) {
+      const sx = x + 2 + i * 4;
+      px(c, sx, y + 4, 2, 6, '#fff8e0');
+    }
+    // Awning rim.
+    px(c, x + 2, y + 10, 28, 1, '#382020');
+    // Hanging price tag.
+    px(c, x + 14, y + 11, 4, 4, '#fff8e0');
+    px(c, x + 15, y + 12, 2, 1, '#383028');
+    px(c, x + 15, y + 13, 2, 1, '#383028');
+  });
+
+  regDecor('champion_statue', TILE, TILE, (c, x, y) => {
+    // Bronze trainer statue on a marble base.
+    // Marble base.
+    px(c, x + 5, y + 24, 22, 8, '#dcdcd0');
+    px(c, x + 5, y + 24, 22, 1, '#ffffff');
+    px(c, x + 5, y + 31, 22, 1, '#a8a8a0');
+    // Plaque on base.
+    px(c, x + 11, y + 27, 10, 3, '#787068');
+    px(c, x + 12, y + 28, 8, 1, '#f0c020');
+    // Bronze figure.
+    const bronze = '#a86838';
+    const bronzeS = '#704020';
+    const bronzeH = '#d09858';
+    // Legs.
+    px(c, x + 12, y + 18, 8, 6, bronze);
+    px(c, x + 12, y + 18, 8, 1, bronzeH);
+    px(c, x + 16, y + 18, 1, 6, bronzeS);
+    // Cape behind.
+    px(c, x + 8, y + 8, 16, 12, bronzeS);
+    // Body.
+    px(c, x + 12, y + 10, 8, 10, bronze);
+    px(c, x + 12, y + 10, 8, 1, bronzeH);
+    // Arm raised.
+    px(c, x + 20, y + 6, 3, 6, bronze);
+    px(c, x + 22, y + 4, 2, 4, bronze);
+    // Head.
+    px(c, x + 13, y + 4, 6, 6, bronze);
+    px(c, x + 13, y + 4, 6, 1, bronzeH);
+    px(c, x + 15, y + 5, 1, 1, bronzeS);
+    px(c, x + 17, y + 5, 1, 1, bronzeS);
+    // Cape outline.
+    px(c, x + 7, y + 8, 1, 12, '#382010');
+    px(c, x + 24, y + 8, 1, 12, '#382010');
+  });
+
   // ------------------------------------------------------------------
   // === CHARACTERS ===================================================
   // 32x32 trainer-style sprites with outlined silhouette, multi-tone
