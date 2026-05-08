@@ -170,17 +170,16 @@ html, body {
 body[data-graphics="ds_diamond"] #app::before { display: none; }
 body[data-graphics="ds_diamond"] #screen { margin: 6px auto 0; }
 body[data-graphics="ds_diamond"] #screen-bottom {
+  /* Height is the controlling dimension so the 2:1 ratio is always
+     preserved (no horizontal squish on portrait phones with capped
+     viewport height). Width follows from height. The optional cap
+     keeps it from outgrowing the top screen on very wide screens. */
+  --bh: clamp(110px, 18vh, 220px);
   display: block;
   position: relative;
-  /* Width follows the top screen, but height is capped so a tall
-     portrait viewport (iPhone with browser address bar) still leaves
-     room for the dpad / AB / Select / Start row underneath. The
-     2:1 aspect-ratio acts only as a default; max-height kicks in
-     once the calculated height exceeds the cap. */
-  width: min(92vw, 720px);
+  height: var(--bh);
+  width: calc(var(--bh) * 2);
   max-width: min(92vw, 720px);
-  aspect-ratio: 2 / 1;
-  max-height: clamp(96px, 18vh, 220px);
   margin: 6px auto 4px;
   padding: 8px 14px 12px;
   background: var(--bezel-bg);
