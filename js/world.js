@@ -336,18 +336,38 @@
   }
   // Soft additive radial glow. Used for lamp halos and window light.
   // Set globalCompositeOperation to 'lighter' before calling so the
-  // glow lifts darkened tiles instead of just colour-blending.
+  // glow lifts darkened tiles instead of just colour-blending. The
+  // gradient has a small bright core (~25% radius) and a long soft
+  // falloff so multiple overlapping glows don't immediately saturate
+  // to pure white under additive composite.
   function drawGlow(ctx, cx, cy, radius, color, alpha) {
     if (alpha <= 0) return;
+    // Pull the alpha out of the rgba(...) string so we can taper it
+    // down through the falloff instead of holding solid color until
+    // the outer ~40%.
+    const m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(color || '');
+    const r = m ? m[1] : '255', g = m ? m[2] : '255', b = m ? m[3] : '255';
+    const c = (a) => 'rgba(' + r + ',' + g + ',' + b + ',' + a.toFixed(3) + ')';
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-    grad.addColorStop(0, color);
-    grad.addColorStop(0.6, color);
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    grad.addColorStop(0,    c(1.00));
+    grad.addColorStop(0.20, c(0.85));
+    grad.addColorStop(0.50, c(0.40));
+    grad.addColorStop(0.80, c(0.10));
+    grad.addColorStop(1,    'rgba(0,0,0,0)');
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = grad;
     ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
     ctx.restore();
+  }
+
+  // Names of decoration keys that should emit warm light at night.
+  function decorIsLamp(key) {
+    if (!key) return false;
+    return key.indexOf('lamp_') === 0
+        || key.indexOf('streetlamp_') === 0
+        || key.indexOf('lantern') >= 0
+        || key === 'street_clock';
   }
   // Draws lamp halos and window-light squares for visible tiles.
   // Active only when tilt is active AND it's nighttime. Drawn AFTER
@@ -376,13 +396,35 @@
         const cy = tileY + TS / 2;
         if (code === '|' || code === 'I') {
           // Streetlamp: tall halo from the head of the lamp downward.
-          drawGlow(ctx, cx, cy - 4, TS * 1.4, 'rgba(255,224,128,1)', 0.55 * nFactor);
+          drawGlow(ctx, cx, cy - 4, TS * 1.05, 'rgba(255,224,128,1)', 0.32 * nFactor);
         } else if (code === '[' || code === ']') {
           // Window: halo centered on the actual glass pane (off-tile-center).
           const gx = tileX + (code === '[' ? 23 : 9);
           const gy = tileY + 15;
-          drawGlow(ctx, gx, gy, TS * 0.7, 'rgba(255,232,144,1)', 0.5 * nFactor);
+          drawGlow(ctx, gx, gy, TS * 0.55, 'rgba(255,232,144,1)', 0.22 * nFactor);
         }
+      }
+    }
+    // Decoration-based lamps (post-content-drop). Many cities now place
+    // lamps as decoration keys (lamp_ornate_gold, streetlamp_ornate_*,
+    // lamp_paper_lantern, etc.) instead of '|' tile codes — without this
+    // pass they sit dark at night even though the visible sprite is a lit
+    // lantern. Iterate the visible window of the decorations array and
+    // cast a soft glow from each one.
+    if (m.decorations && m.decorations.length) {
+      for (const d of m.decorations) {
+        if (!decorIsLamp(d.key)) continue;
+        const sx = offX + (d.x - startTx) * TS;
+        const sy = offY + (d.y - startTy) * TS;
+        if (sx < -TS * 2 || sx > offX + (viewTx + 2) * TS) continue;
+        if (sy < -TS * 2 || sy > offY + (viewTy + 2) * TS) continue;
+        const cx = sx + TS / 2;
+        const cy = sy + TS / 2 - 4;
+        // Big lamps (streetlamps + lanterns) glow further than table/floor lamps.
+        const big = d.key.indexOf('streetlamp_') === 0 || d.key.indexOf('lantern') >= 0 || d.key === 'lamp_floor_tall';
+        const radius = big ? TS * 1.05 : TS * 0.7;
+        const alpha = (big ? 0.30 : 0.20) * nFactor;
+        drawGlow(ctx, cx, cy, radius, 'rgba(255,224,128,1)', alpha);
       }
     }
     ctx.restore();
@@ -390,7 +432,7 @@
     // golden pane rather than a pure additive bloom.
     if (nFactor < 0.1) return;
     ctx.save();
-    ctx.fillStyle = 'rgba(255,232,144,' + (0.55 * nFactor).toFixed(3) + ')';
+    ctx.fillStyle = 'rgba(255,232,144,' + (0.32 * nFactor).toFixed(3) + ')';
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
