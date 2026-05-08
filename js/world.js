@@ -905,6 +905,7 @@
     this.justEntered = true;
     this._ambient = [];
     this._initAmbient();
+    this._initNpcWander();
     this.follower = null;
     this._resetFollower();
     this._dust = [];
@@ -942,6 +943,86 @@
         nextDelay: 1.5 + Math.random() * 2,
         frame: 0, frameTimer: 0
       });
+    }
+  };
+
+  // Attach wander-state to any NPC that has a `wander` flag. Idempotent —
+  // safe to call on every transitionTo. NPCs keep their (possibly
+  // wandered) position between visits.
+  World.prototype._initNpcWander = function() {
+    const m = this.currentMap();
+    if (!m || !m.npcs) return;
+    for (const n of m.npcs) {
+      if (!n.wander) continue;
+      if (n._homeX === undefined) { n._homeX = n.x; n._homeY = n.y; }
+      if (!n.anim) n.anim = { moving:false, t:0, duration:0.4, fromX:n.x, fromY:n.y, toX:n.x, toY:n.y };
+      if (n._range === undefined) n._range = (n.wander && n.wander.range) || 2;
+      if (n._moveTimer === undefined) n._moveTimer = Math.random() * 2;
+      if (n._nextDelay === undefined) n._nextDelay = 1.5 + Math.random() * 2;
+    }
+  };
+
+  // Tick wander movement. Mirrors _updateAmbient but operates on m.npcs
+  // and respects npc collision (no two NPCs on same tile).
+  World.prototype._updateNpcWander = function(dt) {
+    const m = this.currentMap();
+    if (!m || !m.npcs) return;
+    for (const n of m.npcs) {
+      if (!n.wander || !n.anim) continue;
+      // Defeated trainers and gated NPCs still pace; that's fine.
+      if (n.anim.moving) {
+        n.anim.t += dt;
+        if (n.anim.t >= n.anim.duration) {
+          n.x = n.anim.toX; n.y = n.anim.toY;
+          n.anim.moving = false;
+          n._moveTimer = 0;
+          n._nextDelay = 1.5 + Math.random() * 2;
+        }
+        continue;
+      }
+      n._moveTimer += dt;
+      if (n._moveTimer < n._nextDelay) continue;
+      const dirs = ['up','down','left','right'];
+      for (let i = dirs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = dirs[i]; dirs[i] = dirs[j]; dirs[j] = t;
+      }
+      let moved = false;
+      for (const d of dirs) {
+        let nx = n.x, ny = n.y;
+        if (d === 'up') ny--;
+        else if (d === 'down') ny++;
+        else if (d === 'left') nx--;
+        else if (d === 'right') nx++;
+        if (Math.abs(nx - n._homeX) > n._range) continue;
+        if (Math.abs(ny - n._homeY) > n._range) continue;
+        const code = this.tileAt(nx, ny);
+        const props = window.PR_MAPS.TILE_PROPS[code];
+        if (!props || props.walk !== true) continue;
+        if (this.player.x === nx && this.player.y === ny) continue;
+        if (this.anim.moving && this.anim.toX === nx && this.anim.toY === ny) continue;
+        // Block on other NPCs (current pos OR moving-into-target).
+        let blocked = false;
+        for (const other of m.npcs) {
+          if (other === n) continue;
+          if (other.x === nx && other.y === ny) { blocked = true; break; }
+          if (other.anim && other.anim.moving && other.anim.toX === nx && other.anim.toY === ny) { blocked = true; break; }
+        }
+        if (blocked) continue;
+        if (this._ambientAt && this._ambientAt(nx, ny, null)) continue;
+        n.dir = d;
+        n.anim.moving = true;
+        n.anim.t = 0;
+        n.anim.fromX = n.x; n.anim.fromY = n.y;
+        n.anim.toX = nx;    n.anim.toY = ny;
+        moved = true;
+        break;
+      }
+      if (!moved) {
+        n.dir = dirs[0];
+        n._moveTimer = 0;
+        n._nextDelay = 1.0 + Math.random() * 1.5;
+      }
     }
   };
 
@@ -1076,7 +1157,12 @@
     const m = this.currentMap();
     if (!m.npcs) return null;
     for (const n of m.npcs) {
-      if (n.x !== x || n.y !== y) continue;
+      // For a wandering NPC mid-step, count both the from-tile and the
+      // destination-tile as "occupied" so collision and interaction
+      // both feel right.
+      const matches = (n.x === x && n.y === y)
+        || (n.anim && n.anim.moving && n.anim.toX === x && n.anim.toY === y);
+      if (!matches) continue;
       // Gate NPC vanishes once its conditions are met.
       if (n.gate && this.state.gateConditionsMet
           && this.state.gateConditionsMet(n.gate)) continue;
@@ -1212,6 +1298,7 @@
     this.anim.moving = false;
     this.justEntered = true;
     this._initAmbient();
+    this._initNpcWander();
     this._resetFollower();
     // Reset biome particles so a forest's leaves don't drift into the
     // next desert; new biome will start spawning on the next tick.
@@ -1235,6 +1322,16 @@
 
     const npc = this.npcAt(ix, iy);
     if (npc) {
+      // Snap a wandering NPC to a tile so dialog renders against a
+      // grid-aligned sprite, and pause their pacing during the chat.
+      if (npc.anim && npc.anim.moving) {
+        npc.x = npc.anim.toX; npc.y = npc.anim.toY;
+        npc.anim.moving = false; npc.anim.t = 0;
+      }
+      if (npc.wander) {
+        npc._moveTimer = 0;
+        npc._nextDelay = 2.0 + Math.random() * 2;
+      }
       // Face the player.
       const opp = { up:'down', down:'up', left:'right', right:'left' };
       npc.dir = opp[p.dir] || npc.dir;
@@ -1374,6 +1471,8 @@
         this._ambient = [];
       }
     }
+    try { this._updateNpcWander(dt); }
+    catch (err) { console.error('[PokeRod] npc wander tick error:', err); }
     this._updateFollower(dt);
 
     if (this._dust && this._dust.length) tickDust(this._dust, dt);
@@ -1626,8 +1725,14 @@
     // NPCs
     if (m.npcs) {
       for (const n of m.npcs) {
-        const sx = n.x * TS - camX;
-        const sy = n.y * TS - camY;
+        let nx = n.x, ny = n.y;
+        if (n.anim && n.anim.moving) {
+          const k = Math.min(1, n.anim.t / n.anim.duration);
+          nx = n.anim.fromX + (n.anim.toX - n.anim.fromX) * k;
+          ny = n.anim.fromY + (n.anim.toY - n.anim.fromY) * k;
+        }
+        const sx = nx * TS - camX;
+        const sy = ny * TS - camY;
         if (sx < -TS || sx > VIEW_W || sy < -TS || sy > VIEW_H) continue;
         if (n.sprite === 'ball') {
           // Hide ball if starter taken.
