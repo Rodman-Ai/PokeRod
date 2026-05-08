@@ -11,7 +11,7 @@
 <meta http-equiv="Expires" content="0" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title>PokeRod</title>
-<link rel="stylesheet" href="styles.css?v=98" />
+<link rel="stylesheet" href="styles.css?v=99" />
 </head>
 <body>
   <div id="app">
@@ -36,6 +36,9 @@
         <p class="hint">Arrows / WASD to move &middot; Z = A &middot; X = B &middot; Shift = Select &middot; Enter = Start</p>
       </div>
     </div>
+    <div id="screen-bottom" aria-hidden="true">
+      <canvas id="game-bottom" width="480" height="240"></canvas>
+    </div>
     <div id="touch" aria-hidden="true">
       <div id="dpad">
         <button class="dbtn" data-key="ArrowUp" aria-label="Up">▲</button>
@@ -54,25 +57,26 @@
     </div>
     <div id="version" aria-hidden="true"></div>
   </div>
-  <script src="js/data.js?v=98"></script>
-  <script src="js/maps.js?v=98"></script>
-  <script src="js/atlas.js?v=98"></script>
-  <script src="js/sprites.js?v=98"></script>
-  <script src="js/sprites_variation.js?v=98"></script>
-  <script src="js/sprites_chars.js?v=98"></script>
-  <script src="js/sprites_mons.js?v=98"></script>
-  <script src="js/input.js?v=98"></script>
-  <script src="js/ui.js?v=98"></script>
-  <script src="js/world.js?v=98"></script>
-  <script src="js/battle.js?v=98"></script>
-  <script src="js/save.js?v=98"></script>
-  <script src="js/audio.js?v=98"></script>
-  <script src="js/audio_sfx.js?v=98"></script>
-  <script src="js/audio_music.js?v=98"></script>
-  <script src="js/chatter.js?v=98"></script>
-  <script src="js/items.js?v=98"></script>
-  <script src="js/quests.js?v=98"></script>
-  <script src="js/shop.js?v=98"></script>
-  <script src="js/game.js?v=98"></script>
+  <script src="js/data.js?v=99"></script>
+  <script src="js/maps.js?v=99"></script>
+  <script src="js/atlas.js?v=99"></script>
+  <script src="js/sprites.js?v=99"></script>
+  <script src="js/sprites_variation.js?v=99"></script>
+  <script src="js/sprites_chars.js?v=99"></script>
+  <script src="js/sprites_mons.js?v=99"></script>
+  <script src="js/input.js?v=99"></script>
+  <script src="js/ui.js?v=99"></script>
+  <script src="js/world.js?v=99"></script>
+  <script src="js/bottom_screen.js?v=99"></script>
+  <script src="js/battle.js?v=99"></script>
+  <script src="js/save.js?v=99"></script>
+  <script src="js/audio.js?v=99"></script>
+  <script src="js/audio_sfx.js?v=99"></script>
+  <script src="js/audio_music.js?v=99"></script>
+  <script src="js/chatter.js?v=99"></script>
+  <script src="js/items.js?v=99"></script>
+  <script src="js/quests.js?v=99"></script>
+  <script src="js/shop.js?v=99"></script>
+  <script src="js/game.js?v=99"></script>
 </body>
 </html>
