@@ -2688,2871 +2688,2961 @@
       "w": 32,
       "h": 32
     },
-    "player_down_0": {
+    "decor_lighthouse_base": {
       "x": 0,
       "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lighthouse_tower": {
+      "x": 33,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lighthouse_top": {
+      "x": 66,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_obelisk_base": {
+      "x": 99,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_obelisk_top": {
+      "x": 132,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_ancient_oak_bot": {
+      "x": 165,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_ancient_oak_top": {
+      "x": 198,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_meteor_pedestal": {
+      "x": 231,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_ice_sculpture": {
+      "x": 264,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_anchor": {
+      "x": 297,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_mining_cart": {
+      "x": 330,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_torii_gate": {
+      "x": 363,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_cherry_arch": {
+      "x": 396,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_fish_market_stall": {
+      "x": 429,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_champion_statue": {
+      "x": 462,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "player_down_0": {
+      "x": 0,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "player_up_0": {
       "x": 33,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "player_left_0": {
       "x": 66,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "player_right_0": {
       "x": 99,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "player_down_1": {
       "x": 132,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "player_up_1": {
       "x": 165,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "player_left_1": {
       "x": 198,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "player_right_1": {
       "x": 231,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_down_0": {
       "x": 264,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_up_0": {
       "x": 297,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_left_0": {
       "x": 330,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_right_0": {
       "x": 363,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_down_1": {
       "x": 396,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_up_1": {
       "x": 429,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_left_1": {
       "x": 462,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_oak_right_1": {
       "x": 495,
-      "y": 924,
+      "y": 957,
       "w": 32,
       "h": 32
     },
     "npc_mom_down_0": {
       "x": 0,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_mom_up_0": {
       "x": 33,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_mom_left_0": {
       "x": 66,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_mom_right_0": {
       "x": 99,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_mom_down_1": {
       "x": 132,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_mom_up_1": {
       "x": 165,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_mom_left_1": {
       "x": 198,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_mom_right_1": {
       "x": 231,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_down_0": {
       "x": 264,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_up_0": {
       "x": 297,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_left_0": {
       "x": 330,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_right_0": {
       "x": 363,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_down_1": {
       "x": 396,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_up_1": {
       "x": 429,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_left_1": {
       "x": 462,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_sis_right_1": {
       "x": 495,
-      "y": 957,
+      "y": 990,
       "w": 32,
       "h": 32
     },
     "npc_rival_down_0": {
       "x": 0,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_rival_up_0": {
       "x": 33,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_rival_left_0": {
       "x": 66,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_rival_right_0": {
       "x": 99,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_rival_down_1": {
       "x": 132,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_rival_up_1": {
       "x": 165,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_rival_left_1": {
       "x": 198,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_rival_right_1": {
       "x": 231,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_down_0": {
       "x": 264,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_up_0": {
       "x": 297,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_left_0": {
       "x": 330,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_right_0": {
       "x": 363,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_down_1": {
       "x": 396,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_up_1": {
       "x": 429,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_left_1": {
       "x": 462,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_girl_right_1": {
       "x": 495,
-      "y": 990,
+      "y": 1023,
       "w": 32,
       "h": 32
     },
     "npc_youth_down_0": {
       "x": 0,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_youth_up_0": {
       "x": 33,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_youth_left_0": {
       "x": 66,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_youth_right_0": {
       "x": 99,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_youth_down_1": {
       "x": 132,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_youth_up_1": {
       "x": 165,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_youth_left_1": {
       "x": 198,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_youth_right_1": {
       "x": 231,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_down_0": {
       "x": 264,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_up_0": {
       "x": 297,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_left_0": {
       "x": 330,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_right_0": {
       "x": 363,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_down_1": {
       "x": 396,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_up_1": {
       "x": 429,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_left_1": {
       "x": 462,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "npc_old_right_1": {
       "x": 495,
-      "y": 1023,
+      "y": 1056,
       "w": 32,
       "h": 32
     },
     "nurse_down_0": {
       "x": 0,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "nurse_up_0": {
       "x": 33,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "nurse_left_0": {
       "x": 66,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "nurse_right_0": {
       "x": 99,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "nurse_down_1": {
       "x": 132,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "nurse_up_1": {
       "x": 165,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "nurse_left_1": {
       "x": 198,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "nurse_right_1": {
       "x": 231,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_down_0": {
       "x": 264,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_up_0": {
       "x": 297,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_left_0": {
       "x": 330,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_right_0": {
       "x": 363,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_down_1": {
       "x": 396,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_up_1": {
       "x": 429,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_left_1": {
       "x": 462,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "clerk_right_1": {
       "x": 495,
-      "y": 1056,
+      "y": 1089,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_down_0": {
       "x": 0,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_up_0": {
       "x": 33,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_left_0": {
       "x": 66,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_right_0": {
       "x": 99,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_down_1": {
       "x": 132,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_up_1": {
       "x": 165,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_left_1": {
       "x": 198,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_bug_catcher_right_1": {
       "x": 231,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_down_0": {
       "x": 264,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_up_0": {
       "x": 297,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_left_0": {
       "x": 330,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_right_0": {
       "x": 363,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_down_1": {
       "x": 396,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_up_1": {
       "x": 429,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_left_1": {
       "x": 462,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_picnicker_right_1": {
       "x": 495,
-      "y": 1089,
+      "y": 1122,
       "w": 32,
       "h": 32
     },
     "trainer_camper_down_0": {
       "x": 0,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_camper_up_0": {
       "x": 33,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_camper_left_0": {
       "x": 66,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_camper_right_0": {
       "x": 99,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_camper_down_1": {
       "x": 132,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_camper_up_1": {
       "x": 165,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_camper_left_1": {
       "x": 198,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_camper_right_1": {
       "x": 231,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_down_0": {
       "x": 264,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_up_0": {
       "x": 297,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_left_0": {
       "x": 330,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_right_0": {
       "x": 363,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_down_1": {
       "x": 396,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_up_1": {
       "x": 429,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_left_1": {
       "x": 462,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_ranger_right_1": {
       "x": 495,
-      "y": 1122,
+      "y": 1155,
       "w": 32,
       "h": 32
     },
     "trainer_miner_down_0": {
       "x": 0,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_miner_up_0": {
       "x": 33,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_miner_left_0": {
       "x": 66,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_miner_right_0": {
       "x": 99,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_miner_down_1": {
       "x": 132,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_miner_up_1": {
       "x": 165,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_miner_left_1": {
       "x": 198,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_miner_right_1": {
       "x": 231,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_down_0": {
       "x": 264,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_up_0": {
       "x": 297,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_left_0": {
       "x": 330,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_right_0": {
       "x": 363,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_down_1": {
       "x": 396,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_up_1": {
       "x": 429,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_left_1": {
       "x": 462,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_hiker_right_1": {
       "x": 495,
-      "y": 1155,
+      "y": 1188,
       "w": 32,
       "h": 32
     },
     "trainer_skier_down_0": {
       "x": 0,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_skier_up_0": {
       "x": 33,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_skier_left_0": {
       "x": 66,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_skier_right_0": {
       "x": 99,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_skier_down_1": {
       "x": 132,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_skier_up_1": {
       "x": 165,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_skier_left_1": {
       "x": 198,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_skier_right_1": {
       "x": 231,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_down_0": {
       "x": 264,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_up_0": {
       "x": 297,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_left_0": {
       "x": 330,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_right_0": {
       "x": 363,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_down_1": {
       "x": 396,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_up_1": {
       "x": 429,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_left_1": {
       "x": 462,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_sailor_right_1": {
       "x": 495,
-      "y": 1188,
+      "y": 1221,
       "w": 32,
       "h": 32
     },
     "trainer_ace_down_0": {
       "x": 0,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ace_up_0": {
       "x": 33,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ace_left_0": {
       "x": 66,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ace_right_0": {
       "x": 99,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ace_down_1": {
       "x": 132,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ace_up_1": {
       "x": 165,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ace_left_1": {
       "x": 198,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ace_right_1": {
       "x": 231,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_down_0": {
       "x": 264,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_up_0": {
       "x": 297,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_left_0": {
       "x": 330,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_right_0": {
       "x": 363,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_down_1": {
       "x": 396,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_up_1": {
       "x": 429,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_left_1": {
       "x": 462,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "trainer_ruin_maniac_right_1": {
       "x": 495,
-      "y": 1221,
+      "y": 1254,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_down_0": {
       "x": 0,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_up_0": {
       "x": 33,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_left_0": {
       "x": 66,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_right_0": {
       "x": 99,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_down_1": {
       "x": 132,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_up_1": {
       "x": 165,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_left_1": {
       "x": 198,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_rollerblader_right_1": {
       "x": 231,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_down_0": {
       "x": 264,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_up_0": {
       "x": 297,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_left_0": {
       "x": 330,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_right_0": {
       "x": 363,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_down_1": {
       "x": 396,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_up_1": {
       "x": 429,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_left_1": {
       "x": 462,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_jogger_right_1": {
       "x": 495,
-      "y": 1254,
+      "y": 1287,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_down_0": {
       "x": 0,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_up_0": {
       "x": 33,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_left_0": {
       "x": 66,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_right_0": {
       "x": 99,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_down_1": {
       "x": 132,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_up_1": {
       "x": 165,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_left_1": {
       "x": 198,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_cyclist_right_1": {
       "x": 231,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_down_0": {
       "x": 264,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_up_0": {
       "x": 297,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_left_0": {
       "x": 330,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_right_0": {
       "x": 363,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_down_1": {
       "x": 396,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_up_1": {
       "x": 429,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_left_1": {
       "x": 462,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_dancer_right_1": {
       "x": 495,
-      "y": 1287,
+      "y": 1320,
       "w": 32,
       "h": 32
     },
     "npc_policeman_down_0": {
       "x": 0,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_policeman_up_0": {
       "x": 33,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_policeman_left_0": {
       "x": 66,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_policeman_right_0": {
       "x": 99,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_policeman_down_1": {
       "x": 132,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_policeman_up_1": {
       "x": 165,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_policeman_left_1": {
       "x": 198,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_policeman_right_1": {
       "x": 231,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_down_0": {
       "x": 264,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_up_0": {
       "x": 297,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_left_0": {
       "x": 330,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_right_0": {
       "x": 363,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_down_1": {
       "x": 396,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_up_1": {
       "x": 429,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_left_1": {
       "x": 462,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_firefighter_right_1": {
       "x": 495,
-      "y": 1320,
+      "y": 1353,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_down_0": {
       "x": 0,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_up_0": {
       "x": 33,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_left_0": {
       "x": 66,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_right_0": {
       "x": 99,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_down_1": {
       "x": 132,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_up_1": {
       "x": 165,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_left_1": {
       "x": 198,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_paramedic_right_1": {
       "x": 231,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_down_0": {
       "x": 264,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_up_0": {
       "x": 297,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_left_0": {
       "x": 330,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_right_0": {
       "x": 363,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_down_1": {
       "x": 396,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_up_1": {
       "x": 429,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_left_1": {
       "x": 462,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_security_right_1": {
       "x": 495,
-      "y": 1353,
+      "y": 1386,
       "w": 32,
       "h": 32
     },
     "npc_construction_down_0": {
       "x": 0,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_construction_up_0": {
       "x": 33,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_construction_left_0": {
       "x": 66,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_construction_right_0": {
       "x": 99,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_construction_down_1": {
       "x": 132,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_construction_up_1": {
       "x": 165,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_construction_left_1": {
       "x": 198,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_construction_right_1": {
       "x": 231,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_down_0": {
       "x": 264,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_up_0": {
       "x": 297,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_left_0": {
       "x": 330,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_right_0": {
       "x": 363,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_down_1": {
       "x": 396,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_up_1": {
       "x": 429,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_left_1": {
       "x": 462,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_journalist_right_1": {
       "x": 495,
-      "y": 1386,
+      "y": 1419,
       "w": 32,
       "h": 32
     },
     "npc_businessman_down_0": {
       "x": 0,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_businessman_up_0": {
       "x": 33,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_businessman_left_0": {
       "x": 66,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_businessman_right_0": {
       "x": 99,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_businessman_down_1": {
       "x": 132,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_businessman_up_1": {
       "x": 165,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_businessman_left_1": {
       "x": 198,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_businessman_right_1": {
       "x": 231,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_down_0": {
       "x": 264,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_up_0": {
       "x": 297,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_left_0": {
       "x": 330,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_right_0": {
       "x": 363,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_down_1": {
       "x": 396,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_up_1": {
       "x": 429,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_left_1": {
       "x": 462,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_saleswoman_right_1": {
       "x": 495,
-      "y": 1419,
+      "y": 1452,
       "w": 32,
       "h": 32
     },
     "npc_doctor_down_0": {
       "x": 0,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_doctor_up_0": {
       "x": 33,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_doctor_left_0": {
       "x": 66,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_doctor_right_0": {
       "x": 99,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_doctor_down_1": {
       "x": 132,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_doctor_up_1": {
       "x": 165,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_doctor_left_1": {
       "x": 198,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_doctor_right_1": {
       "x": 231,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_down_0": {
       "x": 264,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_up_0": {
       "x": 297,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_left_0": {
       "x": 330,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_right_0": {
       "x": 363,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_down_1": {
       "x": 396,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_up_1": {
       "x": 429,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_left_1": {
       "x": 462,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_scientist_right_1": {
       "x": 495,
-      "y": 1452,
+      "y": 1485,
       "w": 32,
       "h": 32
     },
     "npc_teacher_down_0": {
       "x": 0,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_teacher_up_0": {
       "x": 33,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_teacher_left_0": {
       "x": 66,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_teacher_right_0": {
       "x": 99,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_teacher_down_1": {
       "x": 132,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_teacher_up_1": {
       "x": 165,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_teacher_left_1": {
       "x": 198,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_teacher_right_1": {
       "x": 231,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_down_0": {
       "x": 264,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_up_0": {
       "x": 297,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_left_0": {
       "x": 330,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_right_0": {
       "x": 363,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_down_1": {
       "x": 396,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_up_1": {
       "x": 429,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_left_1": {
       "x": 462,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_librarian_right_1": {
       "x": 495,
-      "y": 1485,
+      "y": 1518,
       "w": 32,
       "h": 32
     },
     "npc_baker_down_0": {
       "x": 0,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_baker_up_0": {
       "x": 33,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_baker_left_0": {
       "x": 66,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_baker_right_0": {
       "x": 99,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_baker_down_1": {
       "x": 132,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_baker_up_1": {
       "x": 165,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_baker_left_1": {
       "x": 198,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_baker_right_1": {
       "x": 231,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_down_0": {
       "x": 264,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_up_0": {
       "x": 297,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_left_0": {
       "x": 330,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_right_0": {
       "x": 363,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_down_1": {
       "x": 396,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_up_1": {
       "x": 429,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_left_1": {
       "x": 462,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_chef_right_1": {
       "x": 495,
-      "y": 1518,
+      "y": 1551,
       "w": 32,
       "h": 32
     },
     "npc_waiter_down_0": {
       "x": 0,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_waiter_up_0": {
       "x": 33,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_waiter_left_0": {
       "x": 66,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_waiter_right_0": {
       "x": 99,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_waiter_down_1": {
       "x": 132,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_waiter_up_1": {
       "x": 165,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_waiter_left_1": {
       "x": 198,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_waiter_right_1": {
       "x": 231,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_down_0": {
       "x": 264,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_up_0": {
       "x": 297,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_left_0": {
       "x": 330,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_right_0": {
       "x": 363,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_down_1": {
       "x": 396,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_up_1": {
       "x": 429,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_left_1": {
       "x": 462,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_artist_right_1": {
       "x": 495,
-      "y": 1551,
+      "y": 1584,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_down_0": {
       "x": 0,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_up_0": {
       "x": 33,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_left_0": {
       "x": 66,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_right_0": {
       "x": 99,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_down_1": {
       "x": 132,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_up_1": {
       "x": 165,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_left_1": {
       "x": 198,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_dog_walker_right_1": {
       "x": 231,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_down_0": {
       "x": 264,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_up_0": {
       "x": 297,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_left_0": {
       "x": 330,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_right_0": {
       "x": 363,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_down_1": {
       "x": 396,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_up_1": {
       "x": 429,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_left_1": {
       "x": 462,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_m_right_1": {
       "x": 495,
-      "y": 1584,
+      "y": 1617,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_down_0": {
       "x": 0,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_up_0": {
       "x": 33,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_left_0": {
       "x": 66,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_right_0": {
       "x": 99,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_down_1": {
       "x": 132,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_up_1": {
       "x": 165,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_left_1": {
       "x": 198,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_swimmer_f_right_1": {
       "x": 231,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_down_0": {
       "x": 264,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_up_0": {
       "x": 297,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_left_0": {
       "x": 330,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_right_0": {
       "x": 363,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_down_1": {
       "x": 396,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_up_1": {
       "x": 429,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_left_1": {
       "x": 462,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_tourist_right_1": {
       "x": 495,
-      "y": 1617,
+      "y": 1650,
       "w": 32,
       "h": 32
     },
     "npc_punk_down_0": {
       "x": 0,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_punk_up_0": {
       "x": 33,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_punk_left_0": {
       "x": 66,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_punk_right_0": {
       "x": 99,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_punk_down_1": {
       "x": 132,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_punk_up_1": {
       "x": 165,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_punk_left_1": {
       "x": 198,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_punk_right_1": {
       "x": 231,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_down_0": {
       "x": 264,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_up_0": {
       "x": 297,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_left_0": {
       "x": 330,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_right_0": {
       "x": 363,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_down_1": {
       "x": 396,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_up_1": {
       "x": 429,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_left_1": {
       "x": 462,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_boy_right_1": {
       "x": 495,
-      "y": 1650,
+      "y": 1683,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_down_0": {
       "x": 0,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_up_0": {
       "x": 33,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_left_0": {
       "x": 66,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_right_0": {
       "x": 99,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_down_1": {
       "x": 132,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_up_1": {
       "x": 165,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_left_1": {
       "x": 198,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_kid_girl_right_1": {
       "x": 231,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_down_0": {
       "x": 264,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_up_0": {
       "x": 297,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_left_0": {
       "x": 330,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_right_0": {
       "x": 363,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_down_1": {
       "x": 396,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_up_1": {
       "x": 429,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_left_1": {
       "x": 462,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_man_alt_right_1": {
       "x": 495,
-      "y": 1683,
+      "y": 1716,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_down_0": {
       "x": 0,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_up_0": {
       "x": 33,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_left_0": {
       "x": 66,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_right_0": {
       "x": 99,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_down_1": {
       "x": 132,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_up_1": {
       "x": 165,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_left_1": {
       "x": 198,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_old_woman_right_1": {
       "x": 231,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_down_0": {
       "x": 264,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_up_0": {
       "x": 297,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_left_0": {
       "x": 330,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_right_0": {
       "x": 363,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_down_1": {
       "x": 396,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_up_1": {
       "x": 429,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_left_1": {
       "x": 462,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "npc_hiker_alt_right_1": {
       "x": 495,
-      "y": 1716,
+      "y": 1749,
       "w": 32,
       "h": 32
     },
     "ball": {
       "x": 0,
-      "y": 1749,
+      "y": 1782,
       "w": 32,
       "h": 32
     },
     "creature_emberkit": {
       "x": 0,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_flarebound": {
       "x": 65,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_infernarok": {
       "x": 130,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_aquapup": {
       "x": 195,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_tideturtle": {
       "x": 260,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_maelstroth": {
       "x": 325,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_sproutling": {
       "x": 390,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_leafurge": {
       "x": 455,
-      "y": 1782,
+      "y": 1815,
       "w": 64,
       "h": 64
     },
     "creature_verdantsage": {
       "x": 0,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_zapret": {
       "x": 65,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_boltbeard": {
       "x": 130,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_pebra": {
       "x": 195,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_boulderon": {
       "x": 260,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_flitwing": {
       "x": 325,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_skylordan": {
       "x": 390,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_nibblet": {
       "x": 455,
-      "y": 1847,
+      "y": 1880,
       "w": 64,
       "h": 64
     },
     "creature_whiskaroth": {
       "x": 0,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_crawlbug": {
       "x": 65,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_mothmane": {
       "x": 130,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_cavewing": {
       "x": 195,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_vampirothy": {
       "x": 260,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_splashfin": {
       "x": 325,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_levifin": {
       "x": 390,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_glimkit": {
       "x": 455,
-      "y": 1912,
+      "y": 1945,
       "w": 64,
       "h": 64
     },
     "creature_lustrofox": {
       "x": 0,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_cinderpup": {
       "x": 65,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_pyrohound": {
       "x": 130,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_magmaron": {
       "x": 195,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_mistfin": {
       "x": 260,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_tidalwhal": {
       "x": 325,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_glacierock": {
       "x": 390,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_fernsprout": {
       "x": 455,
-      "y": 1977,
+      "y": 2010,
       "w": 64,
       "h": 64
     },
     "creature_bramblewood": {
       "x": 0,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_thornedred": {
       "x": 65,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_voltkit": {
       "x": 130,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_voltlynx": {
       "x": 195,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_stormfangis": {
       "x": 260,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_stoneworm": {
       "x": 325,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_quakeworm": {
       "x": 390,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_tectonarch": {
       "x": 455,
-      "y": 2042,
+      "y": 2075,
       "w": 64,
       "h": 64
     },
     "creature_bumblesting": {
       "x": 0,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_hivequeen": {
       "x": 65,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_royalwasp": {
       "x": 130,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_galewing": {
       "x": 195,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_tempestir": {
       "x": 260,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_solarwing": {
       "x": 325,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_solarcrest": {
       "x": 390,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_frostpup": {
       "x": 455,
-      "y": 2107,
+      "y": 2140,
       "w": 64,
       "h": 64
     },
     "creature_snowox": {
       "x": 0,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_glacioxen": {
       "x": 65,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_crysthorn": {
       "x": 130,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_prismage": {
       "x": 195,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_geistmite": {
       "x": 260,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_shadefox": {
       "x": 325,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_umbrasire": {
       "x": 390,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_dreamilly": {
       "x": 455,
-      "y": 2172,
+      "y": 2205,
       "w": 64,
       "h": 64
     },
     "creature_reverieus": {
       "x": 0,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_rivettot": {
       "x": 65,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_mindrop": {
       "x": 130,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_pugpaw": {
       "x": 195,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_joltlet": {
       "x": 260,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_breezlet": {
       "x": 325,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_silkuttle": {
       "x": 390,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_venipip": {
       "x": 455,
-      "y": 2237,
+      "y": 2270,
       "w": 64,
       "h": 64
     },
     "creature_mudmote": {
       "x": 0,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_frostnip": {
       "x": 65,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_craglet": {
       "x": 130,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_wraithlet": {
       "x": 195,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_draekit": {
       "x": 260,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_dewfae": {
       "x": 325,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_clawmonk": {
       "x": 390,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_rivetbolt": {
       "x": 455,
-      "y": 2302,
+      "y": 2335,
       "w": 64,
       "h": 64
     },
     "creature_frostbloom": {
       "x": 0,
-      "y": 2367,
+      "y": 2400,
       "w": 64,
       "h": 64
     },
     "creature_mantilux": {
       "x": 65,
-      "y": 2367,
+      "y": 2400,
       "w": 64,
       "h": 64
     },
     "creature_clodlet": {
       "x": 130,
-      "y": 2367,
+      "y": 2400,
       "w": 64,
       "h": 64
     },
     "creature_budling": {
       "x": 195,
-      "y": 2367,
+      "y": 2400,
       "w": 64,
       "h": 64
     },
     "creature_miasmite": {
       "x": 260,
-      "y": 2367,
+      "y": 2400,
       "w": 64,
       "h": 64
     }

@@ -230,6 +230,47 @@ function stampBuilding(grid, b, pathCode, hub) {
   return { x: doorX, y: doorY };
 }
 
+// Paint a themed border ring (thick edge band) into the grid. This
+// gives each town a recognisable silhouette before paths even exist:
+// forest -> 2-tile ring of trees, water -> ring of water on chosen
+// edges, rocks -> rocky outcrops, snow -> snowy pines + bushes,
+// hedge -> formal hedge ring, mixed -> random mix.
+function applyBorderRing(grid, kind, opts) {
+  if (!kind) return;
+  opts = opts || {};
+  const thickness = opts.thickness || 2;
+  const edges = opts.edges || { north:true, south:true, east:true, west:true };
+  const codes = (() => {
+    switch (kind) {
+      case 'forest': return ['Y','Y','T','c'];
+      case 'darkforest': return ['G','G','U','V'];
+      case 'pines':  return ['Q','Q','k','Q'];
+      case 'rocks':  return ['(',')','(','(',')'];
+      case 'palms':  return ['O','O','3','c'];
+      case 'hedge':  return ['h','h','c'];
+      case 'birch':  return ['N','N','1','('];
+      case 'autumn': return ['E','E','j','1'];
+      default:       return ['Y','c'];
+    }
+  })();
+  const W = CITY_W, H = CITY_H;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      let inBorder = false;
+      if (edges.north && y < thickness) inBorder = true;
+      if (edges.south && y >= H - thickness) inBorder = true;
+      if (edges.west  && x < thickness) inBorder = true;
+      if (edges.east  && x >= W - thickness) inBorder = true;
+      if (!inBorder) continue;
+      // Don't overwrite edge transition tiles ('X').
+      if (grid[y][x] === 'X') continue;
+      // Hash position so the placement is deterministic but varied.
+      const h = ((x * 73856093) ^ (y * 19349663) ^ (opts.seed || 0)) >>> 0;
+      grid[y][x] = codes[h % codes.length];
+    }
+  }
+}
+
 function makeCityHubTiles(cfg) {
   const fill = cfg.fill || '.';
   const pathCode = cfg.pathCode || ',';
@@ -239,17 +280,29 @@ function makeCityHubTiles(cfg) {
     putTile(grid, x, CITY_H - 1, cfg.edges && cfg.edges.south ? 'X' : fill);
   }
   for (let y = 0; y < CITY_H; y++) {
-    putTile(grid, 0, y, cfg.edges && cfg.edges.west ? 'X' : fill);
-    putTile(grid, CITY_W - 1, y, cfg.edges && cfg.edges.east ? 'X' : fill);
+    // Don't overwrite a corner tile that the previous pass already
+    // set to 'X' — this previously wiped (0,0) when only north was
+    // an edge but west wasn't, leaving the north edge corner as
+    // fill (tree) and isolating the row-0 X strip.
+    if (grid[y][0] !== 'X') putTile(grid, 0, y, cfg.edges && cfg.edges.west ? 'X' : fill);
+    else if (cfg.edges && cfg.edges.west) putTile(grid, 0, y, 'X');
+    if (grid[y][CITY_W - 1] !== 'X') putTile(grid, CITY_W - 1, y, cfg.edges && cfg.edges.east ? 'X' : fill);
+    else if (cfg.edges && cfg.edges.east) putTile(grid, CITY_W - 1, y, 'X');
   }
+  // Optional border ring of theme-appropriate flora/rocks/water.
+  // Painted before the tree scatter so the scatter can dot the
+  // interior without colliding with the dense edge.
+  if (cfg.borderRing) applyBorderRing(grid, cfg.borderRing.kind || cfg.borderRing, cfg.borderRing.opts || cfg.borderRing);
   scatterTiles(grid, { on:fill, codes:cfg.trees || ['c','1'], rate:cfg.treeRate || 11, seed:cfg.seed || 1 });
-  carvePath(grid, [[22,0],[22,5],[17,5],[17,10],[22,10],[22,33]], pathCode, 1);
-  carvePath(grid, [[0,17],[8,17],[8,14],[17,14],[26,14],[26,17],[43,17]], pathCode, 1);
-  carvePath(grid, [[9,29],[15,25],[22,25],[29,25],[35,29]], pathCode, 1);
-  carveRect(grid, 15, 13, 14, 8, pathCode);
-  carveRect(grid, 18, 22, 9, 6, cfg.plaza || pathCode);
+  // PATH NETWORK is per-city now (was previously a hardcoded
+  // skeleton that made every town feel identical). Each updateCity
+  // call supplies its own cfg.paths + cfg.plazas; the legacy global
+  // skeleton has been removed.
   if (cfg.paths) {
     for (const p of cfg.paths) carvePath(grid, p.points, p.code || pathCode, p.radius || 0);
+  }
+  if (cfg.plazas) {
+    for (const pz of cfg.plazas) carveRect(grid, pz.x, pz.y, pz.w, pz.h, pz.code || pathCode);
   }
   if (cfg.features) {
     for (const f of cfg.features) carveRect(grid, f.x, f.y, f.w, f.h, f.code);
@@ -258,10 +311,6 @@ function makeCityHubTiles(cfg) {
   if (cfg.buildings) {
     for (const b of cfg.buildings) stampBuilding(grid, b, pathCode, hub);
   }
-  // Keep a guaranteed civic spine through every hub even when a district
-  // building sits close to the winding street plan.
-  carvePath(grid, [[22,0],[22,CITY_H - 1]], pathCode, 1);
-  carvePath(grid, [[0,17],[CITY_W - 1,17]], pathCode, 1);
   if (cfg.buildings) {
     for (const b of cfg.buildings) {
       const [dx, dy] = buildingDoor(b);
@@ -1886,75 +1935,131 @@ function applyWorldExpansion(MAPS) {
     if (cfg.weather) map.weather = cfg.weather;
   }
 
+  // RODPORT — coastal starter village. Linear east-west layout
+  // hugging a harbor, with a wooden pier and lighthouse landmark on
+  // the east side. Forest border on the north + west.
   const rodportBuildings = [
-    { x:5,  y:5,  w:7, roof:'+', wall:'@', to:'player_house', tx:3, ty:6 },
-    { x:14, y:5,  w:7, roof:'-', wall:'@', to:'rival_house',  tx:3, ty:6 },
-    { x:24, y:4,  w:10, roof:'P', wall:'B', doorTile:'D', to:'lab', tx:5, ty:8 },
-    { x:5,  y:22, w:8, roof:'=', wall:'$', to:'rodport_dockhouse', tx:5, ty:7 },
-    { x:31, y:21, w:8, roof:'&', wall:'#', to:'rodport_boathouse', tx:5, ty:7 }
+    { x:3,  y:6,  w:7, roof:'+', wall:'@', to:'player_house', tx:3, ty:6 },
+    { x:12, y:6,  w:7, roof:'-', wall:'@', to:'rival_house',  tx:3, ty:6 },
+    { x:22, y:5,  w:10, doorOffset:4, roof:'P', wall:'B', doorTile:'D', to:'lab', tx:5, ty:8 },
+    { x:5,  y:18, w:8, doorOffset:3, roof:'=', wall:'$', to:'rodport_dockhouse', tx:5, ty:7 },
+    { x:14, y:18, w:8, doorOffset:3, roof:'&', wall:'#', to:'rodport_boathouse', tx:5, ty:7 }
   ];
   updateCity('rodport', {
-    fill:'Y', pathCode:'_', trees:['K','c','1','e'], seed:3, edges:{ south:true, west:true },
+    fill:'Y', pathCode:'_', trees:['K','c','1','e'], seed:3,
+    treeRate:14,
+    edges:{ south:true, west:true },
+    borderRing:{ kind:'forest', thickness:2, edges:{ north:true, west:true }, seed:3 },
     buildings:rodportBuildings,
-    features:[
-      { x:32, y:27, w:10, h:4, code:'W' },
-      { x:2, y:13, w:7, h:3, code:"'" },
-      { x:27, y:13, w:7, h:3, code:'1' }
+    paths:[
+      // Cottage row in front of houses (y=11) east-west.
+      { points:[[2,11],[31,11]], radius:1 },
+      // Spurs from each cottage door down to cottage row.
+      { points:[[6,9],[6,11]], radius:0 },
+      { points:[[15,9],[15,11]], radius:0 },
+      { points:[[26,8],[26,11]], radius:0 },
+      // Main north-south boulevard to the south exit.
+      { points:[[22,11],[22,33]], radius:1 },
+      // East-west connector through hub at y=17 (links west edge to spine).
+      { points:[[1,17],[22,17]], radius:1 },
+      // East-west boardwalk along the dock row (y=23).
+      { points:[[3,23],[28,23]], radius:1, code:'t' },
+      // Dockhouse door spurs.
+      { points:[[8,22],[8,23]], radius:0 },
+      { points:[[17,22],[17,23]], radius:0 },
+      // Pier extending east into the water.
+      { points:[[28,23],[36,23]], radius:1, code:'t' },
+      // Connector from cottage row to harbor walk (via spine).
+      { points:[[22,11],[22,23]], radius:1 }
     ],
-    extraTiles:[{x:10,y:17,code:'<'},{x:30,y:17,code:'<'},{x:33,y:26,code:'t'},{x:34,y:26,code:'t'}],
+    plazas:[
+      // Welcome plaza in front of the lab.
+      { x:22, y:13, w:6, h:5, code:'_' },
+      // Cottage front yards.
+      { x:3, y:10, w:7, h:1, code:'_' },
+      { x:12, y:10, w:7, h:1, code:'_' }
+    ],
+    features:[
+      // Harbor water — east half of the lower map (clear of column 22 spine).
+      { x:25, y:25, w:17, h:7, code:'W' },
+      // Western harbor pocket (leaves col 0..1 clear for west edge).
+      { x:2,  y:28, w:14, h:4, code:'W' },
+      // Sandy beach strip just above the water.
+      { x:2,  y:25, w:14, h:3, code:'s' },
+      { x:25, y:24, w:17, h:1, code:'s' },
+      // Decorative gardens between cottages.
+      { x:11, y:13, w:1, h:3, code:"'" },
+      { x:20, y:13, w:1, h:3, code:"'" },
+      // A bit of grass-flower variety along the cottage row.
+      { x:1,  y:13, w:2, h:3, code:'1' }
+    ],
+    extraTiles:[
+      // Sign post locations get tile code 'S' from updateCity using cfg.signs.
+    ],
     signs:{
-      '19,19': 'RODPORT TOWN - Harbor, lab, and first steps.',
-      '2,17': 'The desert road loops back here after six BADGES.'
+      '22,15': 'RODPORT TOWN - Harbor, lab, and first steps.',
+      '2,11': 'The desert road loops back here after six BADGES.'
     },
     npcs:[
-      { x:28, y:9, dir:'down', sprite:'npc_oak', name:'PROF. ROD',
+      { x:25, y:11, dir:'down', sprite:'npc_oak', name:'PROF. ROD',
         dialog:["Welcome to the world of POKEROD!","My lab is bigger now, but the adventure still starts with one partner."] },
-      { x:13, y:17, dir:'down', sprite:'npc_girl', name:'LILA',
+      { x:13, y:11, dir:'down', sprite:'npc_girl', name:'LILA',
         dialog:["The new harbor paths all bend back to the plaza.","If you get turned around, follow the cobbles."] },
-      { x:35, y:25, dir:'left', sprite:'npc_youth', name:'DOCKHAND REN',
+      { x:30, y:23, dir:'left', sprite:'npc_youth', name:'DOCKHAND REN',
         dialog:["We keep spare ROD BALL crates by the pier.","The sea breeze makes every route feel longer."] },
-      { x:22, y:4,  dir:'down',  sprite:'npc_construction', name:'FOREMAN GUS', wander:{ range:2 },
+      { x:22, y:14, dir:'down',  sprite:'npc_construction', name:'FOREMAN GUS', wander:{ range:2 },
         dialog:["The plaza got new pavers last week.","Watch your step around the wet cement."] },
-      { x:22, y:11, dir:'down',  sprite:'npc_tourist',      name:'TOURIST POE', wander:{ range:2 },
+      { x:22, y:25, dir:'down',  sprite:'npc_tourist',      name:'TOURIST POE', wander:{ range:1 },
         dialog:["First time visiting RODPORT! The harbor is gorgeous!","Did you know they brew salt-taffy down at the pier?"] },
-      { x:18, y:17, dir:'right', sprite:'npc_jogger',       name:'JOGGER ANNE', wander:{ range:2 },
-        dialog:["Nice morning for laps around the plaza!"],
+      { x:18, y:11, dir:'right', sprite:'npc_jogger',       name:'JOGGER ANNE', wander:{ range:2 },
+        dialog:["Nice morning for laps along the cottage row!"],
         trainer:{ team:[['nibblet',5]], reward:120, defeat:["You keep up better than I expected!"] } },
-      { x:26, y:17, dir:'left',  sprite:'npc_dog_walker',   name:'WALKER SAM', wander:{ range:2 },
+      { x:9,  y:11, dir:'right', sprite:'npc_dog_walker',   name:'WALKER SAM', wander:{ range:2 },
         dialog:["MOCHA pulls toward every other PARTNER we pass."] },
-      { x:21, y:24, dir:'down',  sprite:'npc_kid_boy',      name:'KID NOAH', wander:{ range:1 },
+      { x:11, y:23, dir:'right', sprite:'npc_kid_boy',      name:'KID NOAH', wander:{ range:1 },
         dialog:["I want to be a TRAINER like you!"],
         trainer:{ team:[['flitwing',4],['nibblet',5]], reward:160, defeat:["I'll train harder!"] } },
-      { x:25, y:25, dir:'left',  sprite:'npc_kid_girl',     name:'KID MIRA', wander:{ range:1 },
+      { x:25, y:23, dir:'left',  sprite:'npc_kid_girl',     name:'KID MIRA', wander:{ range:1 },
         dialog:["Catch! ...wait, that was just a leaf."] },
-      { x:20, y:14, dir:'right', sprite:'npc_journalist',   name:'REPORTER KAY', wander:{ range:2 },
+      { x:22, y:18, dir:'down', sprite:'npc_journalist',    name:'REPORTER KAY', wander:{ range:1 },
         dialog:["Mind a quick photo for the GAZETTE?","Smile! ...okay maybe later."] },
-      { x:6,  y:17, dir:'right', sprite:'npc_baker',        name:'BAKER PIPPA', wander:{ range:1 },
+      { x:5,  y:23, dir:'right', sprite:'npc_baker',        name:'BAKER PIPPA', wander:{ range:1 },
         dialog:["The fresh shell-bread comes out at noon.","BAKERY's just up the path - turn at the lamppost."] }
     ],
     decorations:[
-      { x:15, y:13, key:'streetlamp_ornate_double' },
-      { x:28, y:13, key:'streetlamp_ornate_double' },
-      { x:15, y:20, key:'lamp_ornate_gold' },
-      { x:28, y:20, key:'lamp_ornate_gold' },
-      { x:17, y:16, key:'bench_park_brown' },
-      { x:26, y:16, key:'bench_park_brown' },
-      { x:20, y:22, key:'bench_marble_white' },
-      { x:24, y:22, key:'bench_marble_white' },
-      { x:21, y:6,  key:'planter_flowerbed_oval' },
-      { x:23, y:6,  key:'planter_flowerbed_oval' },
-      { x:21, y:11, key:'pot_terracotta_red' },
-      { x:23, y:11, key:'pot_terracotta_red' },
-      { x:21, y:28, key:'pot_ceramic_blue' },
-      { x:23, y:28, key:'pot_ceramic_blue' },
-      { x:16, y:15, key:'trash_grey_lid' },
-      { x:27, y:15, key:'trash_blue_recycle' },
-      { x:18, y:27, key:'water_fountain_round' }
+      // LIGHTHOUSE LANDMARK at the east edge of the pier (3 tiles tall).
+      { x:36, y:21, key:'lighthouse_top' },
+      { x:36, y:22, key:'lighthouse_tower' },
+      { x:36, y:23, key:'lighthouse_base' },
+      // Anchor + barrel cluster at the dock entrance.
+      { x:24, y:23, key:'anchor' },
+      // Ornate streetlamps lining the cottage row.
+      { x:11, y:11, key:'streetlamp_ornate_double' },
+      { x:30, y:11, key:'streetlamp_ornate_double' },
+      // Lab plaza decor.
+      { x:21, y:14, key:'planter_flowerbed_oval' },
+      { x:28, y:14, key:'planter_flowerbed_oval' },
+      { x:21, y:17, key:'bench_park_brown' },
+      { x:28, y:17, key:'bench_park_brown' },
+      { x:24, y:14, key:'water_fountain_round' },
+      // Cottage-front pots.
+      { x:6,  y:10, key:'pot_terracotta_red' },
+      { x:9,  y:10, key:'pot_terracotta_red' },
+      { x:15, y:10, key:'pot_painted_yellow' },
+      { x:18, y:10, key:'pot_painted_yellow' },
+      // Pier oil lamps.
+      { x:28, y:22, key:'lamp_oil_brass' },
+      { x:32, y:22, key:'lamp_oil_brass' },
+      // Bench under the cottage row tree.
+      { x:18, y:13, key:'bench_marble_white' },
+      // Dockyard trash + crate (we use trash_grey_lid as a crate stand-in).
+      { x:14, y:23, key:'trash_grey_lid' },
+      { x:27, y:23, key:'trash_blue_recycle' }
     ],
     ambient:[
-      { species:'nibblet', x:16, y:18, range:3 },
+      { species:'nibblet', x:16, y:13, range:2 },
       { species:'flitwing', x:34, y:29, range:2 },
-      { species:'glimkit', x:7, y:14, range:2 }
+      { species:'glimkit', x:7, y:23, range:2 }
     ],
     edgeDefs:{
       west:{ x:0, to:'desert', tx:46, ty:20, gate:{ minBadges:6, message:'The desert loop is too harsh without six BADGES.' } },
@@ -1962,66 +2067,115 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
+  // BRINDALE — concentric garden city. Buildings ring a central
+  // fountain plaza. Cherry-arch landmarks frame the north/south
+  // entrances. Hedge border for a formal-garden feel.
   const brindaleBuildings = [
-    { x:5, y:4, w:7, roof:'P', wall:'B', doorTile:'D', to:'pokecenter', tx:4, ty:6 },
-    { x:15, y:4, w:7, roof:'M', wall:'$', doorTile:'f', to:'mart', tx:5, ty:9 },
-    { x:28, y:5, w:9, roof:'-', wall:'!', to:'brindale_school', tx:5, ty:7 },
-    { x:5, y:22, w:7, roof:'=', wall:'$', to:'townhouse', tx:3, ty:6 },
-    { x:25, y:22, w:9, roof:'&', wall:'B', doorTile:'D', to:'brindale_gym', tx:4, ty:7 }
+    { x:4,  y:4,  w:7, roof:'P', wall:'B', doorTile:'D', to:'pokecenter', tx:4, ty:6 },
+    { x:33, y:4,  w:7, roof:'M', wall:'$', doorTile:'f', to:'mart', tx:5, ty:9 },
+    { x:31, y:14, w:9, roof:'-', wall:'!', to:'brindale_school', tx:5, ty:7 },
+    { x:4,  y:14, w:7, roof:'=', wall:'$', to:'townhouse', tx:3, ty:6 },
+    { x:18, y:24, w:9, roof:'&', wall:'B', doorTile:'D', to:'brindale_gym', tx:4, ty:7 }
   ];
   updateCity('brindale', {
-    fill:'K', pathCode:'p', trees:['c','1','e','K'], seed:7, edges:{ north:true, south:true },
+    fill:'K', pathCode:'p', trees:['c','1','e','K'], seed:7,
+    treeRate:18,
+    edges:{ north:true, south:true },
+    borderRing:{ kind:'hedge', thickness:2, edges:{ east:true, west:true }, seed:7 },
     buildings:brindaleBuildings,
-    features:[
-      { x:12, y:20, w:9, h:4, code:"'" },
-      { x:30, y:12, w:8, h:3, code:'1' },
-      { x:5, y:13, w:6, h:3, code:'c' }
+    paths:[
+      // Outer ring road (rectangular boundary).
+      { points:[[7,11],[35,11]], radius:1 },     // top edge
+      { points:[[35,11],[35,22]], radius:1 },    // right edge
+      { points:[[7,22],[35,22]], radius:1 },     // bottom edge
+      { points:[[7,11],[7,22]], radius:1 },      // left edge
+      // North entrance from route1.
+      { points:[[22,0],[22,11]], radius:1 },
+      // South entrance to route2 (passes through gym plaza).
+      { points:[[22,22],[22,33]], radius:1 },
+      // East-west cross diameter through fountain.
+      { points:[[7,17],[35,17]], radius:1 },
+      // Building door spurs.
+      { points:[[7,8],[7,11]], radius:0 },       // pokecenter
+      { points:[[36,8],[36,11]], radius:0 },     // mart
+      { points:[[7,18],[7,17]], radius:0 },      // townhouse
+      { points:[[35,18],[35,17]], radius:0 },    // school
+      { points:[[22,23],[22,22]], radius:0 }     // gym
     ],
-    signs:{ '18,19':'BRINDALE CITY - Gardens, school, Center, Mart, and Gym.' },
+    plazas:[
+      // Central round-ish plaza around the fountain.
+      { x:18, y:14, w:9, h:7, code:'p' },
+      // Inner ring stone plaza of cobble.
+      { x:20, y:16, w:5, h:3, code:'_' }
+    ],
+    features:[
+      // Heart-shaped flowerbed wings around the fountain.
+      { x:14, y:14, w:3, h:3, code:"'" },
+      { x:28, y:14, w:3, h:3, code:"'" },
+      { x:14, y:18, w:3, h:3, code:"'" },
+      { x:28, y:18, w:3, h:3, code:"'" },
+      // Long flowerbed along south path (clear of column 21..23 spine).
+      { x:18, y:25, w:3, h:5, code:"'" },
+      { x:25, y:25, w:3, h:5, code:"'" },
+      // Cherry-bush thickets framing the entrances (clear of col 21..23).
+      { x:14, y:5, w:6, h:3, code:'c' },
+      { x:24, y:5, w:6, h:3, code:'c' }
+    ],
+    signs:{ '20,9':'BRINDALE CITY - Gardens, school, Center, Mart, and Gym.' },
     npcs:[
-      { x:21, y:16, dir:'down', sprite:'npc_girl', name:'BRINDALE GUIDE',
+      { x:22, y:18, dir:'down', sprite:'npc_girl', name:'BRINDALE GUIDE',
         dialog:["BRINDALE has grown into a real garden city.","The Gym is tucked into the southern courtyard."] },
-      { x:33, y:10, dir:'left', sprite:'npc_youth', name:'SCHOOL KID NEM',
+      { x:33, y:11, dir:'down', sprite:'npc_youth', name:'SCHOOL KID NEM',
         dialog:["Trainer school says Great Balls show up earlier now.","I wrote that down twice."] },
-      { x:14, y:23, dir:'up', sprite:'npc_old', name:'GARDENER ELI',
+      { x:11, y:17, dir:'right', sprite:'npc_old', name:'GARDENER ELI',
         dialog:["Every flowerbed is a tiny route if you walk slowly enough."] },
-      { x:22, y:6,  dir:'down',  sprite:'npc_teacher',     name:'TEACHER ROSALIE', wander:{ range:2 },
+      { x:22, y:5,  dir:'down',  sprite:'npc_teacher',     name:'TEACHER ROSALIE', wander:{ range:2 },
         dialog:["Every PARTNER learns a move at the right time.","Don't rush evolution - read the chapter twice."] },
-      { x:22, y:12, dir:'down',  sprite:'npc_librarian',   name:'LIBRARIAN ED', wander:{ range:1 },
+      { x:22, y:11, dir:'down',  sprite:'npc_librarian',   name:'LIBRARIAN ED', wander:{ range:1 },
         dialog:["The Brindale archives have a whole shelf on TM moves.","Quiet, please. We've got reading hours."] },
-      { x:18, y:17, dir:'right', sprite:'npc_dancer',      name:'DANCER BREE', wander:{ range:2 },
+      { x:18, y:17, dir:'right', sprite:'npc_dancer',      name:'DANCER BREE', wander:{ range:1 },
         dialog:["Watch this combo! TWIRL, TWIRL, BATTLE!"],
         trainer:{ team:[['glimkit',10],['flitwing',11]], reward:300, defeat:["I left my ribbon at the dojo!"] } },
-      { x:26, y:17, dir:'left',  sprite:'npc_punk',        name:'PUNK ZED', wander:{ range:2 },
+      { x:26, y:17, dir:'left',  sprite:'npc_punk',        name:'PUNK ZED', wander:{ range:1 },
         dialog:["You don't look so tough."],
         trainer:{ team:[['nibblet',11],['cinderpup',12]], reward:340, defeat:["Tch. Lucky."] } },
-      { x:20, y:24, dir:'right', sprite:'npc_artist',      name:'ARTIST ROSAMUND', wander:{ range:1 },
+      { x:18, y:25, dir:'right', sprite:'npc_artist',      name:'ARTIST ROSAMUND', wander:{ range:1 },
         dialog:["The garden lighting at sunset is divine.","Hold still! The portrait would suit you."] },
-      { x:24, y:25, dir:'left',  sprite:'npc_kid_girl',    name:'KID NORA', wander:{ range:1 },
+      { x:26, y:25, dir:'left',  sprite:'npc_kid_girl',    name:'KID NORA', wander:{ range:1 },
         dialog:["My brother thinks GLIMKIT are scary. They're so cute!"] },
-      { x:33, y:17, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER YAEL', wander:{ range:2 },
+      { x:33, y:17, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER YAEL', wander:{ range:1 },
         dialog:["BRUNO, drop the FLOWER. I said DROP."] }
     ],
     decorations:[
-      { x:15, y:13, key:'lamp_ornate_gold' },
-      { x:28, y:13, key:'lamp_ornate_gold' },
-      { x:15, y:20, key:'streetlamp_ornate_double' },
-      { x:28, y:20, key:'streetlamp_ornate_double' },
-      { x:17, y:15, key:'bench_marble_white' },
-      { x:26, y:15, key:'bench_marble_white' },
-      { x:20, y:22, key:'bench_garden_iron' },
-      { x:24, y:22, key:'bench_garden_iron' },
-      { x:21, y:8,  key:'planter_hedge_round' },
-      { x:23, y:8,  key:'planter_hedge_round' },
-      { x:21, y:11, key:'pot_painted_yellow' },
-      { x:23, y:11, key:'pot_painted_yellow' },
-      { x:18, y:13, key:'planter_flowerbed_oval' },
-      { x:25, y:13, key:'planter_flowerbed_oval' },
-      { x:21, y:30, key:'pot_marble_white' },
-      { x:23, y:30, key:'pot_marble_white' },
-      { x:20, y:27, key:'water_fountain_round' },
-      { x:16, y:17, key:'trash_basket_wicker' },
-      { x:27, y:17, key:'trash_basket_wicker' }
+      // CHERRY ARCH at the north entrance — the iconic landmark.
+      { x:21, y:9, key:'cherry_arch' },
+      // Central fountain in the plaza heart.
+      { x:22, y:17, key:'water_fountain_round' },
+      // Marble corner statues framing the fountain.
+      { x:19, y:14, key:'pedestal_statue' },
+      { x:25, y:14, key:'pedestal_statue' },
+      // Garden lamps at the four ring-road corners.
+      { x:7,  y:11, key:'lamp_ornate_gold' },
+      { x:35, y:11, key:'lamp_ornate_gold' },
+      { x:7,  y:22, key:'streetlamp_ornate_double' },
+      { x:35, y:22, key:'streetlamp_ornate_double' },
+      // Iron benches around the central plaza.
+      { x:19, y:19, key:'bench_garden_iron' },
+      { x:25, y:19, key:'bench_garden_iron' },
+      // Marble benches along the cross diameter.
+      { x:11, y:18, key:'bench_marble_white' },
+      { x:31, y:18, key:'bench_marble_white' },
+      // Topiary hedge planters.
+      { x:14, y:11, key:'planter_hedge_round' },
+      { x:28, y:11, key:'planter_hedge_round' },
+      { x:14, y:22, key:'planter_hedge_round' },
+      { x:28, y:22, key:'planter_hedge_round' },
+      // Flowerpot pairs along the entrance path.
+      { x:21, y:5,  key:'pot_painted_yellow' },
+      { x:23, y:5,  key:'pot_painted_yellow' },
+      // Wicker bins.
+      { x:11, y:11, key:'trash_basket_wicker' },
+      { x:31, y:11, key:'trash_basket_wicker' }
     ],
     ambient:[
       { species:'glimkit', x:12, y:16, range:2 },
@@ -2034,71 +2188,105 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
+  // WOODFALL — winding forest village. Curved mossy paths weave
+  // around a giant ancient oak landmark in the center. Torii gate
+  // marks the north entrance. Dense ancient-tree border.
   const woodfallBuildings = [
-    { x:6, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'woodfall_center', tx:4, ty:6 },
-    { x:17, y:5, w:7, roof:'M', wall:'?', doorTile:'f', to:'woodfall_mart', tx:5, ty:9 },
-    { x:30, y:6, w:8, roof:'8', wall:'?', to:'woodfall_lodge', tx:5, ty:7 },
-    { x:7, y:22, w:8, roof:'7', wall:'?', to:'woodfall_cabin', tx:5, ty:7 },
-    { x:24, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'woodfall_gym', tx:4, ty:7 }
+    { x:5,  y:6,  w:7, roof:'P', wall:'B', doorTile:'D', to:'woodfall_center', tx:4, ty:6 },
+    { x:31, y:6,  w:7, roof:'M', wall:'?', doorTile:'f', to:'woodfall_mart', tx:5, ty:9 },
+    { x:33, y:18, w:8, roof:'8', wall:'?', to:'woodfall_lodge', tx:5, ty:7 },
+    { x:3,  y:18, w:8, roof:'7', wall:'?', to:'woodfall_cabin', tx:5, ty:7 },
+    { x:18, y:24, w:9, roof:'&', wall:'B', doorTile:'D', to:'woodfall_gym', tx:4, ty:7 }
   ];
   updateCity('woodfall', {
-    fill:'G', pathCode:'z', trees:['U','V','4','n'], seed:4, edges:{ north:true, south:true },
+    fill:'G', pathCode:'z', trees:['U','V','4','n'], seed:4,
+    treeRate:20,
+    edges:{ north:true, south:true },
+    borderRing:{ kind:'darkforest', thickness:2, edges:{ east:true, west:true }, seed:4 },
     buildings:woodfallBuildings,
-    features:[
-      { x:2, y:12, w:8, h:5, code:'4' },
-      { x:31, y:14, w:8, h:5, code:'4' },
-      { x:16, y:26, w:5, h:4, code:'m' }
+    paths:[
+      // Curved spine from north to south, jogging around the central oak.
+      { points:[[22,0],[22,8],[18,12],[22,16],[26,20],[22,24],[22,33]], radius:1 },
+      // Curved east-west cross route, also bending around oak.
+      { points:[[0,17],[8,17],[12,14],[18,14],[18,20],[26,20],[30,17],[43,17]], radius:1 },
+      // Door spurs.
+      { points:[[8,9],[8,12]], radius:0 },       // center
+      { points:[[34,9],[34,12]], radius:0 },     // mart
+      { points:[[6,17],[6,22]], radius:0 },      // cabin (extended to y=22)
+      { points:[[36,17],[36,22]], radius:0 },    // lodge (extended to y=22)
+      { points:[[22,23],[22,28]], radius:0 }     // gym (extended to y=28)
     ],
-    signs:{ '18,19':'WOODFALL - Cabins under the old canopy.' },
+    plazas:[
+      // Small mossy clearing in front of the gym.
+      { x:18, y:21, w:9, h:3, code:'z' },
+      // Open glade by the cabin.
+      { x:11, y:18, w:3, h:5, code:'z' }
+    ],
+    features:[
+      // Lush grass patches around the village.
+      { x:13, y:7, w:5, h:3, code:'4' },
+      { x:26, y:9, w:5, h:3, code:'4' },
+      { x:14, y:27, w:7, h:3, code:'4' },
+      // Purple flower patch.
+      { x:27, y:27, w:5, h:3, code:'m' },
+      // Mossy stones along the path.
+      { x:14, y:13, w:1, h:1, code:'(' },
+      { x:28, y:13, w:1, h:1, code:'(' }
+    ],
+    signs:{ '20,9':'WOODFALL - Cabins under the old canopy.' },
     npcs:[
-      { x:22, y:16, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
+      { x:22, y:12, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
         dialog:["The village paths twist with the roots now.","South of town, PEBBLEWOOD has deeper side trails."] },
-      { x:34, y:13, dir:'left', sprite:'npc_girl', name:'FORAGER MIA',
+      { x:30, y:17, dir:'left', sprite:'npc_girl', name:'FORAGER MIA',
         dialog:["A forest cavern opened near PEBBLEWOOD.","Cavern Balls work nicely in places like that."] },
-      { x:10, y:24, dir:'up', sprite:'npc_youth', name:'CABIN KID SOL',
+      { x:11, y:21, dir:'up', sprite:'npc_youth', name:'CABIN KID SOL',
         dialog:["I counted five different roofs from my porch!"] },
-      { x:22, y:6,  dir:'down',  sprite:'npc_hiker_alt',   name:'HIKER VAL', wander:{ range:2 },
+      { x:22, y:5,  dir:'down',  sprite:'npc_hiker_alt',   name:'HIKER VAL', wander:{ range:2 },
         dialog:["The northern trail is easier than it looks."],
         trainer:{ team:[['fernsprout',16],['pebra',15]], reward:520, defeat:["Catch your breath - I will too!"] } },
-      { x:18, y:17, dir:'right', sprite:'npc_artist',      name:'CARVER LIN', wander:{ range:2 },
+      { x:14, y:14, dir:'down', sprite:'npc_artist',      name:'CARVER LIN', wander:{ range:1 },
         dialog:["I carve charm-totems from fallen wood.","Each design tells a story of the forest."] },
-      { x:26, y:17, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER OREN', wander:{ range:2 },
+      { x:28, y:20, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER OREN', wander:{ range:1 },
         dialog:["RUFUS sniffs out berry bushes for me."] },
-      { x:21, y:24, dir:'down',  sprite:'npc_jogger',      name:'TRAILRUNNER MAE', wander:{ range:2 },
+      { x:22, y:25, dir:'down',  sprite:'npc_jogger',      name:'TRAILRUNNER MAE', wander:{ range:1 },
         dialog:["Cross-country, twenty kilometers a day!"],
         trainer:{ team:[['flitwing',15],['nibblet',16],['pebra',16]], reward:560, defeat:["Wow! You set the new record!"] } },
-      { x:25, y:25, dir:'left',  sprite:'npc_kid_boy',     name:'KID PIP', wander:{ range:1 },
+      { x:18, y:23, dir:'right', sprite:'npc_kid_boy',     name:'KID PIP', wander:{ range:1 },
         dialog:["Look! A SPROUTLING in the bushes!","...okay, it's a leaf again."] },
-      { x:33, y:17, dir:'left',  sprite:'npc_construction', name:'BUILDER GERM', wander:{ range:2 },
+      { x:35, y:17, dir:'left',  sprite:'npc_construction', name:'BUILDER GERM', wander:{ range:1 },
         dialog:["Lodge expansion's almost done.","They want a third floor next month."] },
-      { x:14, y:17, dir:'right', sprite:'npc_journalist',  name:'JOURNALIST RU', wander:{ range:2 },
+      { x:5,  y:17, dir:'right', sprite:'npc_journalist',  name:'JOURNALIST RU', wander:{ range:1 },
         dialog:["WOODFALL Gazette - any wildlife sightings?","I've seen a SPROUTLING evolve before. Magic."] }
     ],
     decorations:[
-      { x:15, y:13, key:'lamp_paper_lantern' },
-      { x:28, y:13, key:'lamp_paper_lantern' },
-      { x:15, y:20, key:'lamp_paper_lantern' },
-      { x:28, y:20, key:'lamp_paper_lantern' },
-      { x:17, y:15, key:'bench_log' },
-      { x:26, y:15, key:'bench_log' },
-      { x:20, y:22, key:'bench_log' },
-      { x:24, y:22, key:'bench_log' },
-      { x:21, y:6,  key:'planter_hedge_long' },
-      { x:23, y:6,  key:'planter_hedge_long' },
-      { x:21, y:11, key:'pot_succulent_small' },
-      { x:23, y:11, key:'pot_succulent_small' },
-      { x:21, y:28, key:'pot_tall_lily' },
-      { x:23, y:28, key:'pot_tall_lily' },
-      { x:18, y:25, key:'planter_zen_stone' },
-      { x:25, y:25, key:'planter_zen_stone' },
-      { x:16, y:17, key:'trash_basket_wicker' },
-      { x:27, y:17, key:'trash_basket_wicker' }
+      // TORII GATE marking the north entrance.
+      { x:21, y:4, key:'torii_gate' },
+      // ANCIENT OAK landmark in the central glade (2 tiles tall).
+      { x:21, y:16, key:'ancient_oak_top' },
+      { x:21, y:17, key:'ancient_oak_bot' },
+      // Paper lanterns along the curved path.
+      { x:14, y:14, key:'lamp_paper_lantern' },
+      { x:28, y:14, key:'lamp_paper_lantern' },
+      { x:18, y:21, key:'lamp_paper_lantern' },
+      { x:26, y:21, key:'lamp_paper_lantern' },
+      // Log benches near the oak.
+      { x:18, y:17, key:'bench_log' },
+      { x:25, y:17, key:'bench_log' },
+      // Zen stone planters around the oak base.
+      { x:19, y:19, key:'planter_zen_stone' },
+      { x:23, y:19, key:'planter_zen_stone' },
+      // Forest pots and lilies.
+      { x:11, y:13, key:'pot_succulent_small' },
+      { x:31, y:13, key:'pot_succulent_small' },
+      { x:11, y:21, key:'pot_tall_lily' },
+      { x:31, y:21, key:'pot_tall_lily' },
+      // South-end log bench under the gym wall.
+      { x:18, y:23, key:'bench_log' },
+      { x:26, y:23, key:'bench_log' },
+      // Wicker bins.
+      { x:8,  y:17, key:'trash_basket_wicker' },
+      { x:34, y:17, key:'trash_basket_wicker' }
     ],
-    treeVariants:{
-      T:['tree_var_summer_a','tree_var_summer_b'],
-      Y:['tree_var_oak_gnarled','tree_var_oak_dwarf'],
-      Q:['tree_var_pine_fir','tree_var_pine_spruce']
-    },
     ambient:[
       { species:'sproutling', x:8, y:14, range:3 },
       { species:'crawlbug', x:33, y:16, range:2 },
@@ -2110,66 +2298,114 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
+  // CRESTROCK — terraced rocky town. Two-tier layout connected by a
+  // gravel staircase. Meteor pedestal landmark in the central plaza.
+  // Mining cart on rails near the workshop. Rocks border on most sides.
   const crestrockBuildings = [
-    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'crestrock_center', tx:4, ty:6 },
-    { x:16, y:5, w:7, roof:'M', wall:'#', doorTile:'f', to:'crestrock_mart', tx:5, ty:9 },
-    { x:29, y:6, w:9, roof:'=', wall:'#', to:'crestrock_workshop', tx:5, ty:7 },
-    { x:7, y:22, w:8, roof:'&', wall:'#', to:'crestrock_house', tx:5, ty:7 },
-    { x:24, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'crestrock_gym', tx:4, ty:7 }
+    { x:4,  y:4,  w:7, roof:'P', wall:'B', doorTile:'D', to:'crestrock_center', tx:4, ty:6 },
+    { x:14, y:4,  w:7, roof:'M', wall:'#', doorTile:'f', to:'crestrock_mart', tx:5, ty:9 },
+    { x:30, y:4,  w:9, roof:'=', wall:'#', to:'crestrock_workshop', tx:5, ty:7 },
+    { x:6,  y:22, w:8, roof:'&', wall:'#', to:'crestrock_house', tx:5, ty:7 },
+    { x:24, y:22, w:9, roof:'&', wall:'B', doorTile:'D', to:'crestrock_gym', tx:4, ty:7 }
   ];
   updateCity('crestrock', {
-    fill:'V', pathCode:'v', trees:['2','(',')','V'], seed:10, edges:{ north:true, east:true, south:true },
+    fill:'V', pathCode:'v', trees:['2','(',')','V'], seed:10,
+    treeRate:14,
+    edges:{ north:true, east:true, south:true },
+    borderRing:{ kind:'rocks', thickness:2, edges:{ west:true, east:true }, seed:10 },
     buildings:crestrockBuildings,
-    features:[
-      { x:3, y:12, w:8, h:4, code:'(' },
-      { x:32, y:13, w:7, h:5, code:';' },
-      { x:35, y:16, w:7, h:3, code:'v' }
+    paths:[
+      // Upper terrace — shop row east-west.
+      { points:[[2,11],[42,11]], radius:1 },
+      // Building door spurs (upper).
+      { points:[[7,8],[7,11]], radius:0 },
+      { points:[[17,8],[17,11]], radius:0 },
+      { points:[[34,8],[34,11]], radius:0 },
+      // Staircase (gravel) connecting upper to lower terrace.
+      { points:[[22,11],[22,21]], radius:1, code:';' },
+      // Lower terrace — gym row.
+      { points:[[2,21],[42,21]], radius:1 },
+      // Door spurs (lower) — extended down to building exits.
+      { points:[[9,21],[9,26]], radius:0 },
+      { points:[[28,21],[28,26]], radius:0 },
+      // North entrance from pebblewood.
+      { points:[[22,0],[22,11]], radius:1 },
+      // South exit to glimcavern.
+      { points:[[22,29],[22,33]], radius:1 },
+      // East exit to mountain (y=17 to match edgeDef target).
+      { points:[[36,17],[43,17]], radius:1 }
     ],
-    signs:{ '18,19':'CRESTROCK - Terraces, workshops, and the Highspire gate.' },
+    plazas:[
+      // Plaza around the meteor pedestal.
+      { x:18, y:14, w:9, h:5, code:'v' },
+      // Wider stair landing in the middle.
+      { x:21, y:15, w:3, h:3, code:';' }
+    ],
+    features:[
+      // Quarry / rock outcrops.
+      { x:3,  y:13, w:5, h:6, code:'(' },
+      { x:36, y:13, w:5, h:6, code:'(' },
+      // Workshop yard (gravel).
+      { x:31, y:13, w:5, h:3, code:';' },
+      // Big rock formations in the southern fringe.
+      { x:14, y:27, w:3, h:2, code:')' },
+      { x:27, y:27, w:3, h:2, code:')' }
+    ],
+    signs:{ '20,9':'CRESTROCK - Terraces, workshops, and the Highspire gate.' },
     npcs:[
       { x:22, y:16, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
         dialog:["The east switchback reaches HIGHSPIRE.","The south gate drops into GLIMCAVERN."] },
-      { x:33, y:12, dir:'left', sprite:'npc_old', name:'MINER OREN',
+      { x:34, y:11, dir:'down', sprite:'npc_old', name:'MINER OREN',
         dialog:["We carved more bends into the roads than the mountain asked for."] },
-      { x:12, y:24, dir:'up', sprite:'npc_youth', name:'WORKSHOP KAI',
+      { x:11, y:21, dir:'up', sprite:'npc_youth', name:'WORKSHOP KAI',
         dialog:["Quick Balls are best before a wild Pokerod gets its bearings."] },
-      { x:22, y:6,  dir:'down',  sprite:'npc_construction', name:'FOREMAN PIKE', wander:{ range:2 },
+      { x:22, y:5,  dir:'down',  sprite:'npc_construction', name:'FOREMAN PIKE', wander:{ range:2 },
         dialog:["Stone needs to settle before we lay paths."],
         trainer:{ team:[['pebra',22],['boulderon',23]], reward:920, defeat:["Sturdy! Like real CRESTROCK stone."] } },
       { x:22, y:11, dir:'down',  sprite:'npc_security',     name:'GUARD VANCE', wander:{ range:1 },
         dialog:["I'm watching for ROCK SLIDES.","HIGHSPIRE gate is open if you've earned it."] },
-      { x:18, y:17, dir:'right', sprite:'npc_cyclist',      name:'CYCLIST CRU', wander:{ range:2 },
+      { x:19, y:16, dir:'right', sprite:'npc_cyclist',      name:'CYCLIST CRU', wander:{ range:1 },
         dialog:["Switchbacks are murder on the legs!"],
         trainer:{ team:[['voltkit',22],['flitwing',23]], reward:880, defeat:["Phew! Need a cooldown."] } },
-      { x:26, y:17, dir:'left',  sprite:'npc_paramedic',    name:'MEDIC TARA', wander:{ range:1 },
+      { x:25, y:16, dir:'left',  sprite:'npc_paramedic',    name:'MEDIC TARA', wander:{ range:1 },
         dialog:["Tourists try to climb the cliffs barehanded.","Take MAX REVIVES with you."] },
-      { x:21, y:24, dir:'down',  sprite:'npc_artist',       name:'PAINTER DAR', wander:{ range:1 },
+      { x:18, y:21, dir:'right', sprite:'npc_artist',       name:'PAINTER DAR', wander:{ range:1 },
         dialog:["These cliffs in dawn light - poetry."] },
-      { x:25, y:25, dir:'left',  sprite:'npc_journalist',   name:'REPORTER NEV', wander:{ range:2 },
+      { x:30, y:21, dir:'left',  sprite:'npc_journalist',   name:'REPORTER NEV', wander:{ range:1 },
         dialog:["The mountain's still got secrets we haven't filed."] },
-      { x:33, y:17, dir:'left',  sprite:'npc_dog_walker',   name:'WALKER ROXY', wander:{ range:2 },
+      { x:39, y:11, dir:'left',  sprite:'npc_dog_walker',   name:'WALKER ROXY', wander:{ range:1 },
         dialog:["TRACE loves the high passes."] }
     ],
     decorations:[
-      { x:15, y:13, key:'lamp_modern_chrome' },
-      { x:28, y:13, key:'lamp_modern_chrome' },
-      { x:15, y:20, key:'streetlamp_ornate_double' },
-      { x:28, y:20, key:'streetlamp_ornate_double' },
-      { x:17, y:15, key:'bench_stone_grey' },
-      { x:26, y:15, key:'bench_stone_grey' },
-      { x:20, y:22, key:'bench_marble_white' },
-      { x:24, y:22, key:'bench_marble_white' },
-      { x:21, y:6,  key:'planter_zen_stone' },
-      { x:23, y:6,  key:'planter_zen_stone' },
-      { x:21, y:11, key:'pot_terracotta_red' },
-      { x:23, y:11, key:'pot_terracotta_red' },
-      { x:21, y:30, key:'pot_marble_white' },
-      { x:23, y:30, key:'pot_marble_white' },
-      { x:18, y:25, key:'planter_raised_wood' },
-      { x:25, y:25, key:'planter_raised_wood' },
-      { x:16, y:17, key:'trash_dumpster' },
-      { x:27, y:17, key:'trash_grey_lid' },
-      { x:20, y:13, key:'pedestal_statue' }
+      // METEOR PEDESTAL landmark in the central plaza.
+      { x:22, y:17, key:'meteor_pedestal' },
+      // MINING CART near the workshop.
+      { x:36, y:11, key:'mining_cart' },
+      // Modern chrome lamps along the upper terrace.
+      { x:11, y:11, key:'lamp_modern_chrome' },
+      { x:31, y:11, key:'lamp_modern_chrome' },
+      // Ornate streetlamps along the lower terrace.
+      { x:11, y:21, key:'streetlamp_ornate_double' },
+      { x:31, y:21, key:'streetlamp_ornate_double' },
+      // Stone benches around the meteor pedestal.
+      { x:19, y:18, key:'bench_stone_grey' },
+      { x:25, y:18, key:'bench_stone_grey' },
+      { x:19, y:14, key:'bench_stone_grey' },
+      { x:25, y:14, key:'bench_stone_grey' },
+      // Zen stone planters at the upper terrace corners.
+      { x:14, y:11, key:'planter_zen_stone' },
+      { x:28, y:11, key:'planter_zen_stone' },
+      // Terracotta pot pairs lining the staircase.
+      { x:21, y:13, key:'pot_terracotta_red' },
+      { x:23, y:13, key:'pot_terracotta_red' },
+      { x:21, y:19, key:'pot_terracotta_red' },
+      { x:23, y:19, key:'pot_terracotta_red' },
+      // Industrial dumpster + bins near the workshop yard.
+      { x:30, y:14, key:'trash_dumpster' },
+      { x:38, y:11, key:'trash_grey_lid' },
+      // Raised wooden planters on the lower terrace.
+      { x:14, y:21, key:'planter_raised_wood' },
+      { x:28, y:21, key:'planter_raised_wood' }
     ],
     ambient:[
       { species:'pebra', x:9, y:14, range:2 },
@@ -2183,65 +2419,111 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
+  // FROSTMERE — frozen lake town. Big lake fills the southwest;
+  // walking paths wrap around it. Hot spring + ice sculpture
+  // landmark behind the inn. Dense snowy-pine border.
   const frostmereBuildings = [
-    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'frostmere_center', tx:4, ty:6 },
-    { x:16, y:5, w:7, roof:'M', wall:'?', doorTile:'f', to:'frostmere_mart', tx:5, ty:9 },
-    { x:29, y:6, w:8, roof:'%', wall:'!', to:'frostmere_inn', tx:5, ty:7 },
-    { x:7, y:22, w:8, roof:'%', wall:'?', to:'frostmere_cabin', tx:5, ty:7 },
+    { x:5,  y:5,  w:7, doorOffset:2, roof:'P', wall:'B', doorTile:'D', to:'frostmere_center', tx:4, ty:6 },
+    { x:14, y:5,  w:7, doorOffset:2, roof:'M', wall:'?', doorTile:'f', to:'frostmere_mart', tx:5, ty:9 },
+    { x:30, y:5,  w:8, doorOffset:3, roof:'%', wall:'!', to:'frostmere_inn', tx:5, ty:7 },
+    { x:32, y:18, w:8, doorOffset:3, roof:'%', wall:'?', to:'frostmere_cabin', tx:5, ty:7 },
     { x:24, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'frostmere_gym', tx:4, ty:7 }
   ];
   updateCity('frostmere', {
-    fill:'Q', pathCode:'6', trees:['k','2','Q'], seed:6, edges:{ north:true, south:true },
+    fill:'Q', pathCode:'6', trees:['k','2','Q'], seed:6,
+    treeRate:18,
+    edges:{ north:true, south:true },
+    borderRing:{ kind:'pines', thickness:2, edges:{ east:true, west:true }, seed:6 },
     buildings:frostmereBuildings,
-    features:[
-      { x:30, y:13, w:9, h:5, code:'W' },
-      { x:3, y:14, w:8, h:4, code:'k' },
-      { x:16, y:25, w:5, h:3, code:'2' }
+    paths:[
+      // Top east-west road across the buildings.
+      { points:[[2,11],[42,11]], radius:1 },
+      // Building door spurs.
+      { points:[[7,8],[7,12]], radius:0 },     // center
+      { points:[[16,8],[16,12]], radius:0 },   // mart
+      { points:[[33,8],[33,12]], radius:0 },   // inn
+      { points:[[35,17],[35,22]], radius:0 },  // cabin (extended to y=22)
+      // North entrance from glimcavern.
+      { points:[[22,0],[22,11]], radius:1 },
+      // Lake-side circuit (curves around the frozen lake to the south).
+      { points:[[22,11],[26,15],[34,17]], radius:1, code:'_' },
+      { points:[[34,17],[42,17]], radius:1 },
+      // South exit through gym plaza to frostpeak (column 22 standard).
+      { points:[[22,11],[22,33]], radius:1 },
+      // Bridge across the lake to the gym side.
+      { points:[[18,18],[28,18]], radius:1, code:'A' }
     ],
-    signs:{ '18,19':'FROSTMERE - Frozen lake, warm inn, cold Gym.' },
+    plazas:[
+      // Plaza in front of the inn (welcoming hot-spring zone).
+      { x:30, y:11, w:9, h:5, code:'_' },
+      // Gym plaza on the south side.
+      { x:24, y:22, w:9, h:3, code:'_' }
+    ],
+    features:[
+      // FROZEN LAKE — fills the southwest quadrant.
+      { x:3,  y:18, w:14, h:9, code:'W' },
+      // Snowy bushes around the lake.
+      { x:3,  y:14, w:8, h:3, code:'k' },
+      // Hot-spring pool tucked behind the inn (small W rect with snow rim).
+      { x:30, y:14, w:3, h:2, code:'W' },
+      // Lighter snowdrifts in the south plaza area.
+      { x:11, y:28, w:11, h:3, code:'2' }
+    ],
+    signs:{ '20,9':'FROSTMERE - Frozen lake, warm inn, cold Gym.' },
     npcs:[
-      { x:22, y:16, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
+      { x:34, y:13, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
         dialog:["The lake district grew around the old ice path.","FROSTPEAK hides an ice cave now."] },
-      { x:33, y:12, dir:'left', sprite:'npc_girl', name:'INNKEEPER POL',
+      { x:33, y:11, dir:'down', sprite:'npc_girl', name:'INNKEEPER POL',
         dialog:["The hot spring is small, but the stories get larger every night."] },
-      { x:11, y:24, dir:'up', sprite:'npc_youth', name:'SNOW SCOUT IVA',
+      { x:36, y:11, dir:'down', sprite:'npc_youth', name:'SNOW SCOUT IVA',
         dialog:["Look for Ultra Balls in late mountain pockets."] },
-      { x:22, y:6,  dir:'down',  sprite:'npc_doctor',       name:'DR. NORD', wander:{ range:1 },
+      { x:22, y:5,  dir:'down',  sprite:'npc_doctor',       name:'DR. NORD', wander:{ range:1 },
         dialog:["Frostbite checkups are free this month.","Drink something warm before going up the peak."] },
-      { x:22, y:11, dir:'down',  sprite:'npc_chef',         name:'CHEF NIVE', wander:{ range:1 },
+      { x:11, y:11, dir:'down',  sprite:'npc_chef',         name:'CHEF NIVE', wander:{ range:1 },
         dialog:["The inn's stew has been simmering for nine years!","Secret ingredient? Patience."] },
-      { x:18, y:17, dir:'right', sprite:'npc_swimmer_m',    name:'ICE DIVER KAI', wander:{ range:2 },
+      { x:24, y:18, dir:'right', sprite:'npc_swimmer_m',    name:'ICE DIVER KAI', wander:{ range:1 },
         dialog:["Cold water builds character!"],
         trainer:{ team:[['mistfin',30],['splashfin',31]], reward:1320, defeat:["You bested an ice diver. Impressive!"] } },
-      { x:26, y:17, dir:'left',  sprite:'npc_kid_girl',     name:'KID YULIA', wander:{ range:1 },
+      { x:26, y:11, dir:'left',  sprite:'npc_kid_girl',     name:'KID YULIA', wander:{ range:1 },
         dialog:["A FROSTPUP licked my mitten today!"] },
-      { x:21, y:24, dir:'down',  sprite:'npc_hiker_alt',    name:'CLIMBER NOR', wander:{ range:2 },
+      { x:22, y:25, dir:'down',  sprite:'npc_hiker_alt',    name:'CLIMBER NOR', wander:{ range:1 },
         dialog:["Summit day! Wish me luck."],
         trainer:{ team:[['pebra',30],['boulderon',32],['pugpaw',31]], reward:1450, defeat:["You climb fast for a city walker!"] } },
-      { x:25, y:25, dir:'left',  sprite:'npc_old_woman',    name:'GRAN UNN', wander:{ range:1 },
+      { x:24, y:23, dir:'right',  sprite:'npc_old_woman',    name:'GRAN UNN', wander:{ range:1 },
         dialog:["My SCARF is older than half this town."] },
-      { x:33, y:17, dir:'left',  sprite:'npc_baker',        name:'BAKER FYR', wander:{ range:1 },
+      { x:39, y:17, dir:'left',  sprite:'npc_baker',        name:'BAKER FYR', wander:{ range:1 },
         dialog:["Cinnamon buns! Just out of the stove!"] }
     ],
     decorations:[
-      { x:15, y:13, key:'lamp_paper_lantern' },
-      { x:28, y:13, key:'lamp_paper_lantern' },
-      { x:15, y:20, key:'lamp_paper_lantern' },
-      { x:28, y:20, key:'lamp_paper_lantern' },
-      { x:17, y:15, key:'bench_log' },
-      { x:26, y:15, key:'bench_log' },
-      { x:20, y:22, key:'bench_marble_white' },
-      { x:24, y:22, key:'bench_marble_white' },
-      { x:21, y:6,  key:'planter_zen_stone' },
-      { x:23, y:6,  key:'planter_zen_stone' },
-      { x:21, y:11, key:'pot_marble_white' },
-      { x:23, y:11, key:'pot_marble_white' },
-      { x:21, y:30, key:'pot_tall_lily' },
-      { x:23, y:30, key:'pot_tall_lily' },
-      { x:18, y:25, key:'planter_raised_wood' },
-      { x:25, y:25, key:'planter_raised_wood' },
-      { x:16, y:17, key:'trash_grey_lid' },
-      { x:27, y:17, key:'trash_grey_lid' }
+      // ICE SCULPTURE landmark in the south plaza.
+      { x:28, y:25, key:'ice_sculpture' },
+      // Paper lanterns lining the lake edge.
+      { x:14, y:18, key:'lamp_paper_lantern' },
+      { x:18, y:27, key:'lamp_paper_lantern' },
+      // Lanterns at the inn plaza.
+      { x:31, y:13, key:'lamp_paper_lantern' },
+      { x:38, y:13, key:'lamp_paper_lantern' },
+      // Log benches on the lake-circle path.
+      { x:17, y:14, key:'bench_log' },
+      { x:26, y:14, key:'bench_log' },
+      // Marble benches around the gym plaza.
+      { x:25, y:25, key:'bench_marble_white' },
+      { x:31, y:25, key:'bench_marble_white' },
+      // Zen planters at the entrances.
+      { x:21, y:5,  key:'planter_zen_stone' },
+      { x:23, y:5,  key:'planter_zen_stone' },
+      // Marble pots flanking the inn plaza.
+      { x:31, y:15, key:'pot_marble_white' },
+      { x:38, y:15, key:'pot_marble_white' },
+      // Lily pots at the south plaza corners.
+      { x:25, y:30, key:'pot_tall_lily' },
+      { x:31, y:30, key:'pot_tall_lily' },
+      // Raised wooden planters along the gym plaza edge.
+      { x:24, y:24, key:'planter_raised_wood' },
+      { x:32, y:24, key:'planter_raised_wood' },
+      // Bins.
+      { x:11, y:13, key:'trash_grey_lid' },
+      { x:38, y:11, key:'trash_grey_lid' }
     ],
     ambient:[
       { species:'frostpup', x:8, y:14, range:2 },
@@ -2254,66 +2536,127 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
+  // HARBORSIDE — major commercial port. L-shaped: city occupies the
+  // north + west, two piers extend east and south into the water.
+  // LIGHTHOUSE on the eastern pier; FISH MARKET stall on the south
+  // boardwalk. Palm-tree border on dry sides, water on east/south.
   const harborsideBuildings = [
-    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'harborside_center', tx:4, ty:6 },
-    { x:16, y:5, w:7, roof:'M', wall:'!', doorTile:'f', to:'harborside_mart', tx:5, ty:9 },
-    { x:29, y:6, w:9, roof:'&', wall:'$', to:'harborside_warehouse', tx:5, ty:7 },
-    { x:7, y:22, w:8, roof:'=', wall:'!', to:'harborside_fisher', tx:5, ty:7 },
-    { x:23, y:23, w:9, roof:'&', wall:'B', doorTile:'D', to:'harborside_gym', tx:4, ty:7 }
+    { x:4,  y:5,  w:7, roof:'P', wall:'B', doorTile:'D', to:'harborside_center', tx:4, ty:6 },
+    { x:14, y:5,  w:7, roof:'M', wall:'!', doorTile:'f', to:'harborside_mart', tx:5, ty:9 },
+    { x:24, y:5,  w:9, roof:'&', wall:'$', to:'harborside_warehouse', tx:5, ty:7 },
+    { x:4,  y:14, w:8, roof:'=', wall:'!', to:'harborside_fisher', tx:5, ty:7 },
+    { x:14, y:14, w:9, roof:'&', wall:'B', doorTile:'D', to:'harborside_gym', tx:4, ty:7 }
   ];
   updateCity('harborside', {
-    fill:'O', pathCode:'t', trees:['3','s','O'], seed:13, edges:{ north:true, east:true, south:true },
+    fill:'O', pathCode:'t', trees:['3','s','O'], seed:13,
+    treeRate:14,
+    edges:{ north:true, east:true, south:true },
+    borderRing:{ kind:'palms', thickness:2, edges:{ north:true, west:true }, seed:13 },
     buildings:harborsideBuildings,
-    features:[
-      { x:34, y:10, w:9, h:7, code:'W' },
-      { x:32, y:20, w:10, h:4, code:'W' },
-      { x:29, y:18, w:8, h:2, code:'t' }
+    paths:[
+      // Upper road across the city (in front of shops).
+      { points:[[2,11],[33,11]], radius:1 },
+      // Mid road (in front of fisher + gym).
+      { points:[[2,20],[27,20]], radius:1 },
+      // Vertical connector between the two rows.
+      { points:[[8,11],[8,20]], radius:1 },
+      { points:[[18,11],[18,20]], radius:1 },
+      { points:[[28,11],[28,20]], radius:1 },
+      // Building door spurs.
+      { points:[[7,8],[7,11]], radius:0 },
+      { points:[[17,8],[17,11]], radius:0 },
+      { points:[[28,8],[28,11]], radius:0 },
+      { points:[[7,17],[7,20]], radius:0 },
+      { points:[[18,17],[18,20]], radius:0 },
+      // East pier (boardwalk over water out to the lighthouse).
+      { points:[[28,20],[40,20]], radius:1, code:'t' },
+      // South pier / fish market boardwalk.
+      { points:[[18,20],[18,30]], radius:1, code:'t' },
+      // North entry from frostpeak.
+      { points:[[22,0],[22,11]], radius:1 },
+      // Connection to south exit (searoute).
+      { points:[[18,30],[22,30],[22,33]], radius:1 },
+      // East exit toward beach (must reach x=42, y=17 walkable).
+      { points:[[28,17],[42,17]], radius:1, code:'t' }
     ],
-    signs:{ '18,19':'HARBORSIDE - Docks, warehouses, beach road.' },
+    plazas:[
+      // Open plaza at the upper-mid intersection.
+      { x:7, y:11, w:11, h:1, code:'t' },
+      // Boardwalk plaza junction by the lighthouse.
+      { x:36, y:18, w:5, h:5, code:'t' }
+    ],
+    features:[
+      // East harbor water (split into north + south of the row-17
+      // boardwalk so the east-exit corridor stays walkable).
+      { x:30, y:13, w:13, h:3, code:'W' },
+      { x:30, y:18, w:13, h:1, code:'W' },
+      { x:30, y:21, w:13, h:5, code:'W' },
+      // South harbor water.
+      { x:21, y:24, w:21, h:8, code:'W' },
+      // Sand strip near the gym (small beach pocket).
+      { x:24, y:22, w:6, h:2, code:'s' }
+    ],
+    signs:{ '20,9':'HARBORSIDE - Docks, warehouses, beach road.' },
     npcs:[
-      { x:22, y:16, dir:'down', sprite:'npc_youth', name:'DOCKHAND TEO',
+      { x:22, y:11, dir:'down', sprite:'npc_youth', name:'DOCKHAND TEO',
         dialog:["The beach path runs east from the dock road.","South is the longer, windier SEAROUTE."] },
-      { x:34, y:19, dir:'left', sprite:'npc_girl', name:'MARKET JIN',
+      { x:38, y:20, dir:'left', sprite:'npc_girl', name:'MARKET JIN',
         dialog:["Quick Balls sell fast when travelers smell storm weather."] },
-      { x:11, y:24, dir:'up', sprite:'npc_old', name:'OLD FISHER PIKE',
+      { x:18, y:28, dir:'up', sprite:'npc_old', name:'OLD FISHER PIKE',
         dialog:["The tide cavern opens when you least expect a shortcut."] },
-      { x:22, y:6,  dir:'down',  sprite:'npc_swimmer_f',    name:'SWIMMER ARI', wander:{ range:2 },
+      { x:22, y:5,  dir:'down',  sprite:'npc_swimmer_f',    name:'SWIMMER ARI', wander:{ range:1 },
         dialog:["The water is perfect today!"],
         trainer:{ team:[['splashfin',40],['mistfin',41],['tidalwhal',40]], reward:2200, defeat:["You swim with the current! Great battle!"] } },
-      { x:22, y:11, dir:'down',  sprite:'npc_businessman',  name:'EXEC LANN', wander:{ range:1 },
+      { x:34, y:11, dir:'down',  sprite:'npc_businessman',  name:'EXEC LANN', wander:{ range:1 },
         dialog:["Shipping rates are climbing this quarter.","I'm late for a meeting at the warehouse."] },
-      { x:18, y:17, dir:'right', sprite:'npc_security',     name:'OFFICER CADE', wander:{ range:2 },
+      { x:13, y:11, dir:'right', sprite:'npc_security',     name:'OFFICER CADE', wander:{ range:1 },
         dialog:["No loitering on the dock road.","If you see contraband, report it."],
         trainer:{ team:[['voltkit',40],['nibblet',41]], reward:2050, defeat:["I should've trained more this morning."] } },
-      { x:26, y:17, dir:'left',  sprite:'npc_tourist',      name:'TOURIST QUI', wander:{ range:2 },
+      { x:32, y:20, dir:'right', sprite:'npc_tourist',      name:'TOURIST QUI', wander:{ range:1 },
         dialog:["Photo with the lighthouse, please?","Stunning! Just stunning."] },
-      { x:21, y:24, dir:'down',  sprite:'npc_construction', name:'DOCKER MEL', wander:{ range:1 },
+      { x:18, y:24, dir:'down',  sprite:'npc_construction', name:'DOCKER MEL', wander:{ range:1 },
         dialog:["Cargo's heavy today. Three crates of ROD BALLS."] },
-      { x:25, y:25, dir:'left',  sprite:'npc_dog_walker',   name:'WALKER VEN', wander:{ range:2 },
+      { x:13, y:20, dir:'right', sprite:'npc_dog_walker',   name:'WALKER VEN', wander:{ range:1 },
         dialog:["BEAU loves the salty air."] },
-      { x:33, y:17, dir:'left',  sprite:'npc_journalist',   name:'COR. NIA', wander:{ range:2 },
+      { x:23, y:11, dir:'down',  sprite:'npc_journalist',   name:'COR. NIA', wander:{ range:1 },
         dialog:["Big storm coming. I'm filing the lead piece by sunset."] }
     ],
     decorations:[
-      { x:15, y:13, key:'streetlamp_ornate_double' },
-      { x:28, y:13, key:'streetlamp_ornate_double' },
-      { x:15, y:20, key:'lamp_oil_brass' },
-      { x:28, y:20, key:'lamp_oil_brass' },
-      { x:17, y:15, key:'bench_pier_wood' },
-      { x:26, y:15, key:'bench_pier_wood' },
-      { x:20, y:22, key:'bench_picnic_red' },
-      { x:24, y:22, key:'bench_picnic_red' },
-      { x:21, y:6,  key:'planter_herb_box' },
-      { x:23, y:6,  key:'planter_herb_box' },
-      { x:21, y:11, key:'pot_ceramic_blue' },
-      { x:23, y:11, key:'pot_ceramic_blue' },
-      { x:21, y:30, key:'pot_tall_lily' },
-      { x:23, y:30, key:'pot_tall_lily' },
-      { x:18, y:25, key:'planter_raised_wood' },
-      { x:25, y:25, key:'planter_raised_wood' },
-      { x:16, y:17, key:'trash_dumpster' },
-      { x:27, y:17, key:'trash_blue_recycle' },
-      { x:18, y:13, key:'bus_stop_sign' }
+      // LIGHTHOUSE LANDMARK at the east pier end (3 tiles tall).
+      { x:40, y:18, key:'lighthouse_top' },
+      { x:40, y:19, key:'lighthouse_tower' },
+      { x:40, y:20, key:'lighthouse_base' },
+      // FISH MARKET STALL on the south boardwalk.
+      { x:18, y:25, key:'fish_market_stall' },
+      // ANCHOR + crates near the warehouse door.
+      { x:31, y:11, key:'anchor' },
+      // Pier oil lamps along both piers.
+      { x:31, y:20, key:'lamp_oil_brass' },
+      { x:35, y:20, key:'lamp_oil_brass' },
+      { x:18, y:23, key:'lamp_oil_brass' },
+      { x:18, y:27, key:'lamp_oil_brass' },
+      // Ornate streetlamps on the city upper road.
+      { x:11, y:11, key:'streetlamp_ornate_double' },
+      { x:21, y:11, key:'streetlamp_ornate_double' },
+      // Pier-wood benches along east pier.
+      { x:32, y:21, key:'bench_pier_wood' },
+      { x:36, y:21, key:'bench_pier_wood' },
+      // Picnic benches near the gym.
+      { x:17, y:14, key:'bench_picnic_red' },
+      { x:23, y:14, key:'bench_picnic_red' },
+      // Herb-box planters at building corners.
+      { x:13, y:5,  key:'planter_herb_box' },
+      { x:32, y:5,  key:'planter_herb_box' },
+      // Ceramic pots in the upper plaza.
+      { x:11, y:12, key:'pot_ceramic_blue' },
+      { x:32, y:12, key:'pot_ceramic_blue' },
+      // Raised wooden planters at fish market.
+      { x:16, y:25, key:'planter_raised_wood' },
+      // Bins.
+      { x:13, y:14, key:'trash_dumpster' },
+      { x:23, y:14, key:'trash_blue_recycle' },
+      // Bus stop near the upper plaza.
+      { x:9,  y:11, key:'bus_stop_sign' }
     ],
     ambient:[
       { species:'aquapup', x:10, y:14, range:2 },
@@ -2327,66 +2670,129 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
+  // SUMMITVALE — champion's plateau. Star-shaped plaza in the center
+  // with an OBELISK landmark; eight paths radiate outward to the
+  // ring road. Champion statues at the cardinal corners. Birch
+  // border + scattered desert tiles bleeding in from the east edge.
   const summitBuildings = [
-    { x:5, y:5, w:7, roof:'P', wall:'B', doorTile:'D', to:'summitvale_center', tx:4, ty:6 },
-    { x:16, y:5, w:7, roof:'M', wall:'!', doorTile:'f', to:'summitvale_mart', tx:5, ty:9 },
-    { x:29, y:6, w:8, roof:'*', wall:'!', to:'summitvale_house', tx:3, ty:6 },
-    { x:7, y:23, w:8, roof:'=', wall:'#', to:'summitvale_lookout', tx:5, ty:7 },
-    { x:29, y:23, w:9, roof:'*', wall:'!', to:'summitvale_hall', tx:5, ty:7 }
+    { x:4,  y:5,  w:7, roof:'P', wall:'B', doorTile:'D', to:'summitvale_center', tx:4, ty:6 },
+    { x:33, y:5,  w:7, roof:'M', wall:'!', doorTile:'f', to:'summitvale_mart', tx:5, ty:9 },
+    { x:33, y:14, w:8, roof:'*', wall:'!', to:'summitvale_house', tx:3, ty:6 },
+    { x:4,  y:14, w:8, roof:'=', wall:'#', to:'summitvale_lookout', tx:5, ty:7 },
+    { x:18, y:24, w:9, roof:'*', wall:'!', to:'summitvale_hall', tx:5, ty:7 }
   ];
   updateCity('summitvale', {
-    fill:'N', pathCode:'i', trees:['1','c','N','('], seed:16, edges:{ north:true, east:true },
+    fill:'N', pathCode:'i', trees:['1','c','N','('], seed:16,
+    treeRate:14,
+    edges:{ north:true, east:true },
+    borderRing:{ kind:'birch', thickness:2, edges:{ north:true, west:true, south:true }, seed:16 },
     buildings:summitBuildings,
-    features:[
-      { x:31, y:14, w:8, h:4, code:'5' },
-      { x:3, y:14, w:8, h:4, code:'(' },
-      { x:18, y:25, w:8, h:3, code:'I' }
+    paths:[
+      // Outer ring road (rectangle).
+      { points:[[7,11],[36,11]], radius:1 },
+      { points:[[36,11],[36,21]], radius:1 },
+      { points:[[7,21],[36,21]], radius:1 },
+      { points:[[7,11],[7,21]], radius:1 },
+      // 8 spokes radiating from the central plaza to the ring.
+      { points:[[22,11],[22,15]], radius:0 },     // N
+      { points:[[22,21],[22,17]], radius:0 },     // S
+      { points:[[7,16],[18,16]], radius:0 },      // W
+      { points:[[36,16],[26,16]], radius:0 },     // E
+      { points:[[10,12],[19,15]], radius:0 },     // NW diagonal
+      { points:[[33,12],[25,15]], radius:0 },     // NE diagonal
+      { points:[[10,20],[19,17]], radius:0 },     // SW diagonal
+      { points:[[33,20],[25,17]], radius:0 },     // SE diagonal
+      // North entrance from searoute.
+      { points:[[22,0],[22,11]], radius:1 },
+      // East exit toward desert.
+      { points:[[36,16],[43,16]], radius:1 },
+      // Spurs to building doors.
+      { points:[[7,8],[7,11]], radius:0 },        // center
+      { points:[[36,8],[36,11]], radius:0 },      // mart
+      { points:[[36,21],[36,17]], radius:0 },     // house
+      { points:[[7,21],[7,17]], radius:0 },       // lookout
+      { points:[[22,21],[22,24]], radius:0 }      // hall
     ],
-    signs:{ '18,19':'SUMMITVALE - The loop turns east toward the desert.' },
+    plazas:[
+      // Central star plaza around the obelisk.
+      { x:18, y:13, w:9, h:7, code:'Z' },
+      // Inner plinth circle (zen tile).
+      { x:20, y:15, w:5, h:3, code:'i' }
+    ],
+    features:[
+      // Desert sand bleeding in from the east edge.
+      { x:38, y:14, w:5, h:5, code:'5' },
+      // Rocky outcrops on the west edge.
+      { x:1, y:14, w:2, h:4, code:'(' },
+      // Lantern ground tiles framing the south path.
+      { x:21, y:25, w:3, h:3, code:'I' }
+    ],
+    signs:{ '20,9':'SUMMITVALE - The loop turns east toward the desert.' },
     npcs:[
-      movedNpc('summitvale', 0, 26, 18, 'down'),
-      { x:34, y:13, dir:'left', sprite:'npc_girl', name:'LOOKOUT ANA',
+      { x:22, y:18, dir:'down', sprite:'npc_oak', name:'CHAMPION ROWE',
+        gym:true, badge:'CINDER',
+        dialog:["You climbed all the way to SUMMITVALE!","I am ROWE - the FIRE-typed CHAMPION.","If you've earned every other BADGE, I'll grant you the CINDER BADGE. If you can take it."],
+        gymRequirement:{ minBadges:7 },
+        gymLocked:["Earn all seven other BADGES first.","Only then will I face you."],
+        trainer:{ team:[['emberkit',38],['flarebound',40],['magmaron',42],['infernarok',46]],
+                  reward:5000,
+                  defeat:["Magnificent! The CINDER BADGE - and the title of CHAMPION - are yours."] } },
+      { x:36, y:13, dir:'down', sprite:'npc_girl', name:'LOOKOUT ANA',
         dialog:["From here the region finally looks like a circle.","The desert closes the loop to Rodport."] },
-      { x:12, y:25, dir:'up', sprite:'npc_youth', name:'RIDGE RUNNER CAL',
+      { x:8, y:21, dir:'up', sprite:'npc_youth', name:'RIDGE RUNNER CAL',
         dialog:["The old straight roads are gone. Every route has a bend worth checking."] },
-      { x:22, y:6,  dir:'down',  sprite:'npc_scientist',    name:'DR. SAGE', wander:{ range:1 },
+      { x:22, y:5,  dir:'down',  sprite:'npc_scientist',    name:'DR. SAGE', wander:{ range:1 },
         dialog:["I'm cataloguing rare species at the summit.","Could I borrow your DEX scans?"] },
-      { x:22, y:11, dir:'down',  sprite:'npc_doctor',       name:'DR. ALDEN', wander:{ range:1 },
+      { x:22, y:13, dir:'down',  sprite:'npc_doctor',       name:'DR. ALDEN', wander:{ range:1 },
         dialog:["Altitude sickness affects PARTNERS too.","Pace yourself on long climbs."] },
-      { x:18, y:17, dir:'right', sprite:'npc_punk',         name:'PUNK XEN', wander:{ range:2 },
+      { x:19, y:16, dir:'right', sprite:'npc_punk',         name:'PUNK XEN', wander:{ range:1 },
         dialog:["Top of the world! Gimme your best shot!"],
         trainer:{ team:[['shadefox',50],['umbrasire',52],['voltlynx',51]], reward:3500, defeat:["First loss in months. Respect."] } },
-      { x:26, y:17, dir:'left',  sprite:'npc_dancer',       name:'DANCER ELEN', wander:{ range:2 },
+      { x:25, y:16, dir:'left',  sprite:'npc_dancer',       name:'DANCER ELEN', wander:{ range:1 },
         dialog:["The mountain wind sets the rhythm."],
         trainer:{ team:[['glimkit',49],['lustrofox',51],['flitwing',50]], reward:3300, defeat:["A graceful battle, indeed."] } },
-      { x:21, y:24, dir:'down',  sprite:'npc_old_man_alt',  name:'ELDER WICK', wander:{ range:1 },
+      { x:22, y:21, dir:'down',  sprite:'npc_old_man_alt',  name:'ELDER WICK', wander:{ range:1 },
         dialog:["I climbed this mountain at your age. Twice."] },
-      { x:25, y:25, dir:'left',  sprite:'npc_old_woman',    name:'ELDER MIRR', wander:{ range:1 },
+      { x:11, y:11, dir:'right', sprite:'npc_old_woman',    name:'ELDER MIRR', wander:{ range:1 },
         dialog:["The old roads still appear in dreams."] },
-      { x:33, y:17, dir:'left',  sprite:'npc_journalist',   name:'COR. SETH', wander:{ range:2 },
+      { x:36, y:21, dir:'left',  sprite:'npc_journalist',   name:'COR. SETH', wander:{ range:1 },
         dialog:["Recording the final stretch for the GAZETTE."] }
     ],
     decorations:[
-      { x:15, y:13, key:'lamp_oil_brass' },
-      { x:28, y:13, key:'lamp_oil_brass' },
-      { x:15, y:20, key:'streetlamp_ornate_double' },
-      { x:28, y:20, key:'streetlamp_ornate_double' },
-      { x:17, y:15, key:'bench_marble_white' },
-      { x:26, y:15, key:'bench_marble_white' },
-      { x:20, y:22, key:'bench_stone_grey' },
-      { x:24, y:22, key:'bench_stone_grey' },
-      { x:21, y:6,  key:'planter_zen_stone' },
-      { x:23, y:6,  key:'planter_zen_stone' },
+      // OBELISK LANDMARK in the center of the star plaza (2 tiles tall).
+      { x:22, y:15, key:'obelisk_top' },
+      { x:22, y:16, key:'obelisk_base' },
+      // CHAMPION STATUES at the four cardinal star points.
+      { x:18, y:14, key:'champion_statue' },
+      { x:26, y:14, key:'champion_statue' },
+      { x:18, y:18, key:'champion_statue' },
+      { x:26, y:18, key:'champion_statue' },
+      // Oil-brass lamps at the ring corners.
+      { x:7,  y:11, key:'lamp_oil_brass' },
+      { x:36, y:11, key:'lamp_oil_brass' },
+      { x:7,  y:21, key:'streetlamp_ornate_double' },
+      { x:36, y:21, key:'streetlamp_ornate_double' },
+      // Marble benches at the ring midpoints.
+      { x:11, y:16, key:'bench_marble_white' },
+      { x:32, y:16, key:'bench_marble_white' },
+      { x:22, y:11, key:'bench_marble_white' },
+      // Stone benches inside the plaza.
+      { x:20, y:19, key:'bench_stone_grey' },
+      { x:24, y:19, key:'bench_stone_grey' },
+      // Zen + marble pots at the entrances.
+      { x:21, y:5,  key:'planter_zen_stone' },
+      { x:23, y:5,  key:'planter_zen_stone' },
       { x:21, y:11, key:'pot_marble_white' },
       { x:23, y:11, key:'pot_marble_white' },
-      { x:21, y:30, key:'pot_tall_lily' },
-      { x:23, y:30, key:'pot_tall_lily' },
-      { x:18, y:25, key:'planter_hedge_round' },
-      { x:25, y:25, key:'planter_hedge_round' },
-      { x:16, y:17, key:'trash_grey_lid' },
-      { x:27, y:17, key:'trash_grey_lid' },
-      { x:18, y:13, key:'pedestal_statue' },
-      { x:25, y:13, key:'pedestal_statue' }
+      // Tall lily pots at the south plaza.
+      { x:20, y:24, key:'pot_tall_lily' },
+      { x:25, y:24, key:'pot_tall_lily' },
+      // Hedge rings at the SW/SE corners.
+      { x:11, y:21, key:'planter_hedge_round' },
+      { x:32, y:21, key:'planter_hedge_round' },
+      // Bins.
+      { x:11, y:14, key:'trash_grey_lid' },
+      { x:32, y:14, key:'trash_grey_lid' }
     ],
     ambient:[
       { species:'emberkit', x:11, y:15, range:2 },
@@ -2807,80 +3213,82 @@ function applyWorldExpansion(MAPS) {
     edges:{ west:{ x:0, to:'summitvale', tx:42, ty:17 }, east:{ x:47, to:'rodport', tx:1, ty:17 } }
   });
 
-  updateExit('player_house', '3,6', 'rodport', 8, 9);
-  updateExit('rival_house', '3,6', 'rodport', 17, 9);
-  updateExit('lab', '5,8', 'rodport', 28, 8);
-  updateExit('pokecenter', '4,7', 'brindale', 8, 8);
-  updateExit('mart', '5,10', 'brindale', 18, 8);
-  updateExit('townhouse', '3,6', 'brindale', 8, 25);
-  updateExit('brindale_gym', '4,8', 'brindale', 29, 26);
-  updateExit('woodfall_center', '4,7', 'woodfall', 9, 9);
-  updateExit('woodfall_mart', '5,10', 'woodfall', 20, 9);
-  updateExit('woodfall_gym', '4,8', 'woodfall', 28, 27);
-  updateExit('crestrock_center', '4,7', 'crestrock', 8, 9);
-  updateExit('crestrock_mart', '5,10', 'crestrock', 19, 9);
-  updateExit('crestrock_gym', '4,8', 'crestrock', 28, 27);
-  updateExit('frostmere_center', '4,7', 'frostmere', 8, 9);
-  updateExit('frostmere_mart', '5,10', 'frostmere', 19, 9);
+  // Interior exits — coords match the new redesigned city layouts.
+  // Each (x, y) is the city tile the player stands on after exiting.
+  updateExit('player_house', '3,6', 'rodport', 6, 10);
+  updateExit('rival_house', '3,6', 'rodport', 15, 10);
+  updateExit('lab', '5,8', 'rodport', 26, 9);
+  updateExit('pokecenter', '4,7', 'brindale', 7, 8);
+  updateExit('mart', '5,10', 'brindale', 36, 8);
+  updateExit('townhouse', '3,6', 'brindale', 7, 18);
+  updateExit('brindale_gym', '4,8', 'brindale', 22, 28);
+  updateExit('woodfall_center', '4,7', 'woodfall', 8, 10);
+  updateExit('woodfall_mart', '5,10', 'woodfall', 34, 10);
+  updateExit('woodfall_gym', '4,8', 'woodfall', 22, 28);
+  updateExit('crestrock_center', '4,7', 'crestrock', 7, 8);
+  updateExit('crestrock_mart', '5,10', 'crestrock', 17, 8);
+  updateExit('crestrock_gym', '4,8', 'crestrock', 28, 26);
+  updateExit('frostmere_center', '4,7', 'frostmere', 7, 9);
+  updateExit('frostmere_mart', '5,10', 'frostmere', 16, 9);
   updateExit('frostmere_gym', '4,8', 'frostmere', 28, 27);
-  updateExit('harborside_center', '4,7', 'harborside', 8, 9);
-  updateExit('harborside_mart', '5,10', 'harborside', 19, 9);
-  updateExit('harborside_gym', '4,8', 'harborside', 27, 27);
-  updateExit('summitvale_center', '4,7', 'summitvale', 8, 9);
-  updateExit('summitvale_mart', '5,10', 'summitvale', 19, 9);
-  updateExit('summitvale_house', '3,6', 'summitvale', 33, 10);
+  updateExit('harborside_center', '4,7', 'harborside', 7, 8);
+  updateExit('harborside_mart', '5,10', 'harborside', 17, 8);
+  updateExit('harborside_gym', '4,8', 'harborside', 18, 18);
+  updateExit('summitvale_center', '4,7', 'summitvale', 7, 8);
+  updateExit('summitvale_mart', '5,10', 'summitvale', 36, 8);
+  updateExit('summitvale_house', '3,6', 'summitvale', 36, 18);
   MAPS.glimcavern_b1.tags = ['cave'];
   updateExit('glimcavern_b1', '10,1', 'glimcavern', 37, 9);
 
-  MAPS.rodport_dockhouse = makeFlavorInterior('rodport_dockhouse', 'Dock House', 'rodport', 9, 26, {
+  MAPS.rodport_dockhouse = makeFlavorInterior('rodport_dockhouse', 'Dock House', 'rodport', 8, 22, {
     x:5, y:4, dir:'down', sprite:'npc_old', name:'CAPTAIN EDA',
     dialog:['The harbor used to be one pier and a rumor.','Now it has enough corners to lose a sandwich.']
   });
-  MAPS.rodport_boathouse = makeFlavorInterior('rodport_boathouse', 'Boathouse', 'rodport', 35, 25, {
+  MAPS.rodport_boathouse = makeFlavorInterior('rodport_boathouse', 'Boathouse', 'rodport', 17, 22, {
     x:5, y:4, dir:'down', sprite:'npc_youth', name:'BOATWRIGHT NIX',
     dialog:['Every route needs a few bends.','Straight roads make lazy boots.']
   });
-  MAPS.brindale_school = makeFlavorInterior('brindale_school', 'Trainer School', 'brindale', 32, 9, {
+  MAPS.brindale_school = makeFlavorInterior('brindale_school', 'Trainer School', 'brindale', 35, 18, {
     x:5, y:4, dir:'down', sprite:'npc_girl', name:'TEACHER VERA',
     dialog:['Lesson one: check your party stats.','Lesson two: do it before the Gym.']
   });
-  MAPS.woodfall_lodge = makeFlavorInterior('woodfall_lodge', 'Forest Lodge', 'woodfall', 34, 10, {
+  MAPS.woodfall_lodge = makeFlavorInterior('woodfall_lodge', 'Forest Lodge', 'woodfall', 36, 22, {
     x:5, y:4, dir:'down', sprite:'npc_old', name:'LODGE KEEPER',
     dialog:['Pebblewood is wider now.','The quiet side paths are where items hide.']
   });
-  MAPS.woodfall_cabin = makeFlavorInterior('woodfall_cabin', 'Leaf Cabin', 'woodfall', 11, 26, {
+  MAPS.woodfall_cabin = makeFlavorInterior('woodfall_cabin', 'Leaf Cabin', 'woodfall', 6, 22, {
     x:5, y:4, dir:'down', sprite:'npc_youth', name:'BUG WATCHER',
     dialog:['I saw a Cavern Ball sparkle in the woods.','Then a Crawlbug sat on it.']
   });
-  MAPS.crestrock_workshop = makeFlavorInterior('crestrock_workshop', 'Stone Workshop', 'crestrock', 33, 10, {
+  MAPS.crestrock_workshop = makeFlavorInterior('crestrock_workshop', 'Stone Workshop', 'crestrock', 34, 8, {
     x:5, y:4, dir:'down', sprite:'npc_old', name:'FOREMAN IVO',
     dialog:['Glimcavern got bigger after the last quake.','Take a Cavern Ball if you find one.']
   });
-  MAPS.crestrock_house = makeFlavorInterior('crestrock_house', 'Terrace House', 'crestrock', 11, 26, {
+  MAPS.crestrock_house = makeFlavorInterior('crestrock_house', 'Terrace House', 'crestrock', 9, 26, {
     x:5, y:4, dir:'down', sprite:'npc_girl', name:'TERRACE FAN',
     dialog:['Highspire looks close on the map.','Your feet will disagree.']
   });
-  MAPS.frostmere_inn = makeFlavorInterior('frostmere_inn', 'Warm Inn', 'frostmere', 33, 10, {
+  MAPS.frostmere_inn = makeFlavorInterior('frostmere_inn', 'Warm Inn', 'frostmere', 33, 9, {
     x:5, y:4, dir:'down', sprite:'npc_old', name:'INN AUNTIE',
     dialog:['Warm hands, cold routes.','Check Frostpeak pockets for rare balls.']
   });
-  MAPS.frostmere_cabin = makeFlavorInterior('frostmere_cabin', 'Snow Cabin', 'frostmere', 11, 26, {
+  MAPS.frostmere_cabin = makeFlavorInterior('frostmere_cabin', 'Snow Cabin', 'frostmere', 35, 22, {
     x:5, y:4, dir:'down', sprite:'npc_girl', name:'SNOW ARTIST',
     dialog:['The ice cave wall shines like a badge case.']
   });
-  MAPS.harborside_warehouse = makeFlavorInterior('harborside_warehouse', 'Warehouse', 'harborside', 33, 10, {
+  MAPS.harborside_warehouse = makeFlavorInterior('harborside_warehouse', 'Warehouse', 'harborside', 28, 8, {
     x:5, y:4, dir:'down', sprite:'npc_youth', name:'WAREHOUSE CLERK',
     dialog:['We stock Quick Balls near the exits.','Nobody buys them after a long fight.']
   });
-  MAPS.harborside_fisher = makeFlavorInterior('harborside_fisher', 'Fisher House', 'harborside', 11, 26, {
+  MAPS.harborside_fisher = makeFlavorInterior('harborside_fisher', 'Fisher House', 'harborside', 7, 18, {
     x:5, y:4, dir:'down', sprite:'npc_old', name:'FISHER PIKE',
     dialog:['Tide caverns are caves with opinions.','Cavern Balls still count.']
   });
-  MAPS.summitvale_lookout = makeFlavorInterior('summitvale_lookout', 'Lookout House', 'summitvale', 11, 27, {
+  MAPS.summitvale_lookout = makeFlavorInterior('summitvale_lookout', 'Lookout House', 'summitvale', 7, 18, {
     x:5, y:4, dir:'down', sprite:'npc_girl', name:'LOOKOUT ANA',
     dialog:['Rodport, Desert, Summitvale...','A circle feels better from up here.']
   });
-  MAPS.summitvale_hall = makeFlavorInterior('summitvale_hall', 'Summit Hall', 'summitvale', 33, 27, {
+  MAPS.summitvale_hall = makeFlavorInterior('summitvale_hall', 'Summit Hall', 'summitvale', 22, 28, {
     x:5, y:4, dir:'down', sprite:'npc_old', name:'HALL KEEPER',
     dialog:['Champions like open plazas.','They need room for dramatic pauses.']
   });
