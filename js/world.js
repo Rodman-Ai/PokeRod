@@ -352,6 +352,12 @@
   // Draws lamp halos and window-light squares for visible tiles.
   // Active only when tilt is active AND it's nighttime. Drawn AFTER
   // the day/night tint so glows can lift the darkened image.
+  // Window pane geometry — must match gbaWindow() in tools/atlas-art.js
+  // so the glow halo and lit square line up with the actual glass.
+  // '[' (window_left) — pane on the right half of the tile.
+  // ']' (window_right) — pane on the left half of the tile.
+  // For each: pane at (paneX, y+10) size 12x10, glass center at
+  // (paneX+6, y+15).
   function drawNightLights(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
     if (!tiltActive()) return;
     const nFactor = nightness(steps);
@@ -365,14 +371,17 @@
         const row = m.tiles[wy];
         if (wx < 0 || wx >= row.length) continue;
         const code = row[wx];
-        const cx = offX + tx * TS + TS / 2;
-        const cy = offY + ty * TS + TS / 2;
+        const tileX = offX + tx * TS, tileY = offY + ty * TS;
+        const cx = tileX + TS / 2;
+        const cy = tileY + TS / 2;
         if (code === '|' || code === 'I') {
           // Streetlamp: tall halo from the head of the lamp downward.
           drawGlow(ctx, cx, cy - 4, TS * 1.4, 'rgba(255,224,128,1)', 0.55 * nFactor);
         } else if (code === '[' || code === ']') {
-          // Window: small halo + lit interior square.
-          drawGlow(ctx, cx, cy + 4, TS * 0.7, 'rgba(255,232,144,1)', 0.45 * nFactor);
+          // Window: halo centered on the actual glass pane (off-tile-center).
+          const gx = tileX + (code === '[' ? 23 : 9);
+          const gy = tileY + 15;
+          drawGlow(ctx, gx, gy, TS * 0.7, 'rgba(255,232,144,1)', 0.5 * nFactor);
         }
       }
     }
@@ -381,7 +390,7 @@
     // golden pane rather than a pure additive bloom.
     if (nFactor < 0.1) return;
     ctx.save();
-    ctx.fillStyle = 'rgba(255,232,144,' + (0.45 * nFactor).toFixed(3) + ')';
+    ctx.fillStyle = 'rgba(255,232,144,' + (0.55 * nFactor).toFixed(3) + ')';
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -390,7 +399,9 @@
         if (wx < 0 || wx >= row.length) continue;
         const code = row[wx];
         if (code === '[' || code === ']') {
-          ctx.fillRect(offX + tx * TS + 6, offY + ty * TS + 8, TS - 12, TS - 18);
+          const tileX = offX + tx * TS, tileY = offY + ty * TS;
+          const paneX = tileX + (code === '[' ? 17 : 3);
+          ctx.fillRect(paneX, tileY + 10, 12, 10);
         }
       }
     }

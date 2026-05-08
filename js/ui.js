@@ -215,7 +215,8 @@
     const w = Math.max(18, textWidth(text) + 8);
     const fill = opts.fill || '#e8f0ff';
     const border = opts.border || '#385890';
-    if (dsActive()) {
+    const hasExplicitColors = !!(opts.fill || opts.border);
+    if (dsActive() && !hasExplicitColors) {
       // Notched-corner chip with a top highlight.
       ctx.fillStyle = '#1a1426';
       ctx.fillRect(x + 1, y, w - 2, 11);
