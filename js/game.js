@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.35.2';
-  const BUILD = '2026.05.08-102';
+  const VERSION = 'v0.36.0';
+  const BUILD = '2026.05.08-103';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -397,10 +397,29 @@
   window.addEventListener('DOMContentLoaded', init);
   if (document.readyState !== 'loading') init();
 
+  // Expose: open the party panel focused on the given party index.
+  // Used by the DS bottom-screen tap handler to surface party stats
+  // when a pill is touched in the overworld.
+  function openPartyMember(idx) {
+    if (!state || !state.party || !state.party.length) return false;
+    const safe = Math.max(0, Math.min(state.party.length - 1, idx | 0));
+    if (state.mode === 'battle' || state.mode === 'intro' || state.mode === 'title') return false;
+    if (!state.menu) {
+      state.menu = { idx: 3, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
+    }
+    state.menu.viewing = 'party';
+    state.menu.partyView = { idx: safe, page: 0 };
+    state.mode = 'menu';
+    startMenuAnim && startMenuAnim();
+    window.PR_SFX && window.PR_SFX.play('select');
+    return true;
+  }
+
   // expose for further additions
   window.PR_GAME = {
     state,
-    openBagFromBattle: () => openBag('battle')
+    openBagFromBattle: () => openBag('battle'),
+    openPartyMember
   };
 
   // ---------- Intro ----------

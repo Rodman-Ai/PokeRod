@@ -157,6 +157,31 @@
     }
   };
 
+  // Public API for the bottom-screen tap handler. Picks move idx from
+  // the current partner's roster regardless of current phase (menu or
+  // fight). No-op during turn animations / messages.
+  Battle.prototype.chooseMove = function(idx) {
+    if (this.phase !== 'menu' && this.phase !== 'fight') return false;
+    const moves = this.me && this.me.moves;
+    if (!moves) return false;
+    const m = moves[idx];
+    if (!m) return false;
+    if (m.pp <= 0) { this.flashMsg('No PP left for that move!'); return false; }
+    this.subSelection = idx;
+    this.phase = 'fight';
+    this.queueTurn(m);
+    return true;
+  };
+
+  // Public API: return to the main battle menu from a sub-phase.
+  Battle.prototype.cancelMenu = function() {
+    if (this.phase === 'fight' || this.phase === 'party') {
+      this.phase = 'menu';
+      return true;
+    }
+    return false;
+  };
+
   Battle.prototype.updateParty = function() {
     const I = window.PR_INPUT;
     const party = this.state.party;
