@@ -655,6 +655,101 @@
     px(c, x + 10, y + 30, 13, 1, '#3a6028');
   });
 
+  // -- Tree variant pool --------------------------------------------
+  // 20 tree variants registered against the existing tree tile codes
+  // via regTileVariant so the renderer picks a random alt per
+  // tile-position. The base tile_code_to_key still resolves to the
+  // canonical tree, so single-style smoke renders stay deterministic.
+  // Variants reuse roundTree palettes for cheap distinct silhouettes.
+  function tallTree(c, x, y, trunkA, trunkB, leafA, leafB, leafC) {
+    grassBase(c, x, y);
+    px(c, x + 14, y + 18, 4, 14, trunkA);
+    px(c, x + 14, y + 18, 1, 14, trunkB);
+    px(c, x + 17, y + 18, 1, 14, '#382008');
+    disc(c, x + 16, y + 12, 10, leafA);
+    disc(c, x + 14, y + 10, 8,  leafB);
+    disc(c, x + 18, y + 8,  5,  leafC);
+    px(c, x + 12, y + 30, 9, 1, '#3a6028');
+  }
+  function pineTree(c, x, y, needleDark, needleMid, needleLight, snow) {
+    grassBase(c, x, y);
+    // Trunk.
+    px(c, x + 14, y + 26, 4, 6, '#5a3818');
+    px(c, x + 14, y + 26, 1, 6, '#382008');
+    // 3 stacked triangle layers.
+    for (const [yo, w] of [[6, 14], [12, 18], [18, 22]]) {
+      const half = w >> 1;
+      for (let i = 0; i < (w >> 1); i++) {
+        px(c, x + 16 - i, y + yo + i, 1, 6 - (w === 22 ? 1 : 0), needleMid);
+        px(c, x + 16 + i, y + yo + i, 1, 6 - (w === 22 ? 1 : 0), needleMid);
+      }
+      void half;
+    }
+    // Outline edges.
+    for (const [yo, w] of [[6, 14], [12, 18], [18, 22]]) {
+      const half = w >> 1;
+      px(c, x + 16 - half, y + yo + half - 1, 1, 1, needleDark);
+      px(c, x + 16 + half, y + yo + half - 1, 1, 1, needleDark);
+    }
+    // Highlights.
+    for (const [yo] of [[6], [12], [18]]) {
+      px(c, x + 14, y + yo + 1, 4, 1, needleLight);
+    }
+    if (snow) {
+      px(c, x + 12, y + 6, 8, 1, '#fff');
+      px(c, x + 10, y + 12, 12, 1, '#fff');
+      px(c, x + 8, y + 18, 16, 1, '#fff');
+    }
+    px(c, x + 12, y + 31, 9, 1, '#3a6028');
+  }
+
+  // Broadleaf seasonal variants (T, default tree).
+  regTileVariant('T', 'tree_var_spring_a', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#1c5018', '#3a8830', '#7ac65a', '#fff8e8']));
+  regTileVariant('T', 'tree_var_spring_b', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#1c4818', '#3a7828', '#6cae4a', '#ffe8a0']));
+  regTileVariant('T', 'tree_var_spring_c', (c, x, y) => roundTree(c, x, y, ['#604020', '#382008', '#1c4810', '#3a7820', '#7ac050', null]));
+  regTileVariant('T', 'tree_var_summer_a', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#0e3010', '#1c5018', '#3a8830', null]));
+  regTileVariant('T', 'tree_var_summer_b', (c, x, y) => tallTree(c, x, y, '#5a3818', '#382008', '#1c5018', '#3a8830', '#5cae4c'));
+  // Oak variants (Y).
+  regTileVariant('Y', 'tree_var_oak_gnarled', (c, x, y) => roundTree(c, x, y, ['#704830', '#382008', '#284820', '#3f7c2c', '#5cae4c', null]));
+  regTileVariant('Y', 'tree_var_oak_white',   (c, x, y) => roundTree(c, x, y, ['#a89878', '#383028', '#2c5818', '#48903c', '#7ac65a', null]));
+  regTileVariant('Y', 'tree_var_oak_dwarf',   (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#1c4810', '#2a6824', '#48a838', null]));
+  // Cherry variants (K).
+  regTileVariant('K', 'tree_var_cherry_white',   (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#a89098', '#e8d8e0', '#fff8f8', '#f0c0d8']));
+  regTileVariant('K', 'tree_var_cherry_weeping', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#88305a', '#d870a0', '#ffd0e8', '#fff0f8']));
+  // Palm variants (O).
+  regTileVariant('O', 'tree_var_palm_coconut', (c, x, y) => {
+    grassBase(c, x, y);
+    px(c, x + 15, y + 14, 3, 18, '#604018');
+    px(c, x + 15, y + 14, 1, 18, '#382008');
+    for (let i = 0; i < 14; i++) px(c, x + 16, y + 14 + i, 1, 1, '#806038');
+    // Fronds.
+    for (const [dx, dy, len] of [[-10, 2, 3], [10, 2, 3], [-12, 6, 4], [12, 6, 4], [-6, -3, 4], [6, -3, 4]]) {
+      for (let i = 0; i < len; i++) px(c, x + 16 + dx + (i * (dx > 0 ? -1 : 1)), y + 13 + dy + i, 1, 1, '#3f7c2c');
+    }
+    disc(c, x + 16, y + 13, 6, '#48a838');
+    disc(c, x + 14, y + 12, 4, '#7ac65a');
+    // Coconuts.
+    px(c, x + 13, y + 17, 2, 2, '#582820');
+    px(c, x + 18, y + 16, 2, 2, '#582820');
+  });
+  regTileVariant('O', 'tree_var_palm_fan', (c, x, y) => {
+    grassBase(c, x, y);
+    px(c, x + 15, y + 16, 3, 16, '#7a4818');
+    disc(c, x + 16, y + 12, 12, '#3a8030');
+    disc(c, x + 16, y + 10, 8, '#5cae4c');
+    px(c, x + 12, y + 8, 9, 1, '#a8d878');
+  });
+  // Autumn variants (E).
+  regTileVariant('E', 'tree_var_autumn_fiery',  (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#a01018', '#e83020', '#f8a040', '#ffd060']));
+  regTileVariant('E', 'tree_var_autumn_golden', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#a86018', '#f0a020', '#fff070', null]));
+  // Birch variants (N).
+  regTileVariant('N', 'tree_var_birch_paper',  (c, x, y) => roundTree(c, x, y, ['#e8e8e8', '#383028', '#3f7c2c', '#7ac65a', '#a8e878', null]));
+  regTileVariant('N', 'tree_var_birch_silver', (c, x, y) => roundTree(c, x, y, ['#c8c8d0', '#383038', '#386830', '#5fa040', '#88c068', null]));
+  // Pine variants (Q + new keys for snowy / spruce).
+  regTileVariant('Q', 'tree_var_pine_snowy_alt', (c, x, y) => pineTree(c, x, y, '#1a3a18', '#3a7838', '#7ac65a', true));
+  regTileVariant('Q', 'tree_var_pine_fir',       (c, x, y) => pineTree(c, x, y, '#1a3a18', '#286020', '#5fa040', false));
+  regTileVariant('Q', 'tree_var_pine_spruce',    (c, x, y) => pineTree(c, x, y, '#1a2a18', '#306030', '#7ac060', false));
+
   // Generic small bush.
   function bushShape(c, x, y, leafA, leafB, leafC, accents) {
     grassBase(c, x, y);
@@ -2943,7 +3038,38 @@
     trainer_skier:       { hat:'#70b8e8', shirt:'#e8f8ff', accent:'#e84858', pants:'#4868a8', gear:'scarf' },
     trainer_sailor:      { hat:'#f8f8f8', shirt:'#3868d8', accent:'#ffffff', pants:'#202858', gear:'anchor' },
     trainer_ace:         { hat:'#7030c0', shirt:'#383848', accent:'#f0d060', pants:'#181828', gear:'star' },
-    trainer_ruin_maniac: { hat:'#d8b068', shirt:'#c89050', accent:'#705038', pants:'#584030', gear:'goggles' }
+    trainer_ruin_maniac: { hat:'#d8b068', shirt:'#c89050', accent:'#705038', pants:'#584030', gear:'goggles' },
+    // City-residents drop (PR for cities content). 30 new kinds.
+    npc_rollerblader: { hat:'#e848a0', shirt:'#f0f0a0', accent:'#3878d8', pants:'#202858', gear:'helmet' },
+    npc_jogger:       { hat:'#3878d8', shirt:'#f0f0f0', accent:'#e84030', pants:'#383838', gear:'wristband' },
+    npc_cyclist:      { hat:'#f0c020', shirt:'#202858', accent:'#e84030', pants:'#101018', gear:'helmet' },
+    npc_dancer:       { hat:'#e070b0', shirt:'#f898d0', accent:'#a04080', pants:'#702848', gear:'ribbon' },
+    npc_policeman:    { hat:'#283878', shirt:'#3858a8', accent:'#f0c020', pants:'#1a2040', gear:'badge' },
+    npc_firefighter:  { hat:'#f0c020', shirt:'#e8a830', accent:'#202020', pants:'#503028', gear:'hardhat' },
+    npc_paramedic:    { hat:'#f8f8f8', shirt:'#3070d8', accent:'#e83838', pants:'#1a1830', gear:'stethoscope' },
+    npc_security:     { hat:'#202020', shirt:'#383838', accent:'#f0c020', pants:'#101018', gear:'goggles' },
+    npc_construction: { hat:'#f0c020', shirt:'#e87018', accent:'#a83020', pants:'#583018', gear:'hardhat' },
+    npc_journalist:   { hat:'#a86838', shirt:'#d0a060', accent:'#383028', pants:'#383028', gear:'camera' },
+    npc_businessman:  { hat:'#101018', shirt:'#383850', accent:'#e83838', pants:'#1a1a28', gear:'briefcase' },
+    npc_saleswoman:   { hat:'#583058', shirt:'#a04080', accent:'#f0c8e0', pants:'#382038', gear:'briefcase' },
+    npc_doctor:       { hat:'#fff8e8', shirt:'#fff8e8', accent:'#3070d8', pants:'#d8d0c0', gear:'stethoscope' },
+    npc_scientist:    { hat:'#fff8e8', shirt:'#fff8e8', accent:'#3858a8', pants:'#5a4838', gear:'clipboard' },
+    npc_teacher:      { hat:'#783820', shirt:'#a85838', accent:'#f0e0a0', pants:'#3a2018', gear:'clipboard' },
+    npc_librarian:    { hat:'#603030', shirt:'#b07060', accent:'#fff8e0', pants:'#382020', gear:'book' },
+    npc_baker:        { hat:'#fff8e8', shirt:'#fff8e8', accent:'#e8a830', pants:'#a86040', gear:'apron' },
+    npc_chef:         { hat:'#fff8e8', shirt:'#fff8e8', accent:'#e83838', pants:'#1a1a1a', gear:'apron' },
+    npc_waiter:       { hat:'#101018', shirt:'#fff8e8', accent:'#e83838', pants:'#101018', gear:'tray' },
+    npc_artist:       { hat:'#583058', shirt:'#a8a8d0', accent:'#e8a830', pants:'#383040', gear:'palette' },
+    npc_dog_walker:   { hat:'#a85040', shirt:'#48a850', accent:'#f0c020', pants:'#382820', gear:'leash' },
+    npc_swimmer_m:    { hat:'#3878d8', shirt:'#3070d0', accent:'#f0f0f0', pants:'#1a3068', gear:'goggles' },
+    npc_swimmer_f:    { hat:'#e848a0', shirt:'#f87898', accent:'#fff8e0', pants:'#a83878', gear:'goggles' },
+    npc_tourist:      { hat:'#e83878', shirt:'#48d098', accent:'#f0c020', pants:'#3878d8', gear:'camera' },
+    npc_punk:         { hat:'#e83838', shirt:'#202020', accent:'#a020a0', pants:'#101018', gear:'spike' },
+    npc_kid_boy:      { hat:'#3878d8', shirt:'#e8a020', accent:'#f0e0a0', pants:'#3868c8', gear:'ball' },
+    npc_kid_girl:     { hat:'#f098c0', shirt:'#f8d0e0', accent:'#a04080', pants:'#e070a0', gear:'ribbon' },
+    npc_old_man_alt:  { hat:'#583828', shirt:'#a08868', accent:'#382820', pants:'#382820', gear:'cane' },
+    npc_old_woman:    { hat:'#9870b0', shirt:'#c8a0d0', accent:'#583858', pants:'#583858', gear:'purse' },
+    npc_hiker_alt:    { hat:'#48a830', shirt:'#a8782a', accent:'#f0c878', pants:'#583820', gear:'pack' }
   };
 
   // ---- Sprite poses ----
@@ -3180,6 +3306,110 @@
       px(ctx, x + 11, y + 6, 4, 2, '#80d8f8');
       px(ctx, x + 17, y + 6, 4, 2, '#80d8f8');
       px(ctx, x + 15, y + 7, 2, 1, s);
+    } else if (g === 'briefcase') {
+      // Black briefcase by the right hip.
+      px(ctx, x + 23, y + 19, 5, 6, o);
+      px(ctx, x + 24, y + 20, 3, 4, '#383038');
+      px(ctx, x + 25, y + 18, 1, 2, o);
+    } else if (g === 'stethoscope') {
+      // Y-loop on chest, ear-piece on neck.
+      px(ctx, x + 13, y + 14, 1, 4, '#101820');
+      px(ctx, x + 18, y + 14, 1, 4, '#101820');
+      px(ctx, x + 14, y + 17, 4, 1, '#101820');
+      px(ctx, x + 15, y + 18, 2, 2, '#c0c0c8');
+    } else if (g === 'hardhat') {
+      // Wide brim hat overlay (paint over the regular hat).
+      px(ctx, x + 7,  y + 6, 18, 1, o);
+      px(ctx, x + 8,  y + 7, 16, 1, p.hat);
+      px(ctx, x + 9,  y + 4, 14, 3, p.hat);
+      px(ctx, x + 10, y + 3, 12, 1, p.hat);
+      px(ctx, x + 9,  y + 4, 14, 1, '#ffffff44');
+    } else if (g === 'clipboard') {
+      // White clipboard tucked under right arm.
+      px(ctx, x + 22, y + 16, 5, 7, o);
+      px(ctx, x + 23, y + 17, 3, 5, '#fff8e8');
+      px(ctx, x + 24, y + 18, 1, 1, o);
+      px(ctx, x + 24, y + 20, 1, 1, o);
+    } else if (g === 'camera') {
+      // Black camera body with a circular lens hanging on the chest.
+      px(ctx, x + 13, y + 16, 7, 4, o);
+      px(ctx, x + 14, y + 17, 5, 2, '#383038');
+      disc(ctx, x + 16, y + 18, 1, '#202020');
+      px(ctx, x + 16, y + 18, 1, 1, '#80d8f8');
+    } else if (g === 'leash') {
+      // Diagonal leash + small dog blob to the right.
+      for (let i = 0; i < 6; i++) px(ctx, x + 23 + i, y + 22 + i, 1, 1, o);
+      px(ctx, x + 27, y + 26, 4, 4, '#704020');
+      px(ctx, x + 27, y + 25, 2, 1, '#704020');
+      px(ctx, x + 30, y + 27, 1, 1, o);
+      px(ctx, x + 27, y + 30, 1, 1, o);
+      px(ctx, x + 30, y + 30, 1, 1, o);
+    } else if (g === 'helmet') {
+      // Sleek helmet overlay, with small chin-strap.
+      px(ctx, x + 8,  y + 3, 16, 1, o);
+      px(ctx, x + 9,  y + 4, 14, 4, p.hat);
+      px(ctx, x + 10, y + 3, 12, 1, '#ffffff66');
+      px(ctx, x + 12, y + 8, 8, 1, o);
+    } else if (g === 'wristband') {
+      // Bright wristbands on both wrists.
+      px(ctx, x + 8,  y + 19, 2, 1, a);
+      px(ctx, x + 22, y + 19, 2, 1, a);
+    } else if (g === 'ribbon') {
+      // Pink ribbon at the back of the head + waist.
+      px(ctx, x + 6,  y + 5, 2, 2, '#ffb0d0');
+      px(ctx, x + 24, y + 5, 2, 2, '#ffb0d0');
+      px(ctx, x + 14, y + 18, 4, 1, a);
+    } else if (g === 'badge') {
+      // Police-style golden 5-point star on the chest.
+      px(ctx, x + 14, y + 16, 4, 4, '#f0c020');
+      px(ctx, x + 15, y + 15, 2, 1, '#f0c020');
+      px(ctx, x + 15, y + 20, 2, 1, '#f0c020');
+      px(ctx, x + 13, y + 17, 1, 2, '#f0c020');
+      px(ctx, x + 18, y + 17, 1, 2, '#f0c020');
+    } else if (g === 'spike') {
+      // Metallic shoulder spikes.
+      px(ctx, x + 8,  y + 13, 2, 2, '#c0c0c8');
+      px(ctx, x + 22, y + 13, 2, 2, '#c0c0c8');
+      px(ctx, x + 9,  y + 12, 1, 1, o);
+      px(ctx, x + 22, y + 12, 1, 1, o);
+    } else if (g === 'ball') {
+      // Red kickball under right arm.
+      disc(ctx, x + 25, y + 22, 3, '#e83838');
+      disc(ctx, x + 25, y + 22, 2, '#f86040');
+    } else if (g === 'cane') {
+      // Wooden cane in right hand.
+      px(ctx, x + 23, y + 20, 1, 9, '#8a5028');
+      px(ctx, x + 23, y + 19, 2, 1, o);
+    } else if (g === 'purse') {
+      // Small purse with a strap.
+      px(ctx, x + 8,  y + 18, 4, 5, '#783858');
+      px(ctx, x + 9,  y + 19, 2, 3, '#a0508a');
+      px(ctx, x + 8,  y + 17, 1, 2, o);
+      px(ctx, x + 11, y + 17, 1, 2, o);
+    } else if (g === 'apron') {
+      // White apron strip across the body.
+      px(ctx, x + 11, y + 14, 10, 8, '#fff8f0');
+      px(ctx, x + 11, y + 14, 10, 1, '#d0c0a0');
+      px(ctx, x + 11, y + 21, 10, 1, '#d0c0a0');
+    } else if (g === 'tray') {
+      // Small silver tray on right hand.
+      px(ctx, x + 21, y + 16, 8, 2, '#c0c0c8');
+      px(ctx, x + 21, y + 15, 8, 1, '#fff8e8');
+      px(ctx, x + 24, y + 17, 1, 1, '#e8a830');
+    } else if (g === 'palette') {
+      // Painter's palette with daubs.
+      px(ctx, x + 22, y + 18, 6, 5, '#a86838');
+      px(ctx, x + 23, y + 19, 1, 1, '#e83838');
+      px(ctx, x + 25, y + 19, 1, 1, '#3878d8');
+      px(ctx, x + 23, y + 21, 1, 1, '#48a830');
+      px(ctx, x + 25, y + 21, 1, 1, '#f0c020');
+    } else if (g === 'book') {
+      // Stack of books in left hand.
+      px(ctx, x + 6,  y + 18, 5, 2, '#a83020');
+      px(ctx, x + 6,  y + 20, 5, 2, '#3858a8');
+      px(ctx, x + 6,  y + 22, 5, 2, '#48a830');
+      px(ctx, x + 6,  y + 18, 1, 6, o);
+      px(ctx, x + 10, y + 18, 1, 6, o);
     }
   }
 

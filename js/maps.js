@@ -405,7 +405,11 @@ const MAPS = {
     ],
     npcs: [
       { x:5, y:2, dir:'down', sprite:'npc_mom', name:'MOM',
-        dialog:["Don't forget to save before bed, dear!","Adventures are tiring - rest when you can."] }
+        dialog:["Don't forget to save before bed, dear!","Adventures are tiring - rest when you can."] },
+      { x:1, y:5, dir:'right', sprite:'npc_kid_girl', name:'NIECE LIA', wander:{ range:1 },
+        dialog:["You have so many shoes! Are they all for hiking?"] },
+      { x:5, y:5, dir:'left', sprite:'npc_old_woman', name:'AUNT LU', wander:{ range:1 },
+        dialog:["Your mom's pies are the best in the region.","Shh, don't tell her I said that."] }
     ],
     doors: {
       '3,6': { to:'rodport', x:4, y:5 }
@@ -425,7 +429,11 @@ const MAPS = {
     ],
     npcs: [
       { x:4, y:2, dir:'down', sprite:'npc_sis', name:'KIRA',
-        dialog:["My brother BLAINE is at the lab.","He's always trying to outshine you!"] }
+        dialog:["My brother BLAINE is at the lab.","He's always trying to outshine you!"] },
+      { x:1, y:5, dir:'right', sprite:'npc_old_man_alt', name:'GRANDPA RIK', wander:{ range:1 },
+        dialog:["BLAINE was always the competitive one.","Don't let him spook you."] },
+      { x:5, y:5, dir:'left', sprite:'npc_kid_boy', name:'COUSIN TOMI', wander:{ range:1 },
+        dialog:["Wanna trade? I've got a flat rock!","BLAINE says rocks aren't items but they ARE."] }
     ],
     doors: {
       '3,6': { to:'rodport', x:11, y:5 }
@@ -454,7 +462,11 @@ const MAPS = {
       { x:2, y:3, dir:'down', sprite:'ball', name:'',
         dialog:["A POKEROD ball sits here..."] , ballSlot:0 },
       { x:3, y:3, dir:'down', sprite:'ball', name:'',
-        dialog:["A POKEROD ball sits here..."] , ballSlot:1 }
+        dialog:["A POKEROD ball sits here..."] , ballSlot:1 },
+      { x:7, y:6, dir:'left', sprite:'npc_scientist', name:'AIDE NEM', wander:{ range:1 },
+        dialog:["I help PROF. ROD log POKEROD data.","Capture more species and the dex page lights up."] },
+      { x:3, y:6, dir:'right', sprite:'clerk', name:'AIDE OREN', wander:{ range:1 },
+        dialog:["The lab's been busy this season.","New trainers come through every week."] }
     ],
     doors: {
       '5,8': { to:'rodport', x:9, y:10 }
@@ -577,7 +589,14 @@ const MAPS = {
         gym:true, badge:'WAVE',
         dialog:["I am WAVE, leader of the BRINDALE GYM.","Show me you are ready and we shall battle!"],
         trainer:{ team:[['mistfin',12],['aquapup',13]], reward:600,
-                  defeat:["A fine showing! Take this WAVE BADGE."] } }
+                  defeat:["A fine showing! Take this WAVE BADGE."] } },
+      { x:1, y:6, dir:'right', sprite:'npc_swimmer_m', name:'SWIMMER FIN',
+        dialog:["Wait your turn, kid. WAVE is mine first."],
+        trainer:{ team:[['splashfin',10],['mistfin',11]], reward:280, defeat:["You're fast! Slick moves."] } },
+      { x:7, y:6, dir:'left', sprite:'npc_youth', name:'STUDENT BO', wander:{ range:1 },
+        dialog:["WAVE's WATER PULSE hits like a truck.","Bring an ELECTRIC partner if you can."] },
+      { x:4, y:7, dir:'up', sprite:'npc_kid_girl', name:'CHEERLEADER PEN', wander:{ range:1 },
+        dialog:["Go WAVE! Go WAVE!"] }
     ],
     doors: { '4,8': { to:'brindale', x:13, y:15 } }
   },
@@ -598,7 +617,13 @@ const MAPS = {
     npcs: [
       { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE ROSY',
         dialog:["Welcome to the POKEROD CENTER!","Step up and I'll heal your team."],
-        healer:true }
+        healer:true },
+      { x:6, y:5, dir:'left', sprite:'npc_jogger', name:'JOGGER BIX', wander:{ range:1 },
+        dialog:["Quick stop to top off my team.","Back on the road in five!"] },
+      { x:3, y:6, dir:'up', sprite:'npc_old_man_alt', name:'GRAMPS WIL', wander:{ range:1 },
+        dialog:["Centers were tougher in my day. Walked uphill both ways."] },
+      { x:7, y:5, dir:'left', sprite:'npc_tourist', name:'TOURIST ELI', wander:{ range:1 },
+        dialog:["Where am I? Oh - PokeRod CENTER. Free heal!"] }
     ],
     decorations: [
       { x:2, y:2, key:'pod_bed_left' },
@@ -632,7 +657,13 @@ const MAPS = {
     npcs: [
       { x:5, y:4, dir:'down', sprite:'clerk', name:'BRINDALE MART',
         dialog:["Welcome to the BRINDALE MART!"],
-        shop:{ greeting:["Welcome to the BRINDALE MART!","How can I help you?"] } }
+        shop:{ greeting:["Welcome to the BRINDALE MART!","How can I help you?"] } },
+      { x:1, y:5, dir:'right', sprite:'npc_old_woman', name:'CUSTOMER LUC', wander:{ range:1 },
+        dialog:["Are POTIONS on sale this week?","I can never decide between FRESH WATER and SODA POP."] },
+      { x:9, y:5, dir:'left', sprite:'npc_dog_walker', name:'CUSTOMER PAT', wander:{ range:1 },
+        dialog:["MAX REPEL - perfect for the long route ahead."] },
+      { x:5, y:7, dir:'up', sprite:'npc_kid_boy', name:'KID FYN', wander:{ range:1 },
+        dialog:["Mom said I could only get one CANDY. Just one!"] }
     ],
     decorations: [
       { x:2, y:1, key:'shelf_potions' },
@@ -662,7 +693,11 @@ const MAPS = {
     ],
     npcs: [
       { x:4, y:2, dir:'down', sprite:'npc_old', name:'OLD MAN',
-        dialog:["In my day, we walked uphill both ways through tall grass!","...and we liked it."] }
+        dialog:["In my day, we walked uphill both ways through tall grass!","...and we liked it."] },
+      { x:1, y:5, dir:'right', sprite:'npc_baker', name:'BAKER PEM', wander:{ range:1 },
+        dialog:["I'm visiting from RODPORT. Such a quiet town!"] },
+      { x:5, y:5, dir:'left', sprite:'npc_kid_girl', name:'GRAND-DAUGHTER LU', wander:{ range:1 },
+        dialog:["Grandpa knows ALL the old routes!"] }
     ],
     doors: {
       '3,6': { to:'brindale', x:8, y:11 }
@@ -777,7 +812,14 @@ const MAPS = {
         gymLocked:["You need the WAVE BADGE before challenging me.","Try the BRINDALE GYM first!"],
         trainer:{ team:[['fernsprout',16],['sproutling',16],['bramblewood',18]],
                   reward:900,
-                  defeat:["A clean win! The VERDE BADGE is yours."] } }
+                  defeat:["A clean win! The VERDE BADGE is yours."] } },
+      { x:1, y:6, dir:'right', sprite:'npc_hiker_alt', name:'HIKER GIL',
+        dialog:["FERN's GRASS team is no joke!"],
+        trainer:{ team:[['nibblet',14],['pebra',15]], reward:480, defeat:["Tough match!"] } },
+      { x:7, y:6, dir:'left', sprite:'npc_youth', name:'STUDENT TEY', wander:{ range:1 },
+        dialog:["Bring FIRE moves. Or BUG. Or FLYING."] },
+      { x:4, y:7, dir:'up', sprite:'npc_kid_boy', name:'KID NIM', wander:{ range:1 },
+        dialog:["FERN gave me a SUNFLORA SEED!"] }
     ],
     doors: { '4,8': { to:'woodfall', x:10, y:13 } }
   },
@@ -797,7 +839,13 @@ const MAPS = {
     npcs: [
       { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE PIPPA',
         dialog:["Welcome to the WOODFALL CENTER!","Step up and I'll heal your team."],
-        healer:true }
+        healer:true },
+      { x:6, y:5, dir:'left', sprite:'npc_construction', name:'WORKER YEN', wander:{ range:1 },
+        dialog:["Long shift at the LODGE. Need a heal."] },
+      { x:3, y:6, dir:'up', sprite:'npc_kid_girl', name:'KID ROSE', wander:{ range:1 },
+        dialog:["My SPROUTLING fainted on the path home."] },
+      { x:7, y:5, dir:'left', sprite:'npc_old_woman', name:'GRAN PEN', wander:{ range:1 },
+        dialog:["NURSE PIPPA is so kind to my old PARTNER."] }
     ],
     doors: { '4,7': { to:'woodfall', x:5, y:6 } }
   },
@@ -820,7 +868,13 @@ const MAPS = {
     npcs: [
       { x:5, y:4, dir:'down', sprite:'clerk', name:'WOODFALL MART',
         dialog:["Welcome to the WOODFALL MART!"],
-        shop:{ greeting:["Welcome to the WOODFALL MART!","How can I help you?"] } }
+        shop:{ greeting:["Welcome to the WOODFALL MART!","How can I help you?"] } },
+      { x:1, y:5, dir:'right', sprite:'npc_jogger', name:'CUSTOMER LIN', wander:{ range:1 },
+        dialog:["Energy bars - aisle two!"] },
+      { x:9, y:5, dir:'left', sprite:'npc_artist', name:'CUSTOMER POE', wander:{ range:1 },
+        dialog:["Ink for sketches and ROD BALLS for catches."] },
+      { x:5, y:7, dir:'up', sprite:'npc_old_man_alt', name:'OLD JEM', wander:{ range:1 },
+        dialog:["A SUPER POTION costs HOW much these days?"] }
     ],
     doors: { '5,10': { to:'woodfall', x:12, y:6 } }
   },
@@ -934,7 +988,14 @@ const MAPS = {
         gymLocked:["You'll need the WAVE and VERDE BADGES first.","Brindale and Woodfall are your training grounds."],
         trainer:{ team:[['pebra',22],['stoneworm',23],['boulderon',26]],
                   reward:1300,
-                  defeat:["A solid win! The CRAG BADGE is yours."] } }
+                  defeat:["A solid win! The CRAG BADGE is yours."] } },
+      { x:1, y:6, dir:'right', sprite:'npc_construction', name:'WORKER LANE',
+        dialog:["Boss said no chiseling on the gym walls."],
+        trainer:{ team:[['stoneworm',20],['pebra',21]], reward:780, defeat:["Tough as bedrock, you are."] } },
+      { x:7, y:6, dir:'left', sprite:'npc_security', name:'GUARD MAR', wander:{ range:1 },
+        dialog:["BOULDER doesn't like loud noises during matches."] },
+      { x:4, y:7, dir:'up', sprite:'npc_kid_girl', name:'KID NIA', wander:{ range:1 },
+        dialog:["I'll beat BOULDER someday!"] }
     ],
     doors: { '4,8': { to:'crestrock', x:10, y:13 } }
   },
@@ -954,7 +1015,13 @@ const MAPS = {
     npcs: [
       { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE QUILL',
         dialog:["CRESTROCK CENTER welcomes you.","Let me look after your team."],
-        healer:true }
+        healer:true },
+      { x:6, y:5, dir:'left', sprite:'npc_cyclist', name:'CYCLIST DON', wander:{ range:1 },
+        dialog:["Quick patch and I'm back on the climb."] },
+      { x:3, y:6, dir:'up', sprite:'npc_construction', name:'BUILDER MEL', wander:{ range:1 },
+        dialog:["Quarry dust gets into everything."] },
+      { x:7, y:5, dir:'left', sprite:'npc_artist', name:'PAINTER VIA', wander:{ range:1 },
+        dialog:["The cliff colors at sunset - painting them now."] }
     ],
     doors: { '4,7': { to:'crestrock', x:5, y:6 } }
   },
@@ -977,7 +1044,13 @@ const MAPS = {
     npcs: [
       { x:5, y:4, dir:'down', sprite:'clerk', name:'CRESTROCK MART',
         dialog:["Climbing the highlands?","Stock up before you go!"],
-        shop:{ greeting:["Climbing the highlands?","Stock up before you go!"] } }
+        shop:{ greeting:["Climbing the highlands?","Stock up before you go!"] } },
+      { x:1, y:5, dir:'right', sprite:'npc_hiker_alt', name:'CUSTOMER ULF', wander:{ range:1 },
+        dialog:["I need MORE rope. The WALL is HIGHER than I expected."] },
+      { x:9, y:5, dir:'left', sprite:'npc_paramedic', name:'CUSTOMER FAY', wander:{ range:1 },
+        dialog:["I'm restocking REVIVES for the medic post."] },
+      { x:5, y:7, dir:'up', sprite:'npc_journalist', name:'CUSTOMER REN', wander:{ range:1 },
+        dialog:["Got film? I'm on a feature about CRESTROCK."] }
     ],
     doors: { '5,10': { to:'crestrock', x:12, y:6 } }
   },
@@ -1134,7 +1207,14 @@ const MAPS = {
         gymLocked:["You'll need the first three BADGES first.","WAVE, VERDE, and CRAG."],
         trainer:{ team:[['frostpup',26],['glacierock',27],['snowox',28]],
                   reward:1700,
-                  defeat:["A flawless win! The CHILL BADGE is yours."] } }
+                  defeat:["A flawless win! The CHILL BADGE is yours."] } },
+      { x:1, y:6, dir:'right', sprite:'npc_swimmer_f', name:'ICE SWIMMER ROW',
+        dialog:["Brrrr! Try this!"],
+        trainer:{ team:[['mistfin',24],['frostpup',25]], reward:1100, defeat:["You don't FREEZE!"] } },
+      { x:7, y:6, dir:'left', sprite:'npc_kid_boy', name:'KID OWEN', wander:{ range:1 },
+        dialog:["RIME's BLIZZARD made me cry once."] },
+      { x:4, y:7, dir:'up', sprite:'npc_old_woman', name:'GRAN BEN', wander:{ range:1 },
+        dialog:["RIME used to be my pupil!"] }
     ],
     doors: { '4,8': { to:'frostmere', x:10, y:13 } }
   },
@@ -1154,7 +1234,13 @@ const MAPS = {
     npcs: [
       { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE FERN',
         dialog:["FROSTMERE CENTER, at your service.","A warm corner for cold travelers."],
-        healer:true }
+        healer:true },
+      { x:6, y:5, dir:'left', sprite:'npc_hiker_alt', name:'CLIMBER ESS', wander:{ range:1 },
+        dialog:["My team got hammered on the peak. Need a heal."] },
+      { x:3, y:6, dir:'up', sprite:'npc_chef', name:'CHEF NIVA', wander:{ range:1 },
+        dialog:["Soup helps - inside and out."] },
+      { x:7, y:5, dir:'left', sprite:'npc_kid_girl', name:'KID JESS', wander:{ range:1 },
+        dialog:["A SNOWOX is bigger up close than I thought!"] }
     ],
     doors: { '4,7': { to:'frostmere', x:5, y:6 } }
   },
@@ -1177,7 +1263,13 @@ const MAPS = {
     npcs: [
       { x:5, y:4, dir:'down', sprite:'clerk', name:'FROSTMERE MART',
         dialog:["Bundle up. The mountain past here is unforgiving."],
-        shop:{ greeting:["Bundle up.","The mountain past here is unforgiving."] } }
+        shop:{ greeting:["Bundle up.","The mountain past here is unforgiving."] } },
+      { x:1, y:5, dir:'right', sprite:'npc_paramedic', name:'CUSTOMER ASH', wander:{ range:1 },
+        dialog:["FROSTBITE KIT, please. Two of them."] },
+      { x:9, y:5, dir:'left', sprite:'npc_old_man_alt', name:'CUSTOMER VEM', wander:{ range:1 },
+        dialog:["Can you point me to the SUPER POTIONS aisle?"] },
+      { x:5, y:7, dir:'up', sprite:'npc_kid_boy', name:'KID NIK', wander:{ range:1 },
+        dialog:["I want gummi-fish. Where are they?"] }
     ],
     doors: { '5,10': { to:'frostmere', x:12, y:6 } }
   },
@@ -1288,7 +1380,14 @@ const MAPS = {
         gymLocked:["You'll need four BADGES before challenging me.","Earn WAVE, VERDE, CRAG, and CHILL first."],
         trainer:{ team:[['flitwing',30],['skylordan',31],['galewing',33]],
                   reward:2200,
-                  defeat:["A clean sweep! The GUST BADGE is yours."] } }
+                  defeat:["A clean sweep! The GUST BADGE is yours."] } },
+      { x:1, y:6, dir:'right', sprite:'npc_swimmer_m', name:'TRAINEE NEX',
+        dialog:["Wind in our wings!"],
+        trainer:{ team:[['flitwing',28],['breezlet',29]], reward:1500, defeat:["You read the gusts well."] } },
+      { x:7, y:6, dir:'left', sprite:'npc_journalist', name:'REPORTER FA', wander:{ range:1 },
+        dialog:["I'm covering GALE's title defense."] },
+      { x:4, y:7, dir:'up', sprite:'npc_kid_boy', name:'KID DEC', wander:{ range:1 },
+        dialog:["Wow, you can battle GALE? You're brave!"] }
     ],
     doors: { '4,8': { to:'harborside', x:11, y:12 } }
   },
@@ -1308,7 +1407,13 @@ const MAPS = {
     npcs: [
       { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE MARLO',
         dialog:["HARBORSIDE CENTER.","Tides come and go - but healing is always free."],
-        healer:true }
+        healer:true },
+      { x:6, y:5, dir:'left', sprite:'npc_swimmer_f', name:'DIVER NAV', wander:{ range:1 },
+        dialog:["Currents got rough out there.","My team needs a quick rinse."] },
+      { x:3, y:6, dir:'up', sprite:'npc_construction', name:'DOCKER LIN', wander:{ range:1 },
+        dialog:["Cargo work all morning. Time for a rest."] },
+      { x:7, y:5, dir:'left', sprite:'npc_kid_girl', name:'KID OLI', wander:{ range:1 },
+        dialog:["My SPLASHFIN evolved into MISTFIN today!"] }
     ],
     doors: { '4,7': { to:'harborside', x:5, y:6 } }
   },
@@ -1331,7 +1436,13 @@ const MAPS = {
     npcs: [
       { x:5, y:4, dir:'down', sprite:'clerk', name:'HARBORSIDE MART',
         dialog:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."],
-        shop:{ greeting:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."] } }
+        shop:{ greeting:["Heading to the SEAROUTE?","Pack snacks. And maybe a swimsuit."] } },
+      { x:1, y:5, dir:'right', sprite:'npc_tourist', name:'CUSTOMER UMA', wander:{ range:1 },
+        dialog:["Sunscreen? You sell SUNSCREEN here?","Just a SUPER POTION. Got it."] },
+      { x:9, y:5, dir:'left', sprite:'npc_businessman', name:'CUSTOMER VAL', wander:{ range:1 },
+        dialog:["Charge it to the firm. The receipt, please."] },
+      { x:5, y:7, dir:'up', sprite:'npc_dog_walker', name:'CUSTOMER ZAN', wander:{ range:1 },
+        dialog:["MAX REPELS for me, KIBBLE for the dog."] }
     ],
     doors: { '5,10': { to:'harborside', x:12, y:6 } }
   },
@@ -1442,7 +1553,13 @@ const MAPS = {
     npcs: [
       { x:3, y:4, dir:'down', sprite:'nurse', name:'NURSE EMBER',
         dialog:["SUMMITVALE CENTER welcomes the brave.","Let me restore your team to peak form."],
-        healer:true }
+        healer:true },
+      { x:6, y:5, dir:'left', sprite:'npc_doctor', name:'DR. KAY', wander:{ range:1 },
+        dialog:["Champion-grade injuries. Be careful out there."] },
+      { x:3, y:6, dir:'up', sprite:'npc_old_man_alt', name:'VETERAN GAR', wander:{ range:1 },
+        dialog:["I once challenged ROWE. Lost in two minutes."] },
+      { x:7, y:5, dir:'left', sprite:'npc_paramedic', name:'MEDIC PAS', wander:{ range:1 },
+        dialog:["Stocking REVIVES for the title match."] }
     ],
     doors: { '4,7': { to:'summitvale', x:5, y:6 } }
   },
@@ -1466,7 +1583,13 @@ const MAPS = {
       { x:5, y:4, dir:'down', sprite:'clerk', name:'SUMMITVALE MART',
         dialog:["You made it to the top!","Our shelves carry the finest gear."],
         shop:{ greeting:["Welcome to SUMMITVALE MART!","Our shelves carry the finest gear."],
-               bonusTier:1 } }
+               bonusTier:1 } },
+      { x:1, y:5, dir:'right', sprite:'npc_doctor', name:'CUSTOMER LARS', wander:{ range:1 },
+        dialog:["Two FULL RESTORES. Maybe three."] },
+      { x:9, y:5, dir:'left', sprite:'npc_journalist', name:'CUSTOMER NAT', wander:{ range:1 },
+        dialog:["Last gear-check before tomorrow's piece."] },
+      { x:5, y:7, dir:'up', sprite:'npc_kid_girl', name:'KID FENN', wander:{ range:1 },
+        dialog:["Mom said I could pick ONE souvenir.","I want them ALL."] }
     ],
     doors: { '5,10': { to:'summitvale', x:12, y:6 } }
   },
@@ -1484,7 +1607,11 @@ const MAPS = {
     ],
     npcs: [
       { x:4, y:2, dir:'down', sprite:'npc_girl', name:'TRAVELER NIA',
-        dialog:["I came from RODPORT too!","Funny how the road home is always longer than you remember."] }
+        dialog:["I came from RODPORT too!","Funny how the road home is always longer than you remember."] },
+      { x:1, y:5, dir:'right', sprite:'npc_old_man_alt', name:'GRAMPS WICK', wander:{ range:1 },
+        dialog:["You earned every BADGE? Bah - in MY day..."] },
+      { x:5, y:5, dir:'left', sprite:'npc_kid_boy', name:'KID FERN', wander:{ range:1 },
+        dialog:["Will you sign my POKEDEX, hero?"] }
     ],
     doors: { '3,6': { to:'summitvale', x:11, y:12 } }
   }
@@ -1636,7 +1763,11 @@ desert: {
           "Welcome to POKEROD FARM!",
           "We keep two of every type here.",
           "It's a fine place to study them up close."
-        ] }
+        ] },
+      { x:13, y:11, dir:'down', sprite:'npc_dog_walker', name:'FARMHAND ROO', wander:{ range:1 },
+        dialog:["Feeding time goes from dawn till dusk.","Some of the rarer ones are picky eaters."] },
+      { x:14, y:15, dir:'up', sprite:'npc_kid_girl', name:'VISITOR LEN', wander:{ range:1 },
+        dialog:["Look how many types live here!","I want to see EVERY single one."] }
     ],
     // Two ambient creatures per type, grouped roughly by element.
     // Single-species types (GHOST/DRAGON/FAIRY) appear twice as the
@@ -1715,6 +1846,7 @@ function applyWorldExpansion(MAPS) {
     map.signs = cfg.signs || {};
     map.npcs = cfg.npcs || [];
     map.ambient = cfg.ambient || [];
+    map.decorations = cfg.decorations || [];
     map.edges = cfg.edgeDefs || map.edges || {};
     if (cfg.hidden) map.hidden = cfg.hidden;
   }
@@ -1746,6 +1878,7 @@ function applyWorldExpansion(MAPS) {
     map.signs = cfg.signs || {};
     map.hidden = cfg.hidden || {};
     map.npcs = cfg.npcs || [];
+    map.decorations = cfg.decorations || [];
     if (cfg.encounters) map.encounters = cfg.encounters;
     if (cfg.encounterZones) map.encounterZones = cfg.encounterZones;
     map.doors = {};
@@ -1779,7 +1912,44 @@ function applyWorldExpansion(MAPS) {
       { x:13, y:17, dir:'down', sprite:'npc_girl', name:'LILA',
         dialog:["The new harbor paths all bend back to the plaza.","If you get turned around, follow the cobbles."] },
       { x:35, y:25, dir:'left', sprite:'npc_youth', name:'DOCKHAND REN',
-        dialog:["We keep spare ROD BALL crates by the pier.","The sea breeze makes every route feel longer."] }
+        dialog:["We keep spare ROD BALL crates by the pier.","The sea breeze makes every route feel longer."] },
+      { x:22, y:4,  dir:'down',  sprite:'npc_construction', name:'FOREMAN GUS', wander:{ range:2 },
+        dialog:["The plaza got new pavers last week.","Watch your step around the wet cement."] },
+      { x:22, y:11, dir:'down',  sprite:'npc_tourist',      name:'TOURIST POE', wander:{ range:2 },
+        dialog:["First time visiting RODPORT! The harbor is gorgeous!","Did you know they brew salt-taffy down at the pier?"] },
+      { x:18, y:17, dir:'right', sprite:'npc_jogger',       name:'JOGGER ANNE', wander:{ range:2 },
+        dialog:["Nice morning for laps around the plaza!"],
+        trainer:{ team:[['nibblet',5]], reward:120, defeat:["You keep up better than I expected!"] } },
+      { x:26, y:17, dir:'left',  sprite:'npc_dog_walker',   name:'WALKER SAM', wander:{ range:2 },
+        dialog:["MOCHA pulls toward every other PARTNER we pass."] },
+      { x:21, y:24, dir:'down',  sprite:'npc_kid_boy',      name:'KID NOAH', wander:{ range:1 },
+        dialog:["I want to be a TRAINER like you!"],
+        trainer:{ team:[['flitwing',4],['nibblet',5]], reward:160, defeat:["I'll train harder!"] } },
+      { x:25, y:25, dir:'left',  sprite:'npc_kid_girl',     name:'KID MIRA', wander:{ range:1 },
+        dialog:["Catch! ...wait, that was just a leaf."] },
+      { x:20, y:14, dir:'right', sprite:'npc_journalist',   name:'REPORTER KAY', wander:{ range:2 },
+        dialog:["Mind a quick photo for the GAZETTE?","Smile! ...okay maybe later."] },
+      { x:6,  y:17, dir:'right', sprite:'npc_baker',        name:'BAKER PIPPA', wander:{ range:1 },
+        dialog:["The fresh shell-bread comes out at noon.","BAKERY's just up the path - turn at the lamppost."] }
+    ],
+    decorations:[
+      { x:15, y:13, key:'streetlamp_ornate_double' },
+      { x:28, y:13, key:'streetlamp_ornate_double' },
+      { x:15, y:20, key:'lamp_ornate_gold' },
+      { x:28, y:20, key:'lamp_ornate_gold' },
+      { x:17, y:16, key:'bench_park_brown' },
+      { x:26, y:16, key:'bench_park_brown' },
+      { x:20, y:22, key:'bench_marble_white' },
+      { x:24, y:22, key:'bench_marble_white' },
+      { x:21, y:6,  key:'planter_flowerbed_oval' },
+      { x:23, y:6,  key:'planter_flowerbed_oval' },
+      { x:21, y:11, key:'pot_terracotta_red' },
+      { x:23, y:11, key:'pot_terracotta_red' },
+      { x:21, y:28, key:'pot_ceramic_blue' },
+      { x:23, y:28, key:'pot_ceramic_blue' },
+      { x:16, y:15, key:'trash_grey_lid' },
+      { x:27, y:15, key:'trash_blue_recycle' },
+      { x:18, y:27, key:'water_fountain_round' }
     ],
     ambient:[
       { species:'nibblet', x:16, y:18, range:3 },
@@ -1814,7 +1984,44 @@ function applyWorldExpansion(MAPS) {
       { x:33, y:10, dir:'left', sprite:'npc_youth', name:'SCHOOL KID NEM',
         dialog:["Trainer school says Great Balls show up earlier now.","I wrote that down twice."] },
       { x:14, y:23, dir:'up', sprite:'npc_old', name:'GARDENER ELI',
-        dialog:["Every flowerbed is a tiny route if you walk slowly enough."] }
+        dialog:["Every flowerbed is a tiny route if you walk slowly enough."] },
+      { x:22, y:6,  dir:'down',  sprite:'npc_teacher',     name:'TEACHER ROSALIE', wander:{ range:2 },
+        dialog:["Every PARTNER learns a move at the right time.","Don't rush evolution - read the chapter twice."] },
+      { x:22, y:12, dir:'down',  sprite:'npc_librarian',   name:'LIBRARIAN ED', wander:{ range:1 },
+        dialog:["The Brindale archives have a whole shelf on TM moves.","Quiet, please. We've got reading hours."] },
+      { x:18, y:17, dir:'right', sprite:'npc_dancer',      name:'DANCER BREE', wander:{ range:2 },
+        dialog:["Watch this combo! TWIRL, TWIRL, BATTLE!"],
+        trainer:{ team:[['glimkit',10],['flitwing',11]], reward:300, defeat:["I left my ribbon at the dojo!"] } },
+      { x:26, y:17, dir:'left',  sprite:'npc_punk',        name:'PUNK ZED', wander:{ range:2 },
+        dialog:["You don't look so tough."],
+        trainer:{ team:[['nibblet',11],['cinderpup',12]], reward:340, defeat:["Tch. Lucky."] } },
+      { x:20, y:24, dir:'right', sprite:'npc_artist',      name:'ARTIST ROSAMUND', wander:{ range:1 },
+        dialog:["The garden lighting at sunset is divine.","Hold still! The portrait would suit you."] },
+      { x:24, y:25, dir:'left',  sprite:'npc_kid_girl',    name:'KID NORA', wander:{ range:1 },
+        dialog:["My brother thinks GLIMKIT are scary. They're so cute!"] },
+      { x:33, y:17, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER YAEL', wander:{ range:2 },
+        dialog:["BRUNO, drop the FLOWER. I said DROP."] }
+    ],
+    decorations:[
+      { x:15, y:13, key:'lamp_ornate_gold' },
+      { x:28, y:13, key:'lamp_ornate_gold' },
+      { x:15, y:20, key:'streetlamp_ornate_double' },
+      { x:28, y:20, key:'streetlamp_ornate_double' },
+      { x:17, y:15, key:'bench_marble_white' },
+      { x:26, y:15, key:'bench_marble_white' },
+      { x:20, y:22, key:'bench_garden_iron' },
+      { x:24, y:22, key:'bench_garden_iron' },
+      { x:21, y:8,  key:'planter_hedge_round' },
+      { x:23, y:8,  key:'planter_hedge_round' },
+      { x:21, y:11, key:'pot_painted_yellow' },
+      { x:23, y:11, key:'pot_painted_yellow' },
+      { x:18, y:13, key:'planter_flowerbed_oval' },
+      { x:25, y:13, key:'planter_flowerbed_oval' },
+      { x:21, y:30, key:'pot_marble_white' },
+      { x:23, y:30, key:'pot_marble_white' },
+      { x:20, y:27, key:'water_fountain_round' },
+      { x:16, y:17, key:'trash_basket_wicker' },
+      { x:27, y:17, key:'trash_basket_wicker' }
     ],
     ambient:[
       { species:'glimkit', x:12, y:16, range:2 },
@@ -1849,8 +2056,49 @@ function applyWorldExpansion(MAPS) {
       { x:34, y:13, dir:'left', sprite:'npc_girl', name:'FORAGER MIA',
         dialog:["A forest cavern opened near PEBBLEWOOD.","Cavern Balls work nicely in places like that."] },
       { x:10, y:24, dir:'up', sprite:'npc_youth', name:'CABIN KID SOL',
-        dialog:["I counted five different roofs from my porch!"] }
+        dialog:["I counted five different roofs from my porch!"] },
+      { x:22, y:6,  dir:'down',  sprite:'npc_hiker_alt',   name:'HIKER VAL', wander:{ range:2 },
+        dialog:["The northern trail is easier than it looks."],
+        trainer:{ team:[['fernsprout',16],['pebra',15]], reward:520, defeat:["Catch your breath - I will too!"] } },
+      { x:18, y:17, dir:'right', sprite:'npc_artist',      name:'CARVER LIN', wander:{ range:2 },
+        dialog:["I carve charm-totems from fallen wood.","Each design tells a story of the forest."] },
+      { x:26, y:17, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER OREN', wander:{ range:2 },
+        dialog:["RUFUS sniffs out berry bushes for me."] },
+      { x:21, y:24, dir:'down',  sprite:'npc_jogger',      name:'TRAILRUNNER MAE', wander:{ range:2 },
+        dialog:["Cross-country, twenty kilometers a day!"],
+        trainer:{ team:[['flitwing',15],['nibblet',16],['pebra',16]], reward:560, defeat:["Wow! You set the new record!"] } },
+      { x:25, y:25, dir:'left',  sprite:'npc_kid_boy',     name:'KID PIP', wander:{ range:1 },
+        dialog:["Look! A SPROUTLING in the bushes!","...okay, it's a leaf again."] },
+      { x:33, y:17, dir:'left',  sprite:'npc_construction', name:'BUILDER GERM', wander:{ range:2 },
+        dialog:["Lodge expansion's almost done.","They want a third floor next month."] },
+      { x:14, y:17, dir:'right', sprite:'npc_journalist',  name:'JOURNALIST RU', wander:{ range:2 },
+        dialog:["WOODFALL Gazette - any wildlife sightings?","I've seen a SPROUTLING evolve before. Magic."] }
     ],
+    decorations:[
+      { x:15, y:13, key:'lamp_paper_lantern' },
+      { x:28, y:13, key:'lamp_paper_lantern' },
+      { x:15, y:20, key:'lamp_paper_lantern' },
+      { x:28, y:20, key:'lamp_paper_lantern' },
+      { x:17, y:15, key:'bench_log' },
+      { x:26, y:15, key:'bench_log' },
+      { x:20, y:22, key:'bench_log' },
+      { x:24, y:22, key:'bench_log' },
+      { x:21, y:6,  key:'planter_hedge_long' },
+      { x:23, y:6,  key:'planter_hedge_long' },
+      { x:21, y:11, key:'pot_succulent_small' },
+      { x:23, y:11, key:'pot_succulent_small' },
+      { x:21, y:28, key:'pot_tall_lily' },
+      { x:23, y:28, key:'pot_tall_lily' },
+      { x:18, y:25, key:'planter_zen_stone' },
+      { x:25, y:25, key:'planter_zen_stone' },
+      { x:16, y:17, key:'trash_basket_wicker' },
+      { x:27, y:17, key:'trash_basket_wicker' }
+    ],
+    treeVariants:{
+      T:['tree_var_summer_a','tree_var_summer_b'],
+      Y:['tree_var_oak_gnarled','tree_var_oak_dwarf'],
+      Q:['tree_var_pine_fir','tree_var_pine_spruce']
+    },
     ambient:[
       { species:'sproutling', x:8, y:14, range:3 },
       { species:'crawlbug', x:33, y:16, range:2 },
@@ -1884,7 +2132,44 @@ function applyWorldExpansion(MAPS) {
       { x:33, y:12, dir:'left', sprite:'npc_old', name:'MINER OREN',
         dialog:["We carved more bends into the roads than the mountain asked for."] },
       { x:12, y:24, dir:'up', sprite:'npc_youth', name:'WORKSHOP KAI',
-        dialog:["Quick Balls are best before a wild Pokerod gets its bearings."] }
+        dialog:["Quick Balls are best before a wild Pokerod gets its bearings."] },
+      { x:22, y:6,  dir:'down',  sprite:'npc_construction', name:'FOREMAN PIKE', wander:{ range:2 },
+        dialog:["Stone needs to settle before we lay paths."],
+        trainer:{ team:[['pebra',22],['boulderon',23]], reward:920, defeat:["Sturdy! Like real CRESTROCK stone."] } },
+      { x:22, y:11, dir:'down',  sprite:'npc_security',     name:'GUARD VANCE', wander:{ range:1 },
+        dialog:["I'm watching for ROCK SLIDES.","HIGHSPIRE gate is open if you've earned it."] },
+      { x:18, y:17, dir:'right', sprite:'npc_cyclist',      name:'CYCLIST CRU', wander:{ range:2 },
+        dialog:["Switchbacks are murder on the legs!"],
+        trainer:{ team:[['voltkit',22],['flitwing',23]], reward:880, defeat:["Phew! Need a cooldown."] } },
+      { x:26, y:17, dir:'left',  sprite:'npc_paramedic',    name:'MEDIC TARA', wander:{ range:1 },
+        dialog:["Tourists try to climb the cliffs barehanded.","Take MAX REVIVES with you."] },
+      { x:21, y:24, dir:'down',  sprite:'npc_artist',       name:'PAINTER DAR', wander:{ range:1 },
+        dialog:["These cliffs in dawn light - poetry."] },
+      { x:25, y:25, dir:'left',  sprite:'npc_journalist',   name:'REPORTER NEV', wander:{ range:2 },
+        dialog:["The mountain's still got secrets we haven't filed."] },
+      { x:33, y:17, dir:'left',  sprite:'npc_dog_walker',   name:'WALKER ROXY', wander:{ range:2 },
+        dialog:["TRACE loves the high passes."] }
+    ],
+    decorations:[
+      { x:15, y:13, key:'lamp_modern_chrome' },
+      { x:28, y:13, key:'lamp_modern_chrome' },
+      { x:15, y:20, key:'streetlamp_ornate_double' },
+      { x:28, y:20, key:'streetlamp_ornate_double' },
+      { x:17, y:15, key:'bench_stone_grey' },
+      { x:26, y:15, key:'bench_stone_grey' },
+      { x:20, y:22, key:'bench_marble_white' },
+      { x:24, y:22, key:'bench_marble_white' },
+      { x:21, y:6,  key:'planter_zen_stone' },
+      { x:23, y:6,  key:'planter_zen_stone' },
+      { x:21, y:11, key:'pot_terracotta_red' },
+      { x:23, y:11, key:'pot_terracotta_red' },
+      { x:21, y:30, key:'pot_marble_white' },
+      { x:23, y:30, key:'pot_marble_white' },
+      { x:18, y:25, key:'planter_raised_wood' },
+      { x:25, y:25, key:'planter_raised_wood' },
+      { x:16, y:17, key:'trash_dumpster' },
+      { x:27, y:17, key:'trash_grey_lid' },
+      { x:20, y:13, key:'pedestal_statue' }
     ],
     ambient:[
       { species:'pebra', x:9, y:14, range:2 },
@@ -1920,7 +2205,43 @@ function applyWorldExpansion(MAPS) {
       { x:33, y:12, dir:'left', sprite:'npc_girl', name:'INNKEEPER POL',
         dialog:["The hot spring is small, but the stories get larger every night."] },
       { x:11, y:24, dir:'up', sprite:'npc_youth', name:'SNOW SCOUT IVA',
-        dialog:["Look for Ultra Balls in late mountain pockets."] }
+        dialog:["Look for Ultra Balls in late mountain pockets."] },
+      { x:22, y:6,  dir:'down',  sprite:'npc_doctor',       name:'DR. NORD', wander:{ range:1 },
+        dialog:["Frostbite checkups are free this month.","Drink something warm before going up the peak."] },
+      { x:22, y:11, dir:'down',  sprite:'npc_chef',         name:'CHEF NIVE', wander:{ range:1 },
+        dialog:["The inn's stew has been simmering for nine years!","Secret ingredient? Patience."] },
+      { x:18, y:17, dir:'right', sprite:'npc_swimmer_m',    name:'ICE DIVER KAI', wander:{ range:2 },
+        dialog:["Cold water builds character!"],
+        trainer:{ team:[['mistfin',30],['splashfin',31]], reward:1320, defeat:["You bested an ice diver. Impressive!"] } },
+      { x:26, y:17, dir:'left',  sprite:'npc_kid_girl',     name:'KID YULIA', wander:{ range:1 },
+        dialog:["A FROSTPUP licked my mitten today!"] },
+      { x:21, y:24, dir:'down',  sprite:'npc_hiker_alt',    name:'CLIMBER NOR', wander:{ range:2 },
+        dialog:["Summit day! Wish me luck."],
+        trainer:{ team:[['pebra',30],['boulderon',32],['pugpaw',31]], reward:1450, defeat:["You climb fast for a city walker!"] } },
+      { x:25, y:25, dir:'left',  sprite:'npc_old_woman',    name:'GRAN UNN', wander:{ range:1 },
+        dialog:["My SCARF is older than half this town."] },
+      { x:33, y:17, dir:'left',  sprite:'npc_baker',        name:'BAKER FYR', wander:{ range:1 },
+        dialog:["Cinnamon buns! Just out of the stove!"] }
+    ],
+    decorations:[
+      { x:15, y:13, key:'lamp_paper_lantern' },
+      { x:28, y:13, key:'lamp_paper_lantern' },
+      { x:15, y:20, key:'lamp_paper_lantern' },
+      { x:28, y:20, key:'lamp_paper_lantern' },
+      { x:17, y:15, key:'bench_log' },
+      { x:26, y:15, key:'bench_log' },
+      { x:20, y:22, key:'bench_marble_white' },
+      { x:24, y:22, key:'bench_marble_white' },
+      { x:21, y:6,  key:'planter_zen_stone' },
+      { x:23, y:6,  key:'planter_zen_stone' },
+      { x:21, y:11, key:'pot_marble_white' },
+      { x:23, y:11, key:'pot_marble_white' },
+      { x:21, y:30, key:'pot_tall_lily' },
+      { x:23, y:30, key:'pot_tall_lily' },
+      { x:18, y:25, key:'planter_raised_wood' },
+      { x:25, y:25, key:'planter_raised_wood' },
+      { x:16, y:17, key:'trash_grey_lid' },
+      { x:27, y:17, key:'trash_grey_lid' }
     ],
     ambient:[
       { species:'frostpup', x:8, y:14, range:2 },
@@ -1955,7 +2276,44 @@ function applyWorldExpansion(MAPS) {
       { x:34, y:19, dir:'left', sprite:'npc_girl', name:'MARKET JIN',
         dialog:["Quick Balls sell fast when travelers smell storm weather."] },
       { x:11, y:24, dir:'up', sprite:'npc_old', name:'OLD FISHER PIKE',
-        dialog:["The tide cavern opens when you least expect a shortcut."] }
+        dialog:["The tide cavern opens when you least expect a shortcut."] },
+      { x:22, y:6,  dir:'down',  sprite:'npc_swimmer_f',    name:'SWIMMER ARI', wander:{ range:2 },
+        dialog:["The water is perfect today!"],
+        trainer:{ team:[['splashfin',40],['mistfin',41],['tidalwhal',40]], reward:2200, defeat:["You swim with the current! Great battle!"] } },
+      { x:22, y:11, dir:'down',  sprite:'npc_businessman',  name:'EXEC LANN', wander:{ range:1 },
+        dialog:["Shipping rates are climbing this quarter.","I'm late for a meeting at the warehouse."] },
+      { x:18, y:17, dir:'right', sprite:'npc_security',     name:'OFFICER CADE', wander:{ range:2 },
+        dialog:["No loitering on the dock road.","If you see contraband, report it."],
+        trainer:{ team:[['voltkit',40],['nibblet',41]], reward:2050, defeat:["I should've trained more this morning."] } },
+      { x:26, y:17, dir:'left',  sprite:'npc_tourist',      name:'TOURIST QUI', wander:{ range:2 },
+        dialog:["Photo with the lighthouse, please?","Stunning! Just stunning."] },
+      { x:21, y:24, dir:'down',  sprite:'npc_construction', name:'DOCKER MEL', wander:{ range:1 },
+        dialog:["Cargo's heavy today. Three crates of ROD BALLS."] },
+      { x:25, y:25, dir:'left',  sprite:'npc_dog_walker',   name:'WALKER VEN', wander:{ range:2 },
+        dialog:["BEAU loves the salty air."] },
+      { x:33, y:17, dir:'left',  sprite:'npc_journalist',   name:'COR. NIA', wander:{ range:2 },
+        dialog:["Big storm coming. I'm filing the lead piece by sunset."] }
+    ],
+    decorations:[
+      { x:15, y:13, key:'streetlamp_ornate_double' },
+      { x:28, y:13, key:'streetlamp_ornate_double' },
+      { x:15, y:20, key:'lamp_oil_brass' },
+      { x:28, y:20, key:'lamp_oil_brass' },
+      { x:17, y:15, key:'bench_pier_wood' },
+      { x:26, y:15, key:'bench_pier_wood' },
+      { x:20, y:22, key:'bench_picnic_red' },
+      { x:24, y:22, key:'bench_picnic_red' },
+      { x:21, y:6,  key:'planter_herb_box' },
+      { x:23, y:6,  key:'planter_herb_box' },
+      { x:21, y:11, key:'pot_ceramic_blue' },
+      { x:23, y:11, key:'pot_ceramic_blue' },
+      { x:21, y:30, key:'pot_tall_lily' },
+      { x:23, y:30, key:'pot_tall_lily' },
+      { x:18, y:25, key:'planter_raised_wood' },
+      { x:25, y:25, key:'planter_raised_wood' },
+      { x:16, y:17, key:'trash_dumpster' },
+      { x:27, y:17, key:'trash_blue_recycle' },
+      { x:18, y:13, key:'bus_stop_sign' }
     ],
     ambient:[
       { species:'aquapup', x:10, y:14, range:2 },
@@ -1990,7 +2348,45 @@ function applyWorldExpansion(MAPS) {
       { x:34, y:13, dir:'left', sprite:'npc_girl', name:'LOOKOUT ANA',
         dialog:["From here the region finally looks like a circle.","The desert closes the loop to Rodport."] },
       { x:12, y:25, dir:'up', sprite:'npc_youth', name:'RIDGE RUNNER CAL',
-        dialog:["The old straight roads are gone. Every route has a bend worth checking."] }
+        dialog:["The old straight roads are gone. Every route has a bend worth checking."] },
+      { x:22, y:6,  dir:'down',  sprite:'npc_scientist',    name:'DR. SAGE', wander:{ range:1 },
+        dialog:["I'm cataloguing rare species at the summit.","Could I borrow your DEX scans?"] },
+      { x:22, y:11, dir:'down',  sprite:'npc_doctor',       name:'DR. ALDEN', wander:{ range:1 },
+        dialog:["Altitude sickness affects PARTNERS too.","Pace yourself on long climbs."] },
+      { x:18, y:17, dir:'right', sprite:'npc_punk',         name:'PUNK XEN', wander:{ range:2 },
+        dialog:["Top of the world! Gimme your best shot!"],
+        trainer:{ team:[['shadefox',50],['umbrasire',52],['voltlynx',51]], reward:3500, defeat:["First loss in months. Respect."] } },
+      { x:26, y:17, dir:'left',  sprite:'npc_dancer',       name:'DANCER ELEN', wander:{ range:2 },
+        dialog:["The mountain wind sets the rhythm."],
+        trainer:{ team:[['glimkit',49],['lustrofox',51],['flitwing',50]], reward:3300, defeat:["A graceful battle, indeed."] } },
+      { x:21, y:24, dir:'down',  sprite:'npc_old_man_alt',  name:'ELDER WICK', wander:{ range:1 },
+        dialog:["I climbed this mountain at your age. Twice."] },
+      { x:25, y:25, dir:'left',  sprite:'npc_old_woman',    name:'ELDER MIRR', wander:{ range:1 },
+        dialog:["The old roads still appear in dreams."] },
+      { x:33, y:17, dir:'left',  sprite:'npc_journalist',   name:'COR. SETH', wander:{ range:2 },
+        dialog:["Recording the final stretch for the GAZETTE."] }
+    ],
+    decorations:[
+      { x:15, y:13, key:'lamp_oil_brass' },
+      { x:28, y:13, key:'lamp_oil_brass' },
+      { x:15, y:20, key:'streetlamp_ornate_double' },
+      { x:28, y:20, key:'streetlamp_ornate_double' },
+      { x:17, y:15, key:'bench_marble_white' },
+      { x:26, y:15, key:'bench_marble_white' },
+      { x:20, y:22, key:'bench_stone_grey' },
+      { x:24, y:22, key:'bench_stone_grey' },
+      { x:21, y:6,  key:'planter_zen_stone' },
+      { x:23, y:6,  key:'planter_zen_stone' },
+      { x:21, y:11, key:'pot_marble_white' },
+      { x:23, y:11, key:'pot_marble_white' },
+      { x:21, y:30, key:'pot_tall_lily' },
+      { x:23, y:30, key:'pot_tall_lily' },
+      { x:18, y:25, key:'planter_hedge_round' },
+      { x:25, y:25, key:'planter_hedge_round' },
+      { x:16, y:17, key:'trash_grey_lid' },
+      { x:27, y:17, key:'trash_grey_lid' },
+      { x:18, y:13, key:'pedestal_statue' },
+      { x:25, y:13, key:'pedestal_statue' }
     ],
     ambient:[
       { species:'emberkit', x:11, y:15, range:2 },
