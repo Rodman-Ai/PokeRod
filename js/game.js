@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.41.0';
-  const BUILD = '2026.05.09-113';
+  const VERSION = 'v0.42.0';
+  const BUILD = '2026.05.09-114';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -68,6 +68,7 @@
     window.PR_SFX && window.PR_SFX.play('confirm');
     openDialog(['You found ' + (entry.count || 1) + ' ' + it.name + '!'], () => {
       window.PR_SAVE.save && window.PR_SAVE.save(state);
+      if (window.PR_STORY) window.PR_STORY.emit(state, 'hidden_item', { id, item:entry.item, count:entry.count });
     });
   };
   state.onAmbient = (amb) => {
@@ -168,6 +169,7 @@
     state.world = new window.PR_WORLD.World(state);
     state.intro = { page: 0, charT: 0 };
     state.mode = 'intro';
+    if (window.PR_STORY) window.PR_STORY.ensureFlags(state);
     showOverlay(false);
   }
 
@@ -175,6 +177,7 @@
     const data = window.PR_SAVE.load();
     if (!data) { startNewGame(); return; }
     applySaveData(data);
+    if (window.PR_STORY) window.PR_STORY.ensureFlags(state);
     state.mode = 'overworld';
     showOverlay(false);
   }
@@ -242,6 +245,8 @@
     else if (state.mode === 'overworld') state.world.update(dt);
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
+    else if (state.mode === 'cutscene') updateCutscene(dt);
+    else if (state.mode === 'choice') updateChoice();
     else if (state.mode === 'menu') updateMenu();
     else if (state.mode === 'profile') updateProfile();
     else if (state.mode === 'map') updateWorldMap();
@@ -254,6 +259,35 @@
     else if (state.mode === 'quests') updateQuests();
     else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.update(state);
     else if (state.mode === 'starter') updateStarter();
+  }
+
+  // While a cutscene is active, the player can't move or interact. The
+  // story tick advances the walk-in / walk-out animation and fires
+  // openSceneStep when the NPC arrives at the player. Dialog steps swap
+  // the mode to 'dialog' (linear) or 'choice' (branching) as needed and
+  // hand control back here when the dialog is dismissed.
+  function updateCutscene(dt) {
+    if (window.PR_STORY && window.PR_STORY.tickCutscene) {
+      window.PR_STORY.tickCutscene(state, dt);
+    }
+  }
+  function updateChoice() {
+    const c = state.dialog && state.dialog.choice;
+    if (!c) { state.mode = 'cutscene'; return; }
+    const I = window.PR_INPUT;
+    if (I.consumePressed('ArrowDown')) {
+      c.cursor = (c.cursor + 1) % c.options.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowUp')) {
+      c.cursor = (c.cursor + c.options.length - 1) % c.options.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      const idx = c.cursor;
+      if (typeof c.onPick === 'function') c.onPick(idx);
+    }
   }
 
   let flashText = null, flashTimer = 0;
@@ -325,6 +359,7 @@
     state.world.render(ctx);
     withScale2(() => {
       if (state.mode === 'dialog') drawDialog();
+      else if (state.mode === 'choice') drawChoice();
       else if (state.mode === 'menu') drawMenu();
       else if (state.mode === 'profile') drawProfile();
       else if (state.mode === 'map') drawWorldMap();
@@ -378,8 +413,11 @@
       d.index++;
       if (d.index >= d.lines.length) {
         const cb = d.onDone, src = d.source;
+        const fromCutscene = !!(src && src.cutscene);
         state.dialog = null;
-        state.mode = 'overworld';
+        // If a cutscene owns this dialog, return to 'cutscene' so the
+        // story system keeps driving steps; otherwise back to overworld.
+        state.mode = fromCutscene ? 'cutscene' : 'overworld';
         if (cb) {
           try { cb(src); }
           catch (err) {
@@ -395,6 +433,15 @@
     const d = state.dialog;
     const page = d.lines[d.index] || [''];
     window.PR_UI.drawDialog(ctx, page, VIEW_W, VIEW_H, true);
+  }
+
+  // Branching choice render: prompt + 2-4 options. The dialog box itself
+  // is reused (flat panel under the choice list) so the speaker stays
+  // visible.
+  function drawChoice() {
+    const c = state.dialog && state.dialog.choice;
+    if (!c) return;
+    window.PR_UI.drawChoiceBox(ctx, c.prompt, c.options, c.cursor, VIEW_W, VIEW_H);
   }
 
   window.addEventListener('DOMContentLoaded', init);
@@ -422,7 +469,11 @@
   window.PR_GAME = {
     state,
     openBagFromBattle: () => openBag('battle'),
-    openPartyMember
+    openPartyMember,
+    openDialog,
+    startBattleAgainstTrainer,
+    startBattleAgainstWild,
+    showFlash
   };
 
   // ---------- Intro ----------
@@ -860,7 +911,10 @@
       const name = window.PR_DATA.CREATURES[sp].name;
       openDialog(
         ['You chose ' + name + '!','Take good care of it.'],
-        () => window.PR_SAVE.save(state)
+        () => {
+          window.PR_SAVE.save(state);
+          if (window.PR_STORY) window.PR_STORY.emit(state, 'starter_chosen', { species:sp });
+        }
       );
     }
   }
@@ -2434,21 +2488,42 @@
       ensurePlayerStats();
       state.player.stats.battlesWon = (state.player.stats.battlesWon || 0) + 1;
     }
+    let earnedBadge = null;
     if (outcome === 'won' && battle.opts && battle.opts.badge) {
       if (!Array.isArray(state.player.badges)) state.player.badges = [];
       if (!state.player.badges.includes(battle.opts.badge)) {
         state.player.badges.push(battle.opts.badge);
+        earnedBadge = battle.opts.badge;
         showFlash('GOT THE ' + battle.opts.badge + ' BADGE!');
       }
     }
+    // Story system events. Whiteouts only count once per loss; badges only
+    // when freshly earned. Both are queued up by PR_STORY which will
+    // dispatch the matching encounter on the next overworld tick.
+    if (window.PR_STORY) {
+      if (outcome === 'lost') window.PR_STORY.emit(state, 'whiteout', {});
+      if (earnedBadge) window.PR_STORY.emit(state, 'badge', { badge:earnedBadge,
+        count: (state.player.badges || []).length });
+    }
+    // If a cutscene battle just ended, hand control back to the cutscene.
+    const after = state._cutsceneAfterBattle;
+    state._cutsceneAfterBattle = null;
     state.battle = null;
-    state.mode = 'overworld';
+    if (after) {
+      try { after(); } catch (e) { console.error('[PokeRod] cutscene resume error', e); }
+    } else {
+      state.mode = 'overworld';
+    }
     state.world.justEntered = false;
     window.PR_SAVE.save(state);
     if (window.PR_MUSIC) {
       const m = state.world.currentMap();
       if (m && ROUTE_MAPS.has(m.id)) window.PR_MUSIC.play('route');
       else window.PR_MUSIC.play('town');
+    }
+    // Drain the story queue once the world has settled.
+    if (window.PR_STORY && window.PR_STORY.drainQueue) {
+      setTimeout(() => window.PR_STORY.drainQueue(state), 50);
     }
   }
 })();

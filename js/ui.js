@@ -318,8 +318,37 @@
     ctx.fillRect(x, y, Math.ceil(w * ratio), 2);
   }
 
+  // Branching choice prompt drawn over the dialog box. The cutscene
+  // dialog driver hands us a prompt + 2-4 options + a cursor index;
+  // we render the options as a vertically stacked menu above the
+  // standard dialog box so the player can read both at once.
+  function drawChoiceBox(ctx, prompt, options, cursor, screenW, screenH) {
+    const opts = options || [];
+    const rowH = 12;
+    const padTop = 6, padBot = 6, padLeft = 10;
+    const promptH = prompt ? 12 : 0;
+    const h = padTop + promptH + opts.length * rowH + padBot;
+    const w = Math.min(screenW - 12, 180);
+    const x = screenW - w - 6;
+    const y = screenH - h - 52;
+    box(ctx, x, y, w, h, '#fff', '#202020');
+    let cy = y + padTop;
+    if (prompt) {
+      drawText(ctx, prompt, x + padLeft, cy, '#385890');
+      cy += promptH;
+    }
+    for (let i = 0; i < opts.length; i++) {
+      if (i === cursor) {
+        ctx.fillStyle = '#202020';
+        ctx.fillRect(x + 4, cy + 1, 4, 6);
+      }
+      drawText(ctx, opts[i], x + padLeft, cy, '#202020');
+      cy += rowH;
+    }
+  }
+
   window.PR_UI = {
     drawText, drawChar, textWidth, wrap, box, panel, header, selectBar,
-    chip, icon, drawDialog, drawHpBar, drawXpBar, FONT
+    chip, icon, drawDialog, drawChoiceBox, drawHpBar, drawXpBar, FONT
   };
 })();
