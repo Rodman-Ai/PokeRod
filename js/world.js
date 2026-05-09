@@ -1466,11 +1466,11 @@
     const props = window.PR_MAPS.TILE_PROPS[code];
     if (!props) return false;
     if (props.walk === true) {
-      return !this.npcAt(x, y);
+      return !this.npcBlockerAt(x, y);
     }
-    if (props.walk === 'south' && dir === 'down') return !this.npcAt(x, y);
+    if (props.walk === 'south' && dir === 'down') return !this.npcBlockerAt(x, y);
     // Water - walkable while surfing.
-    if (code === 'W' && this.state.player.surfing) return !this.npcAt(x, y);
+    if (code === 'W' && this.state.player.surfing) return !this.npcBlockerAt(x, y);
     return false;
   };
 
@@ -1490,6 +1490,53 @@
       return n;
     }
     return null;
+  };
+
+  // Door-adjacency helper. Returns true if any door tile (or edge
+  // transition) in the current map is within Manhattan distance 2
+  // of (x, y). Used to let the player squeeze past chatter NPCs
+  // who happen to wander up to a doorway — without this, a baker
+  // wandering near the mart entrance can lock the player out.
+  World.prototype._isNearDoor = function(x, y) {
+    const m = this.currentMap();
+    if (m.doors) {
+      for (const key in m.doors) {
+        if (!Object.prototype.hasOwnProperty.call(m.doors, key)) continue;
+        const i = key.indexOf(',');
+        if (i < 0) continue;
+        const dx = parseInt(key.slice(0, i), 10);
+        const dy = parseInt(key.slice(i + 1), 10);
+        if (Math.abs(dx - x) + Math.abs(dy - y) <= 2) return true;
+      }
+    }
+    // Edge transition tiles count as doors too (so an NPC idling
+    // next to a route exit doesn't trap the player on the city
+    // side of the boundary).
+    if (m.edges) {
+      for (const side of Object.keys(m.edges)) {
+        const e = m.edges[side];
+        if (!e) continue;
+        const ex = (side === 'east' || side === 'west') ? e.x : x;
+        const ey = (side === 'north' || side === 'south') ? e.y : y;
+        if (Math.abs(ex - x) + Math.abs(ey - y) <= 2) return true;
+      }
+    }
+    return false;
+  };
+
+  // Like npcAt but returns null for NPCs the player should be allowed
+  // to walk through. Only loitering chatter NPCs near a door are
+  // pass-through; gate NPCs, trainers, healers, shopkeepers, starters
+  // and ball pickups always block so the existing engagement and
+  // gate-message flows still fire when the player tries to enter.
+  World.prototype.npcBlockerAt = function(x, y) {
+    const n = this.npcAt(x, y);
+    if (!n) return null;
+    if (n.gate) return n;
+    if (n.trainer) return n;
+    if (n.healer || n.shop || n.starter || n.ballSlot !== undefined) return n;
+    if (this._isNearDoor(n.x, n.y)) return null;
+    return n;
   };
 
   World.prototype.tryMove = function(dir) {
@@ -1525,7 +1572,7 @@
       this.state.player.surfing = false;
     }
     {
-      const blocker = this.npcAt(nx, ny);
+      const blocker = this.npcBlockerAt(nx, ny);
       if (blocker) {
         if (blocker.gate && this.state.gateConditionsMet
             && !this.state.gateConditionsMet(blocker.gate)
