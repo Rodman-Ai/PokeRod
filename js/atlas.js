@@ -5,7 +5,7 @@
 'use strict';
 
 (function () {
-  const DEFAULT_PRESET = 'gba_firered';
+  const DEFAULT_PRESET = 'ds_diamond';
   const PRESETS = {
     gb_red: { label:'GB RED', json:'assets/atlas-gb-red.json', image:'assets/atlas-gb-red.png' },
     gbc_yellow: { label:'GBC YELLOW', json:'assets/atlas-gbc-yellow.json', image:'assets/atlas-gbc-yellow.png' },

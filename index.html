@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<meta name="theme-color" content="#0a0a0a" />
+<meta name="theme-color" content="#000000" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -11,19 +12,25 @@
 <meta http-equiv="Expires" content="0" />
 <link rel="manifest" href="manifest.webmanifest" />
 <title>PokeRod</title>
-<link rel="stylesheet" href="styles.css?v=78" />
+<link rel="stylesheet" href="styles.css?v=112" />
 </head>
-<body>
+<body data-graphics="ds_diamond">
   <div id="app">
     <div id="screen">
       <canvas id="game" width="480" height="320"></canvas>
       <div id="title" class="overlay">
         <div class="stars" aria-hidden="true"></div>
-        <div class="tufts" aria-hidden="true">
+        <div class="rays" aria-hidden="true"></div>
+        <div class="sparks" aria-hidden="true">
           <span></span><span></span><span></span><span></span>
           <span></span><span></span><span></span><span></span>
         </div>
-        <div class="rays" aria-hidden="true"></div>
+        <div class="rod-art" aria-hidden="true">
+          <span class="rod-rod"></span>
+          <span class="rod-line"></span>
+          <span class="rod-bob"></span>
+          <span class="rod-ripple"></span>
+        </div>
         <h1 class="logo" aria-label="PokeRod">
           <span style="--i:0">P</span><span style="--i:1">o</span><span style="--i:2">k</span><span style="--i:3">e</span><span class="rod"><span style="--i:4">R</span><span style="--i:5">o</span><span style="--i:6">d</span></span>
         </h1>
@@ -32,9 +39,15 @@
           <button id="btn-new">NEW GAME</button>
           <button id="btn-continue" hidden>CONTINUE</button>
         </div>
-        <p class="press">- PRESS START -</p>
-        <p class="hint">Arrows / WASD to move &middot; Z = A &middot; X = B &middot; Shift = Select &middot; Enter = Start</p>
+        <p class="press">PRESS START</p>
+        <p class="hint">
+          <span>&uarr;&darr;&larr;&rarr; / WASD &middot; Z=A &middot; X=B</span>
+          <span>SHIFT=Select &middot; ENTER=Start</span>
+        </p>
       </div>
+    </div>
+    <div id="screen-bottom" aria-hidden="true">
+      <canvas id="game-bottom" width="480" height="240"></canvas>
     </div>
     <div id="touch" aria-hidden="true">
       <div id="dpad">
@@ -54,24 +67,26 @@
     </div>
     <div id="version" aria-hidden="true"></div>
   </div>
-  <script src="js/data.js?v=78"></script>
-  <script src="js/maps.js?v=78"></script>
-  <script src="js/atlas.js?v=78"></script>
-  <script src="js/sprites.js?v=78"></script>
-  <script src="js/sprites_chars.js?v=78"></script>
-  <script src="js/sprites_mons.js?v=78"></script>
-  <script src="js/input.js?v=78"></script>
-  <script src="js/ui.js?v=78"></script>
-  <script src="js/world.js?v=78"></script>
-  <script src="js/battle.js?v=78"></script>
-  <script src="js/save.js?v=78"></script>
-  <script src="js/audio.js?v=78"></script>
-  <script src="js/audio_sfx.js?v=78"></script>
-  <script src="js/audio_music.js?v=78"></script>
-  <script src="js/chatter.js?v=78"></script>
-  <script src="js/items.js?v=78"></script>
-  <script src="js/quests.js?v=78"></script>
-  <script src="js/shop.js?v=78"></script>
-  <script src="js/game.js?v=78"></script>
+  <script src="js/data.js?v=112"></script>
+  <script src="js/maps.js?v=112"></script>
+  <script src="js/atlas.js?v=112"></script>
+  <script src="js/sprites.js?v=112"></script>
+  <script src="js/sprites_variation.js?v=112"></script>
+  <script src="js/sprites_chars.js?v=112"></script>
+  <script src="js/sprites_mons.js?v=112"></script>
+  <script src="js/input.js?v=112"></script>
+  <script src="js/ui.js?v=112"></script>
+  <script src="js/world.js?v=112"></script>
+  <script src="js/bottom_screen.js?v=112"></script>
+  <script src="js/battle.js?v=112"></script>
+  <script src="js/save.js?v=112"></script>
+  <script src="js/audio.js?v=112"></script>
+  <script src="js/audio_sfx.js?v=112"></script>
+  <script src="js/audio_music.js?v=112"></script>
+  <script src="js/chatter.js?v=112"></script>
+  <script src="js/items.js?v=112"></script>
+  <script src="js/quests.js?v=112"></script>
+  <script src="js/shop.js?v=112"></script>
+  <script src="js/game.js?v=112"></script>
 </body>
 </html>

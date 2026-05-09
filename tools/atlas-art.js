@@ -66,6 +66,12 @@
   function regTile(code, name, w, h, draw) {
     TILES.push({ key: 'tile_' + name, code, w, h, draw });
   }
+  // Decoration: an atlas key drawn on a transparent background, placed
+  // via map.decorations = [{x,y,key}] at runtime. Use for furniture
+  // and props that sit on top of an existing ground tile.
+  function regDecor(name, w, h, draw) {
+    TILES.push({ key: 'decor_' + name, code: null, w, h, draw });
+  }
   function regTileVariant(code, name, draw, opts) {
     opts = opts || {};
     const key = 'tile_' + name;
@@ -648,6 +654,101 @@
     // Drop shadow.
     px(c, x + 10, y + 30, 13, 1, '#3a6028');
   });
+
+  // -- Tree variant pool --------------------------------------------
+  // 20 tree variants registered against the existing tree tile codes
+  // via regTileVariant so the renderer picks a random alt per
+  // tile-position. The base tile_code_to_key still resolves to the
+  // canonical tree, so single-style smoke renders stay deterministic.
+  // Variants reuse roundTree palettes for cheap distinct silhouettes.
+  function tallTree(c, x, y, trunkA, trunkB, leafA, leafB, leafC) {
+    grassBase(c, x, y);
+    px(c, x + 14, y + 18, 4, 14, trunkA);
+    px(c, x + 14, y + 18, 1, 14, trunkB);
+    px(c, x + 17, y + 18, 1, 14, '#382008');
+    disc(c, x + 16, y + 12, 10, leafA);
+    disc(c, x + 14, y + 10, 8,  leafB);
+    disc(c, x + 18, y + 8,  5,  leafC);
+    px(c, x + 12, y + 30, 9, 1, '#3a6028');
+  }
+  function pineTree(c, x, y, needleDark, needleMid, needleLight, snow) {
+    grassBase(c, x, y);
+    // Trunk.
+    px(c, x + 14, y + 26, 4, 6, '#5a3818');
+    px(c, x + 14, y + 26, 1, 6, '#382008');
+    // 3 stacked triangle layers.
+    for (const [yo, w] of [[6, 14], [12, 18], [18, 22]]) {
+      const half = w >> 1;
+      for (let i = 0; i < (w >> 1); i++) {
+        px(c, x + 16 - i, y + yo + i, 1, 6 - (w === 22 ? 1 : 0), needleMid);
+        px(c, x + 16 + i, y + yo + i, 1, 6 - (w === 22 ? 1 : 0), needleMid);
+      }
+      void half;
+    }
+    // Outline edges.
+    for (const [yo, w] of [[6, 14], [12, 18], [18, 22]]) {
+      const half = w >> 1;
+      px(c, x + 16 - half, y + yo + half - 1, 1, 1, needleDark);
+      px(c, x + 16 + half, y + yo + half - 1, 1, 1, needleDark);
+    }
+    // Highlights.
+    for (const [yo] of [[6], [12], [18]]) {
+      px(c, x + 14, y + yo + 1, 4, 1, needleLight);
+    }
+    if (snow) {
+      px(c, x + 12, y + 6, 8, 1, '#fff');
+      px(c, x + 10, y + 12, 12, 1, '#fff');
+      px(c, x + 8, y + 18, 16, 1, '#fff');
+    }
+    px(c, x + 12, y + 31, 9, 1, '#3a6028');
+  }
+
+  // Broadleaf seasonal variants (T, default tree).
+  regTileVariant('T', 'tree_var_spring_a', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#1c5018', '#3a8830', '#7ac65a', '#fff8e8']));
+  regTileVariant('T', 'tree_var_spring_b', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#1c4818', '#3a7828', '#6cae4a', '#ffe8a0']));
+  regTileVariant('T', 'tree_var_spring_c', (c, x, y) => roundTree(c, x, y, ['#604020', '#382008', '#1c4810', '#3a7820', '#7ac050', null]));
+  regTileVariant('T', 'tree_var_summer_a', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#0e3010', '#1c5018', '#3a8830', null]));
+  regTileVariant('T', 'tree_var_summer_b', (c, x, y) => tallTree(c, x, y, '#5a3818', '#382008', '#1c5018', '#3a8830', '#5cae4c'));
+  // Oak variants (Y).
+  regTileVariant('Y', 'tree_var_oak_gnarled', (c, x, y) => roundTree(c, x, y, ['#704830', '#382008', '#284820', '#3f7c2c', '#5cae4c', null]));
+  regTileVariant('Y', 'tree_var_oak_white',   (c, x, y) => roundTree(c, x, y, ['#a89878', '#383028', '#2c5818', '#48903c', '#7ac65a', null]));
+  regTileVariant('Y', 'tree_var_oak_dwarf',   (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#1c4810', '#2a6824', '#48a838', null]));
+  // Cherry variants (K).
+  regTileVariant('K', 'tree_var_cherry_white',   (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#a89098', '#e8d8e0', '#fff8f8', '#f0c0d8']));
+  regTileVariant('K', 'tree_var_cherry_weeping', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#88305a', '#d870a0', '#ffd0e8', '#fff0f8']));
+  // Palm variants (O).
+  regTileVariant('O', 'tree_var_palm_coconut', (c, x, y) => {
+    grassBase(c, x, y);
+    px(c, x + 15, y + 14, 3, 18, '#604018');
+    px(c, x + 15, y + 14, 1, 18, '#382008');
+    for (let i = 0; i < 14; i++) px(c, x + 16, y + 14 + i, 1, 1, '#806038');
+    // Fronds.
+    for (const [dx, dy, len] of [[-10, 2, 3], [10, 2, 3], [-12, 6, 4], [12, 6, 4], [-6, -3, 4], [6, -3, 4]]) {
+      for (let i = 0; i < len; i++) px(c, x + 16 + dx + (i * (dx > 0 ? -1 : 1)), y + 13 + dy + i, 1, 1, '#3f7c2c');
+    }
+    disc(c, x + 16, y + 13, 6, '#48a838');
+    disc(c, x + 14, y + 12, 4, '#7ac65a');
+    // Coconuts.
+    px(c, x + 13, y + 17, 2, 2, '#582820');
+    px(c, x + 18, y + 16, 2, 2, '#582820');
+  });
+  regTileVariant('O', 'tree_var_palm_fan', (c, x, y) => {
+    grassBase(c, x, y);
+    px(c, x + 15, y + 16, 3, 16, '#7a4818');
+    disc(c, x + 16, y + 12, 12, '#3a8030');
+    disc(c, x + 16, y + 10, 8, '#5cae4c');
+    px(c, x + 12, y + 8, 9, 1, '#a8d878');
+  });
+  // Autumn variants (E).
+  regTileVariant('E', 'tree_var_autumn_fiery',  (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#a01018', '#e83020', '#f8a040', '#ffd060']));
+  regTileVariant('E', 'tree_var_autumn_golden', (c, x, y) => roundTree(c, x, y, ['#5a3818', '#382008', '#a86018', '#f0a020', '#fff070', null]));
+  // Birch variants (N).
+  regTileVariant('N', 'tree_var_birch_paper',  (c, x, y) => roundTree(c, x, y, ['#e8e8e8', '#383028', '#3f7c2c', '#7ac65a', '#a8e878', null]));
+  regTileVariant('N', 'tree_var_birch_silver', (c, x, y) => roundTree(c, x, y, ['#c8c8d0', '#383038', '#386830', '#5fa040', '#88c068', null]));
+  // Pine variants (Q + new keys for snowy / spruce).
+  regTileVariant('Q', 'tree_var_pine_snowy_alt', (c, x, y) => pineTree(c, x, y, '#1a3a18', '#3a7838', '#7ac65a', true));
+  regTileVariant('Q', 'tree_var_pine_fir',       (c, x, y) => pineTree(c, x, y, '#1a3a18', '#286020', '#5fa040', false));
+  regTileVariant('Q', 'tree_var_pine_spruce',    (c, x, y) => pineTree(c, x, y, '#1a2a18', '#306030', '#7ac060', false));
 
   // Generic small bush.
   function bushShape(c, x, y, leafA, leafB, leafC, accents) {
@@ -1982,6 +2083,1309 @@
   regTile("'", 'gba_gardenbed', TILE, TILE, (c, x, y) => { gbaGrass(c, x, y); px(c, x + 3, y + 5, 26, 22, '#8d5b32'); px(c, x + 3, y + 5, 26, 1, '#d49a5f'); px(c, x + 3, y + 26, 26, 1, '#4c2d1c'); for (const yy of [11,20]) for (const xx of [9,16,23]) { px(c, x + xx, y + yy, 1, 4, '#3f963f'); px(c, x + xx - 2, y + yy, 2, 1, '#6fc45a'); px(c, x + xx + 1, y + yy, 2, 1, '#6fc45a'); } });
 
   // ------------------------------------------------------------------
+  // === DECORATIONS ===================================================
+  // Furniture / props rendered on a transparent background, placed in
+  // maps via map.decorations = [{ x, y, key }]. Drawn by world.js
+  // between the tile pass and the sprite layer so movable sprites
+  // occlude items they walk past correctly. ~100 items here, mostly
+  // 32x32 single-tile sprites; the healing pod is a 2-tile structure.
+  // ------------------------------------------------------------------
+
+  // ----- BENCHES (8) --------------------------------------------------
+  function decorBench(c, x, y, plank, plankShade, leg, legShade, accent) {
+    // Backrest slats
+    px(c, x + 4,  y + 4,  TILE - 8, 1, plankShade);
+    px(c, x + 4,  y + 5,  TILE - 8, 2, plank);
+    px(c, x + 5,  y + 7,  1, 8, plankShade);
+    px(c, x + TILE - 6, y + 7, 1, 8, plankShade);
+    // Seat plank
+    px(c, x + 3,  y + 14, TILE - 6, 4, plank);
+    px(c, x + 3,  y + 14, TILE - 6, 1, accent || plank);
+    px(c, x + 3,  y + 17, TILE - 6, 1, plankShade);
+    // Legs
+    px(c, x + 5,  y + 18, 3, 8, leg);
+    px(c, x + TILE - 8, y + 18, 3, 8, leg);
+    px(c, x + 5,  y + 18, 1, 8, legShade);
+    px(c, x + TILE - 8, y + 18, 1, 8, legShade);
+  }
+  regDecor('bench_park_brown',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#a06838', '#704a20', '#382010', '#1a0a04', '#c89058'));
+  regDecor('bench_park_green',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#388a40', '#1c4818', '#202020', '#0a0a0a', '#5cae4c'));
+  regDecor('bench_marble_white',TILE, TILE, (c, x, y) => decorBench(c, x, y, '#f0f0f0', '#a0a0a0', '#a0a0a0', '#606060', '#fff'));
+  regDecor('bench_stone_grey',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#808078', '#403838', '#303028', '#181810', '#a0a098'));
+  regDecor('bench_picnic_red',  TILE, TILE, (c, x, y) => decorBench(c, x, y, '#d83838', '#7a1408', '#a06838', '#704a20', '#f08080'));
+  regDecor('bench_log',         TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 14, TILE - 4, 6, '#7a4818');
+    px(c, x + 2, y + 14, TILE - 4, 1, '#a06838');
+    px(c, x + 2, y + 19, TILE - 4, 1, '#3a2010');
+    for (let i = 4; i < TILE - 4; i += 6) px(c, x + i, y + 16, 1, 2, '#3a2010');
+    px(c, x + 6, y + 20, 4, 6, '#3a2010');
+    px(c, x + TILE - 10, y + 20, 4, 6, '#3a2010');
+  });
+  regDecor('bench_garden_iron', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 6, TILE - 4, 1, '#202028');
+    for (let i = 0; i < 6; i++) px(c, x + 4 + i*4, y + 7, 1, 7, '#181820');
+    px(c, x + 2, y + 14, TILE - 4, 3, '#383848');
+    px(c, x + 2, y + 14, TILE - 4, 1, '#5860a0');
+    px(c, x + 5, y + 17, 2, 9, '#181820');
+    px(c, x + TILE - 7, y + 17, 2, 9, '#181820');
+  });
+  regDecor('bench_pier_wood',   TILE, TILE, (c, x, y) => decorBench(c, x, y, '#c8a060', '#806838', '#604030', '#3a2410', '#e8c890'));
+
+  // ----- SHELVES & MART DISPLAYS (10) --------------------------------
+  function shelfBack(c, x, y, frame, shelfShade) {
+    px(c, x + 2, y + 2,  TILE - 4, TILE - 4, frame);
+    px(c, x + 2, y + 2,  TILE - 4, 1, shelfShade);
+    px(c, x + 2, y + TILE - 3, TILE - 4, 1, shelfShade);
+    for (const ly of [11, 19]) px(c, x + 3, y + ly, TILE - 6, 1, shelfShade);
+  }
+  regDecor('shelf_books', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    const books = ['#d83838','#3878d8','#48a040','#f0c020','#a040a0'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 6; i++) {
+      px(c, x + 3 + i*4, y + sy, 3, 6, books[(i + sy) % books.length]);
+    }
+  });
+  regDecor('shelf_potions', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#383848', '#787890');
+    const colors = ['#e83838','#f0c020','#48a040','#5898d8','#a040a0'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + sy + 1, 3, 5, colors[i]);
+      px(c, x + 4 + i*5, y + sy, 3, 1, '#80c0e8');
+    }
+  });
+  regDecor('shelf_pokeballs', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#382020', '#806060');
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      const cx = x + 5 + i*5, cy = y + sy + 2;
+      disc(c, cx, cy, 2, '#e83838');
+      px(c, cx - 2, cy + 1, 5, 1, '#202020');
+      px(c, cx - 1, cy + 2, 3, 1, '#fff');
+    }
+  });
+  regDecor('shelf_berries', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    const berries = ['#e83020','#a040a0','#f0c020','#48a040','#f098c0'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 6; i++) {
+      const cx = x + 4 + i*4, cy = y + sy + 2;
+      disc(c, cx, cy, 2, berries[(i + sy) % berries.length]);
+      px(c, cx - 1, cy - 2, 1, 1, '#3a6028');
+    }
+  });
+  regDecor('shelf_tms', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#202028', '#5060a0');
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 4; i++) {
+      px(c, x + 4 + i*6, y + sy, 5, 6, '#5860a0');
+      px(c, x + 5 + i*6, y + sy + 2, 3, 1, '#fff');
+      px(c, x + 5 + i*6, y + sy + 4, 3, 1, '#a0c8f0');
+    }
+  });
+  regDecor('shelf_souvenirs', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    px(c, x + 4,  y + 4,  4, 5, '#f0c020');
+    disc(c, x + 11, y + 6, 2, '#f098c0');
+    px(c, x + 16, y + 4, 4, 5, '#5898d8');
+    disc(c, x + 24, y + 6, 2, '#48a040');
+    for (let i = 0; i < 5; i++) px(c, x + 4 + i*5, y + 13, 4, 5, ['#e83838','#48a040','#5898d8','#f0c020','#a040a0'][i]);
+    for (let i = 0; i < 6; i++) px(c, x + 4 + i*4, y + 21, 3, 5, ['#a06838','#704a20','#604028','#a06838','#704a20','#a06838'][i]);
+  });
+  regDecor('shelf_clothing', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    const colors = ['#e83838','#f0c020','#48a040','#5898d8','#a040a0','#604028'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + sy, 4, 6, colors[(i + sy) % colors.length]);
+      px(c, x + 4 + i*5, y + sy, 4, 1, '#fff8e0');
+    }
+  });
+  regDecor('shelf_food', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#604028', '#a06838');
+    for (let i = 0; i < 6; i++) px(c, x + 3 + i*4, y + 4, 3, 5, ['#a06038','#3a8030','#e83838','#f0c020','#704020','#48a040'][i]);
+    for (let i = 0; i < 6; i++) disc(c, x + 4 + i*4, y + 14, 1, ['#e83838','#f0c020','#48a040','#a040a0','#5898d8','#704020'][i]);
+    for (let i = 0; i < 5; i++) px(c, x + 4 + i*5, y + 21, 4, 5, ['#fff8e0','#f0c020','#fff8e0','#704020','#48a040'][i]);
+  });
+  regDecor('shelf_displays_glass', TILE, TILE, (c, x, y) => {
+    shelfBack(c, x, y, '#a0a0b0', '#e8e8f0');
+    px(c, x + 3, y + 3, TILE - 6, TILE - 6, 'rgba(160,200,232,0.30)');
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + sy, 3, 5, ['#f098c0','#5898d8','#48a040','#f0c020','#fff8e0'][i]);
+    }
+    px(c, x + 2, y + 2, 1, TILE - 4, '#fff8e0');
+  });
+  regDecor('shelf_empty_wooden', TILE, TILE, (c, x, y) => shelfBack(c, x, y, '#604028', '#a06838'));
+
+  // ----- SIGNS (8) ----------------------------------------------------
+  regDecor('sign_post_arrow', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#604028');
+    px(c, x + 4, y + 6, 22, 8, '#c89058');
+    px(c, x + 4, y + 6, 22, 1, '#f0c890');
+    px(c, x + 4, y + 13, 22, 1, '#604028');
+    for (let i = 0; i < 6; i++) px(c, x + 22, y + 4 + i, 1 + Math.min(i, 6 - i), 1, '#604028');
+  });
+  regDecor('sign_post_wood', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#604028');
+    px(c, x + 4, y + 4, 24, 12, '#a06838');
+    px(c, x + 4, y + 4, 24, 1, '#c89058');
+    px(c, x + 4, y + 15, 24, 1, '#604028');
+    px(c, x + 8, y + 8, 16, 1, '#3a2010');
+    px(c, x + 8, y + 11, 14, 1, '#3a2010');
+  });
+  regDecor('sign_billboard_yellow', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 18, 4, 12, '#604028');
+    px(c, x + 1, y + 2, 30, 16, '#f0c020');
+    px(c, x + 1, y + 2, 30, 1, '#fff080');
+    px(c, x + 1, y + 17, 30, 1, '#806010');
+    px(c, x + 1, y + 2, 1, 16, '#806010');
+    px(c, x + 30, y + 2, 1, 16, '#806010');
+    px(c, x + 4, y + 6, 24, 1, '#604028');
+    px(c, x + 4, y + 9, 22, 1, '#604028');
+    px(c, x + 4, y + 12, 26, 1, '#604028');
+  });
+  regDecor('sign_billboard_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 18, 4, 12, '#604028');
+    px(c, x + 1, y + 2, 30, 16, '#3878d8');
+    px(c, x + 1, y + 2, 30, 1, '#80b8f0');
+    px(c, x + 1, y + 17, 30, 1, '#1a3868');
+    px(c, x + 4, y + 6, 24, 1, '#fff8e0');
+    px(c, x + 4, y + 9, 22, 1, '#fff8e0');
+    px(c, x + 4, y + 12, 26, 1, '#fff8e0');
+  });
+  regDecor('sign_gym_red', TILE, TILE, (c, x, y) => {
+    px(c, x + 13, y + 16, 6, 14, '#3a2410');
+    px(c, x + 4, y + 4, 24, 12, '#a01828');
+    px(c, x + 4, y + 4, 24, 1, '#e85060');
+    px(c, x + 4, y + 15, 24, 1, '#400810');
+    px(c, x + 14, y + 6, 4, 8, '#fff8e0');
+    px(c, x + 12, y + 8, 8, 4, '#fff8e0');
+  });
+  regDecor('sign_gym_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 13, y + 16, 6, 14, '#3a2410');
+    px(c, x + 4, y + 4, 24, 12, '#1a3868');
+    px(c, x + 4, y + 4, 24, 1, '#5898d8');
+    px(c, x + 4, y + 15, 24, 1, '#0a1830');
+    px(c, x + 14, y + 6, 4, 8, '#fff8e0');
+    px(c, x + 12, y + 8, 8, 4, '#fff8e0');
+  });
+  regDecor('sign_warning', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 16, 4, 14, '#604028');
+    px(c, x + 8, y + 4, 16, 12, '#f0c020');
+    px(c, x + 7, y + 5, 18, 10, '#f0c020');
+    px(c, x + 7, y + 5, 18, 1, '#fff080');
+    px(c, x + 7, y + 14, 18, 1, '#806010');
+    px(c, x + 15, y + 7, 2, 5, '#202020');
+    px(c, x + 15, y + 13, 2, 1, '#202020');
+  });
+  regDecor('sign_marker_stone', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 4, 16, 24, '#787870');
+    px(c, x + 8, y + 4, 16, 1, '#a0a098');
+    px(c, x + 8, y + 27, 16, 1, '#404038');
+    px(c, x + 7, y + 5, 1, 22, '#404038');
+    px(c, x + 24, y + 5, 1, 22, '#404038');
+    px(c, x + 11, y + 8, 10, 1, '#404038');
+    px(c, x + 11, y + 12, 10, 1, '#404038');
+    px(c, x + 11, y + 16, 8, 1, '#404038');
+  });
+
+  // ----- TRASH CANS (6) -----------------------------------------------
+  regDecor('trash_grey_lid', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 8, 16, 22, '#605850');
+    px(c, x + 8, y + 8, 16, 1, '#80786a');
+    px(c, x + 8, y + 29, 16, 1, '#302820');
+    px(c, x + 7, y + 5, 18, 4, '#383028');
+    px(c, x + 7, y + 5, 18, 1, '#605850');
+    px(c, x + 14, y + 3, 4, 2, '#605850');
+    for (let i = 0; i < 3; i++) px(c, x + 10 + i*5, y + 16, 1, 8, '#80786a');
+  });
+  regDecor('trash_blue_recycle', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 8, 16, 22, '#3878d8');
+    px(c, x + 8, y + 8, 16, 1, '#80b8f0');
+    px(c, x + 8, y + 29, 16, 1, '#1a3868');
+    px(c, x + 7, y + 5, 18, 4, '#1a3868');
+    px(c, x + 14, y + 14, 4, 4, '#fff8e0');
+    px(c, x + 13, y + 16, 6, 1, '#fff8e0');
+    px(c, x + 14, y + 21, 4, 1, '#fff8e0');
+  });
+  regDecor('trash_green_compost', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 8, 16, 22, '#388a40');
+    px(c, x + 8, y + 8, 16, 1, '#5cae4c');
+    px(c, x + 8, y + 29, 16, 1, '#1c4818');
+    px(c, x + 7, y + 5, 18, 4, '#1c4818');
+    disc(c, x + 16, y + 18, 3, '#5cae4c');
+    px(c, x + 14, y + 16, 4, 1, '#a8d878');
+  });
+  regDecor('trash_dumpster', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 12, 28, 16, '#383830');
+    px(c, x + 2, y + 12, 28, 1, '#605850');
+    px(c, x + 2, y + 27, 28, 1, '#181810');
+    px(c, x + 4, y + 8, 24, 5, '#202020');
+    px(c, x + 4, y + 8, 24, 1, '#404038');
+    px(c, x + 8, y + 16, 8, 8, '#605850');
+    px(c, x + 18, y + 16, 8, 8, '#605850');
+  });
+  regDecor('trash_basket_wicker', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 10, 16, 20, '#a06838');
+    px(c, x + 8, y + 10, 16, 1, '#c89058');
+    for (let i = 0; i < 5; i++) px(c, x + 9, y + 13 + i*4, 14, 1, '#704a20');
+    for (let i = 0; i < 4; i++) px(c, x + 11 + i*3, y + 11, 1, 18, '#704a20');
+    px(c, x + 8, y + 8, 16, 2, '#3a2010');
+  });
+  regDecor('trash_urn_park', TILE, TILE, (c, x, y) => {
+    px(c, x + 10, y + 14, 12, 16, '#605850');
+    px(c, x + 8, y + 12, 16, 4, '#383028');
+    px(c, x + 9, y + 8, 14, 4, '#605850');
+    px(c, x + 9, y + 8, 14, 1, '#80786a');
+    px(c, x + 11, y + 28, 10, 2, '#202020');
+  });
+
+  // ----- FLOWERPOTS (8) -----------------------------------------------
+  function potBase(c, x, y, potColor, potShade, lipColor) {
+    px(c, x + 9, y + 18, 14, 12, potColor);
+    px(c, x + 9, y + 18, 14, 1, lipColor);
+    px(c, x + 9, y + 29, 14, 1, potShade);
+    px(c, x + 8, y + 19, 1, 10, potShade);
+    px(c, x + 23, y + 19, 1, 10, potShade);
+  }
+  regDecor('pot_terracotta_red', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#c8704c', '#7a2810', '#e89070');
+    disc(c, x + 12, y + 12, 3, '#5cae4c');
+    disc(c, x + 20, y + 11, 3, '#5cae4c');
+    disc(c, x + 16, y + 8, 3, '#48a040');
+    disc(c, x + 13, y + 8, 2, '#e83838');
+    disc(c, x + 19, y + 9, 2, '#f0c020');
+  });
+  regDecor('pot_ceramic_blue', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#3878d8', '#1a3868', '#80b8f0');
+    px(c, x + 12, y + 22, 8, 1, '#fff8e0');
+    disc(c, x + 12, y + 12, 3, '#48a040');
+    disc(c, x + 20, y + 11, 3, '#48a040');
+    disc(c, x + 16, y + 8, 3, '#5cae4c');
+    disc(c, x + 14, y + 9, 2, '#f098c0');
+  });
+  regDecor('pot_painted_yellow', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#f0c020', '#806010', '#fff080');
+    for (let i = 0; i < 3; i++) px(c, x + 12 + i*4, y + 23, 2, 2, '#e83838');
+    disc(c, x + 16, y + 12, 4, '#5cae4c');
+    disc(c, x + 12, y + 11, 3, '#48a040');
+    disc(c, x + 20, y + 11, 3, '#48a040');
+    disc(c, x + 16, y + 8, 2, '#fff8e0');
+  });
+  regDecor('pot_marble_white', TILE, TILE, (c, x, y) => {
+    potBase(c, x, y, '#e8e8e8', '#a0a0a0', '#fff');
+    for (let i = 0; i < 4; i++) px(c, x + 10 + i*4, y + 22, 1, 6, 'rgba(120,120,120,0.5)');
+    disc(c, x + 16, y + 10, 5, '#a040a0');
+    disc(c, x + 12, y + 12, 3, '#a040a0');
+    disc(c, x + 20, y + 12, 3, '#a040a0');
+    disc(c, x + 16, y + 8, 2, '#f098c0');
+  });
+  regDecor('pot_hanging_basket', TILE, TILE, (c, x, y) => {
+    px(c, x + 16, y + 0, 1, 6, '#383028');
+    px(c, x + 14, y + 6, 1, 4, '#383028');
+    px(c, x + 18, y + 6, 1, 4, '#383028');
+    px(c, x + 9, y + 10, 14, 8, '#a06838');
+    px(c, x + 9, y + 10, 14, 1, '#c89058');
+    px(c, x + 9, y + 17, 14, 1, '#3a2010');
+    disc(c, x + 12, y + 14, 4, '#5cae4c');
+    disc(c, x + 20, y + 14, 4, '#5cae4c');
+    disc(c, x + 14, y + 18, 3, '#48a040');
+    disc(c, x + 19, y + 19, 3, '#48a040');
+    disc(c, x + 13, y + 8, 2, '#e83838');
+    disc(c, x + 19, y + 8, 2, '#f0c020');
+  });
+  regDecor('pot_window_box', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 16, 24, 14, '#a06838');
+    px(c, x + 4, y + 16, 24, 1, '#c89058');
+    px(c, x + 4, y + 29, 24, 1, '#3a2010');
+    for (let i = 0; i < 5; i++) {
+      const px_ = x + 6 + i*5;
+      disc(c, px_, y + 12, 3, '#5cae4c');
+      disc(c, px_, y + 9, 2, ['#e83838','#f0c020','#a040a0','#5898d8','#fff8e0'][i]);
+    }
+  });
+  regDecor('pot_succulent_small', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 22, 8, 8, '#a06838');
+    px(c, x + 12, y + 22, 8, 1, '#c89058');
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2;
+      const dx = Math.round(Math.cos(a) * 3);
+      const dy = Math.round(Math.sin(a) * 3) - 1;
+      px(c, x + 16 + dx, y + 16 + dy, 2, 2, '#48a040');
+      px(c, x + 16 + dx, y + 16 + dy, 1, 1, '#a8d878');
+    }
+    px(c, x + 16, y + 14, 1, 1, '#f098c0');
+  });
+  regDecor('pot_tall_lily', TILE, TILE, (c, x, y) => {
+    px(c, x + 11, y + 22, 10, 8, '#c8704c');
+    px(c, x + 11, y + 22, 10, 1, '#e89070');
+    px(c, x + 16, y + 8, 1, 14, '#388a40');
+    for (let i = 0; i < 4; i++) px(c, x + 12 + i*2, y + 14 + i, 4, 1, '#48a040');
+    disc(c, x + 16, y + 6, 3, '#fff8e0');
+    px(c, x + 16, y + 7, 1, 1, '#f0c020');
+  });
+
+  // ----- PLANTERS (6) -------------------------------------------------
+  regDecor('planter_hedge_round', TILE, TILE, (c, x, y) => {
+    px(c, x + 6, y + 22, 20, 8, '#3a2010');
+    px(c, x + 6, y + 22, 20, 1, '#604028');
+    disc(c, x + 16, y + 14, 8, '#388a40');
+    disc(c, x + 11, y + 16, 4, '#5cae4c');
+    disc(c, x + 21, y + 14, 4, '#5cae4c');
+    disc(c, x + 16, y + 10, 3, '#a8d878');
+  });
+  regDecor('planter_hedge_long', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 22, 30, 8, '#3a2010');
+    px(c, x + 1, y + 22, 30, 1, '#604028');
+    px(c, x + 1, y + 12, 30, 10, '#388a40');
+    px(c, x + 1, y + 12, 30, 1, '#5cae4c');
+    for (let i = 0; i < 6; i++) px(c, x + 3 + i*5, y + 10, 3, 2, '#5cae4c');
+    for (let i = 0; i < 4; i++) px(c, x + 5 + i*7, y + 14, 2, 2, '#a8d878');
+  });
+  regDecor('planter_herb_box', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 18, 24, 12, '#a06838');
+    px(c, x + 4, y + 18, 24, 1, '#c89058');
+    px(c, x + 4, y + 29, 24, 1, '#3a2010');
+    px(c, x + 6, y + 22, 20, 4, '#604028');
+    for (let i = 0; i < 5; i++) {
+      const px_ = x + 7 + i*4;
+      px(c, px_, y + 16, 2, 6, '#388a40');
+      px(c, px_, y + 14, 2, 2, '#5cae4c');
+    }
+  });
+  regDecor('planter_flowerbed_oval', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 22, 24, 6, '#604028');
+    px(c, x + 6, y + 21, 20, 1, '#a06838');
+    px(c, x + 6, y + 28, 20, 1, '#3a2010');
+    for (let i = 0; i < 5; i++) {
+      disc(c, x + 6 + i*5, y + 16, 2, '#388a40');
+      px(c, x + 6 + i*5, y + 12, 1, 1, ['#e83838','#f0c020','#a040a0','#5898d8','#f098c0'][i]);
+    }
+  });
+  regDecor('planter_raised_wood', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 14, 28, 16, '#a06838');
+    px(c, x + 2, y + 14, 28, 1, '#c89058');
+    px(c, x + 2, y + 29, 28, 1, '#3a2010');
+    for (let i = 0; i < 4; i++) px(c, x + 7 + i*6, y + 14, 1, 16, '#604028');
+    px(c, x + 4, y + 16, 24, 6, '#388a40');
+    for (let i = 0; i < 4; i++) disc(c, x + 8 + i*5, y + 12, 2, ['#e83838','#f0c020','#5898d8','#f098c0'][i]);
+  });
+  regDecor('planter_zen_stone', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 18, 28, 12, '#787870');
+    px(c, x + 2, y + 18, 28, 1, '#a0a098');
+    px(c, x + 2, y + 29, 28, 1, '#383830');
+    for (let i = 0; i < 6; i++) px(c, x + 4, y + 22 + (i & 1), 24, 1, 'rgba(255,255,255,0.20)');
+    disc(c, x + 9, y + 14, 4, '#403838');
+    disc(c, x + 16, y + 12, 5, '#503838');
+    disc(c, x + 23, y + 13, 4, '#403838');
+  });
+
+  // ----- TABLES (10) --------------------------------------------------
+  function tableSurface(c, x, y, top, edge, leg) {
+    px(c, x + 2, y + 8, 28, 8, top);
+    px(c, x + 2, y + 8, 28, 1, edge);
+    px(c, x + 2, y + 15, 28, 1, edge);
+    px(c, x + 6, y + 16, 3, 14, leg);
+    px(c, x + TILE - 9, y + 16, 3, 14, leg);
+  }
+  regDecor('table_wood_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 12, 12, '#a06838');
+    disc(c, x + 16, y + 12, 11, '#c89058');
+    px(c, x + 14, y + 16, 4, 14, '#604028');
+  });
+  regDecor('table_wood_square', TILE, TILE, (c, x, y) => tableSurface(c, x, y, '#a06838', '#604028', '#604028'));
+  regDecor('table_marble_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 12, 12, '#a0a0a0');
+    disc(c, x + 16, y + 12, 11, '#e8e8e8');
+    px(c, x + 13, y + 9, 6, 1, 'rgba(120,120,120,0.6)');
+    px(c, x + 14, y + 16, 4, 14, '#606060');
+  });
+  regDecor('table_glass_modern', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 8, 28, 6, 'rgba(180,220,240,0.4)');
+    px(c, x + 2, y + 8, 28, 1, '#fff');
+    px(c, x + 2, y + 13, 28, 1, '#5898d8');
+    px(c, x + 5, y + 14, 3, 16, '#a0a0a0');
+    px(c, x + TILE - 8, y + 14, 3, 16, '#a0a0a0');
+  });
+  regDecor('table_dining_long', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 10, 30, 6, '#a06838');
+    px(c, x + 1, y + 10, 30, 1, '#c89058');
+    px(c, x + 1, y + 15, 30, 1, '#604028');
+    for (let i = 0; i < 4; i++) px(c, x + 3 + i*8, y + 16, 2, 14, '#604028');
+  });
+  regDecor('table_picnic_red_check', TILE, TILE, (c, x, y) => {
+    tableSurface(c, x, y, '#fff', '#202020', '#604028');
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      if ((i + j) & 1) px(c, x + 4 + i*7, y + 9 + j*2, 5, 1, '#e83838');
+    }
+  });
+  regDecor('table_workbench', TILE, TILE, (c, x, y) => {
+    tableSurface(c, x, y, '#704a20', '#3a2010', '#3a2010');
+    for (let i = 0; i < 4; i++) px(c, x + 5 + i*6, y + 11, 2, 1, '#202020');
+    px(c, x + 22, y + 11, 6, 2, '#a0a0a0');
+    px(c, x + 6, y + 13, 8, 1, '#a0a098');
+  });
+  regDecor('table_round_chess', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 12, 12, '#a06838');
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      if ((i + j) & 1) px(c, x + 9 + i*4, y + 5 + j*4, 4, 4, '#3a2010');
+      else px(c, x + 9 + i*4, y + 5 + j*4, 4, 4, '#fff8e0');
+    }
+    disc(c, x + 16, y + 12, 12, 'rgba(0,0,0,0)'); // outline trick
+    disc(c, x + 16, y + 12, 12, 'rgba(255,255,255,0.05)');
+    px(c, x + 14, y + 16, 4, 14, '#604028');
+  });
+  regDecor('table_low_tea', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 18, 24, 4, '#a06838');
+    px(c, x + 4, y + 18, 24, 1, '#c89058');
+    px(c, x + 4, y + 21, 24, 1, '#604028');
+    px(c, x + 6, y + 22, 2, 8, '#604028');
+    px(c, x + 24, y + 22, 2, 8, '#604028');
+    disc(c, x + 12, y + 16, 2, '#fff8e0');
+    disc(c, x + 20, y + 16, 2, '#fff8e0');
+  });
+  regDecor('table_long_buffet', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 6, 30, 12, '#604028');
+    px(c, x + 1, y + 6, 30, 1, '#a06838');
+    px(c, x + 1, y + 17, 30, 1, '#3a2010');
+    px(c, x + 3, y + 8, 8, 8, '#fff8e0');
+    px(c, x + 13, y + 9, 6, 6, '#e83838');
+    px(c, x + 21, y + 8, 8, 8, '#5898d8');
+    for (let i = 0; i < 3; i++) px(c, x + 8 + i*8, y + 18, 2, 12, '#3a2010');
+  });
+
+  // ----- MART SHOP DISPLAYS (8) --------------------------------------
+  regDecor('display_potions_counter', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 12, 30, 18, '#a06838');
+    px(c, x + 1, y + 12, 30, 1, '#c89058');
+    px(c, x + 1, y + 29, 30, 1, '#3a2010');
+    for (let i = 0; i < 5; i++) {
+      const px_ = x + 4 + i*5;
+      px(c, px_, y + 6, 4, 6, ['#e83838','#5898d8','#48a040','#f0c020','#a040a0'][i]);
+      px(c, px_, y + 4, 4, 2, '#80c0e8');
+    }
+  });
+  regDecor('display_pokeballs_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 4, 28, 26, '#604028');
+    px(c, x + 2, y + 4, 28, 1, '#a06838');
+    for (const sy of [6, 14, 22]) for (let i = 0; i < 4; i++) {
+      const cx = x + 6 + i*7, cy = y + sy + 1;
+      disc(c, cx, cy, 3, '#e83838');
+      px(c, cx - 3, cy + 1, 7, 1, '#202020');
+      px(c, cx - 1, cy + 2, 3, 1, '#fff');
+    }
+  });
+  regDecor('display_clothing_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 4, 1, 26, '#202020');
+    px(c, x + 29, y + 4, 1, 26, '#202020');
+    px(c, x + 2, y + 4, 28, 1, '#202020');
+    for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + 6, 4, 14, ['#e83838','#5898d8','#f0c020','#48a040','#a040a0'][i]);
+      px(c, x + 4 + i*5, y + 6, 4, 1, 'rgba(255,255,255,0.4)');
+    }
+    px(c, x + 4, y + 28, 24, 2, '#604028');
+  });
+  regDecor('display_food_counter', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 14, 30, 16, '#fff8e0');
+    px(c, x + 1, y + 14, 30, 1, '#f0c020');
+    px(c, x + 1, y + 29, 30, 1, '#806010');
+    px(c, x + 2, y + 4, 28, 10, 'rgba(180,220,240,0.5)');
+    px(c, x + 2, y + 4, 28, 1, '#fff');
+    px(c, x + 2, y + 13, 28, 1, '#5898d8');
+    for (let i = 0; i < 4; i++) {
+      px(c, x + 4 + i*7, y + 6, 5, 6, ['#e83838','#48a040','#f0c020','#a06838'][i]);
+    }
+  });
+  regDecor('display_register', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 16, 24, 14, '#383830');
+    px(c, x + 4, y + 16, 24, 1, '#605850');
+    px(c, x + 4, y + 29, 24, 1, '#181810');
+    px(c, x + 8, y + 4, 16, 12, '#202020');
+    px(c, x + 9, y + 5, 14, 8, '#48a040');
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 4; j++) {
+      px(c, x + 8 + j*5, y + 18 + i*4, 4, 3, '#787068');
+      px(c, x + 8 + j*5, y + 18 + i*4, 4, 1, '#a8a098');
+    }
+  });
+  regDecor('display_souvenir', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 8, 28, 22, '#a06838');
+    px(c, x + 2, y + 8, 28, 1, '#c89058');
+    px(c, x + 2, y + 17, 28, 1, '#604028');
+    px(c, x + 2, y + 26, 28, 1, '#604028');
+    for (let i = 0; i < 5; i++) {
+      px(c, x + 4 + i*5, y + 10, 3, 5, ['#a040a0','#5898d8','#f0c020','#48a040','#e83838'][i]);
+    }
+    for (let i = 0; i < 5; i++) {
+      disc(c, x + 6 + i*5, y + 22, 2, ['#f0c020','#a06838','#fff','#f098c0','#5898d8'][i]);
+    }
+  });
+  regDecor('display_glass_case', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 4, 30, 26, 'rgba(180,220,240,0.30)');
+    px(c, x + 1, y + 4, 30, 1, '#fff');
+    px(c, x + 1, y + 4, 1, 26, '#80b8f0');
+    px(c, x + 30, y + 4, 1, 26, '#80b8f0');
+    px(c, x + 1, y + 29, 30, 1, '#5898d8');
+    px(c, x + 4, y + 16, 24, 4, '#604028');
+    disc(c, x + 10, y + 12, 3, '#f0c020');
+    disc(c, x + 16, y + 13, 4, '#a040a0');
+    disc(c, x + 23, y + 11, 3, '#5898d8');
+  });
+  regDecor('display_basket', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 18, 24, 12, '#a06838');
+    px(c, x + 4, y + 18, 24, 1, '#c89058');
+    for (let i = 0; i < 5; i++) px(c, x + 5, y + 20 + i*2, 22, 1, '#704a20');
+    for (let i = 0; i < 5; i++) px(c, x + 6 + i*5, y + 18, 1, 12, '#704a20');
+    for (let i = 0; i < 4; i++) {
+      disc(c, x + 8 + i*5, y + 14, 3, ['#e83838','#f0c020','#a040a0','#48a040'][i]);
+    }
+  });
+
+  // ----- HEALING POD (6 keys; pod is 2 tiles wide) -------------------
+  function podBase(c, x, y, glowColor, glowIntensity) {
+    // Pod bed with ergonomic curve
+    px(c, x + 2, y + 14, 28, 14, '#787890');
+    px(c, x + 2, y + 14, 28, 1, '#a0a8c0');
+    px(c, x + 2, y + 27, 28, 1, '#383848');
+    // Glass canopy
+    px(c, x + 2, y + 4, 28, 10, 'rgba(180,220,240,0.4)');
+    px(c, x + 2, y + 4, 28, 1, '#fff');
+    px(c, x + 2, y + 13, 28, 1, '#80b8f0');
+    px(c, x + 2, y + 4, 1, 10, '#80b8f0');
+    px(c, x + 30, y + 4, 1, 10, '#80b8f0');
+    // Cushion (where mons would lie)
+    px(c, x + 6, y + 18, 20, 6, '#383848');
+    px(c, x + 6, y + 18, 20, 1, '#5860a0');
+    // Side accents
+    px(c, x + 6, y + 28, 20, 2, '#181820');
+    // Glow if requested
+    if (glowIntensity > 0) {
+      const a = Math.min(1, glowIntensity);
+      px(c, x + 4, y + 8, 24, 2, 'rgba(' + glowColor + ',' + (a * 0.5) + ')');
+      px(c, x + 6, y + 18, 20, 4, 'rgba(' + glowColor + ',' + (a * 0.4) + ')');
+    }
+  }
+  regDecor('pod_healing_idle',     TILE, TILE, (c, x, y) => podBase(c, x, y, '255,200,128', 0.0));
+  regDecor('pod_healing_glow1',    TILE, TILE, (c, x, y) => podBase(c, x, y, '255,176,200', 0.6));
+  regDecor('pod_healing_glow2',    TILE, TILE, (c, x, y) => podBase(c, x, y, '255,232,160', 0.9));
+  regDecor('pod_healing_complete', TILE, TILE, (c, x, y) => podBase(c, x, y, '160,232,176', 0.5));
+  regDecor('pod_console', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 14, 24, 16, '#383848');
+    px(c, x + 4, y + 14, 24, 1, '#5860a0');
+    px(c, x + 6, y + 8, 20, 8, '#202028');
+    px(c, x + 7, y + 9, 18, 6, '#48a040');
+    for (let i = 0; i < 3; i++) px(c, x + 9 + i*6, y + 11, 4, 1, '#a8d878');
+    for (let i = 0; i < 4; i++) {
+      disc(c, x + 8 + i*5, y + 22, 2, ['#e83838','#f0c020','#48a040','#5898d8'][i]);
+    }
+  });
+  regDecor('pod_bed_left', TILE, TILE, (c, x, y) => {
+    // Left half of a 2-wide pod (mirror image of pod_healing_idle's left side)
+    px(c, x + 12, y + 14, 20, 14, '#787890');
+    px(c, x + 12, y + 14, 20, 1, '#a0a8c0');
+    px(c, x + 12, y + 27, 20, 1, '#383848');
+    px(c, x + 12, y + 4, 20, 10, 'rgba(180,220,240,0.4)');
+    px(c, x + 12, y + 4, 20, 1, '#fff');
+    px(c, x + 12, y + 13, 20, 1, '#80b8f0');
+    px(c, x + 12, y + 4, 1, 10, '#80b8f0');
+    px(c, x + 14, y + 18, 18, 6, '#383848');
+    px(c, x + 14, y + 18, 18, 1, '#5860a0');
+    px(c, x + 14, y + 28, 18, 2, '#181820');
+  });
+
+  // ----- LAMPS & LIGHTS (6) ------------------------------------------
+  regDecor('lamp_ornate_gold', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 16, 4, 14, '#806010');
+    px(c, x + 12, y + 28, 8, 2, '#f0c020');
+    px(c, x + 10, y + 6, 12, 10, '#806010');
+    px(c, x + 10, y + 6, 12, 1, '#f0c020');
+    px(c, x + 11, y + 7, 10, 8, '#fff080');
+    px(c, x + 13, y + 9, 6, 4, '#fff8e0');
+    px(c, x + 14, y + 4, 4, 2, '#806010');
+  });
+  regDecor('lamp_oil_brass', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 18, 8, 12, '#a06838');
+    px(c, x + 12, y + 18, 8, 1, '#c89058');
+    px(c, x + 12, y + 29, 8, 1, '#3a2010');
+    px(c, x + 14, y + 8, 4, 10, '#604028');
+    px(c, x + 12, y + 4, 8, 6, '#a06838');
+    px(c, x + 13, y + 5, 6, 4, '#fff080');
+    px(c, x + 14, y + 6, 4, 2, '#fff8e0');
+  });
+  regDecor('lamp_modern_chrome', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 4, 4, 26, '#a0a0b0');
+    px(c, x + 14, y + 4, 4, 1, '#e8e8f0');
+    px(c, x + 8, y + 28, 16, 2, '#383848');
+    px(c, x + 10, y + 4, 12, 6, '#383848');
+    px(c, x + 11, y + 5, 10, 4, '#fff080');
+    px(c, x + 12, y + 6, 8, 2, '#fff8e0');
+  });
+  regDecor('lamp_paper_lantern', TILE, TILE, (c, x, y) => {
+    px(c, x + 16, y + 0, 1, 8, '#202020');
+    disc(c, x + 16, y + 14, 8, '#e83838');
+    disc(c, x + 16, y + 14, 7, '#f08080');
+    px(c, x + 16, y + 7, 1, 14, 'rgba(255,200,200,0.55)');
+    px(c, x + 9, y + 14, 14, 1, 'rgba(0,0,0,0.4)');
+    px(c, x + 16, y + 22, 1, 4, '#202020');
+    px(c, x + 14, y + 26, 4, 1, '#202020');
+  });
+  regDecor('lamp_table_brass', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 24, 8, 6, '#a06838');
+    px(c, x + 12, y + 24, 8, 1, '#c89058');
+    px(c, x + 15, y + 14, 2, 10, '#a06838');
+    px(c, x + 9, y + 6, 14, 10, '#604028');
+    px(c, x + 9, y + 6, 14, 1, '#a06838');
+    px(c, x + 11, y + 8, 10, 6, '#fff080');
+    px(c, x + 13, y + 10, 6, 2, '#fff8e0');
+  });
+  regDecor('lamp_floor_tall', TILE, TILE, (c, x, y) => {
+    px(c, x + 10, y + 28, 12, 2, '#604028');
+    px(c, x + 15, y + 8, 2, 22, '#383028');
+    px(c, x + 8, y + 4, 16, 8, '#604028');
+    px(c, x + 10, y + 5, 12, 6, '#fff080');
+    px(c, x + 12, y + 6, 8, 4, '#fff8e0');
+    px(c, x + 8, y + 4, 16, 1, '#a06838');
+  });
+
+  // ----- MISC INDOOR (12) --------------------------------------------
+  regDecor('bookshelf_tall', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 0, 28, 30, '#604028');
+    px(c, x + 2, y + 0, 28, 1, '#a06838');
+    px(c, x + 2, y + 29, 28, 1, '#3a2010');
+    for (const sy of [3, 11, 19, 27]) px(c, x + 3, y + sy, 26, 1, '#3a2010');
+    const books = ['#d83838','#3878d8','#48a040','#f0c020','#a040a0','#704020'];
+    for (const sy of [4, 12, 20]) for (let i = 0; i < 6; i++) {
+      px(c, x + 4 + i*4, y + sy, 3, 7, books[(i + sy) % books.length]);
+    }
+  });
+  regDecor('dresser_wood', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 6, 28, 24, '#a06838');
+    px(c, x + 2, y + 6, 28, 1, '#c89058');
+    px(c, x + 2, y + 29, 28, 1, '#3a2010');
+    for (const sy of [10, 18, 26]) px(c, x + 3, y + sy, 26, 1, '#3a2010');
+    for (const sy of [8, 16, 24]) {
+      px(c, x + 14, y + sy, 4, 1, '#383028');
+      px(c, x + 14, y + sy + 1, 4, 1, '#383028');
+    }
+  });
+  regDecor('nightstand', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 12, 16, 18, '#a06838');
+    px(c, x + 8, y + 12, 16, 1, '#c89058');
+    px(c, x + 8, y + 29, 16, 1, '#3a2010');
+    px(c, x + 9, y + 19, 14, 1, '#3a2010');
+    px(c, x + 14, y + 16, 4, 2, '#383028');
+    px(c, x + 14, y + 23, 4, 2, '#383028');
+    disc(c, x + 16, y + 8, 3, '#fff8a0');
+    px(c, x + 14, y + 6, 4, 2, '#a06838');
+  });
+  regDecor('bed_single_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 12, 28, 16, '#604028');
+    px(c, x + 2, y + 12, 28, 1, '#a06838');
+    px(c, x + 2, y + 27, 28, 1, '#3a2010');
+    px(c, x + 4, y + 14, 24, 8, '#3878d8');
+    px(c, x + 4, y + 14, 24, 1, '#80b8f0');
+    px(c, x + 4, y + 8, 8, 8, '#fff8e0');
+    px(c, x + 4, y + 8, 8, 1, '#a0a0a0');
+  });
+  regDecor('bed_single_pink', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 12, 28, 16, '#604028');
+    px(c, x + 2, y + 12, 28, 1, '#a06838');
+    px(c, x + 2, y + 27, 28, 1, '#3a2010');
+    px(c, x + 4, y + 14, 24, 8, '#f098c0');
+    px(c, x + 4, y + 14, 24, 1, '#fff0f8');
+    px(c, x + 4, y + 8, 8, 8, '#fff8e0');
+    px(c, x + 4, y + 8, 8, 1, '#a0a0a0');
+  });
+  regDecor('rug_round_red', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 16, 13, '#a01828');
+    disc(c, x + 16, y + 16, 11, '#d83838');
+    disc(c, x + 16, y + 16, 8, '#f0c020');
+    disc(c, x + 16, y + 16, 5, '#a01828');
+    disc(c, x + 16, y + 16, 2, '#fff');
+  });
+  regDecor('rug_long_persian', TILE, TILE, (c, x, y) => {
+    px(c, x + 1, y + 8, 30, 16, '#a01828');
+    px(c, x + 1, y + 8, 30, 1, '#604018');
+    px(c, x + 1, y + 23, 30, 1, '#604018');
+    for (let i = 0; i < 4; i++) {
+      const cx = x + 5 + i*7;
+      px(c, cx, y + 12, 4, 8, '#f0c020');
+      px(c, cx + 1, y + 14, 2, 4, '#a01828');
+    }
+    for (let i = 0; i < 7; i++) px(c, x + 1 + i*5, y + 6, 1, 1, '#fff8e0');
+    for (let i = 0; i < 7; i++) px(c, x + 1 + i*5, y + 25, 1, 1, '#fff8e0');
+  });
+  regDecor('picture_frame_landscape', TILE, TILE, (c, x, y) => {
+    px(c, x + 2, y + 4, 28, 20, '#a06838');
+    px(c, x + 4, y + 6, 24, 16, '#5898d8');
+    px(c, x + 4, y + 16, 24, 6, '#48a040');
+    px(c, x + 4, y + 18, 24, 4, '#388a40');
+    disc(c, x + 22, y + 9, 3, '#fff080');
+    for (let i = 0; i < 4; i++) px(c, x + 6 + i*4, y + 13, 2, 1, '#fff8e0');
+  });
+  regDecor('wall_clock_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 16, 12, '#604028');
+    disc(c, x + 16, y + 16, 11, '#fff8e0');
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6 - Math.PI / 2;
+      const cx = Math.round(x + 16 + Math.cos(a) * 9);
+      const cy = Math.round(y + 16 + Math.sin(a) * 9);
+      px(c, cx, cy, 1, 1, '#202020');
+    }
+    px(c, x + 16, y + 10, 1, 7, '#202020');
+    px(c, x + 16, y + 16, 6, 1, '#202020');
+    disc(c, x + 16, y + 16, 1, '#202020');
+  });
+  regDecor('calendar_wall', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 4, 24, 24, '#fff8e0');
+    px(c, x + 4, y + 4, 24, 1, '#a0a0a0');
+    px(c, x + 4, y + 27, 24, 1, '#3a2010');
+    px(c, x + 4, y + 4, 24, 6, '#a01828');
+    for (let r = 0; r < 4; r++) for (let c2 = 0; c2 < 7; c2++) {
+      px(c, x + 5 + c2*3, y + 11 + r*4, 2, 2, ((r+c2) & 1) ? '#fff8e0' : '#e8e0c8');
+    }
+  });
+  regDecor('coat_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 28, 16, 2, '#3a2010');
+    px(c, x + 15, y + 6, 2, 22, '#604028');
+    px(c, x + 8, y + 4, 16, 4, '#604028');
+    px(c, x + 11, y + 8, 4, 8, '#3878d8');
+    px(c, x + 18, y + 9, 4, 6, '#a01828');
+    px(c, x + 12, y + 14, 8, 1, '#202020');
+  });
+  regDecor('umbrella_stand', TILE, TILE, (c, x, y) => {
+    px(c, x + 11, y + 18, 10, 12, '#a06838');
+    px(c, x + 11, y + 18, 10, 1, '#c89058');
+    px(c, x + 11, y + 29, 10, 1, '#3a2010');
+    px(c, x + 13, y + 6, 1, 14, '#383028');
+    px(c, x + 18, y + 8, 1, 12, '#383028');
+    disc(c, x + 13, y + 5, 4, '#3878d8');
+    disc(c, x + 18, y + 7, 4, '#e83838');
+  });
+
+  // ----- MISC OUTDOOR (12) -------------------------------------------
+  regDecor('vending_drinks_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 2, 24, 28, '#3878d8');
+    px(c, x + 4, y + 2, 24, 1, '#80b8f0');
+    px(c, x + 4, y + 29, 24, 1, '#1a3868');
+    px(c, x + 6, y + 5, 20, 12, '#202020');
+    px(c, x + 7, y + 6, 18, 10, '#80c0f8');
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
+      const cx = x + 9 + i*7, cy = y + 7 + j*4;
+      px(c, cx, cy, 4, 3, ['#e83838','#48a040','#f0c020'][i]);
+    }
+    px(c, x + 6, y + 19, 20, 8, '#1a3868');
+    px(c, x + 8, y + 21, 16, 1, '#fff8e0');
+  });
+  regDecor('vending_snacks_red', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 2, 24, 28, '#a01828');
+    px(c, x + 4, y + 2, 24, 1, '#e85060');
+    px(c, x + 4, y + 29, 24, 1, '#400810');
+    px(c, x + 6, y + 5, 20, 16, '#202020');
+    px(c, x + 7, y + 6, 18, 14, 'rgba(180,220,240,0.4)');
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      px(c, x + 9 + i*6, y + 7 + j*4, 4, 3, ['#f0c020','#48a040','#a040a0'][(i+j)%3]);
+    }
+    px(c, x + 6, y + 22, 20, 6, '#400810');
+    px(c, x + 14, y + 24, 4, 2, '#fff8e0');
+  });
+  regDecor('water_fountain_round', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 18, 12, '#787870');
+    disc(c, x + 16, y + 18, 10, '#a0a098');
+    disc(c, x + 16, y + 18, 9, '#5898d8');
+    px(c, x + 14, y + 8, 4, 12, '#a0a098');
+    disc(c, x + 16, y + 6, 3, '#787870');
+    for (let i = 0; i < 6; i++) px(c, x + 13 + i, y + 4 + (i&1)*2, 1, 2, 'rgba(180,220,240,0.7)');
+  });
+  regDecor('wishing_well', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 12, 24, 16, '#787870');
+    px(c, x + 4, y + 12, 24, 1, '#a0a098');
+    px(c, x + 4, y + 27, 24, 1, '#383830');
+    for (let i = 0; i < 5; i++) px(c, x + 4 + i*5, y + 16, 1, 12, '#383830');
+    px(c, x + 7, y + 20, 18, 4, '#202028');
+    px(c, x + 6, y + 6, 20, 6, '#704a20');
+    px(c, x + 6, y + 6, 20, 1, '#a06838');
+    px(c, x + 14, y + 4, 4, 8, '#604028');
+  });
+  regDecor('basketball_hoop', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#383028');
+    px(c, x + 6, y + 4, 20, 6, '#fff8e0');
+    px(c, x + 6, y + 4, 20, 1, '#a0a0a0');
+    px(c, x + 6, y + 9, 20, 1, '#3a2010');
+    px(c, x + 13, y + 11, 6, 1, '#a01828');
+    for (let i = 0; i < 5; i++) px(c, x + 12 + i, y + 11 + (i&1), 1, 4, '#fff');
+  });
+  regDecor('pedestal_statue', TILE, TILE, (c, x, y) => {
+    px(c, x + 6, y + 22, 20, 8, '#787870');
+    px(c, x + 6, y + 22, 20, 1, '#a0a098');
+    px(c, x + 6, y + 29, 20, 1, '#383830');
+    px(c, x + 12, y + 8, 8, 14, '#a0a098');
+    px(c, x + 13, y + 9, 6, 13, '#e8e8e8');
+    px(c, x + 14, y + 4, 4, 4, '#a0a098');
+    disc(c, x + 16, y + 6, 2, '#fff');
+    px(c, x + 12, y + 14, 8, 1, '#a0a098');
+  });
+  regDecor('street_clock', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#383028');
+    px(c, x + 12, y + 28, 8, 2, '#202020');
+    disc(c, x + 16, y + 8, 7, '#383028');
+    disc(c, x + 16, y + 8, 6, '#fff8e0');
+    px(c, x + 16, y + 4, 1, 5, '#202020');
+    px(c, x + 16, y + 8, 4, 1, '#202020');
+    disc(c, x + 16, y + 8, 1, '#202020');
+  });
+  regDecor('bus_stop_sign', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 14, 4, 16, '#383028');
+    px(c, x + 4, y + 4, 24, 12, '#3878d8');
+    px(c, x + 4, y + 4, 24, 1, '#80b8f0');
+    px(c, x + 4, y + 15, 24, 1, '#1a3868');
+    px(c, x + 12, y + 6, 8, 8, '#fff8e0');
+    px(c, x + 14, y + 8, 4, 4, '#3878d8');
+  });
+  regDecor('bike_rack', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 24, 24, 6, '#604028');
+    for (let i = 0; i < 4; i++) {
+      px(c, x + 6 + i*6, y + 8, 1, 16, '#a0a098');
+      px(c, x + 6 + i*6, y + 8, 4, 1, '#a0a098');
+      px(c, x + 9 + i*6, y + 8, 1, 16, '#a0a098');
+    }
+  });
+  regDecor('parking_meter', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 16, 4, 14, '#383028');
+    px(c, x + 12, y + 28, 8, 2, '#202020');
+    px(c, x + 11, y + 8, 10, 10, '#604028');
+    px(c, x + 11, y + 8, 10, 1, '#a06838');
+    px(c, x + 13, y + 10, 6, 6, '#fff8e0');
+    px(c, x + 14, y + 12, 4, 1, '#202020');
+    px(c, x + 14, y + 14, 4, 1, '#202020');
+  });
+  regDecor('bollard', TILE, TILE, (c, x, y) => {
+    px(c, x + 13, y + 28, 6, 2, '#202020');
+    px(c, x + 13, y + 12, 6, 18, '#a0a098');
+    px(c, x + 13, y + 12, 6, 1, '#e8e8e8');
+    px(c, x + 13, y + 16, 6, 1, '#e83838');
+    disc(c, x + 16, y + 11, 3, '#a0a098');
+  });
+  regDecor('streetlamp_ornate_double', TILE, TILE, (c, x, y) => {
+    px(c, x + 15, y + 14, 2, 16, '#202020');
+    px(c, x + 12, y + 28, 8, 2, '#383028');
+    px(c, x + 6, y + 12, 20, 2, '#202020');
+    px(c, x + 6, y + 4, 6, 8, '#604028');
+    px(c, x + 7, y + 5, 4, 6, '#fff080');
+    px(c, x + 8, y + 6, 2, 4, '#fff8e0');
+    px(c, x + 20, y + 4, 6, 8, '#604028');
+    px(c, x + 21, y + 5, 4, 6, '#fff080');
+    px(c, x + 22, y + 6, 2, 4, '#fff8e0');
+  });
+
+  // === LANDMARKS (towns redesign) ===================================
+  // Multi-tile composites stack vertically (top + bot) — engine
+  // already renders decorations Y-stacked correctly.
+
+  regDecor('lighthouse_base', TILE, TILE, (c, x, y) => {
+    // Stone base, 22 wide, with arched door.
+    px(c, x + 5, y + 4, 22, 28, '#787870');
+    px(c, x + 5, y + 4, 22, 1, '#a8a8a0');
+    px(c, x + 5, y + 31, 22, 1, '#383830');
+    // Stone joints.
+    for (let yy = 8; yy < 32; yy += 4) px(c, x + 5, y + yy, 22, 1, '#5a5a52');
+    for (let i = 0; i < 4; i++) {
+      const xs = x + 8 + i * 5;
+      px(c, xs, y + 6, 1, 26, '#5a5a52');
+    }
+    // Door.
+    px(c, x + 13, y + 18, 6, 14, '#382410');
+    px(c, x + 14, y + 19, 4, 12, '#604018');
+    px(c, x + 16, y + 25, 1, 1, '#f0c020');
+    // Trim ring at top.
+    px(c, x + 4, y + 4, 24, 2, '#a8a8a0');
+    px(c, x + 4, y + 4, 24, 1, '#dcdcd0');
+  });
+  regDecor('lighthouse_tower', TILE, TILE, (c, x, y) => {
+    // Tapered red-and-white striped tower body.
+    px(c, x + 7, y, 18, TILE, '#f0f0e8');
+    px(c, x + 7, y, 18, 8, '#e83838');
+    px(c, x + 7, y + 16, 18, 8, '#e83838');
+    // Outline.
+    px(c, x + 6, y, 1, TILE, '#383028');
+    px(c, x + 25, y, 1, TILE, '#383028');
+    // Highlight.
+    px(c, x + 7, y, 18, 1, '#ffffff');
+    // Window.
+    px(c, x + 14, y + 11, 4, 4, '#383028');
+    px(c, x + 15, y + 12, 2, 2, '#80c8f8');
+    px(c, x + 15, y + 12, 1, 2, '#ffffff');
+  });
+  regDecor('lighthouse_top', TILE, TILE, (c, x, y) => {
+    // Glass lantern room + dome.
+    // Walkway.
+    px(c, x + 5, y + 24, 22, 3, '#383028');
+    px(c, x + 5, y + 24, 22, 1, '#787870');
+    // Glass enclosure + lantern (warm glow).
+    px(c, x + 8, y + 12, 16, 12, '#202020');
+    px(c, x + 9, y + 13, 14, 10, '#fff080');
+    px(c, x + 10, y + 14, 12, 8, '#ffffa0');
+    // Mullions.
+    px(c, x + 13, y + 13, 1, 10, '#202020');
+    px(c, x + 18, y + 13, 1, 10, '#202020');
+    px(c, x + 9, y + 17, 14, 1, '#202020');
+    // Dome cap.
+    disc(c, x + 16, y + 9, 7, '#383028');
+    disc(c, x + 16, y + 9, 6, '#a01818');
+    disc(c, x + 16, y + 9, 4, '#e83838');
+    px(c, x + 16, y + 1, 1, 4, '#383028');
+    px(c, x + 15, y + 1, 3, 1, '#f0c020');
+  });
+
+  regDecor('obelisk_base', TILE, TILE, (c, x, y) => {
+    // Wide pedestal with engraved plaque.
+    px(c, x + 4, y + 6, 24, 24, '#888880');
+    px(c, x + 4, y + 6, 24, 1, '#b0b0a8');
+    px(c, x + 4, y + 29, 24, 1, '#383830');
+    px(c, x + 6, y + 28, 20, 2, '#5a5a52');
+    px(c, x + 4, y + 6, 1, 24, '#5a5a52');
+    px(c, x + 27, y + 6, 1, 24, '#5a5a52');
+    // Plaque.
+    px(c, x + 9, y + 14, 14, 8, '#383028');
+    px(c, x + 10, y + 15, 12, 6, '#604018');
+    for (let yy = 16; yy <= 19; yy += 2) px(c, x + 12, y + yy, 8, 1, '#f0c020');
+    // Top trim.
+    px(c, x + 3, y + 4, 26, 2, '#b0b0a8');
+    px(c, x + 3, y + 4, 26, 1, '#dcdcd0');
+  });
+  regDecor('obelisk_top', TILE, TILE, (c, x, y) => {
+    // Tapered shaft narrowing to a gold cap.
+    px(c, x + 8, y + 8, 16, TILE - 8, '#a8a8a0');
+    px(c, x + 9, y + 8, 14, TILE - 8, '#c8c8c0');
+    px(c, x + 8, y + 8, 1, TILE - 8, '#787870');
+    px(c, x + 23, y + 8, 1, TILE - 8, '#787870');
+    // Tapering toward the top.
+    px(c, x + 10, y + 6, 12, 2, '#a8a8a0');
+    px(c, x + 11, y + 4, 10, 2, '#c8c8c0');
+    px(c, x + 12, y + 2, 8, 2, '#a8a8a0');
+    // Gold cap.
+    px(c, x + 13, y, 6, 2, '#f0c020');
+    px(c, x + 14, y, 4, 1, '#fff080');
+    // Carved line.
+    px(c, x + 16, y + 8, 1, TILE - 10, '#787870');
+  });
+
+  regDecor('ancient_oak_bot', TILE, TILE, (c, x, y) => {
+    // Massive trunk with exposed roots.
+    px(c, x + 9, y, 14, TILE, '#5a3818');
+    px(c, x + 9, y, 14, TILE, '#5a3818');
+    px(c, x + 8, y, 1, TILE, '#382008');
+    px(c, x + 23, y, 1, TILE, '#382008');
+    // Bark grain.
+    for (let yy = 2; yy < TILE; yy += 5) px(c, x + 11, y + yy, 1, 3, '#382008');
+    for (let yy = 4; yy < TILE; yy += 6) px(c, x + 18, y + yy, 1, 3, '#382008');
+    // Knot.
+    disc(c, x + 14, y + 12, 2, '#382008');
+    disc(c, x + 14, y + 12, 1, '#5a3818');
+    // Roots fanning out at the base.
+    px(c, x + 4, y + 28, 6, 4, '#5a3818');
+    px(c, x + 4, y + 28, 6, 1, '#382008');
+    px(c, x + 4, y + 31, 6, 1, '#1a0e04');
+    px(c, x + 22, y + 28, 6, 4, '#5a3818');
+    px(c, x + 22, y + 28, 6, 1, '#382008');
+    px(c, x + 22, y + 31, 6, 1, '#1a0e04');
+    px(c, x + 6, y + 30, 4, 1, '#3a2008');
+    px(c, x + 22, y + 30, 4, 1, '#3a2008');
+  });
+  regDecor('ancient_oak_top', TILE, TILE, (c, x, y) => {
+    // Huge canopy filling the cell.
+    disc(c, x + 16, y + 18, 16, '#0e3010');
+    disc(c, x + 14, y + 14, 14, '#1c4818');
+    disc(c, x + 18, y + 12, 12, '#2a6824');
+    disc(c, x + 14, y + 10, 10, '#48a838');
+    disc(c, x + 20, y + 16, 8,  '#5cae4c');
+    // Highlight specks.
+    px(c, x + 12, y + 6,  2, 2, '#a8d878');
+    px(c, x + 22, y + 14, 2, 2, '#a8d878');
+    // Trunk peeking from below.
+    px(c, x + 13, y + 28, 6, 4, '#5a3818');
+  });
+
+  regDecor('meteor_pedestal', TILE, TILE, (c, x, y) => {
+    // Cracked rock pedestal cradling a glowing crystal shard.
+    // Pedestal.
+    px(c, x + 6, y + 18, 20, 12, '#787068');
+    px(c, x + 6, y + 18, 20, 1, '#a8a098');
+    px(c, x + 6, y + 29, 20, 1, '#383028');
+    px(c, x + 8, y + 22, 16, 1, '#5a5048');
+    px(c, x + 6, y + 18, 1, 12, '#5a5048');
+    px(c, x + 25, y + 18, 1, 12, '#5a5048');
+    // Crystal — magenta-violet glow with white core.
+    px(c, x + 13, y + 6, 6, 14, '#382048');
+    px(c, x + 14, y + 6, 4, 14, '#603880');
+    px(c, x + 15, y + 6, 2, 14, '#a868c8');
+    px(c, x + 15, y + 8, 2, 5, '#f0c8ff');
+    // Tip + base nubs.
+    px(c, x + 14, y + 4, 4, 2, '#a868c8');
+    px(c, x + 15, y + 2, 2, 2, '#f0c8ff');
+    // Glow specks around the crystal.
+    px(c, x + 11, y + 12, 1, 1, '#f0c8ff');
+    px(c, x + 21, y + 14, 1, 1, '#f0c8ff');
+    px(c, x + 12, y + 20, 1, 1, '#a868c8');
+  });
+
+  regDecor('ice_sculpture', TILE, TILE, (c, x, y) => {
+    // Translucent creature-shaped ice statue on a snow base.
+    // Snow base.
+    px(c, x + 6, y + 28, 20, 4, '#f0f4ff');
+    px(c, x + 6, y + 28, 20, 1, '#a0c0e0');
+    px(c, x + 6, y + 31, 20, 1, '#80a0c0');
+    // Body silhouette.
+    px(c, x + 11, y + 8, 10, 20, '#88c0e8');
+    px(c, x + 12, y + 9, 8, 18, '#a8d8f0');
+    px(c, x + 13, y + 10, 6, 16, '#c8e8f8');
+    // Head.
+    px(c, x + 12, y + 4, 8, 6, '#88c0e8');
+    px(c, x + 13, y + 5, 6, 4, '#c8e8f8');
+    // Highlights.
+    px(c, x + 14, y + 6, 1, 18, '#ffffff');
+    px(c, x + 19, y + 12, 1, 8, '#e0f0ff');
+    // Outline.
+    px(c, x + 10, y + 8, 1, 20, '#608090');
+    px(c, x + 21, y + 8, 1, 20, '#608090');
+    px(c, x + 11, y + 4, 1, 4, '#608090');
+    px(c, x + 20, y + 4, 1, 4, '#608090');
+  });
+
+  regDecor('anchor', TILE, TILE, (c, x, y) => {
+    // Rusty iron anchor leaning against a wood post.
+    px(c, x + 14, y + 6, 4, 22, '#383830');
+    px(c, x + 15, y + 7, 2, 21, '#787870');
+    // Top ring.
+    disc(c, x + 16, y + 5, 3, '#383830');
+    disc(c, x + 16, y + 5, 2, '#787870');
+    px(c, x + 16, y + 5, 1, 1, '#383830');
+    // Crossbar.
+    px(c, x + 9, y + 11, 14, 2, '#383830');
+    px(c, x + 9, y + 11, 14, 1, '#787870');
+    // Hooks (the bottom curve).
+    px(c, x + 7, y + 22, 4, 4, '#383830');
+    px(c, x + 7, y + 22, 4, 1, '#787870');
+    px(c, x + 21, y + 22, 4, 4, '#383830');
+    px(c, x + 21, y + 22, 4, 1, '#787870');
+    px(c, x + 5, y + 25, 6, 2, '#383830');
+    px(c, x + 21, y + 25, 6, 2, '#383830');
+    // Rust streaks.
+    px(c, x + 16, y + 14, 1, 8, '#a05030');
+    px(c, x + 9, y + 13, 1, 1, '#a05030');
+    px(c, x + 22, y + 13, 1, 1, '#a05030');
+    // Drop shadow tag.
+    px(c, x + 6, y + 28, 20, 1, '#382008');
+  });
+
+  regDecor('mining_cart', TILE, TILE, (c, x, y) => {
+    // Wooden cart on stone rails carrying ore.
+    // Rails.
+    px(c, x + 2, y + 26, TILE - 4, 1, '#787870');
+    px(c, x + 2, y + 28, TILE - 4, 1, '#787870');
+    // Sleepers.
+    for (let xx = 3; xx < TILE - 4; xx += 6) px(c, x + xx, y + 27, 3, 1, '#5a3818');
+    // Cart body.
+    px(c, x + 6, y + 12, 20, 14, '#5a3818');
+    px(c, x + 6, y + 12, 20, 1, '#7a4818');
+    px(c, x + 6, y + 25, 20, 1, '#382008');
+    px(c, x + 6, y + 12, 1, 14, '#382008');
+    px(c, x + 25, y + 12, 1, 14, '#382008');
+    // Wood planks.
+    for (let xx = 9; xx < 25; xx += 4) px(c, x + xx, y + 13, 1, 12, '#382008');
+    // Iron rim.
+    px(c, x + 5, y + 11, 22, 2, '#383830');
+    px(c, x + 5, y + 11, 22, 1, '#a8a098');
+    // Ore lump.
+    px(c, x + 11, y + 8, 10, 6, '#383830');
+    px(c, x + 12, y + 9, 8, 4, '#605850');
+    px(c, x + 14, y + 10, 1, 1, '#a868c8');
+    px(c, x + 18, y + 11, 1, 1, '#f0c8ff');
+    // Wheels.
+    disc(c, x + 10, y + 26, 3, '#202020');
+    disc(c, x + 10, y + 26, 2, '#604028');
+    disc(c, x + 22, y + 26, 3, '#202020');
+    disc(c, x + 22, y + 26, 2, '#604028');
+  });
+
+  regDecor('torii_gate', TILE, TILE, (c, x, y) => {
+    // Red wooden Japanese-style gate over a path.
+    const red = '#c83020';
+    const redS = '#8a1808';
+    const black = '#202020';
+    // Pillars.
+    px(c, x + 6, y + 8, 4, 24, red);
+    px(c, x + 6, y + 8, 1, 24, redS);
+    px(c, x + 9, y + 8, 1, 24, redS);
+    px(c, x + 22, y + 8, 4, 24, red);
+    px(c, x + 22, y + 8, 1, 24, redS);
+    px(c, x + 25, y + 8, 1, 24, redS);
+    // Lower crossbeam.
+    px(c, x + 4, y + 14, 24, 3, red);
+    px(c, x + 4, y + 14, 24, 1, '#f08060');
+    px(c, x + 4, y + 16, 24, 1, redS);
+    // Upper curved roof beam.
+    px(c, x + 2, y + 6, 28, 4, black);
+    px(c, x + 3, y + 7, 26, 2, red);
+    px(c, x + 3, y + 7, 26, 1, '#f08060');
+    px(c, x + 1, y + 5, 30, 1, black);
+    // Roof curls (turned-up ends).
+    px(c, x, y + 4, 3, 2, black);
+    px(c, x + 29, y + 4, 3, 2, black);
+    px(c, x, y + 3, 1, 1, black);
+    px(c, x + 31, y + 3, 1, 1, black);
+    // Center plaque.
+    px(c, x + 14, y + 9, 4, 5, '#f0c020');
+    px(c, x + 15, y + 10, 2, 3, '#382008');
+  });
+
+  regDecor('cherry_arch', TILE, TILE, (c, x, y) => {
+    // Pink cherry-blossom arch over a path.
+    // Posts.
+    px(c, x + 5, y + 10, 3, 22, '#604018');
+    px(c, x + 5, y + 10, 1, 22, '#382008');
+    px(c, x + 24, y + 10, 3, 22, '#604018');
+    px(c, x + 24, y + 10, 1, 22, '#382008');
+    // Arch top.
+    disc(c, x + 16, y + 12, 13, '#a04060');
+    disc(c, x + 16, y + 12, 11, '#d870a0');
+    disc(c, x + 14, y + 10, 8, '#f088b0');
+    disc(c, x + 18, y + 8, 6, '#fff0f8');
+    // Petals.
+    px(c, x + 8,  y + 16, 1, 1, '#fff0f8');
+    px(c, x + 24, y + 14, 1, 1, '#fff0f8');
+    px(c, x + 16, y + 4,  1, 1, '#fff0f8');
+    px(c, x + 11, y + 6,  1, 1, '#fff0f8');
+    // Floating petals on the path.
+    px(c, x + 12, y + 26, 1, 1, '#f088b0');
+    px(c, x + 20, y + 28, 1, 1, '#f088b0');
+  });
+
+  regDecor('fish_market_stall', TILE, TILE, (c, x, y) => {
+    // Striped awning + crate of fish + ice display.
+    // Stall base + counter.
+    px(c, x + 4, y + 18, 24, 14, '#604028');
+    px(c, x + 4, y + 18, 24, 1, '#7a5030');
+    px(c, x + 4, y + 31, 24, 1, '#382008');
+    // Ice + fish display.
+    px(c, x + 6, y + 20, 20, 4, '#c8e8f8');
+    px(c, x + 6, y + 20, 20, 1, '#ffffff');
+    // Fish.
+    px(c, x + 8, y + 21, 4, 2, '#3878d8');
+    px(c, x + 14, y + 21, 4, 2, '#5898e8');
+    px(c, x + 20, y + 21, 4, 2, '#a83020');
+    // Awning posts.
+    px(c, x + 3, y + 4, 2, 14, '#604028');
+    px(c, x + 27, y + 4, 2, 14, '#604028');
+    // Striped awning (red + white).
+    px(c, x + 2, y + 4, 28, 6, '#a01818');
+    for (let i = 0; i < 7; i++) {
+      const sx = x + 2 + i * 4;
+      px(c, sx, y + 4, 2, 6, '#fff8e0');
+    }
+    // Awning rim.
+    px(c, x + 2, y + 10, 28, 1, '#382020');
+    // Hanging price tag.
+    px(c, x + 14, y + 11, 4, 4, '#fff8e0');
+    px(c, x + 15, y + 12, 2, 1, '#383028');
+    px(c, x + 15, y + 13, 2, 1, '#383028');
+  });
+
+  regDecor('champion_statue', TILE, TILE, (c, x, y) => {
+    // Bronze trainer statue on a marble base.
+    // Marble base.
+    px(c, x + 5, y + 24, 22, 8, '#dcdcd0');
+    px(c, x + 5, y + 24, 22, 1, '#ffffff');
+    px(c, x + 5, y + 31, 22, 1, '#a8a8a0');
+    // Plaque on base.
+    px(c, x + 11, y + 27, 10, 3, '#787068');
+    px(c, x + 12, y + 28, 8, 1, '#f0c020');
+    // Bronze figure.
+    const bronze = '#a86838';
+    const bronzeS = '#704020';
+    const bronzeH = '#d09858';
+    // Legs.
+    px(c, x + 12, y + 18, 8, 6, bronze);
+    px(c, x + 12, y + 18, 8, 1, bronzeH);
+    px(c, x + 16, y + 18, 1, 6, bronzeS);
+    // Cape behind.
+    px(c, x + 8, y + 8, 16, 12, bronzeS);
+    // Body.
+    px(c, x + 12, y + 10, 8, 10, bronze);
+    px(c, x + 12, y + 10, 8, 1, bronzeH);
+    // Arm raised.
+    px(c, x + 20, y + 6, 3, 6, bronze);
+    px(c, x + 22, y + 4, 2, 4, bronze);
+    // Head.
+    px(c, x + 13, y + 4, 6, 6, bronze);
+    px(c, x + 13, y + 4, 6, 1, bronzeH);
+    px(c, x + 15, y + 5, 1, 1, bronzeS);
+    px(c, x + 17, y + 5, 1, 1, bronzeS);
+    // Cape outline.
+    px(c, x + 7, y + 8, 1, 12, '#382010');
+    px(c, x + 24, y + 8, 1, 12, '#382010');
+  });
+
+  // === WILDLIFE BIRDS ================================================
+  // Six small (16-22px) sprites: each kind has a perched + flying
+  // variant. Drawn into the lower-right of the 32x32 cell so they sit
+  // visually on top of a tile (roof or tree) when stacked at the same
+  // grid coordinate as the perch.
+  function birdBody(c, x, y, body, head, beak, wing, eye) {
+    // Perched silhouette: body 8x6 with a small head bump and tail.
+    px(c, x + 14, y + 16, 4, 6, body);             // tail
+    px(c, x + 11, y + 14, 8, 6, body);             // body
+    px(c, x + 11, y + 14, 8, 1, wing);             // back highlight
+    px(c, x + 17, y + 12, 3, 4, head);             // head
+    px(c, x + 19, y + 13, 1, 1, eye);              // eye
+    px(c, x + 20, y + 13, 1, 1, beak);             // beak
+    // Wing fold.
+    px(c, x + 13, y + 16, 3, 2, wing);
+    // Outline pass.
+    px(c, x + 10, y + 14, 1, 6, '#1a1a1a');
+    px(c, x + 19, y + 14, 1, 4, '#1a1a1a');
+    px(c, x + 11, y + 13, 7, 1, '#1a1a1a');
+    px(c, x + 11, y + 20, 8, 1, '#1a1a1a');
+    px(c, x + 17, y + 11, 3, 1, '#1a1a1a');
+    px(c, x + 21, y + 13, 1, 1, '#1a1a1a');
+    // Feet.
+    px(c, x + 13, y + 21, 1, 1, '#1a1a1a');
+    px(c, x + 16, y + 21, 1, 1, '#1a1a1a');
+  }
+  function birdFlying(c, x, y, body, head, wingTop, wingTip, beak, eye) {
+    // Wings spread (M-shape from above), body in the middle.
+    px(c, x + 13, y + 14, 6, 4, body);
+    px(c, x + 18, y + 13, 3, 3, head);
+    px(c, x + 20, y + 14, 1, 1, eye);
+    px(c, x + 21, y + 14, 1, 1, beak);
+    // Left wing (sweeping up-left).
+    px(c, x + 9,  y + 12, 2, 2, wingTip);
+    px(c, x + 11, y + 13, 2, 2, wingTop);
+    // Right wing (sweeping up-right).
+    px(c, x + 19, y + 12, 2, 2, wingTip);
+    px(c, x + 17, y + 13, 2, 2, wingTop);
+    // Outline.
+    px(c, x + 12, y + 14, 1, 4, '#1a1a1a');
+    px(c, x + 19, y + 14, 1, 3, '#1a1a1a');
+    px(c, x + 13, y + 13, 6, 1, '#1a1a1a');
+    px(c, x + 13, y + 18, 6, 1, '#1a1a1a');
+    px(c, x + 18, y + 12, 3, 1, '#1a1a1a');
+    px(c, x + 22, y + 14, 1, 1, '#1a1a1a');
+    // Tail.
+    px(c, x + 11, y + 16, 1, 2, body);
+    px(c, x + 10, y + 17, 1, 1, '#1a1a1a');
+  }
+  // Sparrow — small brown with white belly.
+  regDecor('wildlife_sparrow_perched', TILE, TILE, (c, x, y) =>
+    birdBody(c, x, y, '#a06038', '#604028', '#f0c020', '#f0d8b0', '#1a1a1a'));
+  regDecor('wildlife_sparrow_flying', TILE, TILE, (c, x, y) =>
+    birdFlying(c, x, y, '#a06038', '#604028', '#a06038', '#604028', '#f0c020', '#1a1a1a'));
+  // Pigeon — grey with white head splash.
+  regDecor('wildlife_pigeon_perched', TILE, TILE, (c, x, y) =>
+    birdBody(c, x, y, '#8898a8', '#a8b8c8', '#d8a838', '#c8d8e8', '#1a1a1a'));
+  regDecor('wildlife_pigeon_flying', TILE, TILE, (c, x, y) =>
+    birdFlying(c, x, y, '#8898a8', '#a8b8c8', '#8898a8', '#586878', '#d8a838', '#1a1a1a'));
+  // Crow — black silhouette with deep purple sheen.
+  regDecor('wildlife_crow_perched', TILE, TILE, (c, x, y) =>
+    birdBody(c, x, y, '#181820', '#101018', '#383028', '#3a3848', '#f0c020'));
+  regDecor('wildlife_crow_flying', TILE, TILE, (c, x, y) =>
+    birdFlying(c, x, y, '#181820', '#101018', '#101018', '#383848', '#383028', '#f0c020'));
+
+  // ------------------------------------------------------------------
   // === CHARACTERS ===================================================
   // 32x32 trainer-style sprites with outlined silhouette, multi-tone
   // shading. Uses a parameterised palette per character type.
@@ -2002,7 +3406,7 @@
 
   // Variant factory for NPCs from a 4-color seed mirroring NPC_PALETTES.
   // seed: { hat, hair, shirt, accent }
-  function npcPalette(seed) {
+  function npcPalette(seed, kind) {
     const dim = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
@@ -2021,7 +3425,8 @@
       pants: seed.pants || '#383028',
       pantsShade: seed.pants ? dim(seed.pants) : '#1a1410',
       shoes:'#1a1a1a',
-      gear: seed.gear || null
+      gear: seed.gear || null,
+      kind: kind || null
     };
   }
 
@@ -2035,7 +3440,7 @@
     npc_girl:  { hat:'#e84030', shirt:'#f08080', accent:'#c04040', pants:'#a02040' },
     npc_youth: { hat:'#d83020', shirt:'#f0d020', accent:'#a08818', pants:'#383028' },
     npc_old:   { hat:'#b03020', shirt:'#587858', accent:'#283828', pants:'#382820' },
-    nurse:     { hat:'#e83040', shirt:'#fff',    accent:'#e8c8c8', pants:'#fff'    },
+    nurse:     { hat:'#fff8e8', shirt:'#fff8f8', accent:'#f098c0', pants:'#fff8f8' },
     clerk:     { hat:'#d83020', shirt:'#3858c8', accent:'#202858', pants:'#202858' },
     trainer_bug_catcher: { hat:'#4fa83a', shirt:'#7ac65a', accent:'#f0e060', pants:'#284820', gear:'net' },
     trainer_picnicker:   { hat:'#f060a0', shirt:'#ffd070', accent:'#d84070', pants:'#4068b0', gear:'flower' },
@@ -2046,11 +3451,90 @@
     trainer_skier:       { hat:'#70b8e8', shirt:'#e8f8ff', accent:'#e84858', pants:'#4868a8', gear:'scarf' },
     trainer_sailor:      { hat:'#f8f8f8', shirt:'#3868d8', accent:'#ffffff', pants:'#202858', gear:'anchor' },
     trainer_ace:         { hat:'#7030c0', shirt:'#383848', accent:'#f0d060', pants:'#181828', gear:'star' },
-    trainer_ruin_maniac: { hat:'#d8b068', shirt:'#c89050', accent:'#705038', pants:'#584030', gear:'goggles' }
+    trainer_ruin_maniac: { hat:'#d8b068', shirt:'#c89050', accent:'#705038', pants:'#584030', gear:'goggles' },
+    // City-residents drop (PR for cities content). 30 new kinds.
+    npc_rollerblader: { hat:'#e848a0', shirt:'#f0f0a0', accent:'#3878d8', pants:'#202858', gear:'helmet' },
+    npc_jogger:       { hat:'#3878d8', shirt:'#f0f0f0', accent:'#e84030', pants:'#383838', gear:'wristband' },
+    npc_cyclist:      { hat:'#f0c020', shirt:'#202858', accent:'#e84030', pants:'#101018', gear:'helmet' },
+    npc_dancer:       { hat:'#e070b0', shirt:'#f898d0', accent:'#a04080', pants:'#702848', gear:'ribbon' },
+    npc_policeman:    { hat:'#283878', shirt:'#3858a8', accent:'#f0c020', pants:'#1a2040', gear:'badge' },
+    npc_firefighter:  { hat:'#f0c020', shirt:'#e8a830', accent:'#202020', pants:'#503028', gear:'hardhat' },
+    npc_paramedic:    { hat:'#f8f8f8', shirt:'#3070d8', accent:'#e83838', pants:'#1a1830', gear:'stethoscope' },
+    npc_security:     { hat:'#202020', shirt:'#383838', accent:'#f0c020', pants:'#101018', gear:'goggles' },
+    npc_construction: { hat:'#f0c020', shirt:'#e87018', accent:'#a83020', pants:'#583018', gear:'hardhat' },
+    npc_journalist:   { hat:'#a86838', shirt:'#d0a060', accent:'#383028', pants:'#383028', gear:'camera' },
+    npc_businessman:  { hat:'#101018', shirt:'#383850', accent:'#e83838', pants:'#1a1a28', gear:'briefcase' },
+    npc_saleswoman:   { hat:'#583058', shirt:'#a04080', accent:'#f0c8e0', pants:'#382038', gear:'briefcase' },
+    npc_doctor:       { hat:'#fff8e8', shirt:'#fff8e8', accent:'#3070d8', pants:'#d8d0c0', gear:'stethoscope' },
+    npc_scientist:    { hat:'#fff8e8', shirt:'#fff8e8', accent:'#3858a8', pants:'#5a4838', gear:'clipboard' },
+    npc_teacher:      { hat:'#783820', shirt:'#a85838', accent:'#f0e0a0', pants:'#3a2018', gear:'clipboard' },
+    npc_librarian:    { hat:'#603030', shirt:'#b07060', accent:'#fff8e0', pants:'#382020', gear:'book' },
+    npc_baker:        { hat:'#fff8e8', shirt:'#fff8e8', accent:'#e8a830', pants:'#a86040', gear:'apron' },
+    npc_chef:         { hat:'#fff8e8', shirt:'#fff8e8', accent:'#e83838', pants:'#1a1a1a', gear:'apron' },
+    npc_waiter:       { hat:'#101018', shirt:'#fff8e8', accent:'#e83838', pants:'#101018', gear:'tray' },
+    npc_artist:       { hat:'#583058', shirt:'#a8a8d0', accent:'#e8a830', pants:'#383040', gear:'palette' },
+    npc_dog_walker:   { hat:'#a85040', shirt:'#48a850', accent:'#f0c020', pants:'#382820', gear:'leash' },
+    npc_swimmer_m:    { hat:'#3878d8', shirt:'#3070d0', accent:'#f0f0f0', pants:'#1a3068', gear:'goggles' },
+    npc_swimmer_f:    { hat:'#e848a0', shirt:'#f87898', accent:'#fff8e0', pants:'#a83878', gear:'goggles' },
+    npc_tourist:      { hat:'#e83878', shirt:'#48d098', accent:'#f0c020', pants:'#3878d8', gear:'camera' },
+    npc_punk:         { hat:'#e83838', shirt:'#202020', accent:'#a020a0', pants:'#101018', gear:'spike' },
+    npc_kid_boy:      { hat:'#3878d8', shirt:'#e8a020', accent:'#f0e0a0', pants:'#3868c8', gear:'ball' },
+    npc_kid_girl:     { hat:'#f098c0', shirt:'#f8d0e0', accent:'#a04080', pants:'#e070a0', gear:'ribbon' },
+    npc_old_man_alt:  { hat:'#583828', shirt:'#a08868', accent:'#382820', pants:'#382820', gear:'cane' },
+    npc_old_woman:    { hat:'#9870b0', shirt:'#c8a0d0', accent:'#583858', pants:'#583858', gear:'purse' },
+    npc_hiker_alt:    { hat:'#48a830', shirt:'#a8782a', accent:'#f0c878', pants:'#583820', gear:'pack' }
   };
 
   // ---- Sprite poses ----
   // Each pose function takes (ctx, x, y, frame, p) where p is a palette object.
+
+  // Nurse hat overlay: a small red cross, plus pink hair tufts at the
+  // brim line. Called after the base hat has been painted in `p.hat`
+  // (which is white for the nurse palette).
+  function drawNurseHatFront(ctx, x, y, p) {
+    // Red cross centered on the hat front (vertical bar + horizontal bar).
+    const red = '#e02838';
+    const redShade = '#a01828';
+    px(ctx, x + 15, y + 3, 2, 4, red);
+    px(ctx, x + 14, y + 4, 4, 2, red);
+    // 1px shadow under the cross for legibility on white.
+    px(ctx, x + 14, y + 6, 4, 1, redShade);
+    px(ctx, x + 15, y + 7, 2, 1, p.outline);
+    // Pink hair tufts on either side of the brim.
+    const hair = p.accent || '#f098c0';
+    const hairShade = '#c8688c';
+    px(ctx, x + 7,  y + 7, 2, 3, hair);
+    px(ctx, x + 23, y + 7, 2, 3, hair);
+    px(ctx, x + 7,  y + 9, 2, 1, hairShade);
+    px(ctx, x + 23, y + 9, 2, 1, hairShade);
+    px(ctx, x + 6,  y + 7, 1, 3, p.outline);
+    px(ctx, x + 25, y + 7, 1, 3, p.outline);
+  }
+  function drawNurseHatBack(ctx, x, y, p) {
+    // Smaller red cross visible on the rear of the cap.
+    const red = '#e02838';
+    px(ctx, x + 15, y + 4, 2, 3, red);
+    px(ctx, x + 14, y + 5, 4, 1, red);
+    // Hair tufts on either side.
+    const hair = p.accent || '#f098c0';
+    const hairShade = '#c8688c';
+    px(ctx, x + 7,  y + 7, 2, 3, hair);
+    px(ctx, x + 23, y + 7, 2, 3, hair);
+    px(ctx, x + 7,  y + 9, 2, 1, hairShade);
+    px(ctx, x + 23, y + 9, 2, 1, hairShade);
+    px(ctx, x + 6,  y + 7, 1, 3, p.outline);
+    px(ctx, x + 25, y + 7, 1, 3, p.outline);
+  }
+  function drawNurseHatSide(ctx, x, y, p) {
+    // Side view: a 2px red bar across the side of the cap.
+    const red = '#e02838';
+    px(ctx, x + 14, y + 3, 4, 1, red);
+    px(ctx, x + 14, y + 4, 4, 2, red);
+    // Hair tuft visible behind the brim.
+    const hair = p.accent || '#f098c0';
+    px(ctx, x + 9,  y + 7, 2, 3, hair);
+    px(ctx, x + 8,  y + 7, 1, 3, p.outline);
+  }
 
   // Helper: draw an outlined head with hat (used by all front-facing poses).
   function drawHead(ctx, x, y, p, opts) {
@@ -2078,8 +3562,10 @@
       px(ctx, x + 8,  y + 8,  1, 6, p.outline);
       px(ctx, x + 23, y + 8,  1, 6, p.outline);
       px(ctx, x + 9,  y + 14, 14, 1, p.outline);
+      if (p.kind === 'nurse') drawNurseHatBack(ctx, x, y, p);
       return;
     }
+    if (p.kind === 'nurse') drawNurseHatFront(ctx, x, y, p);
     // Face skin block.
     px(ctx, x + 9,  y + 8,  14, 6, p.skin);
     // Skin shadow on right cheek.
@@ -2233,6 +3719,110 @@
       px(ctx, x + 11, y + 6, 4, 2, '#80d8f8');
       px(ctx, x + 17, y + 6, 4, 2, '#80d8f8');
       px(ctx, x + 15, y + 7, 2, 1, s);
+    } else if (g === 'briefcase') {
+      // Black briefcase by the right hip.
+      px(ctx, x + 23, y + 19, 5, 6, o);
+      px(ctx, x + 24, y + 20, 3, 4, '#383038');
+      px(ctx, x + 25, y + 18, 1, 2, o);
+    } else if (g === 'stethoscope') {
+      // Y-loop on chest, ear-piece on neck.
+      px(ctx, x + 13, y + 14, 1, 4, '#101820');
+      px(ctx, x + 18, y + 14, 1, 4, '#101820');
+      px(ctx, x + 14, y + 17, 4, 1, '#101820');
+      px(ctx, x + 15, y + 18, 2, 2, '#c0c0c8');
+    } else if (g === 'hardhat') {
+      // Wide brim hat overlay (paint over the regular hat).
+      px(ctx, x + 7,  y + 6, 18, 1, o);
+      px(ctx, x + 8,  y + 7, 16, 1, p.hat);
+      px(ctx, x + 9,  y + 4, 14, 3, p.hat);
+      px(ctx, x + 10, y + 3, 12, 1, p.hat);
+      px(ctx, x + 9,  y + 4, 14, 1, '#ffffff44');
+    } else if (g === 'clipboard') {
+      // White clipboard tucked under right arm.
+      px(ctx, x + 22, y + 16, 5, 7, o);
+      px(ctx, x + 23, y + 17, 3, 5, '#fff8e8');
+      px(ctx, x + 24, y + 18, 1, 1, o);
+      px(ctx, x + 24, y + 20, 1, 1, o);
+    } else if (g === 'camera') {
+      // Black camera body with a circular lens hanging on the chest.
+      px(ctx, x + 13, y + 16, 7, 4, o);
+      px(ctx, x + 14, y + 17, 5, 2, '#383038');
+      disc(ctx, x + 16, y + 18, 1, '#202020');
+      px(ctx, x + 16, y + 18, 1, 1, '#80d8f8');
+    } else if (g === 'leash') {
+      // Diagonal leash + small dog blob to the right.
+      for (let i = 0; i < 6; i++) px(ctx, x + 23 + i, y + 22 + i, 1, 1, o);
+      px(ctx, x + 27, y + 26, 4, 4, '#704020');
+      px(ctx, x + 27, y + 25, 2, 1, '#704020');
+      px(ctx, x + 30, y + 27, 1, 1, o);
+      px(ctx, x + 27, y + 30, 1, 1, o);
+      px(ctx, x + 30, y + 30, 1, 1, o);
+    } else if (g === 'helmet') {
+      // Sleek helmet overlay, with small chin-strap.
+      px(ctx, x + 8,  y + 3, 16, 1, o);
+      px(ctx, x + 9,  y + 4, 14, 4, p.hat);
+      px(ctx, x + 10, y + 3, 12, 1, '#ffffff66');
+      px(ctx, x + 12, y + 8, 8, 1, o);
+    } else if (g === 'wristband') {
+      // Bright wristbands on both wrists.
+      px(ctx, x + 8,  y + 19, 2, 1, a);
+      px(ctx, x + 22, y + 19, 2, 1, a);
+    } else if (g === 'ribbon') {
+      // Pink ribbon at the back of the head + waist.
+      px(ctx, x + 6,  y + 5, 2, 2, '#ffb0d0');
+      px(ctx, x + 24, y + 5, 2, 2, '#ffb0d0');
+      px(ctx, x + 14, y + 18, 4, 1, a);
+    } else if (g === 'badge') {
+      // Police-style golden 5-point star on the chest.
+      px(ctx, x + 14, y + 16, 4, 4, '#f0c020');
+      px(ctx, x + 15, y + 15, 2, 1, '#f0c020');
+      px(ctx, x + 15, y + 20, 2, 1, '#f0c020');
+      px(ctx, x + 13, y + 17, 1, 2, '#f0c020');
+      px(ctx, x + 18, y + 17, 1, 2, '#f0c020');
+    } else if (g === 'spike') {
+      // Metallic shoulder spikes.
+      px(ctx, x + 8,  y + 13, 2, 2, '#c0c0c8');
+      px(ctx, x + 22, y + 13, 2, 2, '#c0c0c8');
+      px(ctx, x + 9,  y + 12, 1, 1, o);
+      px(ctx, x + 22, y + 12, 1, 1, o);
+    } else if (g === 'ball') {
+      // Red kickball under right arm.
+      disc(ctx, x + 25, y + 22, 3, '#e83838');
+      disc(ctx, x + 25, y + 22, 2, '#f86040');
+    } else if (g === 'cane') {
+      // Wooden cane in right hand.
+      px(ctx, x + 23, y + 20, 1, 9, '#8a5028');
+      px(ctx, x + 23, y + 19, 2, 1, o);
+    } else if (g === 'purse') {
+      // Small purse with a strap.
+      px(ctx, x + 8,  y + 18, 4, 5, '#783858');
+      px(ctx, x + 9,  y + 19, 2, 3, '#a0508a');
+      px(ctx, x + 8,  y + 17, 1, 2, o);
+      px(ctx, x + 11, y + 17, 1, 2, o);
+    } else if (g === 'apron') {
+      // White apron strip across the body.
+      px(ctx, x + 11, y + 14, 10, 8, '#fff8f0');
+      px(ctx, x + 11, y + 14, 10, 1, '#d0c0a0');
+      px(ctx, x + 11, y + 21, 10, 1, '#d0c0a0');
+    } else if (g === 'tray') {
+      // Small silver tray on right hand.
+      px(ctx, x + 21, y + 16, 8, 2, '#c0c0c8');
+      px(ctx, x + 21, y + 15, 8, 1, '#fff8e8');
+      px(ctx, x + 24, y + 17, 1, 1, '#e8a830');
+    } else if (g === 'palette') {
+      // Painter's palette with daubs.
+      px(ctx, x + 22, y + 18, 6, 5, '#a86838');
+      px(ctx, x + 23, y + 19, 1, 1, '#e83838');
+      px(ctx, x + 25, y + 19, 1, 1, '#3878d8');
+      px(ctx, x + 23, y + 21, 1, 1, '#48a830');
+      px(ctx, x + 25, y + 21, 1, 1, '#f0c020');
+    } else if (g === 'book') {
+      // Stack of books in left hand.
+      px(ctx, x + 6,  y + 18, 5, 2, '#a83020');
+      px(ctx, x + 6,  y + 20, 5, 2, '#3858a8');
+      px(ctx, x + 6,  y + 22, 5, 2, '#48a830');
+      px(ctx, x + 6,  y + 18, 1, 6, o);
+      px(ctx, x + 10, y + 18, 1, 6, o);
     }
   }
 
@@ -2256,6 +3846,7 @@
     px(ctx, x + 10, y + 4, 1, 3, p.outline);
     px(ctx, x + 25, y + 4, 1, 3, p.outline);
     px(ctx, x + 10, y + 7, 16, 1, p.outline);
+    if (p.kind === 'nurse') drawNurseHatSide(ctx, x, y, p);
     // Face.
     px(ctx, x + 11, y + 8,  14, 6, p.skin);
     px(ctx, x + 23, y + 9,  2, 4, p.skinShade);
@@ -2299,7 +3890,7 @@
     // Each NPC kind (except 'ball'): 4 dirs × 2 frames.
     for (const kind of Object.keys(NPC_SEEDS)) {
       if (kind === 'player') continue;
-      const pal = npcPalette(NPC_SEEDS[kind]);
+      const pal = npcPalette(NPC_SEEDS[kind], kind);
       for (let f = 0; f < 2; f++) {
         regChar(kind + '_down_'  + f, ((ff, pp) => (c, x, y) => drawCharDown    (c, x, y, ff, pp))(f, pal));
         regChar(kind + '_up_'    + f, ((ff, pp) => (c, x, y) => drawCharUp      (c, x, y, ff, pp))(f, pal));
@@ -2309,6 +3900,88 @@
     }
     // Pokeball pickup.
     regChar('ball', drawBallSprite);
+    // Wandering chickens — registered with the same 4-dir × 2-frame
+    // shape as NPCs so the existing character render path works
+    // unchanged. drawChicken bypasses the humanoid drawHead/drawBody.
+    // Convention: spriteKey() in js/sprites_chars.js swaps left↔right
+    // at lookup time (atlas was generated with side sprite facing
+    // right-by-default), so the `_left_` keys must contain the
+    // right-facing pose and vice versa.
+    for (let f = 0; f < 2; f++) {
+      regChar('chicken_down_'  + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'down'))(f));
+      regChar('chicken_up_'    + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'up'))(f));
+      regChar('chicken_left_'  + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'right'))(f));
+      regChar('chicken_right_' + f, ((ff) => (c, x, y) => drawChicken(c, x, y, ff, 'left'))(f));
+    }
+  }
+
+  // Standalone chicken sprite — plump white body, red comb,
+  // yellow beak/feet. Two frames simulate a small step.
+  function drawChicken(c, x, y, frame, dir) {
+    const f = frame & 1;
+    const body = '#fff8e8';
+    const shade = '#d8c8a8';
+    const comb = '#e83838';
+    const beak = '#f0c020';
+    const eye = '#1a1a1a';
+    const out = '#1a1a1a';
+    // Body: 14x10 oval-ish, centred bottom-2/3 of cell.
+    px(c, x + 9,  y + 16, 14, 10, body);
+    px(c, x + 9,  y + 16, 14, 1, '#ffffff');
+    px(c, x + 9,  y + 25, 14, 1, shade);
+    px(c, x + 8,  y + 17, 1, 8, out);
+    px(c, x + 23, y + 17, 1, 8, out);
+    px(c, x + 9,  y + 16, 14, 1, out);
+    px(c, x + 9,  y + 26, 14, 1, out);
+    // Wing dimple on the side.
+    px(c, x + 13, y + 19, 5, 3, shade);
+    // Tail feather flick — alternates per frame.
+    const tx = (dir === 'right') ? x + 6 : x + 22;
+    const tdir = (dir === 'right') ? -1 : 1;
+    px(c, tx, y + 14, 4, 2, body);
+    px(c, tx, y + 14, 4, 1, out);
+    px(c, tx, y + 16, 4, 1, out);
+    px(c, tx + (tdir < 0 ? 0 : 3), y + 14, 1, 2, out);
+    // Head + comb position depends on facing.
+    let hx = x + 17, hy = y + 9;
+    if (dir === 'left')  { hx = x + 9;  }
+    if (dir === 'right') { hx = x + 17; }
+    if (dir === 'up')    { hy = y + 8; }
+    px(c, hx, hy, 6, 7, body);
+    px(c, hx, hy, 6, 1, out);
+    px(c, hx, hy + 6, 6, 1, out);
+    px(c, hx, hy + 1, 1, 5, out);
+    px(c, hx + 5, hy + 1, 1, 5, out);
+    // Comb on top.
+    px(c, hx + 1, hy - 2, 4, 2, comb);
+    px(c, hx + 1, hy - 2, 1, 1, comb);
+    px(c, hx + 3, hy - 2, 1, 1, comb);
+    // Beak.
+    if (dir === 'left') {
+      px(c, hx - 2, hy + 3, 2, 2, beak);
+      px(c, hx + 2, hy + 2, 1, 1, eye);
+    } else if (dir === 'right') {
+      px(c, hx + 6, hy + 3, 2, 2, beak);
+      px(c, hx + 3, hy + 2, 1, 1, eye);
+    } else if (dir === 'up') {
+      // Beak hidden behind comb when facing away — show comb only.
+      px(c, hx + 2, hy + 2, 2, 1, eye);
+    } else {
+      px(c, hx + 2, hy + 5, 2, 2, beak);
+      px(c, hx + 1, hy + 2, 1, 1, eye);
+      px(c, hx + 4, hy + 2, 1, 1, eye);
+    }
+    // Feet — two yellow stick legs that swap per frame.
+    const legY = y + 27;
+    if (f === 0) {
+      px(c, x + 12, legY, 1, 3, beak);
+      px(c, x + 18, legY, 1, 3, beak);
+    } else {
+      px(c, x + 13, legY, 1, 3, beak);
+      px(c, x + 19, legY, 1, 3, beak);
+    }
+    px(c, x + 11, legY + 3, 3, 1, beak);
+    px(c, x + 17, legY + 3, 3, 1, beak);
   }
 
   function drawBallSprite(c, x, y) {

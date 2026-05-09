@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.23.0';
-  const BUILD = '2026.05.09-78';
+  const VERSION = 'v0.40.1';
+  const BUILD = '2026.05.08-111';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -153,8 +153,11 @@
 
   function startNewGame() {
     window.PR_SAVE.clear();
-    state.player = { name:'YOU', map:'rodport', x:8, y:9, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1 },
+    // Spawn on the cottage-row path just south of player_house's
+    // door tile in the post-redesign rodport (player_house is at
+    // x:3,y:6,w:7 with door at (6,9) → walkable spur at (6,11)).
+    state.player = { name:'YOU', map:'rodport', x:6, y:11, dir:'down', money:500, balls:5, steps:0,
+                     bag: { rodball:5, potion:3, antidote:1, oranberry:1 },
                      equipment: { trinket: null },
                      stats: { battlesWon:0, catches:0 } };
     state.party = [];
@@ -212,8 +215,9 @@
       state._prevMode = state.mode;
       state.errorLogged = false;
     }
-    // Global: Select toggles audio mute.
-    if (window.PR_INPUT.consumePressed('Shift')) {
+    // Global: Select toggles audio mute, except in the Pokedex
+    // where it cycles the all/seen/got filter (handled in updateDex).
+    if (state.mode !== 'dex' && window.PR_INPUT.consumePressed('Shift')) {
       const A = window.PR_AUDIO;
       if (A) {
         A.unlock();
@@ -227,6 +231,11 @@
       state.konamiArmed = false;
       if (state.battle.forceWin() && !hadBadge) showFlash('KONAMI WIN!');
       return;
+    }
+    if (state.healAnim) updateHealAnim(dt);
+    if (state.menuAnim) {
+      state.menuAnim.t += dt;
+      if (state.menuAnim.t >= state.menuAnim.duration) state.menuAnim = null;
     }
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
@@ -245,7 +254,6 @@
     else if (state.mode === 'quests') updateQuests();
     else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.update(state);
     else if (state.mode === 'starter') updateStarter();
-    else if (state.mode === 'fishing') updateFishing(dt);
   }
 
   let flashText = null, flashTimer = 0;
@@ -311,9 +319,9 @@
     finally { ctx.restore(); }
   }
   function render() {
-    if (state.mode === 'title') { withScale2(drawFlash); return; }
-    if (state.mode === 'intro') { withScale2(() => { drawIntro(); drawFlash(); }); return; }
-    if (state.mode === 'battle') { withScale2(() => { state.battle.render(ctx); drawFlash(); }); return; }
+    if (state.mode === 'title') { withScale2(drawFlash); renderBottom(); return; }
+    if (state.mode === 'intro') { withScale2(() => { drawIntro(); drawFlash(); }); renderBottom(); return; }
+    if (state.mode === 'battle') { withScale2(() => { state.battle.render(ctx); drawFlash(); }); renderBottom(); return; }
     state.world.render(ctx);
     withScale2(() => {
       if (state.mode === 'dialog') drawDialog();
@@ -329,9 +337,13 @@
       else if (state.mode === 'quests') drawQuests();
       else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.draw(ctx, state, VIEW_W, VIEW_H);
       else if (state.mode === 'starter') drawStarter();
-      else if (state.mode === 'fishing') drawFishing();
       drawFlash();
     });
+    renderBottom();
+  }
+
+  function renderBottom() {
+    if (window.PR_BOTTOM) window.PR_BOTTOM.render(state);
   }
 
   function drawFlash() {
@@ -388,62 +400,69 @@
   window.addEventListener('DOMContentLoaded', init);
   if (document.readyState !== 'loading') init();
 
+  // Expose: open the party panel focused on the given party index.
+  // Used by the DS bottom-screen tap handler to surface party stats
+  // when a pill is touched in the overworld.
+  function openPartyMember(idx) {
+    if (!state || !state.party || !state.party.length) return false;
+    const safe = Math.max(0, Math.min(state.party.length - 1, idx | 0));
+    if (state.mode === 'battle' || state.mode === 'intro' || state.mode === 'title') return false;
+    if (!state.menu) {
+      state.menu = { idx: 3, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
+    }
+    state.menu.viewing = 'party';
+    state.menu.partyView = { idx: safe, page: 0 };
+    state.mode = 'menu';
+    startMenuAnim && startMenuAnim();
+    window.PR_SFX && window.PR_SFX.play('select');
+    return true;
+  }
+
   // expose for further additions
   window.PR_GAME = {
     state,
     openBagFromBattle: () => openBag('battle'),
-    startFishing
+    openPartyMember
   };
 
   // ---------- Intro ----------
-  // Each visible line must fit the dialog box (~32 chars at 6px/char).
-  // drawIntro re-wraps as a safety net, but keep authoring lines short.
   const INTRO_PAGES = [
     { kind:'prof', lines:[
       'Hello there!',
-      "I'm PROF. ROD."
-    ] },
-    { kind:'prof', lines:[
-      'I study POKEROD --',
-      'creatures of every kind.'
+      'I am PROF. ROD, a researcher of POKEROD.'
     ] },
     { kind:'creature', species:'emberkit', lines:[
-      'Some blaze with fire...'
+      'These small marvels are POKEROD.',
+      'Some live wild; others walk with friends.'
     ] },
     { kind:'creature', species:'aquapup', lines:[
-      '...some swim the seas...'
+      'They come in every shape and element.',
+      'Each one has its own quirks and skills.'
     ] },
     { kind:'creature', species:'sproutling', lines:[
-      '...some bloom in spring.',
-      'Each one is unique.'
+      'A trainer with a kind heart',
+      'can earn a partner for life.'
+    ] },
+    { kind:'prof', lines:[
+      'My grandkids set out years ago.',
+      'Today, the road calls to YOU.'
     ] },
     { kind:'player', lines:[
-      'Today, you take',
-      'your first step.',
-      'My lab is just south.'
+      'Step out of your house in RODPORT.',
+      'Visit my lab. A partner is waiting.'
     ] },
     { kind:'player', lines:[
-      'A partner waits there.',
-      'Press A to begin!'
+      'The world of POKEROD awaits!',
+      'Press Z to begin.'
     ] }
   ];
-  const INTRO_WRAP = 32;
-
-  function wrappedIntroLines(page) {
-    const out = [];
-    for (const ln of page.lines) {
-      const w = window.PR_UI.wrap(String(ln || ''), INTRO_WRAP);
-      if (w.length === 0) out.push(''); else out.push.apply(out, w);
-    }
-    return out;
-  }
 
   function updateIntro(dt) {
     const I = window.PR_INPUT;
     state.intro.charT += dt * 60;
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
       const page = INTRO_PAGES[state.intro.page];
-      const fullLen = wrappedIntroLines(page).join('\n').length;
+      const fullLen = page.lines.join('\n').length;
       if (state.intro.charT < fullLen) {
         state.intro.charT = fullLen + 999;
         return;
@@ -489,7 +508,7 @@
     // Text area at the bottom.
     const x = 8, y = VIEW_H - 56, w = VIEW_W - 16, h = 50;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    const fullText = wrappedIntroLines(page).join('\n');
+    const fullText = page.lines.join('\n');
     const shown = fullText.slice(0, Math.min(fullText.length, state.intro.charT|0));
     window.PR_UI.drawText(ctx, shown, x + 6, y + 6, '#202020');
     // Page indicator.
@@ -555,8 +574,34 @@
     startBattleAgainstWild(pick.species, lvl);
   }
 
+  // Resolve current phase name for time-of-day encounter filtering.
+  // Falls back to 'day' if PR_TIME isn't loaded (atlas/intro boot).
+  function currentPhaseName() {
+    if (window.PR_TIME && window.PR_TIME.current) return window.PR_TIME.current();
+    return 'day';
+  }
+  // Encounter entries can opt in to a `time` field. Accepted forms:
+  //   time: 'day' | 'night' | 'dawn' | 'dusk'
+  //   time: ['day','dusk']  // any-of
+  // Entries without `time` appear at all hours (preserves existing
+  // behaviour). If every encounter happens to be time-gated and none
+  // match, fall back to the unfiltered list so the player is never
+  // stranded with no wild encounters at a particular hour.
+  function encounterMatchesPhase(entry, phaseName) {
+    if (!entry.time) return true;
+    if (Array.isArray(entry.time)) return entry.time.indexOf(phaseName) !== -1;
+    return entry.time === phaseName;
+  }
+  function filterEncountersByTime(list) {
+    if (!list || !list.length) return list;
+    const phase = currentPhaseName();
+    const filtered = list.filter(e => encounterMatchesPhase(e, phase));
+    return filtered.length ? filtered : list;
+  }
+
   function encounterPoolForMap(map) {
     if (!map) return [];
+    let list = null;
     if (Array.isArray(map.encounterZones)) {
       const px = state.player.x | 0, py = state.player.y | 0;
       for (const zone of map.encounterZones) {
@@ -564,11 +609,13 @@
         const zw = Math.max(1, zone.w | 0), zh = Math.max(1, zone.h | 0);
         if (px >= zx && px < zx + zw && py >= zy && py < zy + zh &&
             zone.encounters && zone.encounters.length) {
-          return zone.encounters;
+          list = zone.encounters;
+          break;
         }
       }
     }
-    return map.encounters || [];
+    if (!list) list = map.encounters || [];
+    return filterEncountersByTime(list);
   }
 
   // ---------- Battle setup helpers ----------
@@ -577,7 +624,12 @@
     let step = 'init';
     try {
       step = 'sfx-play';
-      if (window.PR_SFX) window.PR_SFX.play('encounter');
+      if (window.PR_SFX) {
+        window.PR_SFX.play('encounter');
+        // Cry the trainer's lead mon so encounters feel personal.
+        const lead = npc && npc.trainer && npc.trainer.team && npc.trainer.team[0];
+        if (lead && window.PR_SFX.cry) window.PR_SFX.cry(lead[0]);
+      }
       step = 'music-play';
       if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
       step = 'check-data';
@@ -607,7 +659,10 @@
     let step = 'init';
     try {
       step = 'sfx-play';
-      if (window.PR_SFX) window.PR_SFX.play('encounter');
+      if (window.PR_SFX) {
+        window.PR_SFX.play('encounter');
+        if (window.PR_SFX.cry) window.PR_SFX.cry(species);
+      }
       step = 'music-play';
       if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
       step = 'check-data';
@@ -626,175 +681,6 @@
       const msg = (err && err.message) || String(err);
       showFlash('WILD ' + step + ': ' + msg.slice(0, 24));
     }
-  }
-
-  // ---------- Fishing minigame ----------
-  // Cast -> wait -> bite (~0.6s window) -> hooked (wild battle) | missed.
-  // The player can press B at any phase to cancel.
-  const FISH_FALLBACK = [
-    { species:'splashfin', minL:3, maxL:5, weight:5 },
-    { species:'aquapup',   minL:3, maxL:5, weight:3 }
-  ];
-
-  function startFishing() {
-    const map = state.world && state.world.currentMap();
-    const pool = (map && map.fishingEncounters && map.fishingEncounters.length)
-      ? map.fishingEncounters : FISH_FALLBACK;
-    const total = pool.reduce((a,e) => a + (e.weight || 1), 0);
-    let r = Math.random() * total;
-    let pick = pool[0];
-    for (const e of pool) { r -= (e.weight || 1); if (r <= 0) { pick = e; break; } }
-    const lvl = pick.minL + Math.floor(Math.random() * (pick.maxL - pick.minL + 1));
-    state.fishing = {
-      phase: 'cast',
-      t: 0,
-      waitFor: 1.0 + Math.random() * 3.0,    // 1.0 - 4.0s
-      biteWindow: 0.6,
-      species: pick.species,
-      level: lvl,
-      done: false
-    };
-    state.mode = 'fishing';
-    if (window.PR_SFX) window.PR_SFX.play('door');  // soft splash-y
-  }
-
-  function updateFishing(dt) {
-    const f = state.fishing;
-    if (!f) { state.mode = 'overworld'; return; }
-    f.t += dt;
-    const I = window.PR_INPUT;
-    // B cancels at any time.
-    if (I.consumePressed('x')) {
-      window.PR_SFX && window.PR_SFX.play('cancel');
-      state.fishing = null;
-      state.mode = 'overworld';
-      return;
-    }
-    if (f.phase === 'cast') {
-      if (f.t >= 0.5) { f.phase = 'wait'; f.t = 0; }
-      I.consumePressed('z');                    // swallow stray A during cast
-      return;
-    }
-    if (f.phase === 'wait') {
-      if (I.consumePressed('z')) {
-        // Yanking too early scares the fish.
-        f.phase = 'missed';
-        f.t = 0;
-        if (window.PR_SFX) window.PR_SFX.play('bump');
-        return;
-      }
-      if (f.t >= f.waitFor) { f.phase = 'bite'; f.t = 0; if (window.PR_SFX) window.PR_SFX.play('select'); }
-      return;
-    }
-    if (f.phase === 'bite') {
-      if (I.consumePressed('z')) {
-        f.phase = 'hooked';
-        f.t = 0;
-        if (window.PR_SFX) window.PR_SFX.play('confirm');
-        return;
-      }
-      if (f.t >= f.biteWindow) {
-        f.phase = 'missed';
-        f.t = 0;
-        if (window.PR_SFX) window.PR_SFX.play('weak');
-      }
-      return;
-    }
-    if (f.phase === 'hooked') {
-      if (f.t >= 0.5) {
-        const sp = f.species, lv = f.level;
-        state.fishing = null;
-        // Need a living party member to start a battle.
-        if (!state.party.length || !state.party.some(p => p.hp > 0)) {
-          state.mode = 'overworld';
-          openDialog(['You hooked a creature, but no one is awake to battle!']);
-          return;
-        }
-        startBattleAgainstWild(sp, lv);
-      }
-      return;
-    }
-    if (f.phase === 'missed') {
-      if (f.t >= 1.0) {
-        state.fishing = null;
-        state.mode = 'overworld';
-      }
-      return;
-    }
-  }
-
-  function drawFishing() {
-    // Darken the world (already drawn natively at 480x320) so the bobber pops.
-    ctx.fillStyle = 'rgba(8, 12, 28, 0.55)';
-    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
-    // Calm water bands at the bottom.
-    for (let y = 90; y < 130; y += 4) {
-      const a = 0.10 + 0.04 * Math.sin((performance.now()/350) + y * 0.4);
-      ctx.fillStyle = 'rgba(120,180,240,' + a.toFixed(3) + ')';
-      ctx.fillRect(0, y, VIEW_W, 2);
-    }
-    // Rod from upper-right to a bobber near center-bottom.
-    const f = state.fishing;
-    const cx = (VIEW_W / 2) | 0;
-    let bobY = 100;
-    if (f) {
-      if (f.phase === 'cast')   bobY = 100 - Math.round(Math.sin((f.t / 0.5) * Math.PI) * 18);
-      if (f.phase === 'wait')   bobY = 100 + Math.round(Math.sin(f.t * 4) * 2);
-      if (f.phase === 'bite')   bobY = 100 + Math.round(Math.sin(f.t * 30) * 3);
-      if (f.phase === 'hooked') bobY = 100 - Math.round(f.t * 80);
-      if (f.phase === 'missed') bobY = 100 + 6;
-    }
-    // Rod (diagonal yellow line).
-    ctx.strokeStyle = '#806040';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(VIEW_W - 14, 22);
-    ctx.lineTo(VIEW_W - 60, 60);
-    ctx.stroke();
-    // Fishing line (bright thin).
-    ctx.strokeStyle = '#fff8c8';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(VIEW_W - 60, 60);
-    ctx.lineTo(cx + 2, bobY);
-    ctx.stroke();
-    // Bobber: red top, white bottom.
-    ctx.fillStyle = '#202020';
-    ctx.fillRect(cx - 2, bobY - 3, 6, 7);
-    ctx.fillStyle = '#e84848';
-    ctx.fillRect(cx - 1, bobY - 2, 4, 3);
-    ctx.fillStyle = '#fff8e8';
-    ctx.fillRect(cx - 1, bobY + 1, 4, 2);
-    // Splash ring on cast / hooked.
-    if (f && (f.phase === 'cast' || f.phase === 'hooked')) {
-      const r = (f.phase === 'cast' ? 4 + (1 - f.t/0.5) * 12 : 6 + f.t * 30) | 0;
-      ctx.strokeStyle = 'rgba(200,232,255,0.7)';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(cx + 1, 102, Math.max(1, r), 0, Math.PI*2); ctx.stroke();
-    }
-    // '!' bubble on bite.
-    if (f && f.phase === 'bite') {
-      const blink = (((f.t * 8) | 0) % 2) === 0;
-      if (blink) {
-        ctx.fillStyle = '#fff8c0';
-        ctx.fillRect(cx - 5, bobY - 18, 9, 12);
-        ctx.fillStyle = '#202020';
-        ctx.fillRect(cx - 6, bobY - 19, 11, 2);
-        ctx.fillRect(cx - 6, bobY - 7, 11, 1);
-        ctx.fillRect(cx - 6, bobY - 19, 1, 13);
-        ctx.fillRect(cx + 4, bobY - 19, 1, 13);
-        window.PR_UI.drawText(ctx, '!', cx - 2, bobY - 16, '#d83020');
-      }
-    }
-    // Status banner.
-    let label = 'CAST!';
-    if (f) {
-      if (f.phase === 'wait')   label = '...';
-      if (f.phase === 'bite')   label = '* A NIBBLE! PRESS A *';
-      if (f.phase === 'hooked') label = 'HOOKED IT!';
-      if (f.phase === 'missed') label = 'GOT AWAY...';
-    }
-    window.PR_UI.drawDialog(ctx, [label, 'B: CANCEL'], VIEW_W, VIEW_H, false);
   }
 
   // ---------- NPC interaction ----------
@@ -931,7 +817,16 @@
   }
 
   function healAtCenter() {
-    openDialog(['Healing your team...','All set! Have a great day!'], () => {
+    state.healAnim = { t: 0, duration: 2.0, healed: false };
+    openDialog(['Healing your team...', 'All set! Have a great day!']);
+  }
+
+  function updateHealAnim(dt) {
+    const h = state.healAnim;
+    if (!h) return;
+    h.t += dt;
+    if (!h.healed && h.t >= 1.0) {
+      h.healed = true;
       window.PR_SFX && window.PR_SFX.play('heal');
       for (const m of state.party) {
         m.hp = m.stats.hp;
@@ -939,7 +834,8 @@
         for (const mv of m.moves) mv.pp = mv.ppMax;
       }
       window.PR_SAVE.save(state);
-    });
+    }
+    if (h.t >= h.duration + 0.5) state.healAnim = null;
   }
 
   // ---------- Starter selection ----------
@@ -996,9 +892,20 @@
     PROFILE:'profile', QUEST:'map', PVP:'party', SETTINGS:'gear', SAVE:'save', EXIT:'x'
   };
 
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+  function startMenuAnim() {
+    if (window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond' && !reducedMotion()) {
+      state.menuAnim = { t: 0, duration: 0.18 };
+    } else {
+      state.menuAnim = null;
+    }
+  }
   function openPauseMenu() {
     state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
+    startMenuAnim();
   }
   function updateMenu() {
     const I = window.PR_INPUT;
@@ -1057,10 +964,24 @@
     if (m.viewing === 'party') {
       drawPartyView(); return;
     }
-    ctx.fillStyle = 'rgba(8,12,20,0.42)';
+    const anim = state.menuAnim;
+    let kAnim = 1, animY = 0;
+    if (anim) {
+      kAnim = Math.max(0, Math.min(1, anim.t / anim.duration));
+      animY = -(1 - kAnim) * 8;
+    }
+    ctx.fillStyle = 'rgba(8,12,20,' + (0.42 * kAnim).toFixed(3) + ')';
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     const w = 154, h = 144;
     const x = VIEW_W - w - 6, y = 8;
+    let pushedAlpha = false;
+    if (anim) {
+      ctx.save();
+      ctx.globalAlpha = kAnim;
+      ctx.translate(0, animY);
+      pushedAlpha = true;
+    }
+    state._drawMenuRestore = pushedAlpha;
     window.PR_UI.panel(ctx, x, y, w, h, {
       fill:'#f8f0d8', border:'#202020', shadow:'#c89048', highlight:'#fff8e8'
     });
@@ -1097,6 +1018,7 @@
       window.PR_UI.panel(ctx, 40, 70, 160, 20, { fill:'#fff', border:'#202020' });
       window.PR_UI.drawText(ctx, m.flash, 50, 76, '#202020');
     }
+    if (state._drawMenuRestore) { ctx.restore(); state._drawMenuRestore = false; }
   }
 
   function ensurePlayerStats() {
@@ -1181,12 +1103,13 @@
   }
   // ---------- Settings ----------
   const SETTINGS_DEFAULTS = {
-    graphics: 'gba_firered',
+    graphics: 'ds_diamond',
     sfxVol: 'med',     // off | low | med | high
     musicVol: 'med',
     textSpeed: 'normal', // slow | normal | fast
     reducedMotion: false,
-    colorblind: false
+    colorblind: false,
+    dayNightCycle: true
   };
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
@@ -1230,6 +1153,7 @@
     ensureSettings();
     state.settingsView = { idx: 0 };
     state.mode = 'settings';
+    startMenuAnim();
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
@@ -1239,7 +1163,8 @@
     { key:'musicVol',      label:'MUSIC VOLUME', type:'enum', steps:VOL_STEPS },
     { key:'textSpeed',     label:'TEXT SPEED',   type:'enum', steps:TEXT_SPEED_STEPS },
     { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
-    { key:'colorblind',    label:'COLOR-BLIND', type:'bool' }
+    { key:'colorblind',    label:'COLOR-BLIND', type:'bool' },
+    { key:'dayNightCycle', label:'DAY/NIGHT', type:'bool' }
   ];
 
   function updateSettings() {
@@ -1267,6 +1192,15 @@
 
   function drawSettings() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const anim = state.menuAnim;
+    let pushed = false;
+    if (anim) {
+      const k = Math.max(0, Math.min(1, anim.t / anim.duration));
+      ctx.save();
+      ctx.globalAlpha = k;
+      ctx.translate(0, -(1 - k) * 8);
+      pushed = true;
+    }
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     window.PR_UI.header(ctx, 'SETTINGS', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
@@ -1281,6 +1215,7 @@
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 92, cy, '#385890');
     }
     window.PR_UI.drawText(ctx, 'A/RIGHT: NEXT  LEFT: PREV', x + 8, y + h - 12, '#806040');
+    if (pushed) ctx.restore();
   }
 
   // ---------- Rival duel (PvP-style mirror match) ----------
@@ -1710,8 +1645,6 @@
     if (state.player.equipment.trinket === undefined) state.player.equipment.trinket = null;
     ensurePlayerStats();
     if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
-    // Grandfather the OLD ROD into older saves so fishing is available.
-    if (state.player.bag && !state.player.bag.old_rod) state.player.bag.old_rod = 1;
     state.party = data.party || [];
     // Default missing held slot on each party member (pre-feature saves).
     for (const m of state.party) if (m && m.held === undefined) m.held = null;
@@ -1745,29 +1678,54 @@
 
   function openDex() {
     ensureDex();
-    state.dexView = { idx: 0, scroll: 0 };
+    state.dexView = { idx: 0, scroll: 0, filter: 'all' };
     state.mode = 'dex';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
-  function dexEntries() {
+  const DEX_FILTERS = ['all', 'seen', 'got'];
+  const DEX_FILTER_LABELS = { all:'ALL', seen:'SEEN', got:'GOT' };
+
+  function dexEntries(filter) {
     const C = window.PR_DATA.CREATURES;
-    const ids = Object.keys(C).sort((a,b) => (C[a].dex|0) - (C[b].dex|0));
+    let ids = Object.keys(C).sort((a,b) => (C[a].dex|0) - (C[b].dex|0));
+    if (filter === 'seen' && state.dex) ids = ids.filter(id => state.dex.seen.has(id));
+    else if (filter === 'got' && state.dex) ids = ids.filter(id => state.dex.caught.has(id));
     return ids;
   }
 
   function updateDex() {
     const I = window.PR_INPUT;
     const v = state.dexView;
-    const ids = dexEntries();
+    if (!v.filter) v.filter = 'all';
+    // SELECT cycles the filter. Try to keep the previously selected
+    // species highlighted across the filter change; otherwise clamp.
+    if (I.consumePressed('Shift')) {
+      const prevIds = dexEntries(v.filter);
+      const prevSelId = prevIds[v.idx] || null;
+      const cur = DEX_FILTERS.indexOf(v.filter);
+      v.filter = DEX_FILTERS[(cur + 1) % DEX_FILTERS.length];
+      const nextIds = dexEntries(v.filter);
+      const keep = prevSelId ? nextIds.indexOf(prevSelId) : -1;
+      v.idx = keep >= 0 ? keep : 0;
+      v.scroll = 0;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+    }
+    const ids = dexEntries(v.filter);
     const max = ids.length;
+    if (max === 0) {
+      if (I.consumePressed('x')) { state.dexView = null; state.mode = 'menu'; return; }
+      v.idx = 0; v.scroll = 0;
+      return;
+    }
+    if (v.idx >= max) v.idx = max - 1;
     if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('ArrowRight')) { v.idx = Math.min(max - 1, v.idx + 6); }
     if (I.consumePressed('ArrowLeft'))  { v.idx = Math.max(0, v.idx - 6); }
     if (I.consumePressed('x')) { state.dexView = null; state.mode = 'menu'; return; }
     // Keep selection visible.
-    const visibleRows = 8;
+    const visibleRows = 9;
     if (v.idx < v.scroll) v.scroll = v.idx;
     if (v.idx >= v.scroll + visibleRows) v.scroll = v.idx - visibleRows + 1;
   }
@@ -1804,56 +1762,76 @@
 
   function drawDex() {
     ensureDex();
-    const ids = dexEntries();
-    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const v = state.dexView;
+    if (!v.filter) v.filter = 'all';
+    const ids = dexEntries(v.filter);
+    const x = 2, y = 2, w = VIEW_W - 4, h = VIEW_H - 4;
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
-    const seenN = state.dex.seen.size, caughtN = state.dex.caught.size;
-    window.PR_UI.header(ctx, 'POKEDEX', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'SEEN ' + seenN + ' CAUGHT ' + caughtN, x + 60, y + 4, '#f0c020');
+
+    // Header: title + filter label + count + back hint, sized to fit 232px.
+    const filterLabel = DEX_FILTER_LABELS[v.filter];
+    const total = Object.keys(window.PR_DATA.CREATURES).length;
+    window.PR_UI.header(ctx, 'POKEDEX', x + 2, y + 2, w - 4, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, filterLabel + ' ' + ids.length + '/' + total, x + 56, y + 4, '#f0c020');
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#f0c020');
 
-    // Left: always-named scroll list. Names always visible (per design),
-    // status mark (* caught, . seen, blank otherwise) hints at progress.
-    const listX = x + 4, listY = y + 20, rowH = 12;
-    const rows = 8;
-    const v = state.dexView;
-    const listW = 104;
+    // Left: scrollable list. Mark glyphs (*=caught, .=seen) shown
+    // alongside name; legend + filter hint below the list.
+    const listX = x + 4, listY = y + 16, rowH = 11;
+    const rows = 9;
+    const listW = 86;
     for (let r = 0; r < rows; r++) {
       const i = v.scroll + r;
       if (i >= ids.length) break;
       const id = ids[i];
       const sp = window.PR_DATA.CREATURES[id];
       const cy = listY + r * rowH;
-      if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, listW, 11, true);
+      if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, listW, 10, true);
       const num = String(sp.dex).padStart(3, '0');
       const caught = state.dex.caught.has(id);
       const seen = state.dex.seen.has(id);
       const mark = caught ? '*' : seen ? '.' : ' ';
-      window.PR_UI.drawText(ctx, mark + num + ' ' + sp.name.slice(0, 11), listX + 2, cy, '#202020');
+      window.PR_UI.drawText(ctx, mark + num + ' ' + sp.name.slice(0, 8), listX + 2, cy, '#202020');
     }
+    if (ids.length === 0) {
+      window.PR_UI.drawText(ctx, '(empty)', listX + 4, listY + 4, '#806040');
+    }
+    // Legend + filter cycle hint below the list.
+    const legendY = listY + rows * rowH + 2;
+    window.PR_UI.drawText(ctx, '*=GOT .=SEEN', listX, legendY, '#806040');
+    window.PR_UI.drawText(ctx, 'SEL: ' + filterLabel, listX, legendY + 9, '#385890');
 
-    // Right: detail panel for the selected entry.
+    // Right: detail panel. If the filter yields no entries, show an
+    // empty-state message and skip species rendering entirely.
+    const dx = x + 92, dy = y + 16, dw = w - 94, dh = h - 20;
+    window.PR_UI.panel(ctx, dx, dy, dw, dh, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
+    if (ids.length === 0) {
+      const msg = v.filter === 'got' ? 'Catch some' : v.filter === 'seen' ? 'See some' : 'No entries';
+      window.PR_UI.drawText(ctx, msg, dx + 6, dy + 6, '#202020');
+      window.PR_UI.drawText(ctx, 'creatures first.', dx + 6, dy + 16, '#806040');
+      window.PR_UI.drawText(ctx, 'SEL: change view.', dx + 6, dy + 30, '#385890');
+      return;
+    }
     const selId = ids[v.idx];
     const sp = window.PR_DATA.CREATURES[selId];
     const caught = state.dex.caught.has(selId);
-    const dx = x + 114, dy = y + 18, dw = w - 120, dh = h - 22;
-    window.PR_UI.panel(ctx, dx, dy, dw, dh, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
 
-    // Sprite: caught -> colored, otherwise -> silhouette. Always shown.
-    const spriteSize = 48;
-    const spriteX = dx + 6, spriteY = dy + 6;
+    // Sprite + header strip. Sprite is 24px so name/dex/types fit beside it.
+    const spriteSize = 24;
+    const spriteX = dx + 4, spriteY = dy + 4;
     if (caught) {
       window.PR_MONS.drawCreature(ctx, selId, spriteX, spriteY, spriteSize, false);
     } else {
       window.PR_MONS.drawCreatureSilhouette(ctx, selId, spriteX, spriteY, spriteSize);
     }
-
-    // Header block: name + dex# + type chips. Always visible.
-    const headX = spriteX + spriteSize + 6;
+    const headX = spriteX + spriteSize + 4;
     const num = String(sp.dex).padStart(3, '0');
-    window.PR_UI.drawText(ctx, sp.name, headX, dy + 6, '#202020');
-    window.PR_UI.drawText(ctx, '#' + num, headX, dy + 18, '#806040');
-    let chipX = headX, chipY = dy + 30;
+    window.PR_UI.drawText(ctx, sp.name.slice(0, 12), headX, dy + 4, '#202020');
+    window.PR_UI.drawText(ctx, '#' + num, headX, dy + 14, '#806040');
+
+    // Type chips below the sprite (the area beside the sprite is too
+    // narrow to fit two chips for a dual-type creature).
+    let chipX = dx + 4, chipY = dy + spriteSize + 6;
     for (const t of sp.types) {
       const fill = window.PR_DATA.TYPE_COLOR[t] || '#a8a878';
       const text = dexTypeTextColor(fill);
@@ -1861,36 +1839,32 @@
       chipX += wDrawn + 2;
     }
 
-    // Description: always visible. Wrap to a width that fits the right
-    // panel and clip to 4 lines so the rest of the panel layout stays
-    // stable.
-    const descX = dx + 6, descY = dy + spriteSize + 12;
-    const descW = dw - 12;
-    const descMaxChars = Math.max(20, Math.floor(descW / 6));
-    const descLines = window.PR_UI.wrap(sp.description || '', descMaxChars).slice(0, 4);
+    // Description (3 lines, ~22 chars each given the panel width).
+    const descX = dx + 4, descY = dy + spriteSize + 6 + 13;
+    const descW = dw - 8;
+    const descMaxChars = Math.max(14, Math.floor(descW / 6));
+    const descLines = window.PR_UI.wrap(sp.description || '', descMaxChars).slice(0, 3);
     for (let i = 0; i < descLines.length; i++) {
       window.PR_UI.drawText(ctx, descLines[i], descX, descY + i * 9, '#202020');
     }
 
-    // Divider between the always-shown section and the caught-only
-    // detail block.
-    const divY = descY + 4 * 9 + 2;
+    const divY = descY + 3 * 9 + 1;
     ctx.fillStyle = '#385890';
-    ctx.fillRect(dx + 4, divY, dw - 8, 1);
+    ctx.fillRect(dx + 3, divY, dw - 6, 1);
 
     if (!caught) {
-      window.PR_UI.drawText(ctx, 'Catch to reveal stats & moves.', dx + 6, divY + 6, '#806040');
+      window.PR_UI.drawText(ctx, 'Catch to reveal more.', dx + 4, divY + 4, '#806040');
       return;
     }
 
-    // Stats: 2 rows of 3.
-    const stY = divY + 6;
-    const colW = (dw - 12) / 3;
+    // Stats: 2 rows of 3. Compact spacing.
+    const stY = divY + 4;
+    const colW = (dw - 8) / 3;
     const stat = (label, val, col, row) => {
       window.PR_UI.drawText(ctx,
         label + ' ' + val,
-        dx + 6 + col * colW,
-        stY + row * 10,
+        dx + 4 + col * colW,
+        stY + row * 9,
         '#202020');
     };
     stat('HP', sp.baseStats.hp,  0, 0);
@@ -1900,49 +1874,51 @@
     stat('SA', sp.baseStats.spa, 1, 1);
     stat('SD', sp.baseStats.spd, 2, 1);
 
-    // Evolution chain.
+    // Evolution chain. Mini sprites with arrow + level above.
     const chain = dexEvolutionChain(selId);
-    const evoY = stY + 22;
-    window.PR_UI.drawText(ctx, 'EVOLUTION', dx + 6, evoY, '#385890');
+    const evoY = stY + 19;
+    window.PR_UI.drawText(ctx, 'EVO', dx + 4, evoY, '#385890');
+    const evoSize = 14;
+    let ex = dx + 22;
+    const ey = evoY - 4;
     if (chain.length <= 1) {
-      window.PR_UI.drawText(ctx, '(none)', dx + 6 + 60, evoY, '#806040');
+      window.PR_UI.drawText(ctx, '(none)', ex, evoY, '#806040');
     } else {
-      let ex = dx + 6;
-      const ey = evoY + 10;
       for (let i = 0; i < chain.length; i++) {
         const id = chain[i];
         const isCaughtStage = state.dex.caught.has(id);
         if (isCaughtStage) {
-          window.PR_MONS.drawCreature(ctx, id, ex, ey, 24, false);
+          window.PR_MONS.drawCreature(ctx, id, ex, ey, evoSize, false);
         } else {
-          window.PR_MONS.drawCreatureSilhouette(ctx, id, ex, ey, 24);
+          window.PR_MONS.drawCreatureSilhouette(ctx, id, ex, ey, evoSize);
         }
-        ex += 24;
+        ex += evoSize;
         if (i < chain.length - 1) {
           const lvNext = window.PR_DATA.CREATURES[id].evolves
             ? window.PR_DATA.CREATURES[id].evolves.level
             : '?';
-          window.PR_UI.drawText(ctx, '>', ex + 1, ey + 8, '#202020');
-          window.PR_UI.drawText(ctx, 'L' + lvNext, ex - 1, ey - 8, '#a02828');
-          ex += 12;
+          window.PR_UI.drawText(ctx, '>',     ex + 1, ey + 4, '#202020');
+          window.PR_UI.drawText(ctx, 'L' + lvNext, ex - 1, ey - 6, '#a02828');
+          ex += 10;
         }
       }
     }
 
-    // Learnset: two columns, up to 8 entries.
-    const moveY = evoY + 38;
-    window.PR_UI.drawText(ctx, 'MOVES', dx + 6, moveY, '#385890');
-    const learn = (sp.learnset || []).slice(0, 8);
-    const moveColW = (dw - 12) / 2;
-    for (let i = 0; i < learn.length; i++) {
-      const [lv, mvId] = learn[i];
+    // Moves: 4 levels visible. Show first 4 entries — these are the
+    // earliest learns and the ones a wild encounter is most likely to
+    // know. A "(+N)" hint indicates if there are more.
+    const learn = sp.learnset || [];
+    const visible = learn.slice(0, 4);
+    const moveY = evoY + evoSize + 2;
+    window.PR_UI.drawText(ctx, 'MOVES', dx + 4, moveY, '#385890');
+    for (let i = 0; i < visible.length; i++) {
+      const [lv, mvId] = visible[i];
       const mv = window.PR_DATA.MOVES[mvId];
-      const col = i >= 4 ? 1 : 0;
-      const row = i % 4;
-      const mx = dx + 6 + col * moveColW;
-      const my = moveY + 10 + row * 9;
       const label = 'L' + String(lv).padStart(2, ' ') + ' ' + (mv ? mv.name : mvId);
-      window.PR_UI.drawText(ctx, label, mx, my, '#202020');
+      window.PR_UI.drawText(ctx, label.slice(0, 18), dx + 4, moveY + 9 + i * 8, '#202020');
+    }
+    if (learn.length > visible.length) {
+      window.PR_UI.drawText(ctx, '+' + (learn.length - visible.length) + ' more', dx + dw - 44, moveY, '#806040');
     }
   }
 
@@ -2445,7 +2421,13 @@
       // Faint to last visited center: respawn at start of current town with full heal.
       for (const m of state.party) { m.hp = m.stats.hp; m.status = null; for (const mv of m.moves) mv.pp = mv.ppMax; }
       state.player.map = 'rodport';
-      state.player.x = 4; state.player.y = 5; state.player.dir = 'down';
+      // Path intersection at the city centre: applyWorldExpansion always
+      // carves a horizontal cobble at row 17 and a vertical cobble at
+      // col 22, so (22,17) is guaranteed walkable. The old (4,5) coord
+      // was correct for the 20x18 rodport but applyWorldExpansion blew
+      // the city out to 44x34 with `Y` (oak tree) fill, leaving the old
+      // respawn standing on a tree.
+      state.player.x = 22; state.player.y = 17; state.player.dir = 'down';
     }
     if (outcome === 'won' && battle.opts && battle.opts.npcKey) state.defeatedTrainers.add(battle.opts.npcKey);
     if (outcome === 'won') {

@@ -228,18 +228,24 @@ async function main() {
       await nextFrame();
       const dexCaughtSum = sampleSum();
       state.dex = { seen: new Set(), caught: new Set() };
-      state.dexView = { idx:0, scroll:0 };
+      state.dexView = { idx:0, scroll:0, filter:'all' };
       await nextFrame();
       const dexUnknownSum = sampleSum();
+      // Empty 'got' filter view: no caught species. Must render an
+      // empty-state message instead of crashing on ids[0].
+      state.dexView = { idx:0, scroll:0, filter:'got' };
+      await nextFrame();
+      const dexEmptyFilterSum = sampleSum();
       // Restore so the next downstream check (bag-target → bag exit)
       // sees the bagtarget state it set up earlier.
       state.dex = savedDex; state.dexView = savedDexView; state.mode = savedMode;
       await nextFrame();
-      return { ok:true, boxSum, emptyTargetSum, dexCaughtSum, dexUnknownSum, mode:state.mode };
+      return { ok:true, boxSum, emptyTargetSum, dexCaughtSum, dexUnknownSum, dexEmptyFilterSum, mode:state.mode };
     });
     console.log('ui mode checks:', uiModeChecks);
     if (!uiModeChecks.ok || uiModeChecks.boxSum === 0 || uiModeChecks.emptyTargetSum === 0 ||
         uiModeChecks.dexCaughtSum === 0 || uiModeChecks.dexUnknownSum === 0 ||
+        uiModeChecks.dexEmptyFilterSum === 0 ||
         uiModeChecks.mode !== 'bagtarget') {
       console.error('ui mode render failed:', uiModeChecks);
       exitCode = 2;

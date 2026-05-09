@@ -50,7 +50,16 @@ function drawTile(ctx, code, sx, sy, context) {
   if (window.PR_ATLAS && window.PR_ATLAS.isReady()) {
     const under = fixtureUnderlay(code, context);
     if (under) window.PR_ATLAS.drawTileCode(ctx, under, drawX, y, context);
-    if (window.PR_ATLAS.drawTileCode(ctx, code, drawX, y, context)) return;
+    if (window.PR_ATLAS.drawTileCode(ctx, code, drawX, y, context)) {
+      // Stamp a per-tile detail overlay on grass/dirt/tree/bush codes
+      // so the world reads as varied instead of repeating-texture. The
+      // variation is hashed off the cell's (x, y, code) so it's stable
+      // across frames.
+      if (window.PR_VARIATION && context && context.tx != null) {
+        window.PR_VARIATION.paint(ctx, code, drawX, y, context.tx, context.ty);
+      }
+      return;
+    }
   }
   // Atlas not yet ready: draw a placeholder grass-coloured tile.
   px(ctx, x, y, TS, TS, '#5cae4c');

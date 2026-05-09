@@ -7,40 +7,190 @@
   const VIEW_TX = VIEW_W / TS; // 15
   const VIEW_TY = VIEW_H / TS; // 10
 
-  // Day -> Dusk -> Night -> Dawn -> Day. ~80 steps per phase.
+  // Day -> Dusk -> Night -> Dawn -> Day. 80 steps per phase, 320 per
+  // full cycle. The anchor colours below are blended continuously
+  // every frame (see currentTint) so transitions are gradual rather
+  // than four hard cuts.
   const PHASES = [
     { name:'day',   tint:null },
     { name:'dusk',  tint:'rgba(240,140,40,0.20)' },
     { name:'night', tint:'rgba(20,30,80,0.40)' },
     { name:'dawn',  tint:'rgba(255,180,140,0.18)' }
   ];
-  function phaseForSteps(s) { return PHASES[(Math.floor(s / 80)) % PHASES.length]; }
+  const CYCLE_STEPS = 320;
+  const ANCHOR_TINTS = [
+    { at:0,   name:'day',   r:0,   g:0,   b:0,   a:0    },
+    { at:80,  name:'dusk',  r:240, g:120, b:50,  a:0.30 },
+    { at:160, name:'night', r:14,  g:22,  b:62,  a:0.62 },
+    { at:240, name:'dawn',  r:255, g:170, b:130, a:0.26 }
+  ];
+  function phaseForSteps(s) {
+    // Snap to the nearest anchor for callers that branch on phase
+    // name (chatter, shop greetings). Smooth visual blending is done
+    // separately in currentTint.
+    const t = (((s % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    let best = ANCHOR_TINTS[0];
+    let bestDist = CYCLE_STEPS;
+    for (const a of ANCHOR_TINTS) {
+      const d = Math.min(Math.abs(t - a.at), CYCLE_STEPS - Math.abs(t - a.at));
+      if (d < bestDist) { bestDist = d; best = a; }
+    }
+    return PHASES.find(p => p.name === best.name) || PHASES[0];
+  }
+  function currentTint(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    // Find segment [a, b] whose at-range contains t.
+    let i = 0;
+    for (let j = 0; j < ANCHOR_TINTS.length; j++) {
+      if (ANCHOR_TINTS[j].at <= t) i = j;
+    }
+    const a = ANCHOR_TINTS[i];
+    const b = ANCHOR_TINTS[(i + 1) % ANCHOR_TINTS.length];
+    const span = b.at > a.at ? b.at - a.at : (CYCLE_STEPS - a.at) + b.at;
+    const k = span > 0 ? (t - a.at) / span : 0;
+    const r  = Math.round(a.r + (b.r - a.r) * k);
+    const g  = Math.round(a.g + (b.g - a.g) * k);
+    const bl = Math.round(a.b + (b.b - a.b) * k);
+    const al = a.a + (b.a - a.a) * k;
+    if (al < 0.005) return null;
+    return 'rgba(' + r + ',' + g + ',' + bl + ',' + al.toFixed(3) + ')';
+  }
+  // 320 steps = 24 in-game hours. Step 0 starts at noon so the cycle
+  // anchors line up with intuitive times: day=12:00, dusk=18:00,
+  // night=00:00, dawn=06:00.
+  function clockHM(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const hours24 = (t / CYCLE_STEPS) * 24 + 12;
+    const total = hours24 % 24;
+    const h = Math.floor(total);
+    const m = Math.floor((total - h) * 60);
+    return { h, m };
+  }
+  const PHASE_LABEL = { day:'DAY', dusk:'DSK', night:'NIT', dawn:'DWN' };
+  function drawWorldClock(ctx, viewW, steps) {
+    const hm = clockHM(steps);
+    const phase = phaseForSteps(steps);
+    const pad = (n) => (n < 10 ? '0' : '') + n;
+    const text = pad(hm.h) + ':' + pad(hm.m) + ' ' + (PHASE_LABEL[phase.name] || phase.name.toUpperCase());
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    // Phase icon + clock chip share the top-right corner. Icon hugs
+    // the chip on its left so the player reads them as a single
+    // 'time of day' indicator instead of two separate badges.
+    const iconW = 18, gap = 2, margin = 4;
+    const iconX = viewW - margin - w - gap - iconW;
+    drawPhaseIcon(ctx, iconX, 3, phase.name);
+    window.PR_UI.chip(ctx, iconX + iconW + gap, 4, text, {
+      fill:'#1a0204', border:'#f0c020', text:'#f0c020'
+    });
+  }
+  // Phase icon, drawn top-left below the minimap (or at 4,4 on
+  // interior maps). Pure pixel-art via fillRect so it matches the
+  // rest of the HUD and doesn't require atlas regen.
+  function fillCirclePixel(ctx, cx, cy, r, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  function drawPhaseIcon(ctx, x, y, phaseName) {
+    const W = 18, H = 16;
+    // Backdrop + gold border, matching the clock chip.
+    ctx.fillStyle = 'rgba(20,16,12,0.7)';
+    ctx.fillRect(x, y, W, H);
+    ctx.fillStyle = '#f0c020';
+    ctx.fillRect(x, y, W, 1);
+    ctx.fillRect(x, y + H - 1, W, 1);
+    ctx.fillRect(x, y, 1, H);
+    ctx.fillRect(x + W - 1, y, 1, H);
+    const cx = x + 9, cy = y + 8;
+    if (phaseName === 'day') {
+      fillCirclePixel(ctx, cx, cy, 3, '#f8d030');
+      ctx.fillStyle = '#f8d030';
+      ctx.fillRect(cx - 1, y + 2, 2, 1);     // top ray
+      ctx.fillRect(cx - 1, y + H - 3, 2, 1); // bottom ray
+      ctx.fillRect(x + 2, cy - 1, 1, 2);     // left ray
+      ctx.fillRect(x + W - 3, cy - 1, 1, 2); // right ray
+    } else if (phaseName === 'night') {
+      fillCirclePixel(ctx, cx, cy, 4, '#e0e0f0');
+      // bite the moon to make a crescent
+      ctx.fillStyle = 'rgba(20,16,12,0.95)';
+      ctx.beginPath();
+      ctx.arc(cx + 2, cy - 1, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // a couple of stars
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(x + 3, y + 4, 1, 1);
+      ctx.fillRect(x + W - 4, y + H - 5, 1, 1);
+    } else if (phaseName === 'dusk' || phaseName === 'dawn') {
+      // Half-disc rising/setting over a dark horizon line.
+      const sun = phaseName === 'dusk' ? '#f08030' : '#f8a8a8';
+      ctx.fillStyle = sun;
+      ctx.fillRect(cx - 3, cy - 1, 7, 4);
+      ctx.fillStyle = '#a04030';
+      ctx.fillRect(x + 2, cy + 3, W - 4, 1);
+    }
+  }
 
-  // Tile -> minimap color.
-  const MINI_COLOR = {
-    'T':'#1c4818', '.':'#5cae4c', ',':'#d8b878', ':':'#3a8030',
-    'W':'#4878d8', 's':'#e8d090', 'F':'#d8c098', 'B':'#a08068',
-    'R':'#c84848', 'P':'#e070a0', 'M':'#4878d8', 'C':'#c89858',
-    'H':'#e8a8c8', 'D':'#604028', 'S':'#604028', 'L':'#604028',
-    'X':'#000000'
-  };
+  // Minimap colors by tile category, derived from TILE_PROPS so every
+  // tile code resolves to a sensible color (the previous lookup table
+  // covered ~17 of 80+ tile codes; everything else fell through to
+  // dark gray, which made most maps look like noise).
+  const MINI_FALLBACK_WALK = '#9cd078';
+  const MINI_FALLBACK_BLOCK = '#605040';
+  function miniColorFor(code) {
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
+    if (!props) return code === 'X' ? '#000000' : MINI_FALLBACK_BLOCK;
+    const n = props.name || '';
+    if (n === 'water')              return '#4878d8';
+    if (n === 'tallgrass')          return '#388830';
+    if (n === 'sand' || n.indexOf('sand') >= 0) return '#e8d090';
+    if (n === 'ledge')              return '#8a6a40';
+    if (n.indexOf('path') >= 0)     return '#d8b878';
+    if (props.door)                 return '#a86038';
+    if (n.indexOf('rock') >= 0)     return '#888070';
+    if (n.indexOf('fence') >= 0)    return '#806848';
+    if (n.indexOf('roof') >= 0 || n === 'roof')   return '#a04848';
+    if (n.indexOf('wall') >= 0 || n === 'mart' || n === 'center' || n === 'healer' || n === 'counter')
+                                    return '#806848';
+    if (n.indexOf('window') >= 0)   return '#a8c8e8';
+    if (n.indexOf('tree') >= 0 || n === 'oak' || n === 'palm' || n === 'cherry' ||
+        n === 'birch' || n === 'willow' || n === 'mushroomtree')
+                                    return '#1c4818';
+    if (n.indexOf('bush') >= 0 || n === 'hedge' || n === 'thorncluster')
+                                    return '#3a703a';
+    if (n.indexOf('grass') >= 0)    return '#5cae4c';
+    if (n === 'floor' || n === 'rug') return '#e8d8b8';
+    return props.walk ? MINI_FALLBACK_WALK : MINI_FALLBACK_BLOCK;
+  }
   function drawMinimap(ctx, m, px, py) {
     if (!m.tiles || !m.tiles.length) return;
     const cols = m.tiles[0].length, rows = m.tiles.length;
+    // 2px cells per tile keep the minimap legible. Earlier we tried 1px
+    // for compactness, but that made small interior maps unreadably
+    // tiny. The category-based palette below means even at 2px the
+    // minimap is no longer the noise-blob it used to be.
     const cell = 2;
     const w = cols * cell, h = rows * cell;
     const x = 4, y = 4;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
+    // Translucent backdrop + 1px border for legibility against the
+    // world below.
+    ctx.fillStyle = 'rgba(20,16,12,0.55)';
+    ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+    ctx.fillStyle = '#f0c020';
+    ctx.fillRect(x - 1, y - 1, w + 2, 1);
+    ctx.fillRect(x - 1, y + h, w + 2, 1);
+    ctx.fillRect(x - 1, y - 1, 1, h + 2);
+    ctx.fillRect(x + w, y - 1, 1, h + 2);
     for (let ry = 0; ry < rows; ry++) {
       const row = m.tiles[ry];
       for (let rx = 0; rx < cols; rx++) {
-        const c = row[rx];
-        ctx.fillStyle = MINI_COLOR[c] || '#3a3a3a';
+        ctx.fillStyle = miniColorFor(row[rx]);
         ctx.fillRect(x + rx * cell, y + ry * cell, cell, cell);
       }
     }
-    // Player pip blink.
+    // Player pip blink. 2x2 square with a 1px highlight to stay visible
+    // against any background tile.
     const blink = (Math.floor(performance.now() / 250) & 1);
     if (blink) {
       ctx.fillStyle = '#ffd060';
@@ -52,44 +202,896 @@
     return phaseForSteps(s).name;
   }};
 
-  // Animated diagonal sunbeams. DS Diamond only; outdoor day/dawn/dusk only.
-  // Six wide parallelograms slide southwest with a soft alpha pulse so the
-  // air feels lit by something living rather than a flat tint.
-  const SUNBEAM_PHASE_INTENSITY = { day: 1.0, dawn: 0.65, dusk: 0.55, night: 0 };
-  function drawSunbeams(ctx, phaseName) {
-    const intensity = SUNBEAM_PHASE_INTENSITY[phaseName] || 0;
-    if (intensity <= 0) return;
-    if (window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion) return;
-    const atlas = window.PR_ATLAS;
-    if (!atlas || !atlas.getPreset || atlas.getPreset() !== 'ds_diamond') return;
-    const t = performance.now() / 1000;
-    const pulse = 0.75 + 0.25 * Math.sin(t * 1.1);
-    const drift = ((t * 14) % 64) | 0;       // 1px shift per ~71ms, wraps each beam-spacing cycle
-    const baseAlpha = 0.10 * intensity * pulse;
+  // Billboard-tilt + drop-shadow effect for the DS Diamond style.
+  // Active only when the user has selected that graphics preset, and
+  // only on movable sprites (player, NPCs, follower, ambient
+  // creatures) where the sprite background is transparent so the
+  // vertical squash doesn't reveal grass underneath. Tile sprites
+  // (trees, buildings, etc.) stay flat because their cells are fully
+  // painted and any squash would show the ground-clear color through
+  // the gap at the top of the cell.
+  function tiltActive() {
+    return window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond';
+  }
+  // Soft elliptical drop shadow with a radial-gradient falloff. Two
+  // layers (tight inner core + softer outer halo) give an
+  // atmospheric-looking shadow without doubling cost. opts.offsetX /
+  // offsetY shift the shadow center in the sun-projection direction;
+  // opts.lengthScale stretches the major axis so shadows elongate at
+  // low sun; opts.alphaScale fades them out at deep night.
+  function drawShadow(ctx, cx, by, w, opts) {
+    opts = opts || {};
+    const ox = opts.offsetX || 0;
+    const oy = opts.offsetY || 0;
+    const len = opts.lengthScale != null ? opts.lengthScale : 1;
+    const aMul = opts.alphaScale != null ? opts.alphaScale : 1;
+    const r = Math.max(2, w * (opts.rxScale || 0.42) * len);
+    const ry = Math.max(2, w * (opts.ryScale || 0.14));
+    const cAlpha = (opts.centerAlpha != null ? opts.centerAlpha : 0.45) * aMul;
+    if (cAlpha <= 0.01) return;
+    const colorBase = opts.color || '0,0,0';
+    const sx = cx + ox, sy = by + oy;
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255,232,160,1)';
-    const beamW = 28;
-    const spacing = 96;
-    const slope = 0.7;                       // dx for every dy step (steeper = more diagonal)
-    const startX = -VIEW_H * slope - 64 + drift;
-    for (let bx = startX; bx < VIEW_W + 64; bx += spacing) {
-      ctx.globalAlpha = baseAlpha;
-      // Two stacked thinner bands so the beam softens at the edges.
-      drawBeam(ctx, bx, beamW, slope);
-      ctx.globalAlpha = baseAlpha * 0.6;
-      drawBeam(ctx, bx + 6, beamW - 12, slope);
+    ctx.translate(sx, sy);
+    ctx.scale(1, ry / r);
+    ctx.translate(-sx, -sy);
+    // Outer halo — wider, very soft. Goes first so the inner core
+    // paints over it without lightening from the gradient overlap.
+    const haloR = r * 1.32;
+    const haloGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, haloR);
+    haloGrad.addColorStop(0,   'rgba(' + colorBase + ',' + (cAlpha * 0.30) + ')');
+    haloGrad.addColorStop(0.6, 'rgba(' + colorBase + ',' + (cAlpha * 0.12) + ')');
+    haloGrad.addColorStop(1,   'rgba(' + colorBase + ',0)');
+    ctx.fillStyle = haloGrad;
+    ctx.beginPath();
+    ctx.arc(sx, sy, haloR, 0, Math.PI * 2);
+    ctx.fill();
+    // Inner core — tighter, darker.
+    const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
+    grad.addColorStop(0,    'rgba(' + colorBase + ',' + cAlpha + ')');
+    grad.addColorStop(0.55, 'rgba(' + colorBase + ',' + (cAlpha * 0.55) + ')');
+    grad.addColorStop(1,    'rgba(' + colorBase + ',0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  // Shadow-only billboard tilt: PR #8 dropped the vertical squash
+  // because the canvas Y scale interpolated against the red level-tuft
+  // pixels baked into atlas frames and produced pink artifacts at the
+  // sprite base. The drop shadow alone keeps the 2.5D 'grounded' feel.
+  function withTilt(ctx, sx, sy, sw, sh, draw) {
+    if (!tiltActive()) { draw(); return; }
+    drawShadow(ctx, sx + sw / 2, sy + sh - 1, sw, spriteShadowOpts());
+    draw();
+  }
+  // Tall-tile shadow: drops a soft elliptical shadow at the base of
+  // every tile that's a vertical structure (tree, building, fence,
+  // rock). Skips ground tiles (W water, L ledge, X edge) so we don't
+  // shadow the open ground.
+  function isTallTile(code) {
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
+    if (!props || props.walk) return false;
+    if (code === 'W' || code === 'L' || code === 'X') return false;
+    return true;
+  }
+  // Explicit shadow-caster set, replacing the earlier 'tile-below-is-
+  // walkable' heuristic. That heuristic was too clever in practice:
+  //  - It hid shadows for stacked trees in dense forests (only the
+  //    bottom row of a vertical cluster cast, the rest looked
+  //    floating).
+  //  - It still allowed a wall sitting on top of a door to cast a
+  //    soft round 'puddle' shadow that bled onto the door tile.
+  // Walls, roofs, windows, doors, fences and fixtures are flat
+  // structural surfaces - they shouldn't drop a round elliptical
+  // shadow on the ground. Trees, hostile foliage and large rocks
+  // are organic / round shapes whose silhouette reads as a circular
+  // ground footprint. Limit casting to that explicit set.
+  const SHADOW_CASTER_TREES = 'TYOKJQNUVEG';
+  const SHADOW_CASTER_HOSTILE = 'gh';   // thornbush, hedge
+  const SHADOW_CASTER_ROCKS = ')';      // large_rock
+  function tileShouldCastShadow(map, x, y) {
+    const code = map.tiles[y][x];
+    if (SHADOW_CASTER_TREES.indexOf(code) !== -1) return true;
+    if (SHADOW_CASTER_HOSTILE.indexOf(code) !== -1) return true;
+    if (SHADOW_CASTER_ROCKS.indexOf(code) !== -1) return true;
+    return false;
+  }
+  // Per-phase shadow tint AND sun vector. The cycle starts at noon
+  // (step 0) so:
+  //   t=0   noon       — sun overhead, short shadow, no x-offset
+  //   t=80  sunset     — sun west, long shadow, +x offset (eastward)
+  //   t=160 midnight   — no sun, alphaScale -> 0
+  //   t=240 sunrise    — sun east, long shadow, -x offset (westward)
+  // offsetY is always positive (shadow projects toward bottom of
+  // screen, matching the 2.5D top-down camera convention). lengthScale
+  // is the rx multiplier — short at noon, long at low sun.
+  function phaseShadowOpts(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    // sunHeight: 1 at noon, 0 at midnight, ~0.4 at dusk/dawn.
+    // Use cosine over the full cycle so the curve is smooth.
+    const phase = (t / CYCLE_STEPS) * Math.PI * 2; // 0 at noon, PI at midnight
+    const sunHeight = Math.max(0, Math.cos(phase));   // 1 noon -> 0 night
+    // sunAzimuth: sin(phase). Negative in morning (sun east), positive
+    // in afternoon (sun west). Multiply by 2.4 px to bias the shadow
+    // east (-) or west (+) accordingly. Capped to small values so
+    // sprites don't drift too far from their feet.
+    const azim = Math.sin(phase);
+    const opts = {
+      rxScale: 0.42,
+      ryScale: 0.13,
+      centerAlpha: 0.36,
+      color: '0,0,0',
+      offsetX: -azim * 2.4,                 // -ve early, +ve late
+      offsetY: 1 + (1 - sunHeight) * 4,     // 1 at noon, 5 at low sun
+      lengthScale: 0.85 + (1 - sunHeight) * 0.95,  // 0.85 noon, 1.8 dusk
+      alphaScale: 0.25 + sunHeight * 0.85   // 0.25 night, 1.10 noon
+    };
+    // dusk band (60..100): warm
+    if (t > 60 && t < 100) opts.color = '40,10,30';
+    // night (140..180): cool
+    else if (t > 140 && t < 180) opts.color = '10,16,40';
+    // dawn (220..260): warm-ish
+    else if (t > 220 && t < 260) opts.color = '40,16,30';
+    return opts;
+  }
+  // Sprite-style shadow under a billboard tile: pulls the latest sun
+  // vector so player / NPC / ambient / follower shadows all follow the
+  // same direction as tall-tile and decoration shadows. Stored on the
+  // World instance so we recompute once per frame, not per sprite.
+  function spriteShadowOpts() {
+    const game = window.PR_GAME && window.PR_GAME.state;
+    const steps = (game && game.player && game.player.steps) || 0;
+    return phaseShadowOpts(steps);
+  }
+  function drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    const opts = phaseShadowOpts(steps);
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (!tileShouldCastShadow(m, wx, wy)) continue;
+        const cx = offX + tx * TS + TS / 2;
+        // Anchor the cast shadow at the bottom of the cell, slightly
+        // inside so it doesn't drift onto the next row's painted
+        // ground.
+        const by = offY + ty * TS + TS - 3;
+        drawShadow(ctx, cx, by, TS, opts);
+      }
+    }
+  }
+
+  // Per-decoration-key shadow shape. Returns null for items that
+  // shouldn't cast a shadow (rugs, wall mounts, hanging items).
+  function decorShadowSpec(key) {
+    if (!key) return null;
+    if (key.indexOf('rug_') === 0) return null;
+    if (key.indexOf('wall_') === 0) return null;
+    if (key.indexOf('picture_frame') === 0) return null;
+    if (key.indexOf('lamp_') === 0 || key.indexOf('streetlamp_') === 0 || key.indexOf('paper_lantern') >= 0 || key.indexOf('lantern') >= 0) {
+      return { rxScale: 0.30, ryScale: 0.10, alphaBoost: 1.10 };
+    }
+    if (key === 'pedestal_statue' || key === 'water_fountain_round' || key === 'wishing_well' || key.indexOf('pod_') === 0) {
+      return { rxScale: 0.46, ryScale: 0.16, alphaBoost: 1.0 };
+    }
+    if (key.indexOf('bench_') === 0 || key.indexOf('bed_') === 0 || key.indexOf('table_') === 0 || key.indexOf('display_') === 0 || key.indexOf('shelf_') === 0) {
+      return { rxScale: 0.50, ryScale: 0.13, alphaBoost: 0.9 };
+    }
+    if (key.indexOf('pot_') === 0 || key.indexOf('planter_') === 0 || key.indexOf('trash_') === 0) {
+      return { rxScale: 0.32, ryScale: 0.13, alphaBoost: 0.95 };
+    }
+    if (key.indexOf('vending_') === 0 || key.indexOf('bus_stop') === 0 || key.indexOf('sign_') === 0 || key === 'parking_meter' || key === 'bollard' || key === 'bike_rack' || key === 'street_clock') {
+      return { rxScale: 0.36, ryScale: 0.12, alphaBoost: 1.0 };
+    }
+    // Fall back to a small generic ground-plant shadow for unknown
+    // keys that aren't explicitly excluded.
+    return { rxScale: 0.34, ryScale: 0.12, alphaBoost: 0.9 };
+  }
+  function drawDecorationShadows(ctx, m, offX, offY, startTx, startTy, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    if (!m.decorations || !m.decorations.length) return;
+    const baseOpts = phaseShadowOpts(steps);
+    for (const d of m.decorations) {
+      const spec = decorShadowSpec(d.key);
+      if (!spec) continue;
+      const tx = d.x - startTx, ty = d.y - startTy;
+      if (tx < -1 || tx > viewTx + 1 || ty < -1 || ty > viewTy + 1) continue;
+      const cx = offX + tx * TS + TS / 2;
+      const by = offY + ty * TS + TS - 3;
+      drawShadow(ctx, cx, by, TS, {
+        rxScale: spec.rxScale,
+        ryScale: spec.ryScale,
+        centerAlpha: (baseOpts.centerAlpha || 0.36) * (spec.alphaBoost || 1),
+        color: baseOpts.color,
+        offsetX: baseOpts.offsetX,
+        offsetY: baseOpts.offsetY,
+        lengthScale: baseOpts.lengthScale,
+        alphaScale: baseOpts.alphaScale
+      });
+    }
+  }
+  // Building-base shadow strip: rectangular soft strip painted on
+  // the ground tile directly south of any structural tile (wall,
+  // roof, door, window, fence). Replaces the old round 'puddle'
+  // shadow under buildings (PR #19) with the architectural projection
+  // a real DS game would draw.
+  function isStructuralTile(props) {
+    if (!props) return false;
+    if (props.walk) return false;
+    const n = props.name || '';
+    if (n.indexOf('roof') >= 0) return true;
+    if (n.indexOf('wall') >= 0) return true;
+    if (n.indexOf('door') >= 0) return true;
+    if (n.indexOf('window') >= 0) return true;
+    if (n.indexOf('fence') >= 0) return true;
+    if (n === 'mart' || n === 'center' || n === 'healer' || n === 'counter') return true;
+    return false;
+  }
+  function drawBuildingShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    const baseOpts = phaseShadowOpts(steps);
+    // Skip in deep night — no sun, no architectural shadow.
+    if ((baseOpts.alphaScale || 0) < 0.25) return;
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS;
+    if (!props) return;
+    // Strip height grows from 3px at noon to 9px at low sun.
+    // baseOpts.lengthScale ranges 0.85..1.8, so this lerps 3..9.
+    const stripH = Math.max(2, Math.min(10, 1.5 + (baseOpts.lengthScale || 1) * 4));
+    const alpha = 0.30 * (baseOpts.alphaScale || 1);
+    if (alpha < 0.04) return;
+    const colorBase = baseOpts.color || '0,0,0';
+    ctx.save();
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length - 1) continue;
+        const row = m.tiles[wy];
+        const below = m.tiles[wy + 1];
+        if (!row || !below) continue;
+        if (wx < 0 || wx >= row.length || wx >= below.length) continue;
+        const here = props[row[wx]];
+        const beneath = props[below[wx]];
+        if (!isStructuralTile(here)) continue;
+        if (!beneath || !beneath.walk) continue;
+        // Paint a soft rectangular strip on the ground tile beneath.
+        const sx = offX + tx * TS + 1;
+        const baseY = offY + (ty + 1) * TS;
+        const grad = ctx.createLinearGradient(0, baseY, 0, baseY + stripH);
+        grad.addColorStop(0,    'rgba(' + colorBase + ',' + alpha.toFixed(3) + ')');
+        grad.addColorStop(0.55, 'rgba(' + colorBase + ',' + (alpha * 0.55).toFixed(3) + ')');
+        grad.addColorStop(1,    'rgba(' + colorBase + ',0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(sx, baseY, TS - 2, stripH);
+      }
     }
     ctx.restore();
   }
-  function drawBeam(ctx, topX, w, slope) {
-    if (w <= 0) return;
-    const h = VIEW_H;
-    // Marching strips so the diagonal stays crisp on integer pixels.
-    const STEP = 4;
-    for (let y = 0; y < h; y += STEP) {
-      const x = (topX + y * slope) | 0;
-      ctx.fillRect(x, y, w, STEP);
+  // Soft vignette applied at the very end of overworld render. Subtle
+  // - just enough to round the corners and give the screen a touch of
+  // cinematic framing.
+  function drawVignette(ctx, viewW, viewH) {
+    if (!tiltActive()) return;
+    const grad = ctx.createRadialGradient(
+      viewW / 2, viewH / 2, viewH * 0.42,
+      viewW / 2, viewH / 2, viewH * 0.78
+    );
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(8,4,16,0.38)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, viewW, viewH);
+  }
+
+  // 0 at noon, peaks at 1 around midnight. Used to gate / scale night-
+  // only effects (window glow, lamp halos). Steps 80..240 are the
+  // dusk-night-dawn band; we ramp up, peak at 160, ramp down.
+  function nightness(steps) {
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    if (t <= 80 || t >= 240) return 0;
+    const dist = Math.abs(t - 160);
+    return Math.max(0, 1 - dist / 80);
+  }
+  // Soft additive radial glow. Used for lamp halos and window light.
+  // Set globalCompositeOperation to 'lighter' before calling so the
+  // glow lifts darkened tiles instead of just colour-blending. The
+  // gradient has a small bright core (~25% radius) and a long soft
+  // falloff so multiple overlapping glows don't immediately saturate
+  // to pure white under additive composite.
+  function drawGlow(ctx, cx, cy, radius, color, alpha) {
+    if (alpha <= 0) return;
+    // Pull the alpha out of the rgba(...) string so we can taper it
+    // down through the falloff instead of holding solid color until
+    // the outer ~40%.
+    const m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(color || '');
+    const r = m ? m[1] : '255', g = m ? m[2] : '255', b = m ? m[3] : '255';
+    const c = (a) => 'rgba(' + r + ',' + g + ',' + b + ',' + a.toFixed(3) + ')';
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    grad.addColorStop(0,    c(1.00));
+    grad.addColorStop(0.20, c(0.85));
+    grad.addColorStop(0.50, c(0.40));
+    grad.addColorStop(0.80, c(0.10));
+    grad.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = grad;
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx.restore();
+  }
+
+  // Names of decoration keys that should emit warm light at night.
+  function decorIsLamp(key) {
+    if (!key) return false;
+    return key.indexOf('lamp_') === 0
+        || key.indexOf('streetlamp_') === 0
+        || key.indexOf('lantern') >= 0
+        || key === 'street_clock';
+  }
+  // Draws lamp halos and window-light squares for visible tiles.
+  // Active only when tilt is active AND it's nighttime. Drawn AFTER
+  // the day/night tint so glows can lift the darkened image.
+  // Window pane geometry — must match gbaWindow() in tools/atlas-art.js
+  // so the glow halo and lit square line up with the actual glass.
+  // '[' (window_left) — pane on the right half of the tile.
+  // ']' (window_right) — pane on the left half of the tile.
+  // For each: pane at (paneX, y+10) size 12x10, glass center at
+  // (paneX+6, y+15).
+  function drawNightLights(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    const nFactor = nightness(steps);
+    if (nFactor < 0.05) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        const code = row[wx];
+        const tileX = offX + tx * TS, tileY = offY + ty * TS;
+        const cx = tileX + TS / 2;
+        const cy = tileY + TS / 2;
+        if (code === '|' || code === 'I') {
+          // Streetlamp: tall halo from the head of the lamp downward.
+          drawGlow(ctx, cx, cy - 4, TS * 1.15, 'rgba(255,224,128,1)', 0.42 * nFactor);
+        } else if (code === '[' || code === ']') {
+          // Window: halo centered on the actual glass pane (off-tile-center).
+          const gx = tileX + (code === '[' ? 23 : 9);
+          const gy = tileY + 15;
+          drawGlow(ctx, gx, gy, TS * 0.70, 'rgba(255,232,144,1)', 0.42 * nFactor);
+        }
+      }
+    }
+    // Decoration-based lamps (post-content-drop). Many cities now place
+    // lamps as decoration keys (lamp_ornate_gold, streetlamp_ornate_*,
+    // lamp_paper_lantern, etc.) instead of '|' tile codes — without this
+    // pass they sit dark at night even though the visible sprite is a lit
+    // lantern. Iterate the visible window of the decorations array and
+    // cast a soft glow from each one.
+    if (m.decorations && m.decorations.length) {
+      for (const d of m.decorations) {
+        if (!decorIsLamp(d.key)) continue;
+        const sx = offX + (d.x - startTx) * TS;
+        const sy = offY + (d.y - startTy) * TS;
+        if (sx < -TS * 2 || sx > offX + (viewTx + 2) * TS) continue;
+        if (sy < -TS * 2 || sy > offY + (viewTy + 2) * TS) continue;
+        const cx = sx + TS / 2;
+        const cy = sy + TS / 2 - 4;
+        // Big lamps (streetlamps + lanterns) glow further than table/floor lamps.
+        const big = d.key.indexOf('streetlamp_') === 0 || d.key.indexOf('lantern') >= 0 || d.key === 'lamp_floor_tall';
+        const radius = big ? TS * 1.15 : TS * 0.80;
+        const alpha = (big ? 0.38 : 0.28) * nFactor;
+        drawGlow(ctx, cx, cy, radius, 'rgba(255,224,128,1)', alpha);
+      }
+    }
+    ctx.restore();
+    // Lit-window square uses normal compositing so it shows as a solid
+    // golden pane rather than a pure additive bloom.
+    if (nFactor < 0.1) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,232,144,' + (0.55 * nFactor).toFixed(3) + ')';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        const code = row[wx];
+        if (code === '[' || code === ']') {
+          const tileX = offX + tx * TS, tileY = offY + ty * TS;
+          const paneX = tileX + (code === '[' ? 17 : 3);
+          ctx.fillRect(paneX, tileY + 10, 12, 10);
+        }
+      }
+    }
+    ctx.restore();
+  }
+  // Player-attached lantern: a soft warm radial glow around the player
+  // at night. Reuses drawGlow under additive composite so the cone
+  // 'lifts' the darkened image. Falls off to nothing during the day.
+  function drawPlayerLantern(ctx, px, py, steps) {
+    if (!tiltActive()) return;
+    const n = nightness(steps);
+    if (n < 0.1) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    drawGlow(ctx, px, py, 88, 'rgba(255,200,128,1)', 0.34 * n);
+    ctx.restore();
+  }
+  // Subtle 1-2 pixel sparkle on water tiles. Cycle is driven by wall-
+  // clock time so the shimmer keeps moving even when the player is
+  // stationary. Skipped on non-DS presets.
+  function drawWaterShimmer(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    if (!tiltActive()) return;
+    const phase = (performance.now() / 280) | 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (row[wx] !== 'W') continue;
+        const seed = (wx * 7 + wy * 13 + phase) & 7;
+        if (seed < 2) {
+          const px = offX + tx * TS + 4 + seed * 4;
+          const py = offY + ty * TS + 8 + (seed % 3) * 8;
+          ctx.fillRect(px, py, 2, 1);
+        }
+        const seed2 = (wx * 11 + wy * 5 + phase + 3) & 7;
+        if (seed2 === 0) {
+          const px = offX + tx * TS + 18;
+          const py = offY + ty * TS + 22;
+          ctx.fillRect(px, py, 1, 1);
+        }
+      }
+    }
+  }
+  // Cinematic color grade: warm-on-top / cool-on-bottom split tone
+  // applied at low alpha during the dawn/dusk bands. Skipped at noon
+  // so the daytime brightness isn't flattened.
+  function drawColorGrade(ctx, viewW, viewH, steps) {
+    if (!tiltActive()) return;
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const peakDawn = 1 - Math.min(1, Math.abs(t - 240) / 40);
+    const peakDusk = 1 - Math.min(1, Math.abs(t - 80)  / 40);
+    const intensity = Math.max(peakDawn, peakDusk, 0);
+    if (intensity < 0.1) return;
+    const grad = ctx.createLinearGradient(0, 0, 0, viewH);
+    const isDawn = peakDawn > peakDusk;
+    if (isDawn) {
+      grad.addColorStop(0, 'rgba(255,200,180,' + (0.18 * intensity).toFixed(3) + ')');
+      grad.addColorStop(1, 'rgba(120,140,200,' + (0.16 * intensity).toFixed(3) + ')');
+    } else {
+      grad.addColorStop(0, 'rgba(255,160,90,'  + (0.20 * intensity).toFixed(3) + ')');
+      grad.addColorStop(1, 'rgba(80,80,140,'   + (0.18 * intensity).toFixed(3) + ')');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, viewW, viewH);
+  }
+  // God-ray shafts: thin diagonal yellow stripes drifting down-left
+  // from the top edge of tall tiles during the dawn/dusk band.
+  // Sparse - only every 3rd tall tile gets rays so the count stays
+  // bounded.
+  function drawGodRays(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
+    if (!tiltActive()) return;
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const peakDawn = 1 - Math.min(1, Math.abs(t - 240) / 30);
+    const peakDusk = 1 - Math.min(1, Math.abs(t - 80)  / 30);
+    const peak = Math.max(peakDawn, peakDusk);
+    if (peak < 0.15) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(255,228,160,' + (0.10 * peak).toFixed(3) + ')';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (!isTallTile(row[wx])) continue;
+        // Only the topmost tile of a structure casts rays - skip the
+        // tile when there's another tall tile directly above it.
+        const above = (wy > 0) ? m.tiles[wy - 1][wx] : null;
+        if (above && isTallTile(above)) continue;
+        // Sparse: hash of the tile coord picks ~1 in 3 for rays.
+        if (((wx * 13 + wy * 7) & 3) !== 0) continue;
+        const sx0 = offX + tx * TS;
+        const sy0 = offY + ty * TS;
+        // Two thin parallelograms drifting down-left.
+        for (let r = 0; r < 2; r++) {
+          const off = r * 8;
+          ctx.beginPath();
+          ctx.moveTo(sx0 + 6 + off, sy0);
+          ctx.lineTo(sx0 + 9 + off, sy0);
+          ctx.lineTo(sx0 - 18 + off, sy0 + 56);
+          ctx.lineTo(sx0 - 21 + off, sy0 + 56);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+  // Heat shimmer: a few wavy horizontal bands in the lower half of
+  // the screen on desert maps during the day. Sub-pixel sine drift
+  // makes the bands feel like atmospheric distortion.
+  function drawHeatShimmer(ctx, m, viewW, viewH, steps) {
+    if (!tiltActive()) return;
+    if (biomeFor(m) !== 'desert') return;
+    const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
+    const isDay = t < 60 || t > 280;
+    if (!isDay) return;
+    const phase = performance.now() / 1000;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,240,200,0.14)';
+    for (let i = 0; i < 5; i++) {
+      const y = (viewH * 0.55) + i * 12 + Math.sin(phase * 1.5 + i * 0.7) * 2;
+      ctx.fillRect(0, y | 0, viewW, 1);
+    }
+    ctx.restore();
+  }
+  // Snow caps: 1-2 px white bar on the top edge of every tall tile in
+  // a snow-biome map, suggesting accumulated snow. Cheap.
+  function drawSnowCaps(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    if (!tiltActive()) return;
+    if (biomeFor(m) !== 'snow') return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.78)';
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (!isTallTile(row[wx])) continue;
+        // Only the topmost tile of a stack accumulates snow.
+        const above = (wy > 0) ? m.tiles[wy - 1][wx] : null;
+        if (above && isTallTile(above)) continue;
+        const sx = offX + tx * TS;
+        const sy = offY + ty * TS;
+        ctx.fillRect(sx + 4, sy + 2, TS - 8, 1);
+        ctx.fillRect(sx + 6, sy + 1, TS - 12, 1);
+      }
+    }
+    ctx.restore();
+  }
+  // Pulse around uncollected hidden items so a perceptive player can
+  // spot them (tiles already lookup as hidden in the map data, but
+  // they had no visual hint until now). Brighter at night.
+  function drawHiddenPulses(ctx, m, camX, camY, viewW, viewH, steps, foundItems) {
+    if (!tiltActive()) return;
+    const hidden = m.hidden;
+    if (!hidden) return;
+    const phase = (performance.now() % 1500) / 1500;
+    const nFactor = nightness(steps);
+    const baseAlpha = 0.32 + 0.28 * nFactor;
+    ctx.save();
+    ctx.lineWidth = 1;
+    for (const key of Object.keys(hidden)) {
+      const found = foundItems && foundItems.has && foundItems.has(m.id + ':' + key);
+      if (found) continue;
+      const parts = key.split(',');
+      const hx = parts[0] | 0, hy = parts[1] | 0;
+      const sx = hx * 32 - camX + 16;
+      const sy = hy * 32 - camY + 16;
+      if (sx < -32 || sx > viewW + 32 || sy < -32 || sy > viewH + 32) continue;
+      const r = phase * 12 + 2;
+      const alpha = (1 - phase) * baseAlpha;
+      ctx.strokeStyle = 'rgba(248,224,144,' + alpha.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // Water reflections: for each visible W tile, look at the tile
+  // directly above; if it's tall, draw a vertically-flipped low-alpha
+  // copy of it into the water cell so the structure 'reflects' on
+  // the surface. Cheapest possible reflection without atlas regen.
+  function drawWaterReflections(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    if (!tiltActive()) return;
+    if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
+    const phaseOffset = Math.sin(performance.now() / 600) * 1; // gentle ripple
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 1 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (row[wx] !== 'W') continue;
+        const aboveRow = m.tiles[wy - 1];
+        if (!aboveRow || wx >= aboveRow.length) continue;
+        const above = aboveRow[wx];
+        if (!isTallTile(above)) continue;
+        const sx = offX + tx * TS;
+        const sy = offY + ty * TS;
+        ctx.save();
+        ctx.globalAlpha = 0.32;
+        // Flip vertically: scale(1,-1) about the tile's TOP edge so
+        // the flipped image sits below it (in the water cell).
+        ctx.translate(sx + phaseOffset, sy + TS);
+        ctx.scale(1, -1);
+        // Paint the tile-above into the flipped frame. drawTileCode
+        // returns false if the atlas has no entry for this code, in
+        // which case nothing renders.
+        window.PR_ATLAS.drawTileCode(ctx, above, 0, 0, { map:m, tx:wx, ty:wy - 1 });
+        ctx.restore();
+      }
+    }
+  }
+  // Tilt-shift bands: blur the top and bottom strips of the rendered
+  // canvas to suggest depth-of-field. Cached offscreen canvas keeps
+  // alloc cost bounded; ctx.filter does the actual blur.
+  let _tiltShiftCache = null;
+  function drawTiltShift(ctx, viewW, viewH) {
+    if (!tiltActive()) return;
+    if (typeof ctx.filter !== 'string') return; // unsupported browser
+    if (!_tiltShiftCache) _tiltShiftCache = document.createElement('canvas');
+    if (_tiltShiftCache.width !== viewW || _tiltShiftCache.height !== viewH) {
+      _tiltShiftCache.width = viewW;
+      _tiltShiftCache.height = viewH;
+    }
+    const oc = _tiltShiftCache.getContext('2d');
+    oc.clearRect(0, 0, viewW, viewH);
+    oc.drawImage(ctx.canvas, 0, 0);
+    ctx.save();
+    ctx.filter = 'blur(1.5px)';
+    ctx.globalAlpha = 0.45;
+    // Top strip
+    ctx.drawImage(_tiltShiftCache, 0, 0, viewW, 36, 0, 0, viewW, 36);
+    // Bottom strip
+    ctx.drawImage(_tiltShiftCache, 0, viewH - 36, viewW, 36, 0, viewH - 36, viewW, 36);
+    ctx.restore();
+  }
+  // Rain particles: slanted streaks falling from off-screen-top to
+  // off-screen-bottom. Rendered via drawBiomeParticles' fog-vs-pixel
+  // dispatch, so they share the same particle pool.
+  function spawnRainParticle(viewW) {
+    return {
+      kind: 'rain',
+      x: Math.random() * (viewW + 80) - 40,
+      y: -12,
+      vx: -40,
+      vy: 280,
+      life: 0.9,
+      maxLife: 0.9,
+      color: 'rgba(180,210,240,0.55)',
+      size: 1,
+      spin: 0
+    };
+  }
+  // Footstep dust particles: fade out over time, drift slightly upward.
+  // Spawned by World.prototype._spawnDust on step completion when the
+  // player lands on a dusty tile (sand, dirt path, gravel). Drawn
+  // before the day/night tint so they read like ground particles, not
+  // sparks.
+  function isDustyTile(code) {
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
+    if (!props || !props.walk) return false;
+    const n = props.name || '';
+    return n === 'sand' || n.indexOf('path') >= 0;
+  }
+  function tickDust(particles, dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life -= dt;
+      p.y += p.vy * dt;
+      p.vy *= 0.96; // gentle deceleration
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+  function drawDust(ctx, particles, camX, camY) {
+    for (const p of particles) {
+      const sx = p.x - camX, sy = p.y - camY;
+      if (sx < -8 || sx > VIEW_W + 8 || sy < -8 || sy > VIEW_H + 8) continue;
+      const k = p.life / p.maxLife;
+      ctx.fillStyle = 'rgba(216,184,120,' + (0.55 * k).toFixed(3) + ')';
+      ctx.fillRect((sx - 1) | 0, (sy - 1) | 0, 3, 2);
+    }
+  }
+  // Sweep overlay for tallgrass cells the player just walked through:
+  // two short slashes at the cell base that fade out as the timer
+  // counts down. Placed under NPCs/player so the player covers the
+  // marks at their current location.
+  function drawSweptGrass(ctx, swept, camX, camY) {
+    for (const s of swept) {
+      const cx = s.x * TS - camX + TS / 2;
+      const cy = s.y * TS - camY + TS - 10;
+      if (cx < -TS || cx > VIEW_W + TS || cy < -TS || cy > VIEW_H + TS) continue;
+      const k = Math.max(0, Math.min(1, s.t / 0.35));
+      ctx.fillStyle = 'rgba(168,232,128,' + (0.9 * k).toFixed(3) + ')';
+      // Two angled slashes flanking the centre, suggesting parted blades.
+      ctx.fillRect((cx - 6) | 0, (cy - 1) | 0, 4, 1);
+      ctx.fillRect((cx + 2) | 0, (cy - 1) | 0, 4, 1);
+      ctx.fillRect((cx - 5) | 0, (cy)     | 0, 3, 1);
+      ctx.fillRect((cx + 3) | 0, (cy)     | 0, 3, 1);
+    }
+  }
+  // Foreground tall grass: when a movable sprite (player, NPC, ambient
+  // creature) stands on a `:` tile, paint a row of grass blades OVER
+  // the sprite's lower half so the sprite reads as wading through.
+  // Classic Pokemon-style 2.5D look. Active only in DS Diamond.
+  function drawForegroundTallgrass(ctx, tx, ty, camX, camY) {
+    if (!tiltActive()) return;
+    const sx = tx * TS - camX;
+    const sy = ty * TS - camY;
+    if (sx < -TS || sx > VIEW_W || sy < -TS || sy > VIEW_H) return;
+    // Front row of darker blades (closer to camera).
+    ctx.fillStyle = 'rgba(36,86,40,0.95)';
+    for (let i = 0; i < 8; i++) {
+      const bx = sx + 1 + i * 4 + (i & 1);
+      const by = sy + TS - 8;
+      ctx.fillRect(bx | 0, by | 0, 1, 5);
+      ctx.fillRect((bx + 1) | 0, (by + 1) | 0, 1, 4);
+    }
+    // Mid row of brighter blade tips peeking through.
+    ctx.fillStyle = 'rgba(108,196,72,0.92)';
+    for (let i = 0; i < 6; i++) {
+      const bx = sx + 4 + i * 5;
+      const by = sy + TS - 6;
+      ctx.fillRect(bx | 0, by | 0, 1, 3);
+    }
+    // Highlight pixels at the tips.
+    ctx.fillStyle = 'rgba(196,240,144,0.85)';
+    for (let i = 0; i < 4; i++) {
+      const bx = sx + 6 + i * 7;
+      const by = sy + TS - 7;
+      ctx.fillRect(bx | 0, by | 0, 1, 1);
+    }
+  }
+
+  // Biome ambient particles. Each visible map gets a thin scattering of
+  // biome-appropriate particles drifting across the view: leaves in
+  // forests, snowflakes on cold maps, sand grains in deserts, faint
+  // sparkles in caves. Active only in DS Diamond mode and capped so a
+  // long session can't slowly leak particles. Each particle owns its
+  // own colour, drift vector, and life so we can mix biome behaviours
+  // cheaply.
+  function biomeFor(map) {
+    if (!map) return null;
+    const tags = map.tags || [];
+    const id = map.id || '';
+    const name = (map.name || '').toLowerCase();
+    if (tags.indexOf('snow') !== -1 || /frost|snow/.test(id) || /frost|snow/.test(name)) return 'snow';
+    if (tags.indexOf('desert') !== -1 || /desert|ruin/.test(id) || /desert|sandy|ruin/.test(name)) return 'desert';
+    if (tags.indexOf('forest') !== -1 || /pebblewood|woodfall|route1|route2/.test(id) || /forest|wood/.test(name)) return 'forest';
+    if (tags.indexOf('cave') !== -1 || /cavern|cave/.test(id) || /cavern|cave/.test(name)) return 'cave';
+    if (tags.indexOf('mountain') !== -1 || /mountain|highspire/.test(id) || /mountain|highspire/.test(name)) return 'mountain';
+    return null;
+  }
+  function spawnBiomeParticle(biome, viewW, viewH, steps) {
+    // Forests at night swap leaves for fireflies — slow yellow-green
+    // sparkles that drift upward instead of drifting down.
+    const n = steps != null ? nightness(steps) : 0;
+    if (biome === 'forest' && n > 0.3) {
+      return {
+        x: Math.random() * viewW,
+        y: viewH - 8 + Math.random() * 12,
+        vx: -4 + Math.random() * 8,
+        vy: -6 - Math.random() * 8,
+        life: 4.5 + Math.random() * 2,
+        maxLife: 6,
+        color: '#f8f0a0',
+        size: 1,
+        spin: 0
+      };
+    }
+    if (biome === 'snow') {
+      return {
+        x: Math.random() * (viewW + 60) - 30,
+        y: -8,
+        vx: -10 - Math.random() * 8,
+        vy: 18 + Math.random() * 14,
+        life: 5.5, maxLife: 5.5,
+        color: '#f8f8ff',
+        size: Math.random() < 0.3 ? 2 : 1,
+        spin: 0
+      };
+    }
+    if (biome === 'desert') {
+      return {
+        x: viewW + 8,
+        y: 20 + Math.random() * (viewH - 40),
+        vx: -50 - Math.random() * 30,
+        vy: -2 + Math.random() * 4,
+        life: viewW / 50,
+        maxLife: viewW / 50,
+        color: 'rgba(232,200,140,0.85)',
+        size: 1,
+        spin: 0
+      };
+    }
+    if (biome === 'forest') {
+      const palette = ['#88c060', '#c8a040', '#e08038', '#a0c870'];
+      return {
+        x: Math.random() * (viewW + 40) - 20,
+        y: -10,
+        vx: -6 + Math.random() * 4,
+        vy: 14 + Math.random() * 8,
+        life: 6.5, maxLife: 6.5,
+        color: palette[Math.floor(Math.random() * palette.length)],
+        size: 2,
+        spin: Math.random() * 0.4 - 0.2
+      };
+    }
+    if (biome === 'cave') {
+      return {
+        x: Math.random() * viewW,
+        y: viewH + 4,
+        vx: -2 + Math.random() * 4,
+        vy: -10 - Math.random() * 6,
+        life: 3.5, maxLife: 3.5,
+        color: '#f0e898',
+        size: 1,
+        spin: 0
+      };
+    }
+    if (biome === 'mountain') {
+      // Slow horizontal fog blobs - large, soft, alpha-pulsing.
+      // We keep `size` larger than other particles and use a special
+      // 'fog' kind so drawBiomeParticles can render them as soft
+      // alpha rects rather than crisp pixels.
+      return {
+        kind: 'fog',
+        x: viewW + 30,
+        y: viewH * 0.4 + Math.random() * (viewH * 0.4),
+        vx: -8 - Math.random() * 6,
+        vy: 0,
+        life: 12, maxLife: 12,
+        color: 'rgba(200,210,224,1)',
+        size: 22 + Math.random() * 14,
+        spin: 0
+      };
+    }
+    return null;
+  }
+  function tickBiomeParticles(particles, dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (p.spin) p.x += Math.sin(p.life * 4) * p.spin;
+      if (p.life <= 0 || p.x < -20 || p.x > VIEW_W + 20 || p.y > VIEW_H + 20 || p.y < -40) {
+        particles.splice(i, 1);
+      }
+    }
+  }
+  function drawBiomeParticles(ctx, particles) {
+    for (const p of particles) {
+      const k = Math.min(1, p.life / p.maxLife);
+      // Fade tail-end so particles disappear gracefully near the edges.
+      const fade = k > 0.9 ? (1 - (k - 0.9) / 0.1) : (k < 0.2 ? k / 0.2 : 1);
+      ctx.save();
+      if (p.kind === 'fog') {
+        // Soft radial fog blob: low alpha, gradient falloff.
+        const rad = p.size;
+        const alpha = 0.16 * fade;
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
+        grad.addColorStop(0, 'rgba(220,224,232,' + alpha.toFixed(3) + ')');
+        grad.addColorStop(1, 'rgba(220,224,232,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect((p.x - rad) | 0, (p.y - rad) | 0, (rad * 2) | 0, (rad * 2) | 0);
+      } else if (p.kind === 'rain') {
+        // Diagonal 1-px streak from current position back along the
+        // velocity direction. ~6 px tail for visible motion blur.
+        ctx.globalAlpha = fade;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + 0.6, p.y - 5);
+        ctx.stroke();
+      } else {
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = p.color;
+        ctx.fillRect((p.x - p.size) | 0, (p.y - p.size) | 0, p.size * 2, p.size * 2);
+      }
+      ctx.restore();
     }
   }
 
@@ -105,8 +1107,28 @@
     this.justEntered = true;
     this._ambient = [];
     this._initAmbient();
+    this._initNpcWander();
+    this._birds = [];
+    this._initBirds();
     this.follower = null;
     this._resetFollower();
+    this._dust = [];
+    // Recently-swept tallgrass tiles. Each entry is
+    // { x, y, t } where t counts down to 0 over ~0.35s after which
+    // the tile renders normally again.
+    this._sweptGrass = [];
+    // Biome ambient particles (snow/leaves/sand/sparkles). Reset
+    // when the map changes so a forest doesn't leak leaves into the
+    // next desert.
+    this._biomeParticles = [];
+    this._biomeSpawnTimer = 0;
+    // Weather state. _rainParticles share lifetime with the map;
+    // _lightningTimer counts down to the next flash, _lightningFlash
+    // is the brief 0..1 fade of the active flash.
+    this._rainParticles = [];
+    this._rainSpawnTimer = 0;
+    this._lightningTimer = 6 + Math.random() * 8;
+    this._lightningFlash = 0;
   }
 
   World.prototype._initAmbient = function() {
@@ -128,6 +1150,203 @@
     }
   };
 
+  // Bird wildlife. Birds perch on roofs / trees (non-walkable
+  // tiles) and periodically fly to a new perch within `range`.
+  // m.birds = [{ kind:'sparrow'|'pigeon'|'crow', x, y, range }].
+  const PERCH_TILES = 'TYOKJQNUVEG+-=*%&78PMghn';
+  World.prototype._isPerchable = function(x, y) {
+    const m = this.currentMap();
+    if (!m || !m.tiles) return false;
+    if (y < 0 || y >= m.tiles.length) return false;
+    const row = m.tiles[y];
+    if (!row || x < 0 || x >= row.length) return false;
+    const code = row[x];
+    return PERCH_TILES.indexOf(code) >= 0;
+  };
+  World.prototype._initBirds = function() {
+    const m = this.currentMap();
+    this._birds = [];
+    if (!m || !m.birds) return;
+    for (const b of m.birds) {
+      // If the configured home tile isn't perchable, scan outward
+      // (Manhattan radius) for the nearest perchable tile so the
+      // bird doesn't spawn floating on a path or grass.
+      let hx = b.x, hy = b.y;
+      if (!this._isPerchable(hx, hy)) {
+        const r = b.range || 8;
+        outer: for (let d = 1; d <= r; d++) {
+          for (let dy = -d; dy <= d; dy++) {
+            for (let dx = -d; dx <= d; dx++) {
+              if (Math.abs(dx) + Math.abs(dy) !== d) continue;
+              if (this._isPerchable(b.x + dx, b.y + dy)) {
+                hx = b.x + dx; hy = b.y + dy;
+                break outer;
+              }
+            }
+          }
+        }
+      }
+      this._birds.push({
+        kind: b.kind || 'sparrow',
+        x: hx, y: hy,
+        homeX: hx, homeY: hy,
+        range: b.range || 8,
+        mode: 'perched',
+        perchTimer: 2 + Math.random() * 6,
+        anim: { moving:false, t:0, duration:1.2,
+                fromX:hx, fromY:hy, toX:hx, toY:hy },
+        flapTimer: 0, flapFrame: 0
+      });
+    }
+  };
+  World.prototype._updateBirds = function(dt) {
+    if (!this._birds || !this._birds.length) return;
+    for (const b of this._birds) {
+      b.flapTimer += dt;
+      const flapRate = b.mode === 'flying' ? 0.08 : 0.45;
+      if (b.flapTimer > flapRate) { b.flapTimer = 0; b.flapFrame ^= 1; }
+      if (b.mode === 'flying') {
+        b.anim.t += dt;
+        if (b.anim.t >= b.anim.duration) {
+          b.x = b.anim.toX; b.y = b.anim.toY;
+          b.anim.moving = false;
+          b.mode = 'perched';
+          b.perchTimer = 4 + Math.random() * 8;
+        }
+        continue;
+      }
+      // Perched — countdown to next flight.
+      b.perchTimer -= dt;
+      if (b.perchTimer > 0) continue;
+      // Try a few random perch tiles within range, fly to first that
+      // is perchable and not the current spot.
+      const tries = 12;
+      let target = null;
+      for (let i = 0; i < tries; i++) {
+        const dx = Math.floor(Math.random() * (b.range * 2 + 1)) - b.range;
+        const dy = Math.floor(Math.random() * (b.range * 2 + 1)) - b.range;
+        const nx = b.homeX + dx, ny = b.homeY + dy;
+        if (nx === b.x && ny === b.y) continue;
+        if (!this._isPerchable(nx, ny)) continue;
+        target = { x: nx, y: ny };
+        break;
+      }
+      if (!target) {
+        b.perchTimer = 1 + Math.random() * 2;
+        continue;
+      }
+      b.mode = 'flying';
+      b.anim.moving = true;
+      b.anim.t = 0;
+      b.anim.duration = 0.9 + Math.random() * 0.5;
+      b.anim.fromX = b.x; b.anim.fromY = b.y;
+      b.anim.toX = target.x; b.anim.toY = target.y;
+    }
+  };
+  World.prototype._renderBirds = function(ctx, camX, camY) {
+    if (!this._birds || !this._birds.length) return;
+    const atlas = window.PR_ATLAS;
+    if (!atlas || !atlas.isReady()) return;
+    for (const b of this._birds) {
+      let bx = b.x, by = b.y;
+      let liftY = 0;
+      if (b.mode === 'flying') {
+        const k = Math.min(1, b.anim.t / b.anim.duration);
+        bx = b.anim.fromX + (b.anim.toX - b.anim.fromX) * k;
+        by = b.anim.fromY + (b.anim.toY - b.anim.fromY) * k;
+        // Parabolic lift: sin gives 0 at endpoints, peaks at mid-flight.
+        liftY = -10 * Math.sin(k * Math.PI);
+      }
+      const sx = bx * TS - camX;
+      const sy = by * TS - camY + liftY;
+      if (sx < -TS || sx > VIEW_W + TS || sy < -TS || sy > VIEW_H + TS) continue;
+      const key = 'decor_wildlife_' + b.kind + '_' + (b.mode === 'flying'
+        ? 'flying'
+        : (b.flapFrame ? 'perched' : 'perched')); // perched anim reuses single sprite
+      atlas.drawKey(ctx, key, sx, sy);
+    }
+  };
+
+  // Attach wander-state to any NPC that has a `wander` flag. Idempotent —
+  // safe to call on every transitionTo. NPCs keep their (possibly
+  // wandered) position between visits.
+  World.prototype._initNpcWander = function() {
+    const m = this.currentMap();
+    if (!m || !m.npcs) return;
+    for (const n of m.npcs) {
+      if (!n.wander) continue;
+      if (n._homeX === undefined) { n._homeX = n.x; n._homeY = n.y; }
+      if (!n.anim) n.anim = { moving:false, t:0, duration:0.4, fromX:n.x, fromY:n.y, toX:n.x, toY:n.y };
+      if (n._range === undefined) n._range = (n.wander && n.wander.range) || 2;
+      if (n._moveTimer === undefined) n._moveTimer = Math.random() * 2;
+      if (n._nextDelay === undefined) n._nextDelay = 1.5 + Math.random() * 2;
+    }
+  };
+
+  // Tick wander movement. Mirrors _updateAmbient but operates on m.npcs
+  // and respects npc collision (no two NPCs on same tile).
+  World.prototype._updateNpcWander = function(dt) {
+    const m = this.currentMap();
+    if (!m || !m.npcs) return;
+    for (const n of m.npcs) {
+      if (!n.wander || !n.anim) continue;
+      // Defeated trainers and gated NPCs still pace; that's fine.
+      if (n.anim.moving) {
+        n.anim.t += dt;
+        if (n.anim.t >= n.anim.duration) {
+          n.x = n.anim.toX; n.y = n.anim.toY;
+          n.anim.moving = false;
+          n._moveTimer = 0;
+          n._nextDelay = 1.5 + Math.random() * 2;
+        }
+        continue;
+      }
+      n._moveTimer += dt;
+      if (n._moveTimer < n._nextDelay) continue;
+      const dirs = ['up','down','left','right'];
+      for (let i = dirs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = dirs[i]; dirs[i] = dirs[j]; dirs[j] = t;
+      }
+      let moved = false;
+      for (const d of dirs) {
+        let nx = n.x, ny = n.y;
+        if (d === 'up') ny--;
+        else if (d === 'down') ny++;
+        else if (d === 'left') nx--;
+        else if (d === 'right') nx++;
+        if (Math.abs(nx - n._homeX) > n._range) continue;
+        if (Math.abs(ny - n._homeY) > n._range) continue;
+        const code = this.tileAt(nx, ny);
+        const props = window.PR_MAPS.TILE_PROPS[code];
+        if (!props || props.walk !== true) continue;
+        if (this.player.x === nx && this.player.y === ny) continue;
+        if (this.anim.moving && this.anim.toX === nx && this.anim.toY === ny) continue;
+        // Block on other NPCs (current pos OR moving-into-target).
+        let blocked = false;
+        for (const other of m.npcs) {
+          if (other === n) continue;
+          if (other.x === nx && other.y === ny) { blocked = true; break; }
+          if (other.anim && other.anim.moving && other.anim.toX === nx && other.anim.toY === ny) { blocked = true; break; }
+        }
+        if (blocked) continue;
+        if (this._ambientAt && this._ambientAt(nx, ny, null)) continue;
+        n.dir = d;
+        n.anim.moving = true;
+        n.anim.t = 0;
+        n.anim.fromX = n.x; n.anim.fromY = n.y;
+        n.anim.toX = nx;    n.anim.toY = ny;
+        moved = true;
+        break;
+      }
+      if (!moved) {
+        n.dir = dirs[0];
+        n._moveTimer = 0;
+        n._nextDelay = 1.0 + Math.random() * 1.5;
+      }
+    }
+  };
+
   const DIR_STEP = {
     up: { x:0, y:-1 },
     down: { x:0, y:1 },
@@ -141,6 +1360,26 @@
     if (dy !== 0) return dy > 0 ? 'down' : 'up';
     return fallback || 'down';
   }
+
+  World.prototype._spawnDustAtPlayer = function() {
+    // 2 small puffs at the player's feet, drifting slightly opposite
+    // the direction of travel so they read as "kicked up".
+    const dir = this.player.dir;
+    const dx = dir === 'left' ? 4 : dir === 'right' ? -4 : 0;
+    const dy = dir === 'up' ? 4 : dir === 'down' ? -2 : 0;
+    const px = this.player.x * TS + 16;
+    const py = this.player.y * TS + 28;
+    for (let i = 0; i < 2; i++) {
+      this._dust.push({
+        x: px + dx + (Math.random() * 6 - 3),
+        y: py + dy + (Math.random() * 2 - 1),
+        vy: -8 - Math.random() * 6,
+        life: 0.5 + Math.random() * 0.2,
+        maxLife: 0.7
+      });
+    }
+    if (this._dust.length > 24) this._dust.splice(0, this._dust.length - 24);
+  };
 
   World.prototype._followerWalkable = function(x, y) {
     const code = this.tileAt(x, y);
@@ -227,11 +1466,11 @@
     const props = window.PR_MAPS.TILE_PROPS[code];
     if (!props) return false;
     if (props.walk === true) {
-      return !this.npcAt(x, y);
+      return !this.npcBlockerAt(x, y);
     }
-    if (props.walk === 'south' && dir === 'down') return !this.npcAt(x, y);
+    if (props.walk === 'south' && dir === 'down') return !this.npcBlockerAt(x, y);
     // Water - walkable while surfing.
-    if (code === 'W' && this.state.player.surfing) return !this.npcAt(x, y);
+    if (code === 'W' && this.state.player.surfing) return !this.npcBlockerAt(x, y);
     return false;
   };
 
@@ -239,13 +1478,65 @@
     const m = this.currentMap();
     if (!m.npcs) return null;
     for (const n of m.npcs) {
-      if (n.x !== x || n.y !== y) continue;
+      // For a wandering NPC mid-step, count both the from-tile and the
+      // destination-tile as "occupied" so collision and interaction
+      // both feel right.
+      const matches = (n.x === x && n.y === y)
+        || (n.anim && n.anim.moving && n.anim.toX === x && n.anim.toY === y);
+      if (!matches) continue;
       // Gate NPC vanishes once its conditions are met.
       if (n.gate && this.state.gateConditionsMet
           && this.state.gateConditionsMet(n.gate)) continue;
       return n;
     }
     return null;
+  };
+
+  // Door-adjacency helper. Returns true if any door tile (or edge
+  // transition) in the current map is within Manhattan distance 2
+  // of (x, y). Used to let the player squeeze past chatter NPCs
+  // who happen to wander up to a doorway — without this, a baker
+  // wandering near the mart entrance can lock the player out.
+  World.prototype._isNearDoor = function(x, y) {
+    const m = this.currentMap();
+    if (m.doors) {
+      for (const key in m.doors) {
+        if (!Object.prototype.hasOwnProperty.call(m.doors, key)) continue;
+        const i = key.indexOf(',');
+        if (i < 0) continue;
+        const dx = parseInt(key.slice(0, i), 10);
+        const dy = parseInt(key.slice(i + 1), 10);
+        if (Math.abs(dx - x) + Math.abs(dy - y) <= 2) return true;
+      }
+    }
+    // Edge transition tiles count as doors too (so an NPC idling
+    // next to a route exit doesn't trap the player on the city
+    // side of the boundary).
+    if (m.edges) {
+      for (const side of Object.keys(m.edges)) {
+        const e = m.edges[side];
+        if (!e) continue;
+        const ex = (side === 'east' || side === 'west') ? e.x : x;
+        const ey = (side === 'north' || side === 'south') ? e.y : y;
+        if (Math.abs(ex - x) + Math.abs(ey - y) <= 2) return true;
+      }
+    }
+    return false;
+  };
+
+  // Like npcAt but returns null for NPCs the player should be allowed
+  // to walk through. Only loitering chatter NPCs near a door are
+  // pass-through; gate NPCs, trainers, healers, shopkeepers, starters
+  // and ball pickups always block so the existing engagement and
+  // gate-message flows still fire when the player tries to enter.
+  World.prototype.npcBlockerAt = function(x, y) {
+    const n = this.npcAt(x, y);
+    if (!n) return null;
+    if (n.gate) return n;
+    if (n.trainer) return n;
+    if (n.healer || n.shop || n.starter || n.ballSlot !== undefined) return n;
+    if (this._isNearDoor(n.x, n.y)) return null;
+    return n;
   };
 
   World.prototype.tryMove = function(dir) {
@@ -281,7 +1572,7 @@
       this.state.player.surfing = false;
     }
     {
-      const blocker = this.npcAt(nx, ny);
+      const blocker = this.npcBlockerAt(nx, ny);
       if (blocker) {
         if (blocker.gate && this.state.gateConditionsMet
             && !this.state.gateConditionsMet(blocker.gate)
@@ -375,7 +1666,17 @@
     this.anim.moving = false;
     this.justEntered = true;
     this._initAmbient();
+    this._initNpcWander();
+    this._initBirds();
     this._resetFollower();
+    // Reset biome particles so a forest's leaves don't drift into the
+    // next desert; new biome will start spawning on the next tick.
+    this._biomeParticles = [];
+    this._biomeSpawnTimer = 0;
+    this._rainParticles = [];
+    this._rainSpawnTimer = 0;
+    this._lightningTimer = 6 + Math.random() * 8;
+    this._lightningFlash = 0;
     if (this.state.onMapChange) this.state.onMapChange();
     if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('mapchange');
   };
@@ -390,6 +1691,16 @@
 
     const npc = this.npcAt(ix, iy);
     if (npc) {
+      // Snap a wandering NPC to a tile so dialog renders against a
+      // grid-aligned sprite, and pause their pacing during the chat.
+      if (npc.anim && npc.anim.moving) {
+        npc.x = npc.anim.toX; npc.y = npc.anim.toY;
+        npc.anim.moving = false; npc.anim.t = 0;
+      }
+      if (npc.wander) {
+        npc._moveTimer = 0;
+        npc._nextDelay = 2.0 + Math.random() * 2;
+      }
       // Face the player.
       const opp = { up:'down', down:'up', left:'right', right:'left' };
       npc.dir = opp[p.dir] || npc.dir;
@@ -417,16 +1728,21 @@
       this.state.onHealer();
       return true;
     }
-    // Water tile (A): cast a line. Surfing lives on B (handled in update()).
+    // Water tile: surf toggle if you have a WATER-type ally.
     if (code === 'W' && !this.state.player.surfing) {
-      const hasRod = !!(this.state.player.bag && this.state.player.bag.old_rod);
-      if (hasRod && window.PR_GAME && window.PR_GAME.startFishing) {
-        window.PR_GAME.startFishing();
+      const hasWater = (this.state.party || []).some(m => {
+        const sp = window.PR_DATA.CREATURES[m.species];
+        return sp && sp.types && sp.types.includes('WATER');
+      });
+      if (hasWater) {
+        this.state.player.surfing = true;
+        if (this.state.showFlash) this.state.showFlash('Hopped onto the water!');
+        if (window.PR_SFX) window.PR_SFX.play('confirm');
+        return true;
+      } else {
+        if (this.state.onSign) this.state.onSign('You need a WATER ally to surf.');
         return true;
       }
-      // No rod: surface a hint instead of silently doing nothing.
-      if (this.state.onSign) this.state.onSign('You need an OLD ROD to fish here.');
-      return true;
     }
     // Hidden item at this tile?
     if (m.hidden && this.state.onHidden) {
@@ -524,7 +1840,68 @@
         this._ambient = [];
       }
     }
+    try { this._updateNpcWander(dt); }
+    catch (err) { console.error('[PokeRod] npc wander tick error:', err); }
+    try { this._updateBirds(dt); }
+    catch (err) { console.error('[PokeRod] bird tick error:', err); }
     this._updateFollower(dt);
+
+    if (this._dust && this._dust.length) tickDust(this._dust, dt);
+    if (this._sweptGrass && this._sweptGrass.length) {
+      for (let i = this._sweptGrass.length - 1; i >= 0; i--) {
+        const s = this._sweptGrass[i];
+        s.t -= dt;
+        if (s.t <= 0) this._sweptGrass.splice(i, 1);
+      }
+    }
+    // Biome ambient particles: tick existing, spawn at a low rate.
+    // Active only in DS Diamond mode; reduced-motion users opt out.
+    const dsActive = tiltActive() && !(window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion);
+    if (dsActive) {
+      tickBiomeParticles(this._biomeParticles, dt);
+      const cur = this.currentMap();
+      const biome = biomeFor(cur);
+      if (biome && !cur.interior) {
+        this._biomeSpawnTimer -= dt;
+        if (this._biomeSpawnTimer <= 0 && this._biomeParticles.length < 18) {
+          const p = spawnBiomeParticle(biome, VIEW_W, VIEW_H, this.player.steps || 0);
+          if (p) this._biomeParticles.push(p);
+          this._biomeSpawnTimer = 0.15 + Math.random() * 0.25;
+        }
+      }
+    } else if (this._biomeParticles.length) {
+      // Snap to empty when the player toggles back to a non-DS preset.
+      this._biomeParticles.length = 0;
+    }
+    // Weather tick: rain particles + periodic lightning flash. Map's
+    // `weather` property opts a map into the weather system; only
+    // 'rain' is supported for now. Lightning is part of the rain
+    // package - flash + audio cue every 6-14s.
+    const cur2 = this.currentMap();
+    const rainy = dsActive && cur2 && cur2.weather === 'rain' && !cur2.interior;
+    if (rainy) {
+      tickBiomeParticles(this._rainParticles, dt);
+      this._rainSpawnTimer -= dt;
+      while (this._rainSpawnTimer <= 0 && this._rainParticles.length < 80) {
+        this._rainParticles.push(spawnRainParticle(VIEW_W));
+        this._rainSpawnTimer += 0.04;
+      }
+      this._lightningTimer -= dt;
+      if (this._lightningTimer <= 0) {
+        this._lightningFlash = 1;
+        this._lightningTimer = 6 + Math.random() * 9;
+        if (window.PR_AUDIO && window.PR_AUDIO._internal && window.PR_AUDIO._internal.tone) {
+          const A = window.PR_AUDIO._internal;
+          const t = A.ctx ? A.ctx.currentTime : 0;
+          A.tone(60, t,        0.18, { gain:0.18, type:'sawtooth', bend:0.3 });
+          A.noiseBurst && A.noiseBurst(t + 0.05, 0.30, { gain:0.12, cutoff:1200 });
+        }
+      }
+      if (this._lightningFlash > 0) this._lightningFlash = Math.max(0, this._lightningFlash - dt * 4);
+    } else if (this._rainParticles.length) {
+      this._rainParticles.length = 0;
+      this._lightningFlash = 0;
+    }
 
     if (this.anim.moving) {
       this.anim.t += dt;
@@ -538,6 +1915,20 @@
         this.frame ^= 1;
         // Check for door / encounter / edge after step.
         const code = this.tileAt(this.player.x, this.player.y);
+        // Footstep dust on dusty surfaces. Skipped when reduced motion
+        // is on so we don't add unnecessary motion for that audience.
+        const reducedM = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+        if (tiltActive() && !reducedM && isDustyTile(code)) {
+          this._spawnDustAtPlayer();
+        }
+        // Reactive tallgrass: when the player lands on tallgrass, mark
+        // the cell as "swept" for ~0.35s. The render layer draws a
+        // small disturbance overlay until the timer expires.
+        if (!reducedM && code === ':') {
+          this._sweptGrass.push({ x: this.player.x, y: this.player.y, t: 0.35 });
+          // Cap the swept list so a long walk doesn't accumulate.
+          if (this._sweptGrass.length > 12) this._sweptGrass.splice(0, this._sweptGrass.length - 12);
+        }
         if (code === 'X' || this._atMapEdge(this.player.x, this.player.y)) {
           this.tryEdgeTransition(this.player.x, this.player.y);
           return;
@@ -564,59 +1955,34 @@
     if (I.consumePressed('z')) {
       if (this.tryInteract()) return;
     }
-    if (I.consumePressed('x')) {
-      if (this.trySurfToggle()) return;
-    }
     const dir = I.dirHeld();
     if (dir) {
       this.tryMove(dir);
     }
   };
 
-  // B-press surf toggle. From land facing water with a WATER ally, hop on.
-  // While surfing, B hops back off onto adjacent land if available.
-  World.prototype.trySurfToggle = function() {
-    const p = this.player;
-    let ix = p.x, iy = p.y;
-    if (p.dir === 'up') iy--;
-    else if (p.dir === 'down') iy++;
-    else if (p.dir === 'left') ix--;
-    else if (p.dir === 'right') ix++;
-    const facing = this.tileAt(ix, iy);
-
-    if (p.surfing) {
-      // Already on water: B steps back onto facing land tile if walkable.
-      const props = window.PR_MAPS.TILE_PROPS[facing];
-      if (props && props.walk === true && facing !== 'W') {
-        p.surfing = false;
-        if (this.state.showFlash) this.state.showFlash('Back on dry land.');
-        if (window.PR_SFX) window.PR_SFX.play('confirm');
-        return true;
-      }
-      return false;
-    }
-
-    if (facing !== 'W') return false;
-    const hasWater = (this.state.party || []).some(m => {
-      const sp = window.PR_DATA.CREATURES[m.species];
-      return sp && sp.types && sp.types.includes('WATER');
-    });
-    if (!hasWater) {
-      if (this.state.onSign) this.state.onSign('You need a WATER ally to surf.');
-      return true;
-    }
-    p.surfing = true;
-    if (this.state.showFlash) this.state.showFlash('Hopped onto the water!');
-    if (window.PR_SFX) window.PR_SFX.play('confirm');
-    return true;
-  };
-
   // --- Rendering ---
   World.prototype.render = function(ctx) {
     const m = this.currentMap();
     const px = this.getPlayerPx();
-    const camX = Math.max(0, Math.min(m.tiles[0].length * TS - VIEW_W, px.x - VIEW_W/2 + TS/2));
-    const camY = Math.max(0, Math.min(m.tiles.length * TS - VIEW_H, px.y - VIEW_H/2 + TS/2));
+    const targetCamX = Math.max(0, Math.min(m.tiles[0].length * TS - VIEW_W, px.x - VIEW_W/2 + TS/2));
+    const targetCamY = Math.max(0, Math.min(m.tiles.length * TS - VIEW_H, px.y - VIEW_H/2 + TS/2));
+    // Cinematic camera: lerp toward the target instead of snapping.
+    // Tile rendering already handles fractional offsets, so the camera
+    // can sit at sub-pixel positions and drift smoothly into place.
+    // Bypassed for non-DS presets and reduced-motion users so retro
+    // styles keep their tile-snapped look.
+    const reducedM = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+    if (!tiltActive() || reducedM) {
+      this._camX = targetCamX;
+      this._camY = targetCamY;
+    } else {
+      if (this._camX === undefined) { this._camX = targetCamX; this._camY = targetCamY; }
+      this._camX += (targetCamX - this._camX) * 0.22;
+      this._camY += (targetCamY - this._camY) * 0.22;
+    }
+    const camX = this._camX;
+    const camY = this._camY;
 
     // Clear to grass green rather than black so the 1-px gap that the
     // foliage sway leaves behind blends in instead of showing as a black
@@ -640,6 +2006,86 @@
       }
     }
 
+    // DS Diamond: cast a ground shadow at the base of every tall
+    // tile (trees, buildings, fences, rocks). Drawn after the tile
+    // pass so the shadow falls onto the next row's already-painted
+    // ground without being clobbered.
+    drawTallTileShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+
+    // Building-base shadow strips: rectangular soft strip along the
+    // south edge of every wall/roof/door/window/fence footprint. Runs
+    // after tall-tile shadows so trees still puddle and only buildings
+    // get the architectural strip projection.
+    drawBuildingShadows(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+
+    // Snow caps along the tops of tall tiles in snow-biome maps.
+    drawSnowCaps(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
+    // Water reflections: flipped silhouettes of tall tiles directly
+    // above any visible water tile. Drawn before the shimmer so the
+    // sparkles sit on top of the reflection.
+    drawWaterReflections(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
+    // Animated water shimmer. Subtle 1-2 px sparkles cycling per
+    // frame on water tiles; sells movement when the player isn't.
+    drawWaterShimmer(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS);
+
+    // Hidden item pulse: faint expanding ring around uncollected
+    // hidden items so a careful player can spot them. Active on
+    // exterior maps; interior caves still get them since they often
+    // contain hidden items.
+    drawHiddenPulses(ctx, m, camX, camY, VIEW_W, VIEW_H, this.player.steps || 0,
+      this.state.player && this.state.player.foundItems);
+
+    // Tallgrass disturbance: the cells the player just walked through
+    // briefly show parted-blade marks. Drawn after tiles so the marks
+    // sit on top of the grass texture, but before NPCs/player so a
+    // sprite standing on a swept cell still occludes it.
+    if (this._sweptGrass && this._sweptGrass.length) {
+      drawSweptGrass(ctx, this._sweptGrass, camX, camY);
+    }
+
+    // Decoration layer: arbitrary atlas keys placed via
+    // map.decorations = [{ x, y, key }]. Drawn between the tile pass
+    // and the sprite layer so movable sprites occlude items they
+    // walk past correctly. Soft shadow pass first so the shadow sits
+    // under the decoration sprite, not on top.
+    drawDecorationShadows(ctx, m, offX, offY, startTx, startTy, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+    if (m.decorations && window.PR_ATLAS && window.PR_ATLAS.isReady()) {
+      const healAnim = this.state && this.state.healAnim;
+      for (const d of m.decorations) {
+        const sx = d.x * TS - camX;
+        const sy = d.y * TS - camY;
+        if (sx < -TS * 2 || sx > VIEW_W + TS || sy < -TS * 2 || sy > VIEW_H + TS) continue;
+        let key = d.key;
+        if (d.anim === 'pod' && healAnim) {
+          if (healAnim.t >= healAnim.duration) {
+            key = 'pod_healing_complete';
+          } else {
+            key = (Math.floor(healAnim.t * 6) & 1) ? 'pod_healing_glow1' : 'pod_healing_glow2';
+          }
+        }
+        window.PR_ATLAS.drawKey(ctx, 'decor_' + key, sx, sy);
+        if (d.anim === 'pod' && healAnim && healAnim.t < healAnim.duration) {
+          const pulse = 0.45 + 0.35 * Math.sin(healAnim.t * 8);
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = pulse;
+          const grd = ctx.createRadialGradient(sx + TS / 2, sy + TS / 2, 2, sx + TS / 2, sy + TS / 2, TS);
+          grd.addColorStop(0, '#ffe8a0');
+          grd.addColorStop(1, 'rgba(255,200,128,0)');
+          ctx.fillStyle = grd;
+          ctx.fillRect(sx - TS / 2, sy - TS / 2, TS * 2, TS * 2);
+          ctx.restore();
+        }
+      }
+    }
+
+    // Wildlife birds — perch on roofs/trees, occasionally fly.
+    // Drawn after decorations / before ambient creatures so the
+    // player walks in front of low-perched birds.
+    this._renderBirds(ctx, camX, camY);
+
     // Ambient roaming creatures (drawn under NPCs/player).
     for (const a of this._ambient) {
       let ax = a.x, ay = a.y;
@@ -654,20 +2100,41 @@
       const bob = a.anim.moving
         ? -Math.round(Math.sin(Math.min(1, a.anim.t / a.anim.duration) * Math.PI))
         : (a.frame ? -1 : 0);
-      window.PR_MONS.drawCreature(ctx, a.species, sx - 2, sy - 4 + bob, 20, false);
+      // Chickens use the NPC character pipeline (4 dirs × 2 frames)
+      // instead of the creature renderer; everything else falls
+      // through to the existing PR_MONS.drawCreature path.
+      if (a.species === 'chicken') {
+        const sxC = sx + bob, syC = sy + bob;
+        withTilt(ctx, sxC, syC, TS, TS, () => {
+          window.PR_CHARS.drawNpc(ctx, sxC, syC, 'chicken', a.dir || 'down', a.frame || 0);
+        });
+      } else {
+        const cdx = sx - 2, cdy = sy - 4 + bob;
+        withTilt(ctx, cdx, cdy, 20, 20, () => {
+          window.PR_MONS.drawCreature(ctx, a.species, cdx, cdy, 20, false);
+        });
+      }
     }
 
     // NPCs
     if (m.npcs) {
       for (const n of m.npcs) {
-        const sx = n.x * TS - camX;
-        const sy = n.y * TS - camY;
+        let nx = n.x, ny = n.y;
+        if (n.anim && n.anim.moving) {
+          const k = Math.min(1, n.anim.t / n.anim.duration);
+          nx = n.anim.fromX + (n.anim.toX - n.anim.fromX) * k;
+          ny = n.anim.fromY + (n.anim.toY - n.anim.fromY) * k;
+        }
+        const sx = nx * TS - camX;
+        const sy = ny * TS - camY;
         if (sx < -TS || sx > VIEW_W || sy < -TS || sy > VIEW_H) continue;
         if (n.sprite === 'ball') {
           // Hide ball if starter taken.
           if (this.state.flags.starterChosen && n.ballSlot !== undefined) continue;
         }
-        window.PR_CHARS.drawNpc(ctx, sx, sy, n.sprite, n.dir, this.npcFrame);
+        withTilt(ctx, sx, sy, TS, TS, () => {
+          window.PR_CHARS.drawNpc(ctx, sx, sy, n.sprite, n.dir, this.npcFrame);
+        });
       }
     }
 
@@ -682,7 +2149,10 @@
         const reduced = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
         const bob = f.anim.moving && !reduced ? -Math.round(Math.sin(p * Math.PI)) : (f.frame ? -1 : 0);
         const dogFrame = f.frame ^ (p > 0.5 ? 1 : 0);
-        window.PR_CHARS.drawDog(ctx, sx, sy + bob, f.dir, dogFrame);
+        const dy = sy + bob;
+        withTilt(ctx, sx, dy, TS, TS, () => {
+          window.PR_CHARS.drawDog(ctx, sx, dy, f.dir, dogFrame);
+        });
       }
     }
 
@@ -694,22 +2164,125 @@
       bobY = reduced ? 0 : -Math.round(Math.sin(p * Math.PI));
       walkFrame = this.frame ^ (p > 0.5 ? 1 : 0);
     }
-    window.PR_CHARS.drawPlayer(ctx, px.x - camX, (px.y - camY) + bobY, this.player.dir, walkFrame);
+    {
+      const psx = px.x - camX, psy = (px.y - camY) + bobY;
+      withTilt(ctx, psx, psy, TS, TS, () => {
+        window.PR_CHARS.drawPlayer(ctx, psx, psy, this.player.dir, walkFrame);
+      });
+    }
 
-    // Day/night tint overlay.
+    // Foreground tall grass: paint a row of blades OVER any movable
+    // sprite that's currently standing on a `:` tile so the sprite
+    // looks like it's wading through. Player first, then ambient
+    // creatures, then NPCs - any of which might be in tall grass.
+    if (tiltActive()) {
+      if (this.tileAt(this.player.x, this.player.y) === ':') {
+        drawForegroundTallgrass(ctx, this.player.x, this.player.y, camX, camY);
+      }
+      for (const a of this._ambient) {
+        if (this.tileAt(a.x, a.y) === ':') {
+          drawForegroundTallgrass(ctx, a.x, a.y, camX, camY);
+        }
+      }
+      if (m.npcs) {
+        for (const n of m.npcs) {
+          if (this.tileAt(n.x, n.y) === ':') {
+            drawForegroundTallgrass(ctx, n.x, n.y, camX, camY);
+          }
+        }
+      }
+    }
+
+    // Footstep dust under the player. Drawn before the day/night
+    // tint so the dust gets darkened along with the rest of the
+    // ground, reading like a particle and not a spark.
+    if (this._dust && this._dust.length) drawDust(ctx, this._dust, camX, camY);
+
+    // Smoothly interpolated day/night tint overlay. Skipped entirely
+    // when the player has disabled the cycle in settings, in which
+    // case the world stays at a flat noon look.
     const cur = this.currentMap();
-    if (!cur || !cur.interior) {
-      const phase = phaseForSteps(this.player.steps || 0);
-      // Animated DS Diamond sunbeams (additive yellow stripes drifting + pulsing).
-      drawSunbeams(ctx, phase.name);
-      if (phase.tint) {
-        ctx.fillStyle = phase.tint;
+    const cycleOn = !(window.PR_SETTINGS && window.PR_SETTINGS.dayNightCycle === false);
+    if (cycleOn && (!cur || !cur.interior)) {
+      const tint = currentTint(this.player.steps || 0);
+      if (tint) {
+        ctx.fillStyle = tint;
         ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       }
     }
 
-    // Minimap pip (small overview top-left).
-    if (!cur.interior) drawMinimap(ctx, cur, this.player.x, this.player.y);
+    // DS Diamond, night phase: lamp halos and lit windows. Drawn
+    // AFTER the day/night tint so the additive glows lift the
+    // darkened image, mimicking how lamps pierce the gloom.
+    if (cur && !cur.interior && cycleOn) {
+      drawNightLights(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+    }
+
+    // Player lantern: warm cone around the player at night. Drawn
+    // alongside the lamp halos so the player has their own portable
+    // light source.
+    if (cur && !cur.interior && cycleOn) {
+      drawPlayerLantern(ctx, px.x - camX + TS / 2, px.y - camY + TS / 2, this.player.steps || 0);
+    }
+
+    // God-ray shafts at dawn/dusk: thin diagonal beams down-left from
+    // the tops of tall tiles. Cinematic accent for the warm bands of
+    // the day/night cycle.
+    if (cur && !cur.interior && cycleOn) {
+      drawGodRays(ctx, m, startTx, startTy, offX, offY, VIEW_TX, VIEW_TY, TS, this.player.steps || 0);
+    }
+
+    // Heat shimmer for desert maps during the day band. Skipped at
+    // night and on non-desert maps.
+    if (cur && !cur.interior && cycleOn) {
+      drawHeatShimmer(ctx, m, VIEW_W, VIEW_H, this.player.steps || 0);
+    }
+
+    // Cinematic colour grade: warm-on-top / cool-on-bottom split tone
+    // applied during the dawn / dusk bands. Skipped at noon to keep
+    // the daytime look bright.
+    if (cycleOn) drawColorGrade(ctx, VIEW_W, VIEW_H, this.player.steps || 0);
+
+    // Biome ambient particles. Drawn after night lights so leaves
+    // catch the warm glow of nearby lamps, but before the vignette
+    // and HUD so the corner darkening still frames everything.
+    if (this._biomeParticles && this._biomeParticles.length) {
+      drawBiomeParticles(ctx, this._biomeParticles);
+    }
+
+    // Rain streaks (active only when current map opts in via
+    // weather:'rain'). Drawn over biome particles so falling rain
+    // sits in front of fog blobs.
+    if (this._rainParticles && this._rainParticles.length) {
+      drawBiomeParticles(ctx, this._rainParticles);
+    }
+
+    // Lightning flash: brief screen-wide white tint that fades over
+    // ~0.25s. Only fires on rainy maps.
+    if (this._lightningFlash > 0) {
+      ctx.fillStyle = 'rgba(255,255,240,' + (0.55 * this._lightningFlash).toFixed(3) + ')';
+      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    }
+
+    // Tilt-shift band blur: blurs the top and bottom 36 px of the
+    // canvas to suggest depth-of-field. Drawn before vignette so the
+    // vignette darkens the (now-blurred) edges further.
+    if (cur && !cur.interior) drawTiltShift(ctx, VIEW_W, VIEW_H);
+
+    // DS Diamond: subtle vignette over the whole world frame (the
+    // minimap, clock and banner are drawn after this so they stay
+    // readable).
+    if (cur && !cur.interior) drawVignette(ctx, VIEW_W, VIEW_H);
+
+    // Minimap pip (small overview top-left). Hidden in DS Diamond
+    // because the bottom screen already shows the same minimap.
+    if (!cur.interior && !tiltActive()) drawMinimap(ctx, cur, this.player.x, this.player.y);
+
+    // In-game clock (top-right). The phase icon now sits inside the
+    // same top-right cluster (drawn by drawWorldClock) so the player
+    // reads them as a single time indicator. Always shown in the
+    // overworld so the time is visible even with the cycle disabled.
+    drawWorldClock(ctx, VIEW_W, this.player.steps || 0);
 
     // Map name banner on entry.
     if (this.justEntered) {
@@ -721,7 +2294,26 @@
       this.bannerTimer -= 1/60;
       const label = String(this.bannerName || '');
       const w = Math.min(VIEW_W - 20, Math.max(116, label.length * 6 + 42));
-      const x = (VIEW_W - w) / 2 | 0, y = 8, h = 30;
+      // Animated slide-in / slide-out: ease the banner Y offset from
+      // above the screen down into place over the first 0.3s, hold,
+      // then ease back up out of view in the final 0.3s. Reduced-
+      // motion users get an instant pop instead.
+      const reducedB = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+      const elapsed = 1.6 - this.bannerTimer;
+      let yOffset = 0;
+      if (!reducedB && tiltActive()) {
+        if (elapsed < 0.3) {
+          const k = elapsed / 0.3;
+          // ease-out cubic: faster at start, settles at end
+          const e = 1 - Math.pow(1 - k, 3);
+          yOffset = -42 * (1 - e);
+        } else if (this.bannerTimer < 0.3) {
+          const k = this.bannerTimer / 0.3;
+          const e = Math.pow(k, 3); // ease-in cubic
+          yOffset = -42 * (1 - e);
+        }
+      }
+      const x = (VIEW_W - w) / 2 | 0, y = 8 + yOffset, h = 30;
       window.PR_UI.panel(ctx, x, y, w, h, {
         fill:'#fff8e8', border:'#202020', shadow:'#b0702c', highlight:'#fff8f0'
       });
@@ -760,4 +2352,5 @@
   };
 
   window.PR_WORLD = { World };
+  window.PR_HUD = { drawMinimap, drawWorldClock, drawPhaseIcon, miniColorFor, phaseForSteps, clockHM };
 })();
