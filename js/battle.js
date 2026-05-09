@@ -568,7 +568,8 @@
       this.queue(this.trainer ? 'You won the battle!' : 'You won!');
       if (this.trainer) {
         this.queue('Got $' + this.trainer.reward + '!');
-        this.state.player.money += this.trainer.reward;
+        if (this.state.addMoney) this.state.addMoney(this.state, this.trainer.reward);
+        else this.state.player.money += this.trainer.reward;
         this._trainerRewarded = true;
       }
       this.phase = 'message';
@@ -673,7 +674,8 @@
       return false;
     }
     if (this.trainer && !this._trainerRewarded) {
-      this.state.player.money += this.trainer.reward || 0;
+      if (this.state.addMoney) this.state.addMoney(this.state, this.trainer.reward || 0);
+      else this.state.player.money += this.trainer.reward || 0;
       this._trainerRewarded = true;
     }
     this.outcome = 'won';

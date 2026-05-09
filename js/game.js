@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.43.0';
-  const BUILD = '2026.05.09-115';
+  const VERSION = 'v0.44.0';
+  const BUILD = '2026.05.09-116';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -218,6 +218,11 @@
       state._prevMode = state.mode;
       state.errorLogged = false;
     }
+    // Accumulate play time. Skip the title screen and slot picker so the
+    // counter only ticks while the player is actually IN their save.
+    if (state.mode !== 'title' && state.mode !== 'slots' && state.player && state.player.stats) {
+      state.player.stats.timePlayed = (state.player.stats.timePlayed || 0) + dt;
+    }
     // Global: Select toggles audio mute, except in the Pokedex
     // where it cycles the all/seen/got filter (handled in updateDex).
     if (state.mode !== 'dex' && window.PR_INPUT.consumePressed('Shift')) {
@@ -323,7 +328,7 @@
       return true;
     }
     if (state.mode === 'overworld') {
-      state.player.money = (state.player.money || 0) + 10000;
+      addMoney(state, 10000);
       window.PR_SFX && window.PR_SFX.play('confirm');
       showFlash('GOT $10000!');
       window.PR_SAVE.save && window.PR_SAVE.save(state);
@@ -674,6 +679,8 @@
   function startBattleAgainstTrainer(npc, trainerKey) {
     let step = 'init';
     try {
+      ensurePlayerStats();
+      state.player.stats.encounters = (state.player.stats.encounters || 0) + 1;
       step = 'sfx-play';
       if (window.PR_SFX) {
         window.PR_SFX.play('encounter');
@@ -709,6 +716,8 @@
   function startBattleAgainstWild(species, level) {
     let step = 'init';
     try {
+      ensurePlayerStats();
+      state.player.stats.encounters = (state.player.stats.encounters || 0) + 1;
       step = 'sfx-play';
       if (window.PR_SFX) {
         window.PR_SFX.play('encounter');
@@ -827,7 +836,74 @@
     // here BEFORE the trainer / shop / healer branches so a story-id'd
     // NPC's dialog tree always wins, regardless of whether the static
     // entry happened to set extra flags.
+    //
+    // Quest layer sits on top: if this storyId character has a 'ready'
+    // quest waiting, deliver the turn-in scene + reward. If they have a
+    // 'notstarted' quest whose offerCondition is met, offer it (the
+    // player picks accept/decline via choice prompt). Otherwise fall
+    // through to the regular phase dialog.
     if (npc.storyId && window.PR_STORY && window.PR_STORY.npcDialog) {
+      // Re-evaluate quest checks before consulting the registry so a
+      // fetch quest the player just satisfied (e.g. picked up the 5th
+      // oran berry) flips to 'ready' before the giver looks for it.
+      // tickQuests will openDialog the "QUEST READY" announcement; we
+      // skip that here because the npc itself is about to do it.
+      if (window.PR_QUESTS) window.PR_QUESTS.tick(state);
+      const Q = window.PR_QUESTS;
+      const ready = Q && Q.readyQuest && Q.readyQuest(state, npc.storyId);
+      if (ready) {
+        const rewardName = ready.reward && window.PR_ITEMS && window.PR_ITEMS.ITEMS[ready.reward.item]
+          ? window.PR_ITEMS.ITEMS[ready.reward.item].name : '';
+        const lines = [
+          (npc.name || 'NPC') + ': ' + ready.name + ' — done! Thank you.',
+          'Take ' + (ready.reward.count || 1) + ' x ' + rewardName + '.'
+        ];
+        openDialog(lines, () => {
+          const def = window.PR_QUESTS.turnInQuest(state, ready.id);
+          if (def) {
+            window.PR_SFX && window.PR_SFX.play('levelup');
+            showFlash('QUEST CLEARED: ' + def.name);
+          }
+          window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+        });
+        return;
+      }
+      const offer = Q && Q.offerableQuest && Q.offerableQuest(state, npc.storyId);
+      if (offer) {
+        // Open the standard phase dialog FIRST so the character speaks
+        // in their voice; then surface the quest offer as a yes/no.
+        const phaseLines = window.PR_STORY.npcDialog(state, npc.storyId);
+        // Keep the phase dialog short so the offer follows quickly.
+        const lead = phaseLines.slice(0, 1);
+        const offerLines = [
+          (npc.name || 'NPC') + ': One thing — ' + offer.name + '.',
+          offer.desc
+        ];
+        openDialog(lead.concat(offerLines), () => {
+          // Yes/no choice: A accepts (assigns), B declines (leaves
+          // the quest 'notstarted' so the offer reappears next visit).
+          state.dialog = {
+            choice: {
+              prompt: 'Accept?',
+              options: ['Yes — I\'m on it.', 'Not now.'],
+              cursor: 0,
+              onPick: (idx) => {
+                state.dialog = null;
+                state.mode = 'overworld';
+                if (idx === 0 && window.PR_QUESTS.assignQuest(state, offer.id)) {
+                  window.PR_SFX && window.PR_SFX.play('confirm');
+                  showFlash('QUEST ACCEPTED: ' + offer.name);
+                } else {
+                  window.PR_SFX && window.PR_SFX.play('select');
+                }
+                window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+              }
+            }
+          };
+          state.mode = 'choice';
+        });
+        return;
+      }
       const lines = window.PR_STORY.npcDialog(state, npc.storyId);
       openDialog(lines);
       return;
@@ -1086,11 +1162,36 @@
 
   function ensurePlayerStats() {
     if (!state.player.stats) state.player.stats = {};
-    if (state.player.stats.battlesWon === undefined) state.player.stats.battlesWon = 0;
-    if (state.player.stats.catches === undefined) state.player.stats.catches = 0;
+    const s = state.player.stats;
+    if (s.battlesWon === undefined) s.battlesWon = 0;
+    if (s.catches === undefined) s.catches = 0;
+    if (s.timePlayed === undefined) s.timePlayed = 0;
+    // Backfill totalEarned with the player's current cash on first init
+    // so brand-new saves and pre-update saves both start at a sensible
+    // floor (the starter $500 + whatever they've banked since).
+    if (s.totalEarned === undefined) s.totalEarned = (state.player.money | 0) || 0;
+    if (s.trainerWins === undefined) s.trainerWins = 0;
+    if (s.wildWins === undefined) s.wildWins = 0;
+    if (s.encounters === undefined) s.encounters = 0;
+    if (s.biggestReward === undefined) s.biggestReward = 0;
+    if (s.lastWhiteoutMap === undefined) s.lastWhiteoutMap = '';
     if (!state.player.equipment) state.player.equipment = { trinket:null };
     if (state.player.equipment.trinket === undefined) state.player.equipment.trinket = null;
   }
+
+  // Awards money + tracks lifetime totalEarned. Use this for any source
+  // of currency (battle reward, quest reward, intro grant) so the
+  // PROFILE page can show a meaningful "total earned" stat.
+  function addMoney(state, n) {
+    if (!Number.isFinite(n) || n <= 0) return;
+    ensurePlayerStats();
+    state.player.money = (state.player.money || 0) + (n | 0);
+    state.player.stats.totalEarned = (state.player.stats.totalEarned || 0) + (n | 0);
+    if ((n | 0) > (state.player.stats.biggestReward || 0)) {
+      state.player.stats.biggestReward = (n | 0);
+    }
+  }
+  state.addMoney = addMoney;
 
   function openProfile() {
     ensurePlayerStats();
@@ -1100,11 +1201,17 @@
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
+  const PROFILE_PAGES = ['TRAINER PROFILE','BATTLES','JOURNEY','POKEDEX','STORY','TRAINER GEAR'];
+
   function updateProfile() {
     const I = window.PR_INPUT;
     const v = state.profileView || (state.profileView = { page:0 });
-    if (I.consumePressed('ArrowLeft') || I.consumePressed('ArrowRight') || I.consumePressed('z')) {
-      v.page = (v.page + 1) % 2;
+    if (I.consumePressed('ArrowRight') || I.consumePressed('z')) {
+      v.page = (v.page + 1) % PROFILE_PAGES.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowLeft')) {
+      v.page = (v.page + PROFILE_PAGES.length - 1) % PROFILE_PAGES.length;
       window.PR_SFX && window.PR_SFX.play('select');
     }
     if (I.consumePressed('x') || I.consumePressed('Enter')) {
@@ -1113,39 +1220,138 @@
     }
   }
 
+  // Helpers used by the profile renderer.
+  function fmtTime(seconds) {
+    seconds = Math.max(0, seconds | 0);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return h + 'h ' + (m < 10 ? '0' : '') + m + 'min';
+    if (m > 0) return m + 'min ' + (s < 10 ? '0' : '') + s + 's';
+    return s + 's';
+  }
+  function mapNameById(id) {
+    const M = window.PR_MAPS && window.PR_MAPS.MAPS && window.PR_MAPS.MAPS[id];
+    return (M && M.name) ? M.name.toUpperCase() : (id ? id.toUpperCase() : '-');
+  }
+  function typesCollectedCount(state) {
+    const C = window.PR_DATA && window.PR_DATA.CREATURES;
+    if (!C || !state.dex || !state.dex.caught) return 0;
+    const seen = new Set();
+    for (const sp of state.dex.caught) {
+      const c = C[sp];
+      if (c && c.types) for (const t of c.types) seen.add(t);
+    }
+    return seen.size;
+  }
+  // Map a chain key to its display label + cap (last-known step).
+  const CHAIN_INFO = [
+    ['rival', 'RIVAL', 8],
+    ['apprentice', 'APPRENTICE', 8],
+    ['journalist', 'JOURNALIST', 6],
+    ['meek', 'MEEK', 6],
+    ['oma', 'OMA', 6],
+    ['economist', 'ECONOMIST', 6],
+    ['tank', 'TANK', 3],
+    ['nim', 'NIM', 3]
+  ];
+
   function drawProfile() {
     ensurePlayerStats();
     ensureDex();
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
     const v = state.profileView || { page:0 };
-    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
-    window.PR_UI.header(ctx, v.page === 0 ? 'TRAINER PROFILE' : 'TRAINER GEAR', x + 4, y + 4, w - 8,
-      { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'B:BACK  A:NEXT', x + w - 88, y + 4, '#806040');
+    const stats = state.player.stats || {};
+    const flags = state.flags || {};
     const badges = (state.player.badges || []).length;
     const map = state.world && state.world.currentMap ? state.world.currentMap() : null;
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, PROFILE_PAGES[v.page], x + 4, y + 4, w - 8,
+      { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK  <>:PAGE', x + w - 96, y + 4, '#806040');
+    // Page indicator dots.
+    for (let i = 0; i < PROFILE_PAGES.length; i++) {
+      ctx.fillStyle = i === v.page ? '#f0c020' : '#806040';
+      ctx.fillRect(x + 8 + i * 6, y + 14, 4, 2);
+    }
+    // Page chips: name + money + badges shown on every page so the
+    // trainer-card feel is consistent.
+    window.PR_UI.chip(ctx, x + 8, y + 20, state.player.name || 'YOU', { fill:'#e8f0ff', border:'#385890' });
+    window.PR_UI.chip(ctx, x + 66, y + 20, '$' + (state.player.money || 0), { fill:'#fff0c8', border:'#a86020' });
+    window.PR_UI.chip(ctx, x + 130, y + 20, 'BDG ' + badges + '/8', { fill:'#e8ffe8', border:'#208830' });
+
+    let rows = [];
+    let footer = null;
     if (v.page === 0) {
-      window.PR_UI.chip(ctx, x + 8, y + 20, state.player.name || 'YOU', { fill:'#e8f0ff', border:'#385890' });
-      window.PR_UI.chip(ctx, x + 66, y + 20, '$' + (state.player.money || 0), { fill:'#fff0c8', border:'#a86020' });
-      window.PR_UI.chip(ctx, x + 130, y + 20, 'BDG ' + badges, { fill:'#e8ffe8', border:'#208830' });
-      const rows = [
+      // TRAINER
+      rows = [
         ['AREA', map ? map.name.toUpperCase().slice(0, 20) : (state.player.map || '?').toUpperCase()],
         ['PARTY', String((state.party || []).length) + '/6'],
-        ['DEX', (state.dex.seen.size || 0) + ' SEEN  ' + (state.dex.caught.size || 0) + ' CAUGHT'],
-        ['STEPS', String(state.player.steps || 0)],
-        ['WINS', String(state.player.stats.battlesWon || 0)],
-        ['CATCHES', String(state.player.stats.catches || 0)]
+        ['MONEY', '$' + (state.player.money || 0)],
+        ['EARNED', '$' + (stats.totalEarned || 0)],
+        ['SPENT', '$' + (flags.totalSpent || 0)],
+        ['PLAY TIME', fmtTime(stats.timePlayed)],
+        ['BADGES', String(badges) + '/8']
       ];
-      for (let i = 0; i < rows.length; i++) {
-        const cy = y + 42 + i * 14;
-        window.PR_UI.selectBar(ctx, x + 8, cy - 2, w - 16, 12, false);
-        window.PR_UI.drawText(ctx, rows[i][0], x + 12, cy, '#385890');
-        window.PR_UI.drawText(ctx, rows[i][1], x + 76, cy, '#202020');
+    } else if (v.page === 1) {
+      // BATTLES
+      rows = [
+        ['BATTLES WON', String(stats.battlesWon || 0)],
+        ['TRAINER WINS', String(stats.trainerWins || 0)],
+        ['WILD WINS', String(stats.wildWins || 0)],
+        ['ENCOUNTERS', String(stats.encounters || 0)],
+        ['BIGGEST $', '$' + (stats.biggestReward || 0)],
+        ['CATCHES', String(stats.catches || 0)],
+        ['WHITEOUTS', String(flags.whiteouts || 0)]
+      ];
+    } else if (v.page === 2) {
+      // JOURNEY
+      const mapsVisited = flags.firstVisited ? Object.keys(flags.firstVisited).length : 0;
+      rows = [
+        ['STEPS', String(state.player.steps || 0)],
+        ['MAPS SEEN', String(mapsVisited)],
+        ['HIDDEN ITEMS', String(flags.totalHidden || 0)],
+        ['EVOLUTIONS', String(flags.evolutions || 0)],
+        ['MAX LEVEL', String(flags.maxPartyLevel || 0)],
+        ['LAST WIPE', stats.lastWhiteoutMap ? mapNameById(stats.lastWhiteoutMap).slice(0, 18) : '-'],
+        ['CURRENT MAP', map ? map.name.toUpperCase().slice(0, 20) : '-']
+      ];
+    } else if (v.page === 3) {
+      // POKEDEX
+      const total = Object.keys((window.PR_DATA && window.PR_DATA.CREATURES) || {}).length;
+      const seen = state.dex.seen.size || 0;
+      const caught = state.dex.caught.size || 0;
+      const pct = total ? Math.floor((caught / total) * 100) : 0;
+      rows = [
+        ['SEEN', String(seen) + '/' + total],
+        ['CAUGHT', String(caught) + '/' + total],
+        ['COMPLETION', String(pct) + '%'],
+        ['TYPES', String(typesCollectedCount(state)) + '/18'],
+        ['STARTERS EVO', String(flags.evolutions || 0)],
+        ['LAST CAUGHT', (function(){
+          if (!state.dex.caught || !state.dex.caught.size) return '-';
+          const arr = Array.from(state.dex.caught);
+          const id = arr[arr.length - 1];
+          const sp = window.PR_DATA && window.PR_DATA.CREATURES[id];
+          return (sp && sp.name && sp.name.toUpperCase()) || id;
+        })()]
+      ];
+    } else if (v.page === 4) {
+      // STORY
+      const chains = (flags.chains || {});
+      const enc = flags.encountersDone instanceof Set ? flags.encountersDone.size :
+                  (Array.isArray(flags.encountersDone) ? flags.encountersDone.length : 0);
+      rows = [['CUTSCENES', String(enc)]];
+      for (const [key, label, cap] of CHAIN_INFO) {
+        rows.push([label, String(chains[key] || 0) + '/' + cap]);
       }
+      // Limit to 8 rows max so layout fits.
+      rows = rows.slice(0, 8);
     } else {
+      // GEAR (was page 1 in old layout)
       const eq = state.player.equipment || {};
       const trinket = eq.trinket && window.PR_ITEMS && window.PR_ITEMS.byId(eq.trinket);
-      const gearRows = [
+      rows = [
         ['TRINKET', trinket ? trinket.name : 'NONE'],
         ['EFFECT', trinket && trinket.xpMult ? ('XP x' + trinket.xpMult.toFixed(2)) : 'NO WORN BONUS'],
         ['ROD BALL', String((state.player.bag && state.player.bag.rodball) || 0)],
@@ -1154,15 +1360,15 @@
         ['CAVERN', String((state.player.bag && state.player.bag.cavernball) || 0)],
         ['ULTRA', String((state.player.bag && state.player.bag.ultraball) || 0)]
       ];
-      for (let i = 0; i < gearRows.length; i++) {
-        const cy = y + 24 + i * 15;
-        if (i === 0) window.PR_UI.selectBar(ctx, x + 8, cy - 2, w - 16, 12, true);
-        else window.PR_UI.selectBar(ctx, x + 8, cy - 2, w - 16, 12, false);
-        window.PR_UI.drawText(ctx, gearRows[i][0], x + 12, cy, '#385890');
-        window.PR_UI.drawText(ctx, String(gearRows[i][1]).slice(0, 20), x + 78, cy, '#202020');
-      }
-      window.PR_UI.drawText(ctx, 'Equip trainer gear from BAG.', x + 12, y + h - 14, '#806040');
+      footer = 'Equip trainer gear from BAG.';
     }
+    for (let i = 0; i < rows.length; i++) {
+      const cy = y + 42 + i * 13;
+      window.PR_UI.selectBar(ctx, x + 8, cy - 2, w - 16, 12, false);
+      window.PR_UI.drawText(ctx, rows[i][0], x + 12, cy, '#385890');
+      window.PR_UI.drawText(ctx, String(rows[i][1]).slice(0, 22), x + 90, cy, '#202020');
+    }
+    if (footer) window.PR_UI.drawText(ctx, footer, x + 12, y + h - 12, '#806040');
   }
   // ---------- Settings ----------
   const SETTINGS_DEFAULTS = {
@@ -1316,43 +1522,154 @@
     const I = window.PR_INPUT;
     const v = state.questsView;
     const list = window.PR_QUESTS ? window.PR_QUESTS.list(state) : [];
-    if (I.consumePressed('ArrowDown') && list.length) v.idx = (v.idx + 1) % list.length;
-    if (I.consumePressed('ArrowUp')   && list.length) v.idx = (v.idx + list.length - 1) % list.length;
+    // Detail mode: A on a quest opens detail; B returns to list.
+    if (v.detail) {
+      if (I.consumePressed('x') || I.consumePressed('ArrowLeft')) {
+        v.detail = null;
+        window.PR_SFX && window.PR_SFX.play('select');
+      }
+      return;
+    }
+    if (I.consumePressed('ArrowDown') && list.length) {
+      v.idx = (v.idx + 1) % list.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowUp')   && list.length) {
+      v.idx = (v.idx + list.length - 1) % list.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if ((I.consumePressed('z') || I.consumePressed('Enter')) && list.length) {
+      v.detail = list[v.idx].def.id;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+    }
     if (I.consumePressed('x')) { state.questsView = null; state.mode = 'menu'; }
   }
   function drawQuests() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
-    window.PR_UI.header(ctx, 'QUESTS', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
     const list = window.PR_QUESTS ? window.PR_QUESTS.list(state) : [];
+    const v = state.questsView;
+    if (v && v.detail) { drawQuestDetail(x, y, w, h, v.detail); return; }
+    window.PR_UI.header(ctx, 'QUESTS', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    const counts = window.PR_QUESTS ? window.PR_QUESTS.counts(state) : { active:0, ready:0, done:0, total:0 };
+    window.PR_UI.drawText(ctx,
+      'A:VIEW B:BACK',
+      x + w - 76, y + 4, '#806040');
+    window.PR_UI.drawText(ctx,
+      counts.active + ' active  ' + counts.ready + ' ready  ' + counts.done + ' done',
+      x + 8, y + 16, '#806040');
     if (!list.length) {
       window.PR_UI.drawText(ctx, 'No quests yet.', x + 8, y + 30, '#806040');
       return;
     }
-    for (let i = 0; i < list.length; i++) {
-      const e = list[i];
-      const cy = y + 22 + i * 18;
-      if (i === state.questsView.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 18, true);
-      const mark = e.status === 'done' ? '*' : '.';
-      window.PR_UI.drawText(ctx, mark + ' ' + e.def.name, x + 8, cy, e.status === 'done' ? '#208830' : '#202020');
+    // Sort: ready first, then active, then done.
+    const ordered = list.slice().sort((a, b) => {
+      const w = (s) => s.status === 'ready' ? 0 : (s.status === 'active' ? 1 : 2);
+      return w(a) - w(b);
+    });
+    // Update v.idx if it points outside the (re-sorted) list.
+    if (v.idx >= ordered.length) v.idx = 0;
+    // Window the list to 7 visible rows so it fits the screen.
+    const rows = 7;
+    const start = Math.max(0, Math.min(ordered.length - rows, v.idx - 3));
+    for (let r = 0; r < rows; r++) {
+      const i = start + r;
+      if (i >= ordered.length) break;
+      const e = ordered[i];
+      const cy = y + 28 + r * 16;
+      if (i === v.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 16, true);
+      const statusMark = e.status === 'done' ? '*' :
+                        e.status === 'ready' ? '!' : '.';
+      const statusColor = e.status === 'done' ? '#208830' :
+                          e.status === 'ready' ? '#c84020' : '#202020';
+      window.PR_UI.drawText(ctx, statusMark + ' ' + e.def.name.slice(0, 24), x + 8, cy, statusColor);
       window.PR_UI.drawText(ctx, e.def.desc.slice(0, 36), x + 8, cy + 8, '#806040');
+    }
+  }
+
+  // Detail view for a single quest. Pressed via A from the list.
+  function drawQuestDetail(x, y, w, h, questId) {
+    const def = window.PR_QUESTS && window.PR_QUESTS.QUESTS[questId];
+    if (!def) {
+      window.PR_UI.drawText(ctx, 'Missing quest.', x + 8, y + 30, '#a02020');
+      return;
+    }
+    const s = state.quests[questId] || {};
+    window.PR_UI.header(ctx, def.name.slice(0, 24), x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+
+    let cy = y + 20;
+    const statusLabel = s.status === 'done' ? 'COMPLETE' :
+                        s.status === 'ready' ? 'READY TO TURN IN' :
+                        s.status === 'active' ? 'IN PROGRESS' : 'NOT STARTED';
+    const statusColor = s.status === 'done' ? '#208830' :
+                        s.status === 'ready' ? '#c84020' : '#385890';
+    window.PR_UI.drawText(ctx, 'STATUS:', x + 8, cy, '#385890');
+    window.PR_UI.drawText(ctx, statusLabel, x + 64, cy, statusColor);
+    cy += 12;
+    if (def.giver) {
+      const giver = (window.PR_STORY && window.PR_STORY.findCharacter && window.PR_STORY.findCharacter(def.giver));
+      const giverName = giver ? giver.name : def.giver.toUpperCase();
+      const giverMap = giver && giver.home && window.PR_MAPS && window.PR_MAPS.MAPS[giver.home.map];
+      const at = giverMap ? giverMap.name.toUpperCase() : (giver && giver.home ? giver.home.map : '');
+      window.PR_UI.drawText(ctx, 'FROM:', x + 8, cy, '#385890');
+      window.PR_UI.drawText(ctx, (giverName + (at ? ' @ ' + at : '')).slice(0, 32), x + 64, cy, '#202020');
+      cy += 12;
+    }
+    cy += 4;
+    // Long description: wrap each paragraph to 36 chars.
+    const paras = Array.isArray(def.longDesc) && def.longDesc.length ? def.longDesc : [def.desc || ''];
+    for (const p of paras) {
+      const lines = window.PR_UI.wrap(p, 36);
+      for (const line of lines) {
+        if (cy > y + h - 50) break;
+        window.PR_UI.drawText(ctx, line, x + 8, cy, '#202020');
+        cy += 10;
+      }
+      cy += 2;
+    }
+    // Progress + reward + hint footer.
+    const rewardText = def.reward ? ((def.reward.count || 1) + 'x ' + (window.PR_ITEMS && window.PR_ITEMS.ITEMS[def.reward.item] ? window.PR_ITEMS.ITEMS[def.reward.item].name : def.reward.item)) : 'NONE';
+    let progressText = '';
+    if (s.status !== 'done' && def.progressFn) {
+      try { progressText = def.progressFn(state); } catch (_) { progressText = '...'; }
+    } else if (s.status === 'done') {
+      progressText = 'DONE';
+    }
+    const footY = y + h - 36;
+    window.PR_UI.drawText(ctx, 'PROGRESS:', x + 8, footY, '#385890');
+    window.PR_UI.drawText(ctx, String(progressText).slice(0, 28), x + 76, footY, '#202020');
+    window.PR_UI.drawText(ctx, 'REWARD:',   x + 8, footY + 12, '#385890');
+    window.PR_UI.drawText(ctx, rewardText.slice(0, 28), x + 76, footY + 12, '#202020');
+    if (def.hint) {
+      window.PR_UI.drawText(ctx, def.hint.slice(0, 36), x + 8, footY + 24, '#806040');
     }
   }
 
   function tickQuests(triggerName) {
     if (!window.PR_QUESTS) return;
     const completed = window.PR_QUESTS.tick(state);
-    for (const q of completed) {
+    for (const c of completed) {
+      // tick() returns { def, status:'done'|'ready' }. For 'done', the
+      // quests module already added the reward to the bag — we just
+      // announce. For 'ready' the reward is held until the player turns
+      // in to the giver, so we just flash a hint.
+      const def = c.def || c; // tolerate older shape
       window.PR_SFX && window.PR_SFX.play('levelup');
-      if (q.reward && window.PR_ITEMS) {
-        window.PR_ITEMS.add(state, q.reward.item, q.reward.count || 1);
+      if (c.status === 'ready') {
+        showFlash('READY: ' + def.name);
+        const giverName = (window.PR_STORY && window.PR_STORY.findCharacter && def.giver
+          && window.PR_STORY.findCharacter(def.giver) || {}).name;
+        const lines = ['QUEST READY: ' + def.name];
+        if (giverName) lines.push('Talk to ' + giverName + ' to turn in.');
+        openDialog(lines, () => window.PR_SAVE.save && window.PR_SAVE.save(state));
+      } else {
+        const rewardName = def.reward && window.PR_ITEMS && window.PR_ITEMS.ITEMS[def.reward.item]
+          ? window.PR_ITEMS.ITEMS[def.reward.item].name : '';
+        const lines = ['QUEST CLEARED: ' + def.name];
+        if (rewardName) lines.push('Got ' + (def.reward.count || 1) + ' ' + rewardName + '!');
+        openDialog(lines, () => window.PR_SAVE.save && window.PR_SAVE.save(state));
       }
-      const rewardName = q.reward && window.PR_ITEMS && window.PR_ITEMS.ITEMS[q.reward.item]
-        ? window.PR_ITEMS.ITEMS[q.reward.item].name : '';
-      const lines = ['QUEST CLEARED: ' + q.name];
-      if (rewardName) lines.push('Got ' + (q.reward.count || 1) + ' ' + rewardName + '!');
-      openDialog(lines, () => window.PR_SAVE.save && window.PR_SAVE.save(state));
     }
   }
   window.PR_GAME = window.PR_GAME || {};
@@ -2369,12 +2686,13 @@
   function updatePartyView() {
     const I = window.PR_INPUT;
     const m = state.menu;
-    const v = m.partyView || (m.partyView = { idx:0, page:0 });
+    const v = m.partyView || (m.partyView = { idx:0, page:0, swapSrc:null });
+    if (v.swapSrc === undefined) v.swapSrc = null;
     const max = state.party.length;
     if (max) {
       if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
       if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
-      if (I.consumePressed('ArrowRight') || I.consumePressed('z')) {
+      if (I.consumePressed('ArrowRight')) {
         v.page = (v.page + 1) % PARTY_PAGES.length;
         window.PR_SFX && window.PR_SFX.play('select');
       }
@@ -2382,8 +2700,41 @@
         v.page = (v.page + PARTY_PAGES.length - 1) % PARTY_PAGES.length;
         window.PR_SFX && window.PR_SFX.play('select');
       }
+      // A (z): two-step swap. First press marks the source; second press
+      // on a different slot swaps positions in state.party. Pressing A
+      // on the same slot cancels.
+      if (I.consumePressed('z')) {
+        if (v.swapSrc === null) {
+          v.swapSrc = v.idx;
+          window.PR_SFX && window.PR_SFX.play('confirm');
+          showFlash('PICK PARTNER TO SWAP');
+        } else if (v.swapSrc === v.idx) {
+          v.swapSrc = null;
+          window.PR_SFX && window.PR_SFX.play('select');
+        } else {
+          const a = v.swapSrc, b = v.idx;
+          const tmp = state.party[a];
+          state.party[a] = state.party[b];
+          state.party[b] = tmp;
+          v.swapSrc = null;
+          v.idx = b;
+          window.PR_SFX && window.PR_SFX.play('confirm');
+          showFlash('SWAPPED');
+          window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+        }
+      }
     }
-    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+    if (I.consumePressed('x')) {
+      // B: if a swap is pending, cancel it; otherwise exit the menu.
+      if (v.swapSrc !== null) {
+        v.swapSrc = null;
+        window.PR_SFX && window.PR_SFX.play('select');
+      } else {
+        m.viewing = null;
+        m.partyView = null;
+      }
+    }
+    if (I.consumePressed('Enter')) {
       m.viewing = null;
       m.partyView = null;
     }
@@ -2454,10 +2805,14 @@
 
   function drawPartyView() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
-    const v = (state.menu && state.menu.partyView) || { idx:0, page:0 };
+    const v = (state.menu && state.menu.partyView) || { idx:0, page:0, swapSrc:null };
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
     window.PR_UI.header(ctx, 'PARTY', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'B:BACK  A:PAGE', x + w - 84, y + 4, '#806040');
+    // Header hint changes when a swap is mid-flight.
+    const hint = (v.swapSrc !== null && v.swapSrc !== undefined)
+      ? 'B:CANCEL A:SWAP HERE'
+      : 'B:BACK A:SWAP <>:PAGE';
+    window.PR_UI.drawText(ctx, hint, x + w - 110, y + 4, '#806040');
     if (!state.party.length) {
       window.PR_UI.drawText(ctx, 'No partners yet.', x + 8, y + 30, '#202020');
       return;
@@ -2474,6 +2829,15 @@
         ctx.fillStyle = '#f0c020';
         ctx.fillRect(listX + listW - 8, cy + 4, 4, 4);
       }
+      // Swap-source marker: a yellow chevron in the right margin of the
+      // grabbed row. Doubles up with the cursor highlight when the
+      // player happens to be hovering the source.
+      if (i === v.swapSrc) {
+        ctx.fillStyle = '#f0c020';
+        ctx.fillRect(listX + listW - 4, cy + 2, 3, 3);
+        ctx.fillRect(listX + listW - 4, cy + 7, 3, 3);
+        ctx.fillRect(listX + listW - 4, cy + 12, 3, 3);
+      }
     }
     drawPartyDetail(state.party[Math.min(v.idx, state.party.length - 1)], v.page || 0, x + 82, y + 20, w - 90, h - 34);
   }
@@ -2481,6 +2845,10 @@
   // ---------- Battle end ----------
   function endBattle(outcome, battle) {
     if (outcome === 'lost') {
+      ensurePlayerStats();
+      // Stash the map we whited out IN before we respawn, so the profile
+      // page can show "last whiteout: FROSTPEAK" etc.
+      state.player.stats.lastWhiteoutMap = state.player.map || '';
       // Faint to last visited center: respawn at start of current town with full heal.
       for (const m of state.party) { m.hp = m.stats.hp; m.status = null; for (const mv of m.moves) mv.pp = mv.ppMax; }
       state.player.map = 'rodport';
@@ -2496,6 +2864,11 @@
     if (outcome === 'won') {
       ensurePlayerStats();
       state.player.stats.battlesWon = (state.player.stats.battlesWon || 0) + 1;
+      if (battle.opts && battle.opts.npcKey) {
+        state.player.stats.trainerWins = (state.player.stats.trainerWins || 0) + 1;
+      } else {
+        state.player.stats.wildWins = (state.player.stats.wildWins || 0) + 1;
+      }
     }
     let earnedBadge = null;
     if (outcome === 'won' && battle.opts && battle.opts.badge) {

@@ -100,6 +100,14 @@
       // state.flags.starterChosen directly.
     }
     tryEncounter(state, event, payload);
+    // Quest system also evaluates against the same milestones (badges,
+    // catches, level-ups, evolutions, whiteouts, etc.). Calling tickQuests
+    // here means a quest that depends on any tracked counter completes as
+    // soon as the counter advances, no need to wait for the next map
+    // transition.
+    if (window.PR_GAME && window.PR_GAME.tickQuests) {
+      try { window.PR_GAME.tickQuests(event); } catch (e) { /* ignore */ }
+    }
   }
 
   // ---- Encounter resolution ----------------------------------------------
