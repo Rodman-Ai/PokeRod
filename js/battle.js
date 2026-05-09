@@ -711,6 +711,7 @@
       window.PR_SFX && window.PR_SFX.play('catch');
       if (window.PR_DEX) window.PR_DEX.markCaught(this.foe.species);
       if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('catch');
+      if (window.PR_STORY) window.PR_STORY.emit(this.state, 'catch', { species: this.foe.species });
       if (this.state.player) {
         if (!this.state.player.stats) this.state.player.stats = {};
         this.state.player.stats.catches = (this.state.player.stats.catches || 0) + 1;
@@ -757,6 +758,9 @@
       mon.hp = Math.min(mon.stats.hp, mon.hp + Math.max(0, dHp));
       this.queue(mon.nickname + ' grew to LV. ' + mon.level + '!');
       this.queue(statGainText(oldStats, newStats));
+      if (window.PR_STORY) {
+        window.PR_STORY.emit(this.state, 'level_up', { species: mon.species, level: mon.level });
+      }
       // Learn moves.
       for (const [reqLv, mvId] of sp.learnset) {
         if (reqLv === mon.level && !mon.moves.find(m => m.id === mvId)) {
@@ -778,6 +782,7 @@
       // Evolve at level threshold.
       if (sp.evolves && mon.level >= sp.evolves.level) {
         const evo = sp.evolves.to;
+        const fromSpecies = mon.species;
         mon.species = evo;
         const evoSp = window.PR_DATA.CREATURES[evo];
         const evoStats = window.PR_DATA.computeStats(evoSp.baseStats, mon.ivs, mon.level);
@@ -787,6 +792,7 @@
         if (mon.nickname === sp.name) mon.nickname = evoSp.name;
         this.queue('What? ' + sp.name + ' is evolving!');
         this.queue('It evolved into ' + evoSp.name + '!');
+        if (window.PR_STORY) window.PR_STORY.emit(this.state, 'evolve', { from: fromSpecies, to: evo });
         sp = evoSp; // continue learning checks against new species in next iter
       }
       lv = window.PR_DATA.levelFromXp(mon.xp);

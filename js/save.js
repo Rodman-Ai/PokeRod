@@ -7,6 +7,15 @@
   const LAST_KEY   = 'pokerod.save.last';
 
   function snapshot(state) {
+    // Story flags hold a Set (encountersDone) + a few aggregate counters
+    // and per-map dictionaries. The Set has to be flattened for JSON; the
+    // rest serialise as-is. _queue is transient and not persisted.
+    const f = state.flags || {};
+    const flagsOut = Object.assign({}, f);
+    if (f.encountersDone instanceof Set) {
+      flagsOut.encountersDone = Array.from(f.encountersDone);
+    }
+    delete flagsOut._queue;
     return {
       version: 1,
       time: Date.now(),
@@ -25,7 +34,7 @@
         stats: state.player.stats || { battlesWon:0, catches:0 }
       },
       party: state.party,
-      flags: state.flags,
+      flags: flagsOut,
       settings: state.settings,
       defeatedTrainers: Array.from(state.defeatedTrainers || []),
       dexSeen: state.dex ? Array.from(state.dex.seen || []) : [],

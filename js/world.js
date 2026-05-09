@@ -1679,6 +1679,12 @@
     this._lightningFlash = 0;
     if (this.state.onMapChange) this.state.onMapChange();
     if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('mapchange');
+    // Story system: a map entry is the most common encounter trigger.
+    // Fires after the world state has settled so the cutscene NPC can
+    // path on the new map.
+    if (window.PR_STORY) {
+      setTimeout(() => window.PR_STORY.emit(this.state, 'enter_map', { mapId }), 60);
+    }
   };
 
   World.prototype.tryInteract = function() {
@@ -2134,6 +2140,19 @@
         }
         withTilt(ctx, sx, sy, TS, TS, () => {
           window.PR_CHARS.drawNpc(ctx, sx, sy, n.sprite, n.dir, this.npcFrame);
+        });
+      }
+    }
+
+    // Cutscene NPC (story system) — drawn in the same pass so tilt and
+    // outlines look identical to map-defined NPCs.
+    const cs = this.state.cutscene;
+    if (cs && cs.active && cs.npc) {
+      const sx = cs.npc.x * TS - camX;
+      const sy = cs.npc.y * TS - camY;
+      if (sx > -TS - 8 && sx < VIEW_W + 8 && sy > -TS - 8 && sy < VIEW_H + 8) {
+        withTilt(ctx, sx, sy, TS, TS, () => {
+          window.PR_CHARS.drawNpc(ctx, sx, sy, cs.npc.sprite, cs.npc.dir, this.npcFrame);
         });
       }
     }

@@ -82,6 +82,9 @@
     flash(v, 'Bought ' + qty + ' x ' + def.name + '.');
     if (window.PR_SFX) window.PR_SFX.play('confirm');
     if (window.PR_SAVE) window.PR_SAVE.save(state);
+    if (window.PR_STORY) {
+      window.PR_STORY.emit(state, 'buy', { item:itemId, count:qty, total:price });
+    }
   }
 
   function flash(v, msg) {

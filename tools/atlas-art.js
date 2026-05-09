@@ -3482,7 +3482,20 @@
     npc_kid_girl:     { hat:'#f098c0', shirt:'#f8d0e0', accent:'#a04080', pants:'#e070a0', gear:'ribbon' },
     npc_old_man_alt:  { hat:'#583828', shirt:'#a08868', accent:'#382820', pants:'#382820', gear:'cane' },
     npc_old_woman:    { hat:'#9870b0', shirt:'#c8a0d0', accent:'#583858', pants:'#583858', gear:'purse' },
-    npc_hiker_alt:    { hat:'#48a830', shirt:'#a8782a', accent:'#f0c878', pants:'#583820', gear:'pack' }
+    npc_hiker_alt:    { hat:'#48a830', shirt:'#a8782a', accent:'#f0c878', pants:'#583820', gear:'pack' },
+    // Story-system named characters (PR_STORY encounters reference these).
+    npc_blaine: { hat:'#c01818', shirt:'#202830', accent:'#f0c020', pants:'#181820', gear:'cape' },
+    npc_pearl:  { hat:'#90e8c0', shirt:'#d8b8f0', accent:'#3870a8', pants:'#383850', gear:'notebook' },
+    npc_nico:   { hat:'#583020', shirt:'#a07050', accent:'#f0d098', pants:'#382010', gear:'camera' },
+    npc_meek:   { hat:'#909090', shirt:'#688090', accent:'#c8c8c8', pants:'#404848', gear:'bandage' },
+    npc_oma:    { hat:'#f0a8c8', shirt:'#a8a8b0', accent:'#583058', pants:'#585050', gear:'purse' },
+    npc_kel:    { hat:'#202840', shirt:'#283058', accent:'#f0c020', pants:'#181828', gear:'briefcase' },
+    npc_tank:   { hat:'#506838', shirt:'#785838', accent:'#a08850', pants:'#382820', gear:'helmet' },
+    npc_nim:    { hat:'#583878', shirt:'#202028', accent:'#a878f0', pants:'#181820', gear:'lamp' },
+    npc_marla:  { hat:'#a89868', shirt:'#c0a878', accent:'#684830', pants:'#403828', gear:'map' },
+    npc_faye:   { hat:'#80d8e8', shirt:'#fff8e8', accent:'#3878a8', pants:'#286890', gear:'surfboard' },
+    npc_wryn:   { hat:'#603020', shirt:'#a03828', accent:'#f0d060', pants:'#582020', gear:'staff' },
+    npc_akira:  { hat:'#c01818', shirt:'#383038', accent:'#f0c020', pants:'#181820', gear:'medal' }
   };
 
   // ---- Sprite poses ----
@@ -3823,6 +3836,61 @@
       px(ctx, x + 6,  y + 22, 5, 2, '#48a830');
       px(ctx, x + 6,  y + 18, 1, 6, o);
       px(ctx, x + 10, y + 18, 1, 6, o);
+    } else if (g === 'cape') {
+      // Long dark cape draped down the back. Visible mostly behind shoulders.
+      const cape = '#601820';
+      const capeShade = '#380810';
+      px(ctx, x + 6,  y + 12, 4, 14, cape);
+      px(ctx, x + 22, y + 12, 4, 14, cape);
+      px(ctx, x + 6,  y + 24, 20, 2, capeShade);
+      px(ctx, x + 6,  y + 12, 1, 14, capeShade);
+      px(ctx, x + 25, y + 12, 1, 14, capeShade);
+    } else if (g === 'notebook') {
+      // Small notebook tucked under left arm with a pencil clipped on top.
+      px(ctx, x + 6, y + 17, 5, 7, o);
+      px(ctx, x + 7, y + 18, 3, 5, '#fff8e8');
+      px(ctx, x + 7, y + 19, 3, 1, '#3070a0');
+      px(ctx, x + 7, y + 21, 3, 1, '#3070a0');
+      px(ctx, x + 9, y + 16, 1, 2, '#f0c020');
+    } else if (g === 'bandage') {
+      // White medical wrap on the right forearm, with a faint red blot.
+      px(ctx, x + 22, y + 18, 4, 5, '#fff8e8');
+      px(ctx, x + 22, y + 18, 4, 1, '#c8c0a8');
+      px(ctx, x + 22, y + 22, 4, 1, '#c8c0a8');
+      px(ctx, x + 23, y + 20, 1, 1, '#a02020');
+      px(ctx, x + 22, y + 18, 1, 5, o);
+      px(ctx, x + 25, y + 18, 1, 5, o);
+    } else if (g === 'map') {
+      // Folded paper map held in front. Faint route lines drawn on top.
+      px(ctx, x + 11, y + 16, 10, 6, '#f0e0a8');
+      px(ctx, x + 11, y + 16, 10, 1, '#a89060');
+      px(ctx, x + 11, y + 21, 10, 1, '#a89060');
+      px(ctx, x + 11, y + 16, 1, 6, o);
+      px(ctx, x + 20, y + 16, 1, 6, o);
+      // Faint route line + X mark.
+      px(ctx, x + 13, y + 18, 6, 1, '#a85838');
+      px(ctx, x + 18, y + 19, 1, 1, '#a82020');
+    } else if (g === 'surfboard') {
+      // Long board angled across the back, peeking above the shoulder.
+      const board = '#80c8e8';
+      const boardShade = '#387098';
+      px(ctx, x + 4, y + 9,  3, 18, board);
+      px(ctx, x + 4, y + 9,  3, 1, '#fff8f0');
+      px(ctx, x + 4, y + 26, 3, 1, boardShade);
+      px(ctx, x + 4, y + 16, 3, 1, boardShade);
+      px(ctx, x + 4, y + 9,  1, 18, o);
+      px(ctx, x + 6, y + 9,  1, 18, o);
+    } else if (g === 'staff') {
+      // Wooden staff with a glowing bead at the top.
+      px(ctx, x + 24, y + 4, 1, 22, '#583020');
+      px(ctx, x + 23, y + 3, 3, 3, '#f0c020');
+      px(ctx, x + 24, y + 4, 1, 1, '#fff8e0');
+    } else if (g === 'medal') {
+      // Round gold medal hanging from a ribbon on the chest.
+      px(ctx, x + 14, y + 14, 4, 1, '#a02020');
+      px(ctx, x + 13, y + 15, 6, 1, '#a02020');
+      disc(ctx, x + 16, y + 18, 2, '#f0c020');
+      px(ctx, x + 16, y + 18, 1, 1, '#fff8e0');
     }
   }
 
