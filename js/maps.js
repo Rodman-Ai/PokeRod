@@ -528,7 +528,7 @@ const MAPS = {
   },
 
   route1: {
-    id:'route1', name:'Route 1',
+    id:'route1', name:'Route 1', weather:'overcast',
     tiles: makeWindingTiles({
       fill:'Y', pathCode:',', pathRadius:1,
       path:[[7,0],[7,4],[14,4],[14,8],[9,8],[9,13],[22,13],[22,18],[16,18],[16,23],[18,23],[18,27]],
@@ -759,7 +759,7 @@ const MAPS = {
   },
 
   route2: {
-    id:'route2', name:'Route 2',
+    id:'route2', name:'Route 2', weather:'sleet',
     tiles: makeWindingTiles({
       fill:'K', pathCode:',', pathRadius:1,
       path:[[7,0],[7,5],[16,5],[16,9],[11,9],[11,14],[24,14],[24,20],[18,20],[18,27]],
@@ -801,7 +801,7 @@ const MAPS = {
   },
 
   woodfall: {
-    id:'woodfall', name:'Woodfall Village',
+    id:'woodfall', name:'Woodfall Village', weather:'tornado',
     tiles: [
       'XXXXXXX,,XXXXXXXXXXX',
       'GGGGGGG,,GGGGGGGGGGG',
@@ -934,7 +934,7 @@ const MAPS = {
   },
 
   pebblewood: {
-    id:'pebblewood', name:'Pebblewood Forest',
+    id:'pebblewood', name:'Pebblewood Forest', weather:'light-rain',
     tiles: makeWindingTiles({
       fill:'G', pathCode:'z', pathRadius:1,
       path:[[7,0],[7,4],[13,4],[13,10],[9,10],[9,15],[21,15],[21,11],[27,11],[27,19],[18,19],[18,27]],
@@ -976,7 +976,7 @@ const MAPS = {
   },
 
   crestrock: {
-    id:'crestrock', name:'Crestrock Town',
+    id:'crestrock', name:'Crestrock Town', weather:'hail',
     tiles: [
       'XXXXXXX,,XXXXXXXXXXX',
       'VVVVVVV,,VVVVVVVVVVV',
@@ -1196,7 +1196,7 @@ const MAPS = {
   },
 
   frostmere: {
-    id:'frostmere', name:'Frostmere Town',
+    id:'frostmere', name:'Frostmere Town', weather:'medium-snow',
     tiles: [
       'XXXXXXX,,XXXXXXXXXXX',
       'QQQQQQQ,,QQQQQQQQQQQ',
@@ -1329,7 +1329,7 @@ const MAPS = {
   },
 
   frostpeak: {
-    id:'frostpeak', name:'Frostpeak',
+    id:'frostpeak', name:'Frostpeak', weather:'blizzard',
     tiles: makeWindingTiles({
       fill:'Q', pathCode:'6', pathRadius:1,
       path:[[7,0],[7,4],[15,4],[15,8],[11,8],[11,13],[25,13],[25,18],[19,18],[19,23],[19,27]],
@@ -1368,7 +1368,7 @@ const MAPS = {
   },
 
   harborside: {
-    id:'harborside', name:'Harborside Town',
+    id:'harborside', name:'Harborside Town', weather:'light-rain',
     tiles: [
       'XXXXXXX,,XXXXXXXXXXX',
       'OOOOOOO,,OOOOOOOOOOO',
@@ -1542,7 +1542,7 @@ const MAPS = {
   },
 
   summitvale: {
-    id:'summitvale', name:'Summitvale',
+    id:'summitvale', name:'Summitvale', weather:'overcast',
     tiles: [
       'XXXXXXX,,XXXXXXXXXXX',
       'NNNNNNN,,NNNNNNNNNNN',
@@ -1713,7 +1713,7 @@ desert: {
   },
 
   beach: {
-    id:'beach', name:'Sunkissed Beach',
+    id:'beach', name:'Sunkissed Beach', weather:'hurricane',
     tiles: makeWindingTiles({
       fill:'O', pathCode:'u', pathRadius:1,
       path:[[0,15],[6,15],[6,10],[14,10],[14,6],[24,6],[24,13],[18,13],[18,20],[28,20]],
@@ -1745,7 +1745,7 @@ desert: {
   },
 
   mountain: {
-    id:'mountain', name:'Highspire Mountain',
+    id:'mountain', name:'Highspire Mountain', weather:'thunder',
     tiles: makeWindingTiles({
       fill:'G', pathCode:'v', pathRadius:1,
       path:[[0,14],[5,14],[5,8],[12,8],[12,4],[21,4],[21,12],[28,12],[28,21],[19,21]],
