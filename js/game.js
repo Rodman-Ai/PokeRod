@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.21.6';
-  const BUILD = '2026.05.06-76';
+  const VERSION = 'v0.22.0';
+  const BUILD = '2026.05.09-77';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -154,7 +154,7 @@
   function startNewGame() {
     window.PR_SAVE.clear();
     state.player = { name:'YOU', map:'rodport', x:8, y:9, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1, oranberry:1 },
+                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1 },
                      equipment: { trinket: null },
                      stats: { battlesWon:0, catches:0 } };
     state.party = [];
@@ -245,6 +245,7 @@
     else if (state.mode === 'quests') updateQuests();
     else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.update(state);
     else if (state.mode === 'starter') updateStarter();
+    else if (state.mode === 'fishing') updateFishing(dt);
   }
 
   let flashText = null, flashTimer = 0;
@@ -328,6 +329,7 @@
       else if (state.mode === 'quests') drawQuests();
       else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.draw(ctx, state, VIEW_W, VIEW_H);
       else if (state.mode === 'starter') drawStarter();
+      else if (state.mode === 'fishing') drawFishing();
       drawFlash();
     });
   }
@@ -389,47 +391,59 @@
   // expose for further additions
   window.PR_GAME = {
     state,
-    openBagFromBattle: () => openBag('battle')
+    openBagFromBattle: () => openBag('battle'),
+    startFishing
   };
 
   // ---------- Intro ----------
+  // Each visible line must fit the dialog box (~32 chars at 6px/char).
+  // drawIntro re-wraps as a safety net, but keep authoring lines short.
   const INTRO_PAGES = [
     { kind:'prof', lines:[
       'Hello there!',
-      'I am PROF. ROD, a researcher of POKEROD.'
-    ] },
-    { kind:'creature', species:'emberkit', lines:[
-      'These small marvels are POKEROD.',
-      'Some live wild; others walk with friends.'
-    ] },
-    { kind:'creature', species:'aquapup', lines:[
-      'They come in every shape and element.',
-      'Each one has its own quirks and skills.'
-    ] },
-    { kind:'creature', species:'sproutling', lines:[
-      'A trainer with a kind heart',
-      'can earn a partner for life.'
+      "I'm PROF. ROD."
     ] },
     { kind:'prof', lines:[
-      'My grandkids set out years ago.',
-      'Today, the road calls to YOU.'
+      'I study POKEROD --',
+      'creatures of every kind.'
+    ] },
+    { kind:'creature', species:'emberkit', lines:[
+      'Some blaze with fire...'
+    ] },
+    { kind:'creature', species:'aquapup', lines:[
+      '...some swim the seas...'
+    ] },
+    { kind:'creature', species:'sproutling', lines:[
+      '...some bloom in spring.',
+      'Each one is unique.'
     ] },
     { kind:'player', lines:[
-      'Step out of your house in RODPORT.',
-      'Visit my lab. A partner is waiting.'
+      'Today, you take',
+      'your first step.',
+      'My lab is just south.'
     ] },
     { kind:'player', lines:[
-      'The world of POKEROD awaits!',
-      'Press Z to begin.'
+      'A partner waits there.',
+      'Press A to begin!'
     ] }
   ];
+  const INTRO_WRAP = 32;
+
+  function wrappedIntroLines(page) {
+    const out = [];
+    for (const ln of page.lines) {
+      const w = window.PR_UI.wrap(String(ln || ''), INTRO_WRAP);
+      if (w.length === 0) out.push(''); else out.push.apply(out, w);
+    }
+    return out;
+  }
 
   function updateIntro(dt) {
     const I = window.PR_INPUT;
     state.intro.charT += dt * 60;
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
       const page = INTRO_PAGES[state.intro.page];
-      const fullLen = page.lines.join('\n').length;
+      const fullLen = wrappedIntroLines(page).join('\n').length;
       if (state.intro.charT < fullLen) {
         state.intro.charT = fullLen + 999;
         return;
@@ -475,7 +489,7 @@
     // Text area at the bottom.
     const x = 8, y = VIEW_H - 56, w = VIEW_W - 16, h = 50;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    const fullText = page.lines.join('\n');
+    const fullText = wrappedIntroLines(page).join('\n');
     const shown = fullText.slice(0, Math.min(fullText.length, state.intro.charT|0));
     window.PR_UI.drawText(ctx, shown, x + 6, y + 6, '#202020');
     // Page indicator.
@@ -612,6 +626,175 @@
       const msg = (err && err.message) || String(err);
       showFlash('WILD ' + step + ': ' + msg.slice(0, 24));
     }
+  }
+
+  // ---------- Fishing minigame ----------
+  // Cast -> wait -> bite (~0.6s window) -> hooked (wild battle) | missed.
+  // The player can press B at any phase to cancel.
+  const FISH_FALLBACK = [
+    { species:'splashfin', minL:3, maxL:5, weight:5 },
+    { species:'aquapup',   minL:3, maxL:5, weight:3 }
+  ];
+
+  function startFishing() {
+    const map = state.world && state.world.currentMap();
+    const pool = (map && map.fishingEncounters && map.fishingEncounters.length)
+      ? map.fishingEncounters : FISH_FALLBACK;
+    const total = pool.reduce((a,e) => a + (e.weight || 1), 0);
+    let r = Math.random() * total;
+    let pick = pool[0];
+    for (const e of pool) { r -= (e.weight || 1); if (r <= 0) { pick = e; break; } }
+    const lvl = pick.minL + Math.floor(Math.random() * (pick.maxL - pick.minL + 1));
+    state.fishing = {
+      phase: 'cast',
+      t: 0,
+      waitFor: 1.0 + Math.random() * 3.0,    // 1.0 - 4.0s
+      biteWindow: 0.6,
+      species: pick.species,
+      level: lvl,
+      done: false
+    };
+    state.mode = 'fishing';
+    if (window.PR_SFX) window.PR_SFX.play('door');  // soft splash-y
+  }
+
+  function updateFishing(dt) {
+    const f = state.fishing;
+    if (!f) { state.mode = 'overworld'; return; }
+    f.t += dt;
+    const I = window.PR_INPUT;
+    // B cancels at any time.
+    if (I.consumePressed('x')) {
+      window.PR_SFX && window.PR_SFX.play('cancel');
+      state.fishing = null;
+      state.mode = 'overworld';
+      return;
+    }
+    if (f.phase === 'cast') {
+      if (f.t >= 0.5) { f.phase = 'wait'; f.t = 0; }
+      I.consumePressed('z');                    // swallow stray A during cast
+      return;
+    }
+    if (f.phase === 'wait') {
+      if (I.consumePressed('z')) {
+        // Yanking too early scares the fish.
+        f.phase = 'missed';
+        f.t = 0;
+        if (window.PR_SFX) window.PR_SFX.play('bump');
+        return;
+      }
+      if (f.t >= f.waitFor) { f.phase = 'bite'; f.t = 0; if (window.PR_SFX) window.PR_SFX.play('select'); }
+      return;
+    }
+    if (f.phase === 'bite') {
+      if (I.consumePressed('z')) {
+        f.phase = 'hooked';
+        f.t = 0;
+        if (window.PR_SFX) window.PR_SFX.play('confirm');
+        return;
+      }
+      if (f.t >= f.biteWindow) {
+        f.phase = 'missed';
+        f.t = 0;
+        if (window.PR_SFX) window.PR_SFX.play('weak');
+      }
+      return;
+    }
+    if (f.phase === 'hooked') {
+      if (f.t >= 0.5) {
+        const sp = f.species, lv = f.level;
+        state.fishing = null;
+        // Need a living party member to start a battle.
+        if (!state.party.length || !state.party.some(p => p.hp > 0)) {
+          state.mode = 'overworld';
+          openDialog(['You hooked a creature, but no one is awake to battle!']);
+          return;
+        }
+        startBattleAgainstWild(sp, lv);
+      }
+      return;
+    }
+    if (f.phase === 'missed') {
+      if (f.t >= 1.0) {
+        state.fishing = null;
+        state.mode = 'overworld';
+      }
+      return;
+    }
+  }
+
+  function drawFishing() {
+    // Darken the world (already drawn natively at 480x320) so the bobber pops.
+    ctx.fillStyle = 'rgba(8, 12, 28, 0.55)';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    // Calm water bands at the bottom.
+    for (let y = 90; y < 130; y += 4) {
+      const a = 0.10 + 0.04 * Math.sin((performance.now()/350) + y * 0.4);
+      ctx.fillStyle = 'rgba(120,180,240,' + a.toFixed(3) + ')';
+      ctx.fillRect(0, y, VIEW_W, 2);
+    }
+    // Rod from upper-right to a bobber near center-bottom.
+    const f = state.fishing;
+    const cx = (VIEW_W / 2) | 0;
+    let bobY = 100;
+    if (f) {
+      if (f.phase === 'cast')   bobY = 100 - Math.round(Math.sin((f.t / 0.5) * Math.PI) * 18);
+      if (f.phase === 'wait')   bobY = 100 + Math.round(Math.sin(f.t * 4) * 2);
+      if (f.phase === 'bite')   bobY = 100 + Math.round(Math.sin(f.t * 30) * 3);
+      if (f.phase === 'hooked') bobY = 100 - Math.round(f.t * 80);
+      if (f.phase === 'missed') bobY = 100 + 6;
+    }
+    // Rod (diagonal yellow line).
+    ctx.strokeStyle = '#806040';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(VIEW_W - 14, 22);
+    ctx.lineTo(VIEW_W - 60, 60);
+    ctx.stroke();
+    // Fishing line (bright thin).
+    ctx.strokeStyle = '#fff8c8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(VIEW_W - 60, 60);
+    ctx.lineTo(cx + 2, bobY);
+    ctx.stroke();
+    // Bobber: red top, white bottom.
+    ctx.fillStyle = '#202020';
+    ctx.fillRect(cx - 2, bobY - 3, 6, 7);
+    ctx.fillStyle = '#e84848';
+    ctx.fillRect(cx - 1, bobY - 2, 4, 3);
+    ctx.fillStyle = '#fff8e8';
+    ctx.fillRect(cx - 1, bobY + 1, 4, 2);
+    // Splash ring on cast / hooked.
+    if (f && (f.phase === 'cast' || f.phase === 'hooked')) {
+      const r = (f.phase === 'cast' ? 4 + (1 - f.t/0.5) * 12 : 6 + f.t * 30) | 0;
+      ctx.strokeStyle = 'rgba(200,232,255,0.7)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(cx + 1, 102, Math.max(1, r), 0, Math.PI*2); ctx.stroke();
+    }
+    // '!' bubble on bite.
+    if (f && f.phase === 'bite') {
+      const blink = (((f.t * 8) | 0) % 2) === 0;
+      if (blink) {
+        ctx.fillStyle = '#fff8c0';
+        ctx.fillRect(cx - 5, bobY - 18, 9, 12);
+        ctx.fillStyle = '#202020';
+        ctx.fillRect(cx - 6, bobY - 19, 11, 2);
+        ctx.fillRect(cx - 6, bobY - 7, 11, 1);
+        ctx.fillRect(cx - 6, bobY - 19, 1, 13);
+        ctx.fillRect(cx + 4, bobY - 19, 1, 13);
+        window.PR_UI.drawText(ctx, '!', cx - 2, bobY - 16, '#d83020');
+      }
+    }
+    // Status banner.
+    let label = 'CAST!';
+    if (f) {
+      if (f.phase === 'wait')   label = '...';
+      if (f.phase === 'bite')   label = '* A NIBBLE! PRESS A *';
+      if (f.phase === 'hooked') label = 'HOOKED IT!';
+      if (f.phase === 'missed') label = 'GOT AWAY...';
+    }
+    window.PR_UI.drawDialog(ctx, [label, 'B: CANCEL'], VIEW_W, VIEW_H, false);
   }
 
   // ---------- NPC interaction ----------
@@ -1527,6 +1710,8 @@
     if (state.player.equipment.trinket === undefined) state.player.equipment.trinket = null;
     ensurePlayerStats();
     if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
+    // Grandfather the OLD ROD into older saves so fishing is available.
+    if (state.player.bag && !state.player.bag.old_rod) state.player.bag.old_rod = 1;
     state.party = data.party || [];
     // Default missing held slot on each party member (pre-feature saves).
     for (const m of state.party) if (m && m.held === undefined) m.held = null;

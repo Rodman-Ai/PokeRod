@@ -52,6 +52,47 @@
     return phaseForSteps(s).name;
   }};
 
+  // Animated diagonal sunbeams. DS Diamond only; outdoor day/dawn/dusk only.
+  // Six wide parallelograms slide southwest with a soft alpha pulse so the
+  // air feels lit by something living rather than a flat tint.
+  const SUNBEAM_PHASE_INTENSITY = { day: 1.0, dawn: 0.65, dusk: 0.55, night: 0 };
+  function drawSunbeams(ctx, phaseName) {
+    const intensity = SUNBEAM_PHASE_INTENSITY[phaseName] || 0;
+    if (intensity <= 0) return;
+    if (window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion) return;
+    const atlas = window.PR_ATLAS;
+    if (!atlas || !atlas.getPreset || atlas.getPreset() !== 'ds_diamond') return;
+    const t = performance.now() / 1000;
+    const pulse = 0.75 + 0.25 * Math.sin(t * 1.1);
+    const drift = ((t * 14) % 64) | 0;       // 1px shift per ~71ms, wraps each beam-spacing cycle
+    const baseAlpha = 0.10 * intensity * pulse;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(255,232,160,1)';
+    const beamW = 28;
+    const spacing = 96;
+    const slope = 0.7;                       // dx for every dy step (steeper = more diagonal)
+    const startX = -VIEW_H * slope - 64 + drift;
+    for (let bx = startX; bx < VIEW_W + 64; bx += spacing) {
+      ctx.globalAlpha = baseAlpha;
+      // Two stacked thinner bands so the beam softens at the edges.
+      drawBeam(ctx, bx, beamW, slope);
+      ctx.globalAlpha = baseAlpha * 0.6;
+      drawBeam(ctx, bx + 6, beamW - 12, slope);
+    }
+    ctx.restore();
+  }
+  function drawBeam(ctx, topX, w, slope) {
+    if (w <= 0) return;
+    const h = VIEW_H;
+    // Marching strips so the diagonal stays crisp on integer pixels.
+    const STEP = 4;
+    for (let y = 0; y < h; y += STEP) {
+      const x = (topX + y * slope) | 0;
+      ctx.fillRect(x, y, w, STEP);
+    }
+  }
+
   function World(state) {
     this.state = state;
     this.player = state.player;
@@ -376,8 +417,15 @@
       this.state.onHealer();
       return true;
     }
-    // Water tile: surf toggle if you have a WATER-type ally.
+    // Water tile: cast a line if you have the OLD ROD; otherwise surf if you
+    // have a WATER ally. The rod is granted at game start so this is the
+    // default water interaction.
     if (code === 'W' && !this.state.player.surfing) {
+      const hasRod = !!(this.state.player.bag && this.state.player.bag.old_rod);
+      if (hasRod && window.PR_GAME && window.PR_GAME.startFishing) {
+        window.PR_GAME.startFishing();
+        return true;
+      }
       const hasWater = (this.state.party || []).some(m => {
         const sp = window.PR_DATA.CREATURES[m.species];
         return sp && sp.types && sp.types.includes('WATER');
@@ -623,6 +671,8 @@
     const cur = this.currentMap();
     if (!cur || !cur.interior) {
       const phase = phaseForSteps(this.player.steps || 0);
+      // Animated DS Diamond sunbeams (additive yellow stripes drifting + pulsing).
+      drawSunbeams(ctx, phase.name);
       if (phase.tint) {
         ctx.fillStyle = phase.tint;
         ctx.fillRect(0, 0, VIEW_W, VIEW_H);

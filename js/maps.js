@@ -385,6 +385,11 @@ const MAPS = {
       '11,4': { to:'rival_house',  x:3, y:6 },
       '9,9':  { to:'lab',          x:5, y:8 }
     },
+    fishingEncounters: [
+      { species:'splashfin', minL:3, maxL:6, weight:5 },
+      { species:'aquapup',   minL:3, maxL:6, weight:3 },
+      { species:'mistfin',   minL:4, maxL:7, weight:2 }
+    ],
     edges: {
       west: { x:0, to:'desert', tx:32, ty:14,
               gate:{ minBadges:6, message:"The desert loop is too harsh without six BADGES." } },
@@ -1088,6 +1093,12 @@ const MAPS = {
       '12,5': { to:'frostmere_mart',   x:5, y:9 },
       '10,12':{ to:'frostmere_gym',    x:4, y:7 }
     },
+    fishingEncounters: [
+      { species:'mistfin',    minL:22, maxL:28, weight:4 },
+      { species:'tidalwhal',  minL:22, maxL:28, weight:3 },
+      { species:'glacierock', minL:22, maxL:28, weight:3 },
+      { species:'tideturtle', minL:24, maxL:30, weight:2 }
+    ],
     edges: {
       north: { y:0,  to:'glimcavern', tx:18, ty:26 },
       south: { y:17, to:'frostpeak',  tx:7, ty:1 }
@@ -1241,6 +1252,13 @@ const MAPS = {
       '12,5': { to:'harborside_mart',   x:5, y:9 },
       '11,11':{ to:'harborside_gym',    x:4, y:7 }
     },
+    fishingEncounters: [
+      { species:'aquapup',    minL:8, maxL:14, weight:4 },
+      { species:'splashfin',  minL:8, maxL:14, weight:4 },
+      { species:'mistfin',    minL:10, maxL:16, weight:3 },
+      { species:'tideturtle', minL:14, maxL:20, weight:2 },
+      { species:'levifin',    minL:16, maxL:22, weight:1 }
+    ],
     edges: {
       north: { y:0,  to:'frostpeak', tx:19, ty:26 },
       east:  { x:19, to:'beach', tx:1, ty:15 },
