@@ -213,6 +213,71 @@
   function tiltActive() {
     return window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond';
   }
+  // Resolves the active graphics preset to one of the four tier ids:
+  //   'gb_red' | 'gbc_yellow' | 'gba_firered' | 'ds_diamond'
+  // Default: ds_diamond.
+  function graphicsTier() {
+    return (window.PR_SETTINGS && window.PR_SETTINGS.graphics) || 'ds_diamond';
+  }
+
+  // ---- Weather schema ---------------------------------------------------
+  // Maps opt into weather via map.weather. Accepted forms:
+  //   weather: 'rain'              alias for 'medium-rain'
+  //   weather: 'light-rain' | 'medium-rain' | 'heavy-rain'
+  //   weather: 'sleet'
+  //   weather: 'light-snow' | 'medium-snow' | 'blizzard'
+  //   weather: 'hail' | 'thunder' | 'tornado' | 'hurricane' | 'overcast'
+  //   weather: { kind:'rain', intensity:0.7, wind:0.3 }
+  // parseWeather() always returns { kind, intensity, wind } or null when
+  // the value is unset / unknown.
+  const WEATHER_PRESETS = {
+    'rain':         { kind:'rain',      intensity:0.55, wind:0.3 },
+    'light-rain':   { kind:'rain',      intensity:0.30, wind:0.2 },
+    'medium-rain':  { kind:'rain',      intensity:0.55, wind:0.3 },
+    'heavy-rain':   { kind:'rain',      intensity:0.95, wind:0.5 },
+    'sleet':        { kind:'sleet',     intensity:0.65, wind:0.4 },
+    'light-snow':   { kind:'snow',      intensity:0.30, wind:0.15 },
+    'medium-snow':  { kind:'snow',      intensity:0.55, wind:0.25 },
+    'blizzard':     { kind:'snow',      intensity:1.00, wind:0.95 },
+    'hail':         { kind:'hail',      intensity:0.80, wind:0.10 },
+    'thunder':      { kind:'thunder',   intensity:0.95, wind:0.55 },
+    'tornado':      { kind:'tornado',   intensity:0.85, wind:0.80 },
+    'hurricane':    { kind:'hurricane', intensity:1.00, wind:1.00 },
+    'overcast':     { kind:'overcast',  intensity:0.45, wind:0.20 }
+  };
+  const WEATHER_KINDS = new Set([
+    'rain','sleet','snow','hail','thunder','tornado','hurricane','overcast'
+  ]);
+  function parseWeather(value) {
+    if (!value) return null;
+    if (typeof value === 'string') {
+      const p = WEATHER_PRESETS[value];
+      return p ? { kind:p.kind, intensity:p.intensity, wind:p.wind } : null;
+    }
+    if (typeof value === 'object' && value.kind && WEATHER_KINDS.has(value.kind)) {
+      const i = Math.max(0, Math.min(1, +value.intensity || 0.5));
+      const w = Math.max(0, Math.min(1, +value.wind || 0));
+      return { kind: value.kind, intensity: i, wind: w };
+    }
+    return null;
+  }
+  // Per-tier maximum particle budget. The basic tiers cap aggressively so
+  // the look stays consistent with the hardware they emulate. DS Diamond
+  // gets the full count.
+  function tierParticleCap(tier) {
+    if (tier === 'gb_red') return 16;
+    if (tier === 'gbc_yellow') return 24;
+    if (tier === 'gba_firered') return 56;
+    return 140; // ds_diamond
+  }
+  // Spawn-rate multiplier (lower = slower spawn). Basic tiers rain less.
+  function tierSpawnMul(tier) {
+    if (tier === 'gb_red') return 0.30;
+    if (tier === 'gbc_yellow') return 0.42;
+    if (tier === 'gba_firered') return 0.70;
+    return 1.0;
+  }
+  window.PR_WEATHER = { parseWeather, WEATHER_PRESETS };
   // Soft elliptical drop shadow with a radial-gradient falloff. Two
   // layers (tight inner core + softer outer halo) give an
   // atmospheric-looking shadow without doubling cost. opts.offsetX /
@@ -683,9 +748,16 @@
     const peakDusk = 1 - Math.min(1, Math.abs(t - 80)  / 30);
     const peak = Math.max(peakDawn, peakDusk);
     if (peak < 0.15) return;
+    // Wall-clock animation so the rays sway / pulse continuously, even
+    // when the player is standing still. The dawn/dusk peak (above) is
+    // still steps-based so the rays only appear during the right time of
+    // "day"; this just gives them visible motion within that window.
+    const wallTime = (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
+    const drift = Math.sin(wallTime * 0.5) * 4;
+    const alphaPulse = 0.85 + Math.sin(wallTime * 3) * 0.15;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255,228,160,' + (0.10 * peak).toFixed(3) + ')';
+    ctx.fillStyle = 'rgba(255,228,160,' + (0.10 * peak * alphaPulse).toFixed(3) + ')';
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -701,9 +773,11 @@
         if (((wx * 13 + wy * 7) & 3) !== 0) continue;
         const sx0 = offX + tx * TS;
         const sy0 = offY + ty * TS;
+        // Per-tile phase offset so rays don't all sway in lockstep.
+        const tileDrift = drift + Math.sin(wallTime * 0.7 + (wx + wy) * 0.3) * 1.5;
         // Two thin parallelograms drifting down-left.
         for (let r = 0; r < 2; r++) {
-          const off = r * 8;
+          const off = r * 8 + tileDrift;
           ctx.beginPath();
           ctx.moveTo(sx0 + 6 + off, sy0);
           ctx.lineTo(sx0 + 9 + off, sy0);
@@ -788,14 +862,44 @@
     }
     ctx.restore();
   }
-  // Water reflections: for each visible W tile, look at the tile
-  // directly above; if it's tall, draw a vertically-flipped low-alpha
-  // copy of it into the water cell so the structure 'reflects' on
-  // the surface. Cheapest possible reflection without atlas regen.
-  function drawWaterReflections(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
-    if (!tiltActive()) return;
+  // Water animation. Three tiers of fanciness:
+  //   ds_diamond  — full reflections + scrolling ripple bands + sparkle
+  //   gba_firered — 2-frame palette toggle on water tiles
+  //   gbc_yellow / gb_red — static water (intentional, matches the era)
+  // Reflections for tall tiles directly above water are still DS-only
+  // because they require atlas reads.
+  function drawWaterAnimation(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    const tier = graphicsTier();
+    const reduced = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+    const wallMs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    if (tier === 'gb_red' || tier === 'gbc_yellow') return;
+    if (tier === 'gba_firered') {
+      // 2-frame swap: every ~700ms toggle a slightly lighter overlay
+      // across all visible water tiles. Faint, but visible motion.
+      const phase = ((wallMs / 700) | 0) % 2;
+      if (phase === 0) return;
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = '#a8d4f0';
+      for (let ty = 0; ty <= viewTy; ty++) {
+        for (let tx = 0; tx <= viewTx; tx++) {
+          const wx = startTx + tx, wy = startTy + ty;
+          if (wy < 0 || wy >= m.tiles.length) continue;
+          const row = m.tiles[wy];
+          if (wx < 0 || wx >= row.length) continue;
+          if (row[wx] !== 'W') continue;
+          const sx = offX + tx * TS;
+          const sy = offY + ty * TS;
+          ctx.fillRect(sx, sy, TS, TS);
+        }
+      }
+      ctx.restore();
+      return;
+    }
+    // DS Diamond from here.
     if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
-    const phaseOffset = Math.sin(performance.now() / 600) * 1; // gentle ripple
+    const phaseOffset = Math.sin(wallMs / 600) * 1; // gentle reflection ripple
+    // Reflections pass.
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -815,13 +919,50 @@
         // the flipped image sits below it (in the water cell).
         ctx.translate(sx + phaseOffset, sy + TS);
         ctx.scale(1, -1);
-        // Paint the tile-above into the flipped frame. drawTileCode
-        // returns false if the atlas has no entry for this code, in
-        // which case nothing renders.
         window.PR_ATLAS.drawTileCode(ctx, above, 0, 0, { map:m, tx:wx, ty:wy - 1 });
         ctx.restore();
       }
     }
+    if (reduced) return;
+    // Scrolling ripple bands + sparkles. Drawn on every visible water
+    // tile, in tile-aligned modulo so adjacent tiles seam together.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const scroll = (wallMs / 200) % TS;
+    for (let ty = 0; ty <= viewTy; ty++) {
+      for (let tx = 0; tx <= viewTx; tx++) {
+        const wx = startTx + tx, wy = startTy + ty;
+        if (wy < 0 || wy >= m.tiles.length) continue;
+        const row = m.tiles[wy];
+        if (wx < 0 || wx >= row.length) continue;
+        if (row[wx] !== 'W') continue;
+        const sx = offX + tx * TS;
+        const sy = offY + ty * TS;
+        // Two thin lighter bands scroll right across the tile. Their
+        // y-positions are tied to (wy * 8 + scroll) so the bands appear
+        // continuous between vertically-adjacent water tiles.
+        ctx.fillStyle = 'rgba(180,220,248,0.18)';
+        const band1y = ((wy * 11 + (scroll | 0)) % TS);
+        const band2y = ((wy * 11 + (scroll | 0) + 14) % TS);
+        ctx.fillRect(sx, sy + band1y, TS, 1);
+        ctx.fillRect(sx, sy + band2y, TS, 1);
+        // Per-tile sparkle: a single pixel that blinks every ~1.2s
+        // based on a deterministic seed from the tile coordinate.
+        const seed = (wx * 73 ^ wy * 41) & 7;
+        const blink = ((wallMs / 1200 + seed) % 1);
+        if (blink < 0.07) {
+          const spx = sx + ((wx * 17) & 31);
+          const spy = sy + ((wy * 23) & 31);
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.fillRect(spx, spy, 1, 1);
+        }
+      }
+    }
+    ctx.restore();
+  }
+  // Backwards-compat alias.
+  function drawWaterReflections(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
+    drawWaterAnimation(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS);
   }
   // Tilt-shift bands: blur the top and bottom strips of the rendered
   // canvas to suggest depth-of-field. Cached offscreen canvas keeps
@@ -847,22 +988,117 @@
     ctx.drawImage(_tiltShiftCache, 0, viewH - 36, viewW, 36, 0, viewH - 36, viewW, 36);
     ctx.restore();
   }
-  // Rain particles: slanted streaks falling from off-screen-top to
-  // off-screen-bottom. Rendered via drawBiomeParticles' fog-vs-pixel
-  // dispatch, so they share the same particle pool.
+  // Weather particle factory. Returns a particle object suited to the
+  // requested kind / intensity / wind. Tornado spawns special debris
+  // particles whose vortex motion is handled in tickBiomeParticles via
+  // p.kind === 'debris'. Hurricane spawns extreme-wind rain. Overcast
+  // spawns nothing (the look is overlay-based, not particle-based).
+  function spawnWeatherParticle(kind, intensity, viewW, wind, vortexCx, vortexCy) {
+    const widerW = viewW + 80;
+    if (kind === 'rain' || kind === 'thunder') {
+      const heavy = (kind === 'thunder' || intensity > 0.7);
+      const slant = -40 - 80 * wind;
+      return {
+        kind: 'rain',
+        x: Math.random() * widerW - 40,
+        y: -12,
+        vx: slant,
+        vy: 240 + 120 * intensity,
+        life: 0.9,
+        maxLife: 0.9,
+        color: heavy ? 'rgba(160,196,232,0.70)' : 'rgba(180,210,240,0.55)',
+        size: 1,
+        tail: 4 + Math.round(intensity * 6),
+        spin: 0
+      };
+    }
+    if (kind === 'snow') {
+      const shake = 8 + 12 * intensity;
+      return {
+        kind: 'snow',
+        x: Math.random() * widerW - 40,
+        y: -8,
+        vx: -10 - 30 * wind + (Math.random() - 0.5) * 10,
+        vy: 24 + 40 * intensity,
+        life: 6 + Math.random() * 2,
+        maxLife: 8,
+        color: 'rgba(248,252,255,0.95)',
+        size: intensity > 0.7 ? 2 : 1,
+        spin: shake * 0.2,  // sideways wobble amplitude
+        seed: Math.random() * 6.28
+      };
+    }
+    if (kind === 'sleet') {
+      // Half-and-half: roughly 60% rain, 40% snow, with slightly higher
+      // velocity than pure snow.
+      if (Math.random() < 0.6) {
+        return spawnWeatherParticle('rain', intensity, viewW, wind);
+      }
+      const sf = spawnWeatherParticle('snow', intensity, viewW, wind);
+      sf.vy *= 1.6;
+      sf.color = 'rgba(220,232,240,0.85)';
+      return sf;
+    }
+    if (kind === 'hail') {
+      return {
+        kind: 'hail',
+        x: Math.random() * widerW - 40,
+        y: -10,
+        vx: -8 - 16 * wind,
+        vy: 320 + 120 * intensity,
+        life: 0.8,
+        maxLife: 0.8,
+        color: 'rgba(232,240,248,0.95)',
+        size: 1.5 + Math.random() * 0.5,
+        spin: 0
+      };
+    }
+    if (kind === 'hurricane') {
+      // Extreme rain at a steeper angle. Plus occasional debris flecks.
+      if (Math.random() < 0.05) {
+        return {
+          kind: 'debris',
+          x: Math.random() * widerW - 40,
+          y: -8,
+          vx: -180,
+          vy: 180,
+          life: 1.0,
+          maxLife: 1.0,
+          color: 'rgba(80,72,56,0.85)',
+          size: 1.5,
+          spin: 0
+        };
+      }
+      const r = spawnWeatherParticle('rain', 1.0, viewW, 1.0);
+      r.vx = -160; r.vy = 360; r.tail = 8;
+      return r;
+    }
+    if (kind === 'tornado') {
+      // Debris particle bound to the vortex. Stored angle + radius so
+      // the tick can rotate it around (vortexCx, vortexCy).
+      const ang = Math.random() * Math.PI * 2;
+      const rad = 30 + Math.random() * 110;
+      return {
+        kind: 'debris',
+        x: (vortexCx || 120) + Math.cos(ang) * rad,
+        y: (vortexCy || 80)  + Math.sin(ang) * rad * 0.6,
+        vx: 0, vy: 0,
+        life: 4 + Math.random() * 3,
+        maxLife: 6,
+        color: Math.random() < 0.5 ? 'rgba(80,68,52,0.85)' : 'rgba(120,108,80,0.75)',
+        size: 1 + Math.random() * 1.5,
+        spin: 0,
+        vortex: true,
+        ang: ang,
+        rad: rad,
+        angSpeed: 1.6 + Math.random() * 1.4
+      };
+    }
+    return null;
+  }
+  // Backwards-compat alias for any legacy callers.
   function spawnRainParticle(viewW) {
-    return {
-      kind: 'rain',
-      x: Math.random() * (viewW + 80) - 40,
-      y: -12,
-      vx: -40,
-      vy: 280,
-      life: 0.9,
-      maxLife: 0.9,
-      color: 'rgba(180,210,240,0.55)',
-      size: 1,
-      spin: 0
-    };
+    return spawnWeatherParticle('rain', 0.55, viewW, 0.3);
   }
   // Footstep dust particles: fade out over time, drift slightly upward.
   // Spawned by World.prototype._spawnDust on step completion when the
@@ -1049,19 +1285,37 @@
     }
     return null;
   }
-  function tickBiomeParticles(particles, dt) {
+  function tickBiomeParticles(particles, dt, vortex) {
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.life -= dt;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      if (p.spin) p.x += Math.sin(p.life * 4) * p.spin;
-      if (p.life <= 0 || p.x < -20 || p.x > VIEW_W + 20 || p.y > VIEW_H + 20 || p.y < -40) {
+      if (p.vortex && vortex) {
+        // Vortex-bound debris orbits the moving vortex centre. Radius
+        // shrinks slowly so debris spirals inward over its lifetime.
+        p.ang += (p.angSpeed || 2.0) * dt;
+        p.rad = Math.max(8, p.rad - 4 * dt);
+        p.x = vortex.x + Math.cos(p.ang) * p.rad;
+        p.y = vortex.y + Math.sin(p.ang) * p.rad * 0.6;
+      } else {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.kind === 'snow' && p.spin) {
+          // Snowflakes wobble sideways using their own seed so they
+          // don't all sway in lockstep.
+          p.x += Math.sin(p.life * 1.6 + (p.seed || 0)) * p.spin * dt * 12;
+        } else if (p.spin) {
+          p.x += Math.sin(p.life * 4) * p.spin;
+        }
+      }
+      if (p.life <= 0 || p.x < -40 || p.x > VIEW_W + 40 || p.y > VIEW_H + 30 || p.y < -60) {
         particles.splice(i, 1);
       }
     }
   }
-  function drawBiomeParticles(ctx, particles) {
+  function drawBiomeParticles(ctx, particles, tier) {
+    tier = tier || 'ds_diamond';
+    const fancy = (tier === 'ds_diamond');
+    const wallMs = (typeof performance !== 'undefined' ? performance.now() : Date.now());
     for (const p of particles) {
       const k = Math.min(1, p.life / p.maxLife);
       // Fade tail-end so particles disappear gracefully near the edges.
@@ -1071,27 +1325,155 @@
         // Soft radial fog blob: low alpha, gradient falloff.
         const rad = p.size;
         const alpha = 0.16 * fade;
-        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
-        grad.addColorStop(0, 'rgba(220,224,232,' + alpha.toFixed(3) + ')');
-        grad.addColorStop(1, 'rgba(220,224,232,0)');
-        ctx.fillStyle = grad;
-        ctx.fillRect((p.x - rad) | 0, (p.y - rad) | 0, (rad * 2) | 0, (rad * 2) | 0);
+        if (fancy) {
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
+          grad.addColorStop(0, 'rgba(220,224,232,' + alpha.toFixed(3) + ')');
+          grad.addColorStop(1, 'rgba(220,224,232,0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect((p.x - rad) | 0, (p.y - rad) | 0, (rad * 2) | 0, (rad * 2) | 0);
+        } else {
+          ctx.fillStyle = 'rgba(220,224,232,' + (alpha * 0.7).toFixed(3) + ')';
+          ctx.fillRect((p.x - rad * 0.5) | 0, (p.y - rad * 0.5) | 0, rad | 0, rad | 0);
+        }
       } else if (p.kind === 'rain') {
-        // Diagonal 1-px streak from current position back along the
-        // velocity direction. ~6 px tail for visible motion blur.
+        // Diagonal streak. Tail length scales with intensity; basic
+        // tiers get a 1-pixel dot instead of a streak.
         ctx.globalAlpha = fade;
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(p.x + 0.6, p.y - 5);
-        ctx.stroke();
+        if (fancy || tier === 'gba_firered') {
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          const tailLen = p.tail || 5;
+          // Tail follows the velocity vector so heavy rain looks more
+          // diagonal than light rain.
+          const len = Math.sqrt(p.vx * p.vx + p.vy * p.vy) || 1;
+          ctx.lineTo(p.x - p.vx / len * tailLen, p.y - p.vy / len * tailLen);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = p.color;
+          ctx.fillRect((p.x) | 0, (p.y) | 0, 1, 2);
+        }
+      } else if (p.kind === 'snow') {
+        ctx.globalAlpha = fade;
+        if (fancy && p.size >= 2) {
+          // Six-spoke flake: a bright centre + 6 thin radial spokes.
+          const cx = p.x | 0, cy = p.y | 0;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(cx - 1, cy, 3, 1);
+          ctx.fillRect(cx, cy - 1, 1, 3);
+          ctx.fillStyle = 'rgba(248,252,255,0.55)';
+          ctx.fillRect(cx - 2, cy - 1, 1, 1);
+          ctx.fillRect(cx + 2, cy + 1, 1, 1);
+          ctx.fillRect(cx + 2, cy - 1, 1, 1);
+          ctx.fillRect(cx - 2, cy + 1, 1, 1);
+          // Time-based twinkle dot.
+          if (((wallMs * 0.01 + (p.seed || 0)) | 0) % 7 === 0) {
+            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            ctx.fillRect(cx, cy, 1, 1);
+          }
+        } else {
+          // Basic flake: single white pixel (or 2x2 for higher intensity)
+          ctx.fillStyle = p.color;
+          const s = p.size | 0 || 1;
+          ctx.fillRect((p.x - s/2) | 0, (p.y - s/2) | 0, s, s);
+        }
+      } else if (p.kind === 'hail') {
+        ctx.globalAlpha = fade;
+        const cx = p.x | 0, cy = p.y | 0;
+        if (fancy) {
+          // Round white pellet with a darker shadow underneath.
+          ctx.fillStyle = 'rgba(180,196,212,0.85)';
+          ctx.fillRect(cx - 1, cy + 1, 3, 1);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(cx - 1, cy, 3, 1);
+          ctx.fillRect(cx, cy - 1, 1, 3);
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.fillRect(cx, cy - 1, 1, 1);
+        } else {
+          ctx.fillStyle = p.color;
+          ctx.fillRect(cx, cy, 2, 2);
+        }
+      } else if (p.kind === 'debris') {
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = p.color;
+        const s = Math.max(1, Math.round(p.size));
+        ctx.fillRect((p.x - s/2) | 0, (p.y - s/2) | 0, s, s);
       } else {
         ctx.globalAlpha = fade;
         ctx.fillStyle = p.color;
         ctx.fillRect((p.x - p.size) | 0, (p.y - p.size) | 0, p.size * 2, p.size * 2);
       }
       ctx.restore();
+    }
+  }
+  // Full-screen weather overlays drawn AFTER the world is rendered:
+  // - overcast: dark gray dim + cloud parallax (DS) / just dim (basic)
+  // - tornado: a screen-spanning vortex spiral behind the debris
+  // - hurricane: a subtle cyclonic shading + windswept streaks
+  function drawWeatherOverlay(ctx, weather, viewW, viewH, tier, vortex) {
+    if (!weather) return;
+    const fancy = (tier === 'ds_diamond');
+    const wallTime = (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
+    if (weather.kind === 'overcast') {
+      const dim = 0.18 + 0.10 * weather.intensity;
+      ctx.fillStyle = 'rgba(60,68,84,' + dim.toFixed(3) + ')';
+      ctx.fillRect(0, 0, viewW, viewH);
+      if (fancy) {
+        // Two big soft cloud blobs drifting L→R at different speeds.
+        for (let i = 0; i < 2; i++) {
+          const speed = 6 + i * 4;
+          const period = (viewW + 120);
+          const cx = ((wallTime * speed) % period) - 60 + i * 110;
+          const cy = 24 + i * 28;
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 90);
+          grad.addColorStop(0, 'rgba(40,48,62,0.30)');
+          grad.addColorStop(1, 'rgba(40,48,62,0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(cx - 90, cy - 60, 180, 120);
+        }
+      }
+    } else if (weather.kind === 'tornado' && fancy) {
+      // Render a single dark funnel via stacked thin ellipses, growing
+      // narrower toward the bottom. Centred on the vortex point.
+      const cx = (vortex && vortex.x) || (viewW * 0.5);
+      const cy = (vortex && vortex.y) || (viewH * 0.4);
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      for (let i = 0; i < 14; i++) {
+        const t = i / 14;
+        const fx = cx + Math.sin(wallTime * 4 + i * 0.6) * (4 + t * 6);
+        const fy = cy - 20 + i * 8;
+        const rx = 38 - i * 1.8;
+        const ry = 6;
+        ctx.fillStyle = 'rgba(60,52,40,' + (0.32 + 0.04 * Math.sin(wallTime * 6 + i)).toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.ellipse(fx, fy, Math.max(2, rx), ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    } else if (weather.kind === 'hurricane' && fancy) {
+      // Subtle cyclonic gradient: vignette darker on edges + a slow
+      // sweeping band of brighter spray top-to-bottom.
+      ctx.save();
+      ctx.fillStyle = 'rgba(36,44,56,0.20)';
+      ctx.fillRect(0, 0, viewW, viewH);
+      const sweepY = ((wallTime * 60) % (viewH + 80)) - 40;
+      const grad = ctx.createLinearGradient(0, sweepY - 30, 0, sweepY + 30);
+      grad.addColorStop(0, 'rgba(180,196,220,0)');
+      grad.addColorStop(0.5, 'rgba(180,196,220,0.18)');
+      grad.addColorStop(1, 'rgba(180,196,220,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, sweepY - 30, viewW, 60);
+      ctx.restore();
+    }
+    // A subtle desaturating dim is shared by ALL precipitation weathers
+    // (rain / snow / sleet / hail / thunder / hurricane / tornado) so
+    // the world reads as cloudy underneath. Intensity-scaled, capped low.
+    if (weather.kind !== 'overcast') {
+      const dim = Math.min(0.18, 0.05 + 0.10 * weather.intensity);
+      ctx.fillStyle = 'rgba(40,48,62,' + dim.toFixed(3) + ')';
+      ctx.fillRect(0, 0, viewW, viewH);
     }
   }
 
@@ -1916,34 +2298,67 @@
       // Snap to empty when the player toggles back to a non-DS preset.
       this._biomeParticles.length = 0;
     }
-    // Weather tick: rain particles + periodic lightning flash. Map's
-    // `weather` property opts a map into the weather system; only
-    // 'rain' is supported for now. Lightning is part of the rain
-    // package - flash + audio cue every 6-14s.
+    // Weather tick. parseWeather() resolves 'medium-snow' / explicit
+    // {kind, intensity, wind} / etc. into a normalised triple.
+    // Particle spawn / lightning / vortex are all driven from there.
+    // Reduced motion gates the entire system so the player can opt
+    // out and the world stays calm.
     const cur2 = this.currentMap();
-    const rainy = dsActive && cur2 && cur2.weather === 'rain' && !cur2.interior;
-    if (rainy) {
-      tickBiomeParticles(this._rainParticles, dt);
-      this._rainSpawnTimer -= dt;
-      while (this._rainSpawnTimer <= 0 && this._rainParticles.length < 80) {
-        this._rainParticles.push(spawnRainParticle(VIEW_W));
-        this._rainSpawnTimer += 0.04;
+    const reducedM2 = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+    const tier = graphicsTier();
+    const weather = (cur2 && !cur2.interior && !reducedM2) ? parseWeather(cur2.weather) : null;
+    this._weather = weather;
+    if (weather) {
+      // Vortex tracking for tornado: the funnel slowly walks across
+      // the screen so debris feels alive.
+      if (weather.kind === 'tornado') {
+        if (!this._vortex) {
+          this._vortex = { x: VIEW_W * 0.3, y: VIEW_H * 0.45, vx: 12 };
+        }
+        this._vortex.x += this._vortex.vx * dt;
+        if (this._vortex.x < 60 || this._vortex.x > VIEW_W - 60) this._vortex.vx *= -1;
+      } else {
+        this._vortex = null;
       }
-      this._lightningTimer -= dt;
-      if (this._lightningTimer <= 0) {
-        this._lightningFlash = 1;
-        this._lightningTimer = 6 + Math.random() * 9;
-        if (window.PR_AUDIO && window.PR_AUDIO._internal && window.PR_AUDIO._internal.tone) {
-          const A = window.PR_AUDIO._internal;
-          const t = A.ctx ? A.ctx.currentTime : 0;
-          A.tone(60, t,        0.18, { gain:0.18, type:'sawtooth', bend:0.3 });
-          A.noiseBurst && A.noiseBurst(t + 0.05, 0.30, { gain:0.12, cutoff:1200 });
+      tickBiomeParticles(this._rainParticles, dt, this._vortex);
+      const cap = Math.max(8, Math.floor(tierParticleCap(tier) * weather.intensity));
+      const spawnInterval = (weather.kind === 'snow' ? 0.10 : 0.04) /
+                            Math.max(0.05, weather.intensity * tierSpawnMul(tier));
+      this._rainSpawnTimer -= dt;
+      let spawnsThisFrame = 0;
+      while (this._rainSpawnTimer <= 0 && this._rainParticles.length < cap && spawnsThisFrame < 6) {
+        const p = spawnWeatherParticle(weather.kind, weather.intensity, VIEW_W, weather.wind,
+          this._vortex && this._vortex.x, this._vortex && this._vortex.y);
+        if (p) this._rainParticles.push(p);
+        this._rainSpawnTimer += spawnInterval;
+        spawnsThisFrame++;
+      }
+      // Lightning: rain (heavy) / thunder / hurricane fire; tornado
+      // doesn't strike. Frequency scales on intensity.
+      const wantsLightning = (weather.kind === 'thunder' ||
+                              weather.kind === 'hurricane' ||
+                              (weather.kind === 'rain' && weather.intensity >= 0.7));
+      if (wantsLightning) {
+        this._lightningTimer -= dt;
+        if (this._lightningTimer <= 0) {
+          this._lightningFlash = 1;
+          // Thunder fires more often than heavy rain.
+          const baseGap = (weather.kind === 'thunder') ? 2.5 : 6;
+          const jitter  = (weather.kind === 'thunder') ? 4 : 9;
+          this._lightningTimer = baseGap + Math.random() * jitter;
+          if (window.PR_AUDIO && window.PR_AUDIO._internal && window.PR_AUDIO._internal.tone) {
+            const A = window.PR_AUDIO._internal;
+            const t = A.ctx ? A.ctx.currentTime : 0;
+            A.tone(60, t,        0.18, { gain:0.18, type:'sawtooth', bend:0.3 });
+            A.noiseBurst && A.noiseBurst(t + 0.05, 0.30, { gain:0.12, cutoff:1200 });
+          }
         }
       }
       if (this._lightningFlash > 0) this._lightningFlash = Math.max(0, this._lightningFlash - dt * 4);
-    } else if (this._rainParticles.length) {
+    } else if (this._rainParticles.length || this._lightningFlash > 0) {
       this._rainParticles.length = 0;
       this._lightningFlash = 0;
+      this._vortex = null;
     }
 
     if (this.anim.moving) {
@@ -2303,14 +2718,17 @@
     // catch the warm glow of nearby lamps, but before the vignette
     // and HUD so the corner darkening still frames everything.
     if (this._biomeParticles && this._biomeParticles.length) {
-      drawBiomeParticles(ctx, this._biomeParticles);
+      drawBiomeParticles(ctx, this._biomeParticles, graphicsTier());
     }
 
-    // Rain streaks (active only when current map opts in via
-    // weather:'rain'). Drawn over biome particles so falling rain
-    // sits in front of fog blobs.
+    // Weather: full-screen overlay first (overcast dim, tornado funnel,
+    // hurricane sweep), then particles (rain / snow / sleet / hail /
+    // debris) on top. Drawn before vignette + HUD.
+    if (this._weather) {
+      drawWeatherOverlay(ctx, this._weather, VIEW_W, VIEW_H, graphicsTier(), this._vortex);
+    }
     if (this._rainParticles && this._rainParticles.length) {
-      drawBiomeParticles(ctx, this._rainParticles);
+      drawBiomeParticles(ctx, this._rainParticles, graphicsTier());
     }
 
     // Lightning flash: brief screen-wide white tint that fades over

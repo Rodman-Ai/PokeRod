@@ -364,13 +364,25 @@
       this.queue('It hit ' + hits + ' times!');
     }
     defender.hp = Math.max(0, defender.hp - totalDmg);
-    // Trigger move animation on the defender's side.
+    // Trigger move animation on the defender's side. Per-move VFX is
+    // delegated to PR_MOVE_FX (js/move_effects.js); duration depends on
+    // the specific effect (some signature moves run longer).
+    const fxDur = (window.PR_MOVE_FX && window.PR_MOVE_FX.durationFor)
+      ? window.PR_MOVE_FX.durationFor(move.id, def.type) : 0.45;
     this.activeAnim = {
+      moveId: move.id,
       type: def.type,
       target: who === 'me' ? 'foe' : 'me',
-      t: 0, duration: 0.45
+      crit: !!result.crit,
+      t: 0, duration: fxDur
     };
     if (who === 'me') this.shakeTimer = 0.3; else this.flashTimer = 0.2;
+    // Critical hit: extra brief sprite-zoom pulse before the type effect
+    // plays (DS Diamond only). Sets a small timer the renderer reads.
+    if (result.crit) {
+      this.critPulse = 0.25;
+      this.critPulseTarget = this.activeAnim.target;
+    }
     if (window.PR_SFX) {
       if (result.crit) window.PR_SFX.play('crit');
       else if (result.eff > 1) window.PR_SFX.play('super');
@@ -865,30 +877,33 @@
       ctx.fillRect(140, foeY, 64, 64);
     }
 
-    // Move animation: type-coloured particle burst on the target.
-    if (this.activeAnim) {
-      const a = this.activeAnim;
-      const p = Math.min(1, a.t / a.duration);
-      const cx = a.target === 'foe' ? 184 : 52;
-      const cy = a.target === 'foe' ? 54 : 110;
-      const color = (window.PR_DATA.TYPE_COLOR && window.PR_DATA.TYPE_COLOR[a.type]) || '#fff';
-      ctx.fillStyle = color;
-      // 14 deterministic particles based on phase + index.
-      for (let i = 0; i < 14; i++) {
-        const ang = (i / 14) * Math.PI * 2 + p * 1.5;
-        const r = 4 + p * 28;
-        const px = (cx + Math.cos(ang) * r) | 0;
-        const py = (cy + Math.sin(ang) * r) | 0;
-        const sz = (p < 0.7) ? 3 : 2;
-        ctx.fillRect(px, py, sz, sz);
-      }
-      // Center pop.
-      if (p < 0.4) {
-        ctx.fillStyle = '#fff';
-        const r = 2 + (0.4 - p) * 18;
-        ctx.fillRect((cx - r) | 0, (cy - r) | 0, (r * 2) | 0, (r * 2) | 0);
+    // Move animation: per-type / per-move VFX delegated to PR_MOVE_FX.
+    // Reduced motion skips the particle render entirely, but the
+    // shake / flash timers above still fire for feedback.
+    if (this.activeAnim && window.PR_MOVE_FX && window.PR_MOVE_FX.drawFor) {
+      const reduced = window.PR_SETTINGS && window.PR_SETTINGS.reducedMotion;
+      if (!reduced) {
+        const a = this.activeAnim;
+        // Sprite bounding boxes match the layout in drawFoeBox / drawMeBox:
+        // foe sprite at (140, 22), 64×64; player sprite at (24, 78), 64×64.
+        const tx = a.target === 'foe' ? 140 : 24;
+        const ty = a.target === 'foe' ? 22  : 78;
+        const tier = (window.PR_SETTINGS && window.PR_SETTINGS.graphics) || 'ds_diamond';
+        // Critical hit pulse: gives the target sprite a brief
+        // bright flash + 1px scale-up before the effect lands.
+        // DS only — basic tiers get plain effects.
+        if (this.critPulse > 0 && this.critPulseTarget === a.target && tier === 'ds_diamond') {
+          const k = Math.min(1, this.critPulse / 0.25);
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = 'rgba(255,232,168,' + (0.55 * k).toFixed(2) + ')';
+          ctx.fillRect(tx - 4, ty - 4, 72, 72);
+          ctx.restore();
+        }
+        window.PR_MOVE_FX.drawFor(ctx, a, tier, tx, ty, 64, 64);
       }
     }
+    if (this.critPulse > 0) this.critPulse = Math.max(0, this.critPulse - 1 / 60);
 
     this.drawFoeBox(ctx);
     this.drawMeBox(ctx);
