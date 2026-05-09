@@ -16,10 +16,18 @@ require('../js/maps.js');
 require('../js/items.js');
 require('../js/story_encounters.js');
 
-const { ENCOUNTERS } = window.PR_STORY_ENCOUNTERS;
-const { MAPS } = window.PR_MAPS;
+const { ENCOUNTERS, STORY_CHARACTERS } = window.PR_STORY_ENCOUNTERS;
+const { MAPS, TILE_PROPS, tileAt } = window.PR_MAPS;
 const CREATURES = window.PR_DATA.CREATURES;
 const ITEMS = window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+
+function isWalkable(map, x, y) {
+  if (y < 0 || y >= map.tiles.length) return false;
+  const row = map.tiles[y];
+  if (x < 0 || x >= row.length) return false;
+  const props = TILE_PROPS[tileAt(map, x, y)];
+  return !!props && (props.walk === true || props.walk === 'south');
+}
 
 const ROOT = path.resolve(__dirname, '..');
 const STYLES = [
@@ -110,6 +118,53 @@ for (const e of ENCOUNTERS) {
   }
 }
 
+// Story home characters: home tile walkable, sprite frames present in
+// every atlas style, every phase has at least one `first` source, phases
+// are in sensible order (no duplicate ids).
+const charSeen = new Set();
+for (const c of STORY_CHARACTERS || []) {
+  if (!c.id) { fail('story character missing id'); continue; }
+  if (charSeen.has(c.id)) fail(`duplicate story character id: ${c.id}`);
+  charSeen.add(c.id);
+  if (!c.name) fail(`${c.id}: name missing`);
+  if (!c.sprite) fail(`${c.id}: sprite missing`);
+  if (!c.home || typeof c.home.map !== 'string') {
+    fail(`${c.id}: home.map missing`); continue;
+  }
+  const map = MAPS[c.home.map];
+  if (!map) { fail(`${c.id}: home.map ${c.home.map} not found`); continue; }
+  if (!isWalkable(map, c.home.x | 0, c.home.y | 0)) {
+    const code = map.tiles[c.home.y] ? map.tiles[c.home.y][c.home.x] : '?';
+    fail(`${c.id}: home tile ${c.home.x},${c.home.y} on ${c.home.map} is not walkable (tile=${JSON.stringify(code)})`);
+  }
+  // Sprite frames in every atlas style.
+  if (c.sprite) {
+    const keys = ['down','up','left','right'].flatMap((d) => [0,1].map((f) => `${c.sprite}_${d}_${f}`));
+    for (const s of styles) {
+      for (const k of keys) {
+        if (!s.frames[k]) fail(`${c.id}: sprite ${c.sprite} missing frame ${k} in ${s.id}`);
+      }
+    }
+  }
+  // Each phase must have at least one source of "first" lines (either
+  // `first` array or `firstFn` function). idle entries should be arrays
+  // of arrays (the rotation buckets) — sanity-check that.
+  if (!Array.isArray(c.phases) || !c.phases.length) {
+    fail(`${c.id}: no phases defined`); continue;
+  }
+  for (let i = 0; i < c.phases.length; i++) {
+    const p = c.phases[i];
+    const hasFirst = (Array.isArray(p.first) && p.first.length) || typeof p.firstFn === 'function';
+    if (!hasFirst) fail(`${c.id} phase ${i}: needs `+'`first` array or `firstFn` function');
+    if (p.idle && !Array.isArray(p.idle)) fail(`${c.id} phase ${i}: idle must be an array`);
+    if (p.idle) {
+      for (let j = 0; j < p.idle.length; j++) {
+        if (!Array.isArray(p.idle[j])) fail(`${c.id} phase ${i} idle[${j}]: must be a string[]`);
+      }
+    }
+  }
+}
+
 if (errors.length) {
   for (const m of errors) console.error(m);
   console.error(`\nFAIL: ${errors.length} story encounter issues`);
@@ -117,3 +172,4 @@ if (errors.length) {
 }
 
 console.log(`validated ${ENCOUNTERS.length} encounters across ${Object.keys(chains).length} chains`);
+console.log(`validated ${(STORY_CHARACTERS || []).length} home characters`);

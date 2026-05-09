@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.42.0';
-  const BUILD = '2026.05.09-114';
+  const VERSION = 'v0.43.0';
+  const BUILD = '2026.05.09-115';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -821,6 +821,15 @@
       openDialog(greet, () => {
         if (window.PR_SHOP) window.PR_SHOP.open(state, npc);
       });
+      return;
+    }
+    // Story home characters: state-aware dialog from PR_STORY. Routed
+    // here BEFORE the trainer / shop / healer branches so a story-id'd
+    // NPC's dialog tree always wins, regardless of whether the static
+    // entry happened to set extra flags.
+    if (npc.storyId && window.PR_STORY && window.PR_STORY.npcDialog) {
+      const lines = window.PR_STORY.npcDialog(state, npc.storyId);
+      openDialog(lines);
       return;
     }
     if (npc.trainer) {

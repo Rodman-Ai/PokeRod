@@ -654,5 +654,1244 @@
     .concat(nim)
     .concat(oneOffs);
 
-  window.PR_STORY_ENCOUNTERS = { ENCOUNTERS };
+  // ------------------------------------------------------------------
+  // STORY_CHARACTERS — home locations + phased dialog trees.
+  //
+  // Each character lives at a fixed (map, x, y) tile when not actively
+  // running a cutscene. PR_STORY installs them as regular NPCs at world
+  // boot. Their `dialog` is state-aware: PR_STORY.npcDialog picks a phase
+  // by chain progress, then a script by visit count (first / second /
+  // third), with `idle` rotation lines for visits 4+. Visit count resets
+  // when the chain advances so post-cutscene dialog always opens fresh.
+  //
+  // Schema:
+  //   id, name, sprite, chain (or null), home:{ map, x, y, dir, replaceExisting? }
+  //   phases: [
+  //     { upTo: <chainStep cap (exclusive)>,
+  //       first:    [string, string, ...]   // first interaction within this phase
+  //       second:   [string, string, ...]   // 2nd interaction
+  //       third:    [string, string, ...]   // 3rd interaction
+  //       idle:     [[string, ...], ...]    // rotation for visits 4+
+  //       firstFn:  (state) -> string[]     // optional, overrides `first` if returned
+  //     },
+  //     ...
+  //   ]
+  //
+  // Lines render through the dialog box; PR_STORY.npcDialog auto-prefixes
+  // them with "<NAME>: " unless the line already includes a colon.
+  // Lines should fit ≤30 chars per row when wrapped (PR_UI.wrap handles it).
+  // ------------------------------------------------------------------
+
+  function fmtMoney(n) { return '$' + (n | 0); }
+  function speciesName(sp) {
+    const C = window.PR_DATA && window.PR_DATA.CREATURES;
+    return (C && C[sp] && C[sp].name) || sp || 'one';
+  }
+  function lastCaught(state) {
+    if (!state.dex || !state.dex.caught) return null;
+    const arr = Array.from(state.dex.caught);
+    return arr.length ? arr[arr.length - 1] : null;
+  }
+  function partyHasType(state, type) {
+    const C = window.PR_DATA && window.PR_DATA.CREATURES;
+    if (!C) return false;
+    for (const p of state.party || []) {
+      const sp = p && C[p.species];
+      if (sp && sp.types && sp.types.includes(type)) return true;
+    }
+    return false;
+  }
+  function dexHasType(state, type) {
+    const C = window.PR_DATA && window.PR_DATA.CREATURES;
+    if (!C || !state.dex || !state.dex.caught) return false;
+    for (const sp of state.dex.caught) {
+      const c = C[sp];
+      if (c && c.types && c.types.includes(type)) return true;
+    }
+    return false;
+  }
+
+  const STORY_CHARACTERS = [
+    // ----------------------------------------------------------------
+    // BLAINE — the rival. Lives in his bedroom in the rival_house.
+    // Replaces the existing static BLAINE NPC at (8, 5).
+    // 4 phases keyed on chains.rival.
+    // ----------------------------------------------------------------
+    {
+      id:'blaine', name:'BLAINE', sprite:'npc_blaine', chain:'rival',
+      home:{ map:'rival_house', x:3, y:4, dir:'down', replaceExisting:true },
+      phases: [
+        { upTo: 2, // before the route1 first battle
+          first:[
+            'Hmph. You hover at the door like a stray.',
+            'Don\'t lose to anything embarrassing on Route 1.',
+            'I\'ll be there. I\'ll be watching.'
+          ],
+          second:[
+            'Still here?',
+            'Either go train or close the door behind you.'
+          ],
+          third:[
+            'Fine. Marvel at the bookshelf.',
+            'There\'s nothing on it you can read.'
+          ],
+          idle:[
+            ['...'],
+            ['Go away.'],
+            ['Are you still here.', 'Why are you still here.']
+          ]
+        },
+        { upTo: 5, // post-route1, mid-arc battles still ahead
+          first:[
+            'You won one. Bigger trees ahead.',
+            'I\'m not going easy at PEBBLEWOOD.',
+            'See you in the leaves.'
+          ],
+          second:[
+            'My team beats yours on a rainy day.',
+            'Hopefully PEBBLEWOOD has weather.'
+          ],
+          third:[
+            'GRAMPS keeps asking about you.',
+            'I keep changing the subject.'
+          ],
+          idle:[
+            ['Tch.'],
+            ['Don\'t touch the trophies.'],
+            ['I\'ll see you on the road.']
+          ]
+        },
+        { upTo: 7, // late-game; took multiple beatings
+          first:[
+            'I\'ve been training all night.',
+            'Don\'t take that as a compliment to you.',
+            'It is.'
+          ],
+          second:[
+            'Five badges out of seven. Tch.',
+            'I would have stopped at three.'
+          ],
+          third:[
+            'Did you actually use the SUPER POTION I gave you?',
+            'Don\'t answer.'
+          ],
+          idle:[
+            ['SEAROUTE smells weird.', 'Doesn\'t it.'],
+            ['I read your dex page.','Yes, I know NICO.'],
+            ['Get out, I\'m thinking.']
+          ]
+        },
+        { upTo: Infinity, // post-finale (chains.rival === 8): retired-rival warmth
+          first:[
+            'You took the league.',
+            'I\'m... happy for you. Don\'t tell anyone I said that.',
+            'Champion.'
+          ],
+          second:[
+            'I keep finding excuses to come back here.',
+            'It\'s a good house.'
+          ],
+          third:[
+            'GRAMPS asked if you\'d teach the new class.',
+            'I told him you would. Don\'t embarrass me.'
+          ],
+          idle:[
+            ['Quiet, isn\'t it.'],
+            ['Maybe I\'ll travel.','Maybe.'],
+            ['Don\'t be a stranger.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // PEARL — apprentice. Lives in PROF. ROD's lab at a study desk.
+    // 4 phases keyed on chains.apprentice. firstFn quotes current dex.
+    // ----------------------------------------------------------------
+    {
+      id:'pearl', name:'PEARL', sprite:'npc_pearl', chain:'apprentice',
+      home:{ map:'lab', x:4, y:5, dir:'down' },
+      phases: [
+        { upTo: 1,
+          firstFn:(state) => [
+            'Welcome to the lab! I\'m PEARL.',
+            'I started a week before you, so I\'m basically your senior.',
+            'Don\'t look at me like that.'
+          ],
+          second:[
+            'PROF. ROD says we should team up sometimes.',
+            'I\'m not sure he means it as advice.'
+          ],
+          third:[
+            'I picked the third starter, by the way.',
+            'It naps a lot. I love it.'
+          ],
+          idle:[
+            ['I\'m organising the dex shelf.'],
+            ['Don\'t move the books.', 'They\'re in catch-order.'],
+            ['You can borrow a notebook if you want.']
+          ]
+        },
+        { upTo: 3,
+          firstFn:(state) => {
+            const n = (state.dex && state.dex.caught && state.dex.caught.size) || 0;
+            return [
+              'Back already!',
+              'Your dex is at ' + n + '. Mine\'s at ' + Math.max(0, n - 1) + '.',
+              'Quietly competitive. That\'s our brand.'
+            ];
+          },
+          second:[
+            'The lab smells different when I\'m alone.',
+            'I think it\'s the books getting older.'
+          ],
+          third:[
+            'I made tea. It\'s probably cold by now.',
+            'Take some.'
+          ],
+          idle:[
+            ['Catch a budling for me.', 'Please.'],
+            ['You\'re moving so fast.','I\'m glad.'],
+            ['PROF. ROD asked about you again.','He always does.']
+          ]
+        },
+        { upTo: 6,
+          firstFn:(state) => {
+            const n = (state.dex && state.dex.caught && state.dex.caught.size) || 0;
+            return [
+              'Look at you. Dex of ' + n + '.',
+              'I caught up — barely. We\'re neck and neck.',
+              'Do me a favour: don\'t pull ahead too fast.'
+            ];
+          },
+          second:[
+            'I\'m studying type matchups again.',
+            'I should have done this at week one.'
+          ],
+          third:[
+            'I keep my notes in this drawer.',
+            'Don\'t read them.'
+          ],
+          idle:[
+            ['One day we\'ll both be PROF.','Imagine.'],
+            ['I dreamed about a Frostbloom.','It was raining inside.'],
+            ['Tea\'s on the heater.', 'Help yourself.']
+          ]
+        },
+        { upTo: Infinity,
+          first:[
+            'CHAMPION! In my lab!',
+            'I haven\'t cleaned. I\'m sorry.',
+            'Forget that — tell me everything.'
+          ],
+          second:[
+            'I want to write a book.',
+            'Working title: "I knew them when".'
+          ],
+          third:[
+            'Take this. From my dex shelf.',
+            'A pressed flower from PEBBLEWOOD.',
+            'Keep it.'
+          ],
+          idle:[
+            ['Stay as long as you want.'],
+            ['I\'m still cataloguing. Forever, probably.'],
+            ['Bring more stories next time.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // NICO — journalist. At a press desk inside brindale_school.
+    // 4 phases by chains.journalist. firstFn names your last catch.
+    // ----------------------------------------------------------------
+    {
+      id:'nico', name:'NICO', sprite:'npc_nico', chain:'journalist',
+      home:{ map:'brindale_school', x:5, y:5, dir:'down' },
+      phases: [
+        { upTo: 1,
+          first:[
+            'Roving correspondent. Always running out of paper.',
+            'I started a column on new dex-keepers.',
+            'You\'re my section A.'
+          ],
+          second:[
+            'My editor wants quotes. I have ellipses.',
+            'Help me out.'
+          ],
+          third:[
+            'My pencil is dead.',
+            'Why are pencils never alive when I need them.'
+          ],
+          idle:[
+            ['Tap, tap.'],
+            ['I\'m working.'],
+            ['Press relations. Famously easy.']
+          ]
+        },
+        { upTo: 3,
+          firstFn:(state) => {
+            const last = lastCaught(state);
+            const name = last ? speciesName(last) : 'one';
+            return [
+              'Back from the field, eh?',
+              'A ' + name + ', I see in my notes.',
+              'Mind if I write you up?'
+            ];
+          },
+          second:[
+            'Ten species in a week.',
+            'This is going on the front page.'
+          ],
+          third:[
+            'My editor wants the rare ones.',
+            'Bring me a wraithlet, hero.'
+          ],
+          idle:[
+            ['Tap.', 'Tap. Tap.'],
+            ['I file copy at six.','Always six.'],
+            ['Don\'t touch the typewriter.']
+          ]
+        },
+        { upTo: 5,
+          firstFn:(state) => {
+            const n = (state.dex && state.dex.caught && state.dex.caught.size) || 0;
+            return [
+              'Front page. Page two. Insert ad.',
+              'Your dex is at ' + n + '. Mine\'s at three.',
+              'I\'m a journalist, not a trainer.'
+            ];
+          },
+          second:[
+            'My readers want to know what you eat.',
+            'I tell them ORAN BERRIES. Good?'
+          ],
+          third:[
+            'I sketched your starter for the Sunday edition.',
+            'Don\'t tell PEARL.'
+          ],
+          idle:[
+            ['Filing, filing.'],
+            ['You\'re a slow news day made gold.'],
+            ['Did the rival give you a quote yet?', 'Of course not.']
+          ]
+        },
+        { upTo: Infinity,
+          first:[
+            'CHAMPION column. Writing it now.',
+            'The headline writes itself.',
+            'Stand still — I\'m taking your photo.'
+          ],
+          second:[
+            'I quit the daily column.',
+            'I\'m writing your biography. Two volumes.'
+          ],
+          third:[
+            'Working title: POKEROD CHAMPION.',
+            'Subtitle: "How a Quiet Trainer Saved Us".',
+            'Yes, I know you didn\'t save anyone. It sells better.'
+          ],
+          idle:[
+            ['Tap. Tap. Tap.'],
+            ['I keep your old dex pages.','Sentimental.'],
+            ['Stay for tea?', 'It\'s NICOFFEE.', '...sorry.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // MEEK — perpetual loser. Recovers in Brindale's Pokemon Center.
+    // 4 phases by chains.meek.
+    // ----------------------------------------------------------------
+    {
+      id:'meek', name:'MEEK', sprite:'npc_meek', chain:'meek',
+      home:{ map:'pokecenter', x:2, y:2, dir:'right' },
+      phases: [
+        { upTo: 1,
+          first:[
+            'I — I\'m here a lot.',
+            'NURSE ROSY says I should pace myself.',
+            'I will. Tomorrow.'
+          ],
+          second:[
+            'I have one Pokerod.',
+            'It\'s napping. Don\'t startle it.'
+          ],
+          third:[
+            'Sometimes I sit here and just watch the door.',
+            'Trainers come in confident. Leave humbled.',
+            'Comforting.'
+          ],
+          idle:[
+            ['Hi. Again.'],
+            ['Have you seen ROUTE 1?', 'I\'m headed there.'],
+            ['I\'ll battle you. Eventually.']
+          ]
+        },
+        { upTo: 3,
+          first:[
+            'You beat me twice now.',
+            'I\'m taking notes. Hate notes.',
+            'But notes.'
+          ],
+          second:[
+            'My team is at level eight.',
+            'I think.'
+          ],
+          third:[
+            'NURSE ROSY heals my whole team in twenty seconds.',
+            'I get a battle in two minutes.',
+            'The math is humbling.'
+          ],
+          idle:[
+            ['Tap, tap. (You realise that\'s his sneaker.)'],
+            ['Don\'t take pity.','I prefer rage.'],
+            ['Watch the door for me.','I owe you.']
+          ]
+        },
+        { upTo: 5,
+          first:[
+            'I almost quit.',
+            'I made a list of reasons.',
+            'I tore it up.'
+          ],
+          second:[
+            'Maybe I\'m supposed to lose.',
+            'Maybe the world needs people who lose.'
+          ],
+          third:[
+            'My grandmother lost forty-two times to her sister.',
+            'They were thrilled.',
+            'Generations of losing. We\'re a tradition.'
+          ],
+          idle:[
+            ['I bought new sneakers.','See?'],
+            ['You smell like a route.','I miss routes.'],
+            ['I\'m here. I\'m here.']
+          ]
+        },
+        { upTo: Infinity,
+          first:[
+            'I came to say goodbye.',
+            'I\'m heading to the league.',
+            'Not to compete. To watch.'
+          ],
+          second:[
+            'I\'ll be in the stands.',
+            'I\'ll have a flag.',
+            'You.'
+          ],
+          third:[
+            'NURSE ROSY hugged me.',
+            'I cried.',
+            'I\'m okay.'
+          ],
+          idle:[
+            ['You did good.'],
+            ['I did okay.'],
+            ['That\'s enough.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // OMA — grandparent. At her kitchen in Brindale's townhouse.
+    // 4 phases by chains.oma. firstFn references party top level.
+    // ----------------------------------------------------------------
+    {
+      id:'oma', name:'OMA', sprite:'npc_oma', chain:'oma',
+      home:{ map:'townhouse', x:1, y:2, dir:'right' },
+      phases: [
+        { upTo: 1,
+          first:[
+            'Look who came through the door.',
+            'Sit down. Eat something.',
+            'I made too much, on purpose.'
+          ],
+          second:[
+            'Don\'t mind the OLD MAN by the porch.',
+            'He hates leaving the porch.'
+          ],
+          third:[
+            'When I was your age, my partner was a nibblet.',
+            'He bit my cousin.',
+            'A romance.'
+          ],
+          idle:[
+            ['Eat a berry.'],
+            ['You look tired.', 'And taller.'],
+            ['Tea\'s in the kettle.', 'Always.']
+          ]
+        },
+        { upTo: 3,
+          firstFn:(state) => {
+            let lv = 0; for (const p of state.party || []) if (p.level > lv) lv = p.level | 0;
+            return [
+              'Level ' + lv + '! In my day we walked uphill—',
+              'Both ways. Through tall grass.',
+              'Sit. Eat. I\'m kidding.'
+            ];
+          },
+          second:[
+            'I knit a scarf for the team.',
+            'For all of them. Even the BUG ones.'
+          ],
+          third:[
+            'When you evolve a partner, do you tell them?',
+            'I think you should.',
+            'They\'re proud, even when they don\'t look it.'
+          ],
+          idle:[
+            ['Stay for soup.'],
+            ['Let me see your dex.'],
+            ['Don\'t forget your scarf.']
+          ]
+        },
+        { upTo: 5,
+          first:[
+            'You\'re a different person every time.',
+            'Bigger. Quieter.',
+            'Sit. I\'ve been baking.'
+          ],
+          second:[
+            'I used to be a ranger.',
+            'In the OLD WOODS, before they were Pebblewood.',
+            'I had a partner like yours. He\'s still with me.'
+          ],
+          third:[
+            'I keep a photo book in the drawer.',
+            'You\'re in chapter three now.',
+            'Don\'t look. Until you\'re ready.'
+          ],
+          idle:[
+            ['Eat. Sit. Eat.'],
+            ['The OLD MAN says hello.','He doesn\'t.'],
+            ['Tea?', 'Yes.', 'Always tea.']
+          ]
+        },
+        { upTo: Infinity,
+          first:[
+            'My champion.',
+            'You don\'t need to come visit.',
+            'I\'ll always be here.'
+          ],
+          second:[
+            'Take this recipe book.',
+            'It\'s mostly soups.',
+            'Some of them are good for evolved partners.'
+          ],
+          third:[
+            'I\'m proud of you.',
+            'I\'ve been proud since you walked in.',
+            'Now I get to say it loud.'
+          ],
+          idle:[
+            ['Soup\'s on.'],
+            ['Rest a moment.'],
+            ['You don\'t have to leave yet.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // DR. KEL — economist. At his ledger desk in Crestrock workshop.
+    // 4 phases by chains.economist. Quotes live totalSpent.
+    // ----------------------------------------------------------------
+    {
+      id:'kel', name:'DR. KEL', sprite:'npc_kel', chain:'economist',
+      home:{ map:'crestrock_workshop', x:4, y:5, dir:'down' },
+      phases: [
+        { upTo: 1,
+          first:[
+            'Welcome. Don\'t touch the ledger.',
+            'I track regional currency velocity.',
+            'You\'re a data point now.'
+          ],
+          second:[
+            'A satisfied customer is a recurring customer.',
+            'A frustrated one writes a letter.',
+            'I read all of them.'
+          ],
+          third:[
+            'See this column? Total currency in motion.',
+            'See this column? You.'
+          ],
+          idle:[
+            ['(scribbles)'],
+            ['Quietly please.'],
+            ['Don\'t bump the desk.']
+          ]
+        },
+        { upTo: 2,
+          firstFn:(state) => [
+            'Your spend so far: ' + fmtMoney(state.flags && state.flags.totalSpent || 0) + '.',
+            'Modest. Promising velocity.',
+            'Keep buying potions. Carefully.'
+          ],
+          second:[
+            'A regional MART runs on POTION sales.',
+            'You are personally subsidising NURSE ROSY\'s coffee budget.'
+          ],
+          third:[
+            'If you sell back to me you lose 50%.',
+            'It\'s how stores work.',
+            'Cruel, briefly.'
+          ],
+          idle:[
+            ['(scribbles)'],
+            ['Carry on.'],
+            ['Mind the inkwell.']
+          ]
+        },
+        { upTo: 4,
+          firstFn:(state) => [
+            'Your running total: ' + fmtMoney(state.flags && state.flags.totalSpent || 0) + '.',
+            'You\'ve crossed the velocity threshold.',
+            'Apply the discount card I gave you. Go.'
+          ],
+          second:[
+            'You still buy POTIONS in singles.',
+            'Buy in tens. The math improves.'
+          ],
+          third:[
+            'I\'m writing a footnote about you.',
+            'Footnote 14. Page 86.',
+            'Don\'t ask to read it.'
+          ],
+          idle:[
+            ['Velocity steady.'],
+            ['Velocity rising.'],
+            ['Steady.']
+          ]
+        },
+        { upTo: Infinity,
+          firstFn:(state) => [
+            'Champion. Total spend: ' + fmtMoney(state.flags && state.flags.totalSpent || 0) + '.',
+            'You moved an entire regional GDP through MARTS.',
+            'Take this voucher. Don\'t make me invoice it.'
+          ],
+          second:[
+            'I\'m being interviewed about your spending.',
+            'It\'ll be in NICO\'s next column.',
+            'I asked for editorial control. Denied.'
+          ],
+          third:[
+            'Retiring soon.',
+            'I\'ll watch the league with my ledger.',
+            'I\'ll close it sometimes. To watch.'
+          ],
+          idle:[
+            ['(scribbles, smiles slightly)'],
+            ['Velocity: legend.'],
+            ['Carry on.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // TANK — recovery veteran. Bench in Frostmere's Pokemon Center.
+    // 4 phases by chains.tank. firstFn references whiteout count.
+    // ----------------------------------------------------------------
+    {
+      id:'tank', name:'TANK', sprite:'npc_tank', chain:'tank',
+      home:{ map:'frostmere_center', x:2, y:5, dir:'right' },
+      phases: [
+        { upTo: 1,
+          first:[
+            'Hey, kid.',
+            'Sit if you need to.',
+            'No questions.'
+          ],
+          second:[
+            'I sit here on long days.',
+            'NURSE PIPPA brings me cocoa.'
+          ],
+          third:[
+            'My team is older than yours.',
+            'They sleep through ice storms.',
+            'Lucky them.'
+          ],
+          idle:[
+            ['...'],
+            ['Cold out there.'],
+            ['Sit.']
+          ]
+        },
+        { upTo: 2,
+          firstFn:(state) => [
+            'Took a beating, did you?',
+            'Whiteouts: ' + ((state.flags && state.flags.whiteouts) || 0) + '.',
+            'Good. Proves you tried.'
+          ],
+          second:[
+            'There\'s a bench in every CENTER.',
+            'You\'ll sit on most of them. That\'s the job.'
+          ],
+          third:[
+            'Don\'t cry in the lobby.',
+            'Wait till the BACK ROOM.',
+            'I\'ve been in there twice this week.'
+          ],
+          idle:[
+            ['Sit.'],
+            ['Cocoa\'s on.'],
+            ['Cold out there.']
+          ]
+        },
+        { upTo: 3,
+          first:[
+            'Three down. Tougher than the second.',
+            'Your face has changed.',
+            'Anyway.'
+          ],
+          second:[
+            'You should hear what champions say after a wipe.',
+            'They say nothing.',
+            'They eat.'
+          ],
+          third:[
+            'I lost to a cinderpup once.',
+            'Don\'t laugh.',
+            'I\'m kidding. Laugh.'
+          ],
+          idle:[
+            ['Eat.'],
+            ['Sit. Eat.'],
+            ['Cocoa\'s warm.']
+          ]
+        },
+        { upTo: Infinity,
+          firstFn:(state) => [
+            'Six wipes. You haven\'t quit.',
+            'I\'ve been counting since the second one.',
+            'That\'s respect, kid.'
+          ],
+          second:[
+            'I have a photo from my last loss.',
+            'I\'ll show you sometime.',
+            'Today\'s not sometime.'
+          ],
+          third:[
+            'When you win the league, I\'ll be in the back row.',
+            'I always sit in the back row.',
+            'Better view of the door.'
+          ],
+          idle:[
+            ['Sit.'],
+            ['Eat.'],
+            ['I\'m proud.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // NIM — cave researcher. On the sand path inside glimcavern.
+    // 4 phases by chains.nim. References next unvisited cave.
+    // ----------------------------------------------------------------
+    {
+      id:'nim', name:'NIM', sprite:'npc_nim', chain:'nim',
+      home:{ map:'glimcavern', x:15, y:5, dir:'down' },
+      phases: [
+        { upTo: 1,
+          first:[
+            'Don\'t startle the lichen.',
+            'It thinks.',
+            'Slowly. But it thinks.'
+          ],
+          second:[
+            'I sleep in the dark for science.',
+            'I miss soup.'
+          ],
+          third:[
+            'The CAVERN BALLS catch better in the dark.',
+            'I made the discovery on accident.',
+            'Most discoveries are accidents.'
+          ],
+          idle:[
+            ['Hush.','Lichen.'],
+            ['(scribbles by lamp)'],
+            ['Walk softly.']
+          ]
+        },
+        { upTo: 2,
+          first:[
+            'Glimcavern\'s deeper floors call to you.',
+            'I\'ve been mapping them in red ink.',
+            'Bring a friend. Or three.'
+          ],
+          second:[
+            'Did you know there\'s a sub-floor?',
+            'I just told you. I\'m saying again. It\'s exciting.'
+          ],
+          third:[
+            'I lost a sandwich here once.',
+            'I\'m not joking.',
+            'I think the lichen took it.'
+          ],
+          idle:[
+            ['Quiet.'],
+            ['Tap, tap.','(pencil on slate)'],
+            ['Watch your lamp.']
+          ]
+        },
+        { upTo: 3,
+          first:[
+            'You\'ve seen B1.',
+            'Now find the FROSTPEAK ICE CAVE.',
+            'Bring warmer socks.'
+          ],
+          second:[
+            'Ice caves are caves with grudges.',
+            'Don\'t rush them.'
+          ],
+          third:[
+            'I have ice samples in my pack.',
+            'They\'re currently puddles.',
+            'Science is hard.'
+          ],
+          idle:[
+            ['Hush.'],
+            ['Lamp\'s low.'],
+            ['(scribbles)']
+          ]
+        },
+        { upTo: Infinity,
+          first:[
+            'Champion of caves and surface.',
+            'Both kinds of darkness.',
+            'I\'m honoured to share a cave with you.'
+          ],
+          second:[
+            'I named a sub-floor after you.',
+            'It\'s small. So are you. So am I.',
+            'It fits.'
+          ],
+          third:[
+            'The lichen knows your name now.',
+            'Don\'t worry. It forgets fast.'
+          ],
+          idle:[
+            ['Walk softly.'],
+            ['(content scribbling)'],
+            ['Welcome back.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // MARLA — explorer. On the moss path through Pebblewood.
+    // 4 phases by hidden-item count.
+    // ----------------------------------------------------------------
+    {
+      id:'marla', name:'MARLA', sprite:'npc_marla',
+      home:{ map:'pebblewood', x:7, y:4, dir:'down' },
+      phases: [
+        { upTo: 0,  // gated by encountersDone via firstFn
+          firstFn:(state) => {
+            const n = (state.flags && state.flags.totalHidden) || 0;
+            if (n === 0) return [
+              'Eyes up.',
+              'Most people walk past hidden things.',
+              'Be most people, or don\'t.'
+            ];
+            return [
+              'You\'ve found ' + n + ' hidden items so far.',
+              'I\'m keeping count. So is the forest.',
+              'Look harder.'
+            ];
+          },
+          second:[
+            'I dig for sport.',
+            'Pebblewood gives, if you ask.'
+          ],
+          third:[
+            'My boots are older than my MAP.',
+            'Both have been around the region twice.'
+          ],
+          idle:[
+            ['Eyes up.'],
+            ['Quiet steps.'],
+            ['Look at the roots.']
+          ]
+        },
+        { upTo: 5,  // hidden item count >= 5 by condition; we'll gate by phase fn
+          condition:(state) => (state.flags && state.flags.totalHidden) >= 5,
+          firstFn:(state) => [
+            'Five hidden, eh?',
+            'You\'ve learned to read the forest.',
+            'Now read it harder.'
+          ],
+          second:[
+            'I have a map you can\'t buy.',
+            'Bring me ten more and I\'ll show you a corner of it.'
+          ],
+          third:[
+            'Most explorers stop at three.',
+            'Most are wrong about most things.'
+          ],
+          idle:[
+            ['Eyes.'],
+            ['Roots.'],
+            ['Quiet.']
+          ]
+        },
+        { upTo: 15,
+          condition:(state) => (state.flags && state.flags.totalHidden) >= 15,
+          firstFn:(state) => [
+            'Fifteen.',
+            'You\'ve found things even I missed.',
+            'I\'ll learn from you for once.'
+          ],
+          second:[
+            'My MAP is yours when you\'re done.',
+            'Fair trade.'
+          ],
+          third:[
+            'I dreamed of a sandbar last night.',
+            'Bring me anything weird from coastal mud.'
+          ],
+          idle:[
+            ['Carry on.'],
+            ['Look behind the rock.','Always behind the rock.'],
+            ['(scribbles in margin)']
+          ]
+        },
+        { upTo: Infinity,
+          condition:(state) => (state.flags && state.flags.totalHidden) >= 30,
+          first:[
+            'Thirty hidden. The forest is yours.',
+            'I\'ll find new ones.',
+            'You\'ll find them too. We\'ll race.'
+          ],
+          second:[
+            'I never thought I\'d apprentice an explorer.',
+            'Don\'t tell anyone.'
+          ],
+          third:[
+            'You\'re officially in my MAP NOTES.',
+            'Page 14. Margin sketch.'
+          ],
+          idle:[
+            ['Race you.'],
+            ['(grins)'],
+            ['Ten more by sundown.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // FAYE — surfer. On the beach boardwalk.
+    // 4 phases — by water catch + surf use.
+    // ----------------------------------------------------------------
+    {
+      id:'faye', name:'FAYE', sprite:'npc_faye',
+      home:{ map:'beach', x:8, y:11, dir:'down' },
+      phases: [
+        { upTo: 0,
+          condition:(state) => !dexHasType(state, 'WATER'),
+          first:[
+            'Hi, traveler.',
+            'The tide\'s shy today.',
+            'It\'ll come around.'
+          ],
+          second:[
+            'I\'ve surfed every shore from here to RODPORT.',
+            'They all taste like salt.'
+          ],
+          third:[
+            'You don\'t have a WATER partner yet.',
+            'You\'ll feel it when you do.'
+          ],
+          idle:[
+            ['(watches the tide)'],
+            ['Salt.', 'Always salt.'],
+            ['Wait for it.']
+          ]
+        },
+        { upTo: 0,
+          condition:(state) => dexHasType(state, 'WATER') && !state.player.surfing && !partyHasType(state, 'WATER'),
+          first:[
+            'You\'ve seen one in the wild.',
+            'Catching one is a feeling. Riding one is a religion.',
+            'Take your time.'
+          ],
+          second:[
+            'Tides are friends if you ask.',
+            'They\'ve never told me off.'
+          ],
+          third:[
+            'I have a board in my locker.',
+            'You\'ll need a partner to use it.'
+          ],
+          idle:[
+            ['(watches the tide)'],
+            ['Salt and patience.'],
+            ['Soon.']
+          ]
+        },
+        { upTo: 0,
+          condition:(state) => partyHasType(state, 'WATER') && !((state.flags && state.flags.surfedOnce)),
+          first:[
+            'You have a WATER partner!',
+            'Press B at the water\'s edge.',
+            'They\'ll know what to do.'
+          ],
+          second:[
+            'I learned by falling off twice.',
+            'Don\'t skip the falling part.'
+          ],
+          third:[
+            'Sandbar opens up after low tide.',
+            'There\'s a lighthouse out there. Visit.'
+          ],
+          idle:[
+            ['Press B.'],
+            ['Trust the partner.'],
+            ['(grins)']
+          ]
+        },
+        { upTo: Infinity,
+          first:[
+            'Surfer.',
+            'You feel different now, don\'t you?',
+            'Welcome.'
+          ],
+          second:[
+            'I was a champion once.',
+            'On a different sea.',
+            'Don\'t ask which.'
+          ],
+          third:[
+            'Take the long way home.',
+            'Always.'
+          ],
+          idle:[
+            ['(watches the tide, smiling)'],
+            ['Salt and victories.'],
+            ['Stay a while.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // WRYN — dragon sage. On a high rocky path of the mountain.
+    // 4 phases — by chains.rival progress + dragon catch.
+    // ----------------------------------------------------------------
+    {
+      id:'wryn', name:'WRYN', sprite:'npc_wryn',
+      home:{ map:'mountain', x:15, y:7, dir:'down' },
+      phases: [
+        { upTo: 0,
+          condition:(state) => !dexHasType(state, 'DRAGON'),
+          first:[
+            'The wind speaks.',
+            'It says you walked far for this view.',
+            'Welcome.'
+          ],
+          second:[
+            'Dragons sleep in high quiet places.',
+            'You haven\'t found one yet.'
+          ],
+          third:[
+            'There is a draekit who watches the climbers.',
+            'It is shyer than the wind.'
+          ],
+          idle:[
+            ['(stares at the horizon)'],
+            ['Wind.'],
+            ['Patience.']
+          ]
+        },
+        { upTo: 0,
+          condition:(state) => dexHasType(state, 'DRAGON') && !((state.flags && state.flags.wrynBlessed)),
+          first:[
+            'You have met a dragon.',
+            'I felt it from here.',
+            'Bow when you next see one.'
+          ],
+          second:[
+            'Take this charm.',
+            'It is small. Like the wind near a draekit.',
+            'It will warm in the right hand.'
+          ],
+          third:[
+            'I once climbed this mountain three times.',
+            'I forgot why on the second.',
+            'I remembered on the third.'
+          ],
+          idle:[
+            ['(closes eyes)'],
+            ['Wind. Always wind.'],
+            ['Listen.']
+          ]
+        },
+        { upTo: 0,
+          condition:(state) => state.flags && (state.flags.chains || {}).rival >= 5,
+          first:[
+            'You climbed past your shadow on the summit.',
+            'Few do.',
+            'You may keep coming back, if you wish.'
+          ],
+          second:[
+            'The rival was here before you.',
+            'He stared at the wind. He left angry.',
+            'You stare differently.'
+          ],
+          third:[
+            'A pebble fell from the cliff yesterday.',
+            'It thought of you.',
+            'I am told this is unusual.'
+          ],
+          idle:[
+            ['(smiles slightly)'],
+            ['Wind, wind.'],
+            ['Carry on.']
+          ]
+        },
+        { upTo: Infinity,
+          condition:(state) => state.flags && (state.flags.chains || {}).rival >= 8,
+          first:[
+            'Champion.',
+            'The mountain knows.',
+            'It hummed all yesterday.'
+          ],
+          second:[
+            'You may sleep here.',
+            'The wind asks for nothing.'
+          ],
+          third:[
+            'I will move on someday.',
+            'Not today.'
+          ],
+          idle:[
+            ['(content silence)'],
+            ['Wind.'],
+            ['Welcome.']
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------------
+    // AKIRA — league recruiter. Outdoor in Summitvale.
+    // 4 phases by badge count.
+    // ----------------------------------------------------------------
+    {
+      id:'akira', name:'AKIRA', sprite:'npc_akira',
+      home:{ map:'summitvale', x:22, y:18, dir:'down' },
+      phases: [
+        { upTo: 0,
+          condition:(state) => ((state.player && state.player.badges) || []).length < 4,
+          first:[
+            'AKIRA. League recruiter.',
+            'I watch trainers. I take notes.',
+            'You have my attention.'
+          ],
+          second:[
+            'Get me four badges.',
+            'Then we\'ll have a real conversation.'
+          ],
+          third:[
+            'My ledger keeps your record.',
+            'It\'s blank-ish.',
+            'Fix that.'
+          ],
+          idle:[
+            ['(taps ledger)'],
+            ['Train.'],
+            ['Walk well.']
+          ]
+        },
+        { upTo: 0,
+          condition:(state) => {
+            const b = ((state.player && state.player.badges) || []).length;
+            return b >= 4 && b < 6;
+          },
+          firstFn:(state) => {
+            const b = ((state.player && state.player.badges) || []).length;
+            return [
+              b + ' badges. Sturdy.',
+              'You\'re in my notes now.',
+              'Page 47, line 9.'
+            ];
+          },
+          second:[
+            'Six badges. That\'s when I start to ask names.',
+            'I already know yours.'
+          ],
+          third:[
+            'You\'ll meet other recruiters.',
+            'They\'re not as nice.',
+            'Don\'t sign anything yet.'
+          ],
+          idle:[
+            ['(taps ledger)'],
+            ['Carry on.'],
+            ['Train hard.']
+          ]
+        },
+        { upTo: 0,
+          condition:(state) => {
+            const b = ((state.player && state.player.badges) || []).length;
+            return b >= 6 && b < 8;
+          },
+          firstFn:(state) => {
+            const b = ((state.player && state.player.badges) || []).length;
+            return [
+              b + ' badges. Real territory now.',
+              'I have a contract drafted.',
+              'Sign nothing else.'
+            ];
+          },
+          second:[
+            'The league sends a town crier when a champion arrives.',
+            'I\'ll be there. Ahead of him.'
+          ],
+          third:[
+            'Last year a trainer quit at seven badges.',
+            'I still can\'t look at the eighth gym without flinching.'
+          ],
+          idle:[
+            ['(taps ledger)'],
+            ['Almost.'],
+            ['Train.']
+          ]
+        },
+        { upTo: Infinity,
+          condition:(state) => ((state.player && state.player.badges) || []).length >= 8,
+          first:[
+            'Eight.',
+            'Champion-track.',
+            'Get to the gates. I\'ll go ahead.'
+          ],
+          second:[
+            'I\'ve already informed the LEAGUE.',
+            'They\'re excited. Quietly.',
+            'Excitement at the LEAGUE is always quiet.'
+          ],
+          third:[
+            'Don\'t lose. We have a flag with your name on it.',
+            'It\'s in a closet right now.',
+            'Don\'t make us put it back.'
+          ],
+          idle:[
+            ['(taps ledger)'],
+            ['Move.'],
+            ['I\'ll see you there.']
+          ]
+        }
+      ]
+    }
+  ];
+
+  window.PR_STORY_ENCOUNTERS = { ENCOUNTERS, STORY_CHARACTERS };
 })();
