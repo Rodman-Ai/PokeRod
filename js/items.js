@@ -143,6 +143,13 @@
       kind:'key', icon:'flute', color:'#d8b070', accent:'#fff0c0',
       key:true, price:0
     },
+    old_rod: {
+      id:'old_rod', name:'OLD ROD',
+      desc:'A simple rod for fishing in any water.',
+      detail:'Weathered cane rod with a red bobber. Face water — A casts a line, B surfs (with a WATER ally).',
+      kind:'key', icon:'rod', color:'#c08040', accent:'#e84848',
+      key:true, price:0
+    },
     // ---- Trainer equipment (worn by the player; one per slot) ----
     lucky_charm: {
       id:'lucky_charm', name:'LUCKY CHARM',
@@ -245,6 +252,16 @@
     if (icon === 'flute') {
       r(2,8,12,3,dark); r(3,7,3,1,dark); r(4,8,10,1,accent); r(3,9,11,1,main);
       r(6,7,1,1,dark); r(8,7,1,1,dark); r(10,7,1,1,dark); r(13,6,1,2,dark);
+      return true;
+    }
+    if (icon === 'rod') {
+      // Diagonal rod from top-right grip to bottom-left tip, with a line + bobber.
+      r(11,1,3,2,dark); r(12,2,2,1,accent);                 // grip
+      r(10,3,2,2,main); r(8,5,2,2,main);                    // shaft (upper)
+      r(6,7,2,2,main); r(4,9,2,2,main); r(3,11,2,2,main);   // shaft (lower)
+      r(2,13,1,1,dark);                                     // rod tip
+      r(3,13,1,2,dark); r(4,15,1,1,accent);                 // line
+      r(5,13,2,2,accent); r(5,12,2,1,dark); r(6,15,1,1,dark); // bobber
       return true;
     }
     if (icon === 'glasses') {
@@ -361,7 +378,7 @@
       out.push({ id, count: state.player.bag[id], def: it });
     }
     // Stable order roughly by category.
-    const order = ['rodball','greatball','quickball','cavernball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','pokeflute'];
+    const order = ['rodball','greatball','quickball','cavernball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','old_rod','pokeflute'];
     out.sort((a,b) => {
       const ai = order.indexOf(a.id), bi = order.indexOf(b.id);
       return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
