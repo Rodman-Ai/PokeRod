@@ -23,6 +23,7 @@
       f.encountersDone = new Set(Array.isArray(f.encountersDone) ? f.encountersDone : []);
     }
     if (!f.chains) f.chains = {};
+    if (!f.npcVisits) f.npcVisits = {};
     if (typeof f.totalSpent !== 'number') f.totalSpent = 0;
     if (typeof f.totalSold  !== 'number') f.totalSold = 0;
     if (typeof f.whiteouts !== 'number') f.whiteouts = 0;
@@ -507,6 +508,12 @@
     state.flags.encountersDone.add(enc.id);
     if (enc.chain) {
       state.flags.chains[enc.chain] = (state.flags.chains[enc.chain] || 0) + 1;
+      // Reset visit counts for any home character bound to this chain so
+      // their next walk-up dialog opens with the new phase's "first" lines.
+      const list = (window.PR_STORY_ENCOUNTERS && window.PR_STORY_ENCOUNTERS.STORY_CHARACTERS) || [];
+      for (const c of list) {
+        if (c.chain === enc.chain) state.flags.npcVisits[c.id] = 0;
+      }
     }
     state.cutscene = null;
     state.mode = 'overworld';
@@ -516,10 +523,126 @@
     setTimeout(() => drainQueue(state), 100);
   }
 
+  // ---- Home characters: registry lookup + state-aware dialog ------------
+
+  function findCharacter(id) {
+    const list = (window.PR_STORY_ENCOUNTERS && window.PR_STORY_ENCOUNTERS.STORY_CHARACTERS) || [];
+    return list.find(c => c.id === id) || null;
+  }
+
+  // Resolve a phase entry to a flat array of strings. Handles the three
+  // shapes used in the registry:
+  //   - undefined / null      -> null (caller falls back)
+  //   - string[]              -> returned as-is
+  //   - (state) -> string[]   -> called and returned
+  function resolveLines(entry, state) {
+    if (!entry) return null;
+    if (typeof entry === 'function') {
+      try { return entry(state); }
+      catch (err) { console.warn('[story] line fn threw', err); return null; }
+    }
+    if (Array.isArray(entry)) return entry;
+    return null;
+  }
+
+  // Auto-prefix the speaker name unless a line already includes a colon
+  // or the speaker is empty. Cosmetic — keeps dialog consistent with
+  // cutscenes which do the same prefix.
+  function prefixWithName(name, lines) {
+    if (!name || !Array.isArray(lines)) return lines || ['...'];
+    return lines.map((l, i) => {
+      const s = String(l == null ? '' : l);
+      if (i === 0 && s && s.indexOf(':') === -1 && s[0] !== '(' && s[0] !== '.') {
+        return name + ': ' + s;
+      }
+      return s;
+    });
+  }
+
+  // Pick the first phase whose chainStep < phase.upTo (Infinity caps the
+  // last phase) AND any extra `condition(state)` returns true. If multiple
+  // phases share an upTo (used for non-chain-driven characters who key on
+  // dex types or counters), we pick the first whose condition matches.
+  function pickPhase(c, state) {
+    const chainStep = c.chain ? (state.flags.chains[c.chain] || 0) : 0;
+    for (const phase of c.phases || []) {
+      const cap = phase.upTo === undefined ? Infinity : phase.upTo;
+      if (chainStep >= cap && cap !== Infinity) continue;
+      // Phases with cap === 0 are condition-only (no chainStep gating).
+      if (phase.condition) {
+        try { if (!phase.condition(state)) continue; }
+        catch (_) { continue; }
+      }
+      return phase;
+    }
+    // Fallback: last phase if all conditions failed.
+    return (c.phases && c.phases[c.phases.length - 1]) || null;
+  }
+
+  function npcDialog(state, storyId) {
+    const c = findCharacter(storyId);
+    if (!c) return ['...'];
+    ensureFlags(state);
+    const visits = (state.flags.npcVisits[storyId] || 0) + 1;
+    state.flags.npcVisits[storyId] = visits;
+    const phase = pickPhase(c, state);
+    if (!phase) return ['...'];
+    let lines = null;
+    if (visits === 1) {
+      lines = resolveLines(phase.firstFn, state) || resolveLines(phase.first, state);
+    } else if (visits === 2) {
+      lines = resolveLines(phase.second, state) || resolveLines(phase.first, state);
+    } else if (visits === 3) {
+      lines = resolveLines(phase.third, state) || resolveLines(phase.second, state) ||
+              resolveLines(phase.first, state);
+    } else {
+      const rot = phase.idle || phase.rotation || [phase.first];
+      const idx = ((visits - 4) % rot.length + rot.length) % rot.length;
+      lines = resolveLines(rot[idx], state);
+      if (!lines) lines = resolveLines(phase.first, state);
+    }
+    if (!lines || !lines.length) return ['...'];
+    return prefixWithName(c.name, lines);
+  }
+
+  // Install all home characters as resident NPCs in their `home.map`.
+  // Mutates the static MAPS table (idempotent — won't add duplicates if
+  // called twice during hot reload).
+  function installCharacterHomes(MAPS) {
+    if (!MAPS) return;
+    const list = (window.PR_STORY_ENCOUNTERS && window.PR_STORY_ENCOUNTERS.STORY_CHARACTERS) || [];
+    for (const c of list) {
+      if (!c.home || !c.home.map) continue;
+      const m = MAPS[c.home.map];
+      if (!m) continue;
+      if (!m.npcs) m.npcs = [];
+      // Skip if already installed (storyId match).
+      if (m.npcs.some(n => n.storyId === c.id)) continue;
+      // Optionally remove existing static NPC sharing the sprite/name (for
+      // BLAINE in rival_house, who's defined statically there today).
+      if (c.home.replaceExisting) {
+        m.npcs = m.npcs.filter(n => n.name !== c.name && n.sprite !== c.sprite);
+      }
+      m.npcs.push({
+        x: c.home.x, y: c.home.y, dir: c.home.dir || 'down',
+        sprite: c.sprite, name: c.name, storyId: c.id,
+        dialog: ['...']
+      });
+    }
+  }
+
   // Public API
   window.PR_STORY = {
     emit, tryEncounter, isPlaying, startEncounter, tickCutscene,
     renderCutsceneNpc, drainQueue, findEncounter, ensureFlags,
-    badgeCount, caughtCount, partyMaxLevel, partyHasType
+    badgeCount, caughtCount, partyMaxLevel, partyHasType,
+    npcDialog, installCharacterHomes, findCharacter
   };
+
+  // Install home NPCs into the static MAPS table immediately. Script
+  // load order ensures js/maps.js and js/story_encounters.js have
+  // already populated their globals.
+  if (window.PR_MAPS && window.PR_MAPS.MAPS) {
+    installCharacterHomes(window.PR_MAPS.MAPS);
+  }
 })();
