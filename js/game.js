@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.45.0';
-  const BUILD = '2026.05.09-118';
+  const VERSION = 'v0.45.1';
+  const BUILD = '2026.05.09-119';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -158,7 +158,7 @@
     // door tile in the post-redesign rodport (player_house is at
     // x:3,y:6,w:7 with door at (6,9) → walkable spur at (6,11)).
     state.player = { name:'YOU', map:'rodport', x:6, y:11, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1, oranberry:1 },
+                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1 },
                      equipment: { trinket: null },
                      stats: { battlesWon:0, catches:0 } };
     state.party = [];
@@ -264,6 +264,7 @@
     else if (state.mode === 'quests') updateQuests();
     else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.update(state);
     else if (state.mode === 'starter') updateStarter();
+    else if (state.mode === 'fishing') updateFishing(dt);
   }
 
   // While a cutscene is active, the player can't move or interact. The
@@ -377,6 +378,7 @@
       else if (state.mode === 'quests') drawQuests();
       else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.draw(ctx, state, VIEW_W, VIEW_H);
       else if (state.mode === 'starter') drawStarter();
+      else if (state.mode === 'fishing') drawFishing();
       drawFlash();
     });
     renderBottom();
@@ -478,6 +480,7 @@
     openDialog,
     startBattleAgainstTrainer,
     startBattleAgainstWild,
+    startFishing,
     showFlash
   };
 
@@ -2028,6 +2031,9 @@
     if (state.player.equipment.trinket === undefined) state.player.equipment.trinket = null;
     ensurePlayerStats();
     if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
+    // Grandfather the OLD ROD into older saves so fishing is reachable
+    // even for players who started before A=fish/B=surf existed.
+    if (state.player.bag && !state.player.bag.old_rod) state.player.bag.old_rod = 1;
     state.party = data.party || [];
     // Default missing held slot on each party member (pre-feature saves).
     for (const m of state.party) if (m && m.held === undefined) m.held = null;
@@ -2843,6 +2849,172 @@
       }
     }
     drawPartyDetail(state.party[Math.min(v.idx, state.party.length - 1)], v.page || 0, x + 82, y + 20, w - 90, h - 34);
+  }
+
+  // ---------- Fishing minigame ----------
+  // Cast -> wait -> bite (~0.6s window) -> hooked (wild battle) | missed.
+  // The player can press B at any phase to cancel. Triggered by tryInteract
+  // on water tiles when the player has an OLD ROD; surfing lives on B
+  // (World.trySurfToggle) so both interactions are reachable from the
+  // same prompt.
+  const FISH_FALLBACK = [
+    { species:'splashfin', minL:3, maxL:5, weight:5 },
+    { species:'aquapup',   minL:3, maxL:5, weight:3 }
+  ];
+
+  function startFishing() {
+    const map = state.world && state.world.currentMap();
+    const pool = (map && map.fishingEncounters && map.fishingEncounters.length)
+      ? map.fishingEncounters : FISH_FALLBACK;
+    const total = pool.reduce((a, e) => a + (e.weight || 1), 0);
+    let r = Math.random() * total;
+    let pick = pool[0];
+    for (const e of pool) { r -= (e.weight || 1); if (r <= 0) { pick = e; break; } }
+    const lvl = pick.minL + Math.floor(Math.random() * (pick.maxL - pick.minL + 1));
+    state.fishing = {
+      phase: 'cast',
+      t: 0,
+      waitFor: 1.0 + Math.random() * 3.0,
+      biteWindow: 0.6,
+      species: pick.species,
+      level: lvl,
+      done: false
+    };
+    state.mode = 'fishing';
+    if (window.PR_SFX) window.PR_SFX.play('door');
+  }
+
+  function updateFishing(dt) {
+    const f = state.fishing;
+    if (!f) { state.mode = 'overworld'; return; }
+    f.t += dt;
+    const I = window.PR_INPUT;
+    if (I.consumePressed('x')) {
+      window.PR_SFX && window.PR_SFX.play('cancel');
+      state.fishing = null;
+      state.mode = 'overworld';
+      return;
+    }
+    if (f.phase === 'cast') {
+      if (f.t >= 0.5) { f.phase = 'wait'; f.t = 0; }
+      I.consumePressed('z');
+      return;
+    }
+    if (f.phase === 'wait') {
+      if (I.consumePressed('z')) {
+        f.phase = 'missed';
+        f.t = 0;
+        if (window.PR_SFX) window.PR_SFX.play('bump');
+        return;
+      }
+      if (f.t >= f.waitFor) {
+        f.phase = 'bite';
+        f.t = 0;
+        if (window.PR_SFX) window.PR_SFX.play('select');
+      }
+      return;
+    }
+    if (f.phase === 'bite') {
+      if (I.consumePressed('z')) {
+        f.phase = 'hooked';
+        f.t = 0;
+        if (window.PR_SFX) window.PR_SFX.play('confirm');
+        return;
+      }
+      if (f.t >= f.biteWindow) {
+        f.phase = 'missed';
+        f.t = 0;
+        if (window.PR_SFX) window.PR_SFX.play('weak');
+      }
+      return;
+    }
+    if (f.phase === 'hooked') {
+      if (f.t >= 0.5) {
+        const sp = f.species, lv = f.level;
+        state.fishing = null;
+        if (!state.party.length || !state.party.some(p => p.hp > 0)) {
+          state.mode = 'overworld';
+          openDialog(['You hooked a creature, but no one is awake to battle!']);
+          return;
+        }
+        startBattleAgainstWild(sp, lv);
+      }
+      return;
+    }
+    if (f.phase === 'missed') {
+      if (f.t >= 1.0) {
+        state.fishing = null;
+        state.mode = 'overworld';
+      }
+      return;
+    }
+  }
+
+  function drawFishing() {
+    ctx.fillStyle = 'rgba(8, 12, 28, 0.55)';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    for (let y = 90; y < 130; y += 4) {
+      const a = 0.10 + 0.04 * Math.sin((performance.now() / 350) + y * 0.4);
+      ctx.fillStyle = 'rgba(120,180,240,' + a.toFixed(3) + ')';
+      ctx.fillRect(0, y, VIEW_W, 2);
+    }
+    const f = state.fishing;
+    const cx = (VIEW_W / 2) | 0;
+    let bobY = 100;
+    if (f) {
+      if (f.phase === 'cast')   bobY = 100 - Math.round(Math.sin((f.t / 0.5) * Math.PI) * 18);
+      if (f.phase === 'wait')   bobY = 100 + Math.round(Math.sin(f.t * 4) * 2);
+      if (f.phase === 'bite')   bobY = 100 + Math.round(Math.sin(f.t * 30) * 3);
+      if (f.phase === 'hooked') bobY = 100 - Math.round(f.t * 80);
+      if (f.phase === 'missed') bobY = 100 + 6;
+    }
+    ctx.strokeStyle = '#806040';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(VIEW_W - 14, 22);
+    ctx.lineTo(VIEW_W - 60, 60);
+    ctx.stroke();
+    ctx.strokeStyle = '#fff8c8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(VIEW_W - 60, 60);
+    ctx.lineTo(cx + 2, bobY);
+    ctx.stroke();
+    ctx.fillStyle = '#202020';
+    ctx.fillRect(cx - 2, bobY - 3, 6, 7);
+    ctx.fillStyle = '#e84848';
+    ctx.fillRect(cx - 1, bobY - 2, 4, 3);
+    ctx.fillStyle = '#fff8e8';
+    ctx.fillRect(cx - 1, bobY + 1, 4, 2);
+    if (f && (f.phase === 'cast' || f.phase === 'hooked')) {
+      const r = (f.phase === 'cast' ? 4 + (1 - f.t / 0.5) * 12 : 6 + f.t * 30) | 0;
+      ctx.strokeStyle = 'rgba(200,232,255,0.7)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx + 1, 102, Math.max(1, r), 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (f && f.phase === 'bite') {
+      const blink = (((f.t * 8) | 0) % 2) === 0;
+      if (blink) {
+        ctx.fillStyle = '#fff8c0';
+        ctx.fillRect(cx - 5, bobY - 18, 9, 12);
+        ctx.fillStyle = '#202020';
+        ctx.fillRect(cx - 6, bobY - 19, 11, 2);
+        ctx.fillRect(cx - 6, bobY - 7, 11, 1);
+        ctx.fillRect(cx - 6, bobY - 19, 1, 13);
+        ctx.fillRect(cx + 4, bobY - 19, 1, 13);
+        window.PR_UI.drawText(ctx, '!', cx - 2, bobY - 16, '#d83020');
+      }
+    }
+    let label = 'CAST!';
+    if (f) {
+      if (f.phase === 'wait')   label = '...';
+      if (f.phase === 'bite')   label = '* A NIBBLE! PRESS A *';
+      if (f.phase === 'hooked') label = 'HOOKED IT!';
+      if (f.phase === 'missed') label = 'GOT AWAY...';
+    }
+    window.PR_UI.drawDialog(ctx, [label, 'B: CANCEL'], VIEW_W, VIEW_H, false);
   }
 
   // ---------- Battle end ----------
