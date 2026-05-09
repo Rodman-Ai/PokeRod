@@ -1105,11 +1105,19 @@
   // player lands on a dusty tile (sand, dirt path, gravel). Drawn
   // before the day/night tint so they read like ground particles, not
   // sparks.
+  // Footstep-dust eligibility. The dust particle is tan/amber and looks
+  // out of place on cobble, red brick, snow, boardwalk, moss, etc. — so
+  // restrict to actually dirt-textured surfaces. Originally any tile
+  // with 'path' in its name kicked dust, which painted dirty blobs on
+  // frostmere's snowy paths and other paved town paths.
+  const DUSTY_TILE_NAMES = new Set([
+    'sand', 'path', 'path_sand', 'path_dirt', 'path_desert',
+    'path_gravel', 'path_dust'
+  ]);
   function isDustyTile(code) {
     const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
     if (!props || !props.walk) return false;
-    const n = props.name || '';
-    return n === 'sand' || n.indexOf('path') >= 0;
+    return DUSTY_TILE_NAMES.has(props.name || '');
   }
   function tickDust(particles, dt) {
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -2153,21 +2161,17 @@
       this.state.onHealer();
       return true;
     }
-    // Water tile: surf toggle if you have a WATER-type ally.
+    // Water tile (A): cast a line. Surfing lives on B (trySurfToggle).
+    // Without an OLD ROD the player gets a hint instead of silently
+    // bumping the water.
     if (code === 'W' && !this.state.player.surfing) {
-      const hasWater = (this.state.party || []).some(m => {
-        const sp = window.PR_DATA.CREATURES[m.species];
-        return sp && sp.types && sp.types.includes('WATER');
-      });
-      if (hasWater) {
-        this.state.player.surfing = true;
-        if (this.state.showFlash) this.state.showFlash('Hopped onto the water!');
-        if (window.PR_SFX) window.PR_SFX.play('confirm');
-        return true;
-      } else {
-        if (this.state.onSign) this.state.onSign('You need a WATER ally to surf.');
+      const hasRod = !!(this.state.player.bag && this.state.player.bag.old_rod);
+      if (hasRod && window.PR_GAME && window.PR_GAME.startFishing) {
+        window.PR_GAME.startFishing();
         return true;
       }
+      if (this.state.onSign) this.state.onSign('You need an OLD ROD to fish here.');
+      return true;
     }
     // Hidden item at this tile?
     if (m.hidden && this.state.onHidden) {
@@ -2180,6 +2184,44 @@
       }
     }
     return false;
+  };
+
+  // B-press surf toggle. From land facing water with a WATER ally, hop on.
+  // While surfing, B hops back off onto adjacent land if available.
+  // Separate from tryInteract (A press) so the water tile can host both
+  // the fishing minigame (A) and the surf toggle (B).
+  World.prototype.trySurfToggle = function() {
+    const p = this.player;
+    let ix = p.x, iy = p.y;
+    if (p.dir === 'up') iy--;
+    else if (p.dir === 'down') iy++;
+    else if (p.dir === 'left') ix--;
+    else if (p.dir === 'right') ix++;
+    const facing = this.tileAt(ix, iy);
+    if (p.surfing) {
+      // Already on water: B steps back onto facing land tile if walkable.
+      const props = window.PR_MAPS.TILE_PROPS[facing];
+      if (props && props.walk === true && facing !== 'W') {
+        p.surfing = false;
+        if (this.state.showFlash) this.state.showFlash('Back on dry land.');
+        if (window.PR_SFX) window.PR_SFX.play('confirm');
+        return true;
+      }
+      return false;
+    }
+    if (facing !== 'W') return false;
+    const hasWater = (this.state.party || []).some(m => {
+      const sp = window.PR_DATA.CREATURES[m.species];
+      return sp && sp.types && sp.types.includes('WATER');
+    });
+    if (!hasWater) {
+      if (this.state.onSign) this.state.onSign('You need a WATER ally to surf.');
+      return true;
+    }
+    p.surfing = true;
+    if (this.state.showFlash) this.state.showFlash('Hopped onto the water!');
+    if (window.PR_SFX) window.PR_SFX.play('confirm');
+    return true;
   };
 
   World.prototype._ambientAt = function(x, y, exclude) {
@@ -2412,6 +2454,9 @@
     }
     if (I.consumePressed('z')) {
       if (this.tryInteract()) return;
+    }
+    if (I.consumePressed('x')) {
+      if (this.trySurfToggle()) return;
     }
     const dir = I.dirHeld();
     if (dir) {
