@@ -358,7 +358,7 @@ const MAPS = {
       'Y..,...BBDB.......,Y',
       'Y..,...____..|....,Y',
       'Y..S....1.......~.,Y',
-      'Y.\'.\'.............,Y',
+      'Y.\'.\'S............,Y',
       'Y..,..WW.....1.(..,Y',
       'Y..,..WW.)........,Y',
       ',.|,,,,,,,,,,,,,,,,Y',
@@ -379,6 +379,7 @@ const MAPS = {
     signs: {
       '3,11': "RODPORT TOWN — Where every adventure begins.",
       '1,15': "A late desert road loops back here. Come prepared.",
+      '5,12': "WATERFRONT — A casts a line. B surfs (with a WATER ally).",
     },
     doors: {
       '4,4':  { to:'player_house', x:3, y:6 },
@@ -1695,7 +1696,7 @@ function applyWorldExpansion(MAPS) {
       { species:'glimkit', x:7, y:14, range:2 }
     ],
     edgeDefs:{
-      west:{ x:0, to:'desert', tx:46, ty:20, gate:{ minBadges:6, message:'The desert loop is too harsh without six BADGES.' } },
+      west:{ x:0, to:'desert', tx:46, ty:22, gate:{ minBadges:6, message:'The desert loop is too harsh without six BADGES.' } },
       south:{ y:33, to:'route1', tx:24, ty:1 }
     }
   });
@@ -1730,7 +1731,7 @@ function applyWorldExpansion(MAPS) {
       { species:'nibblet', x:8, y:24, range:2 }
     ],
     edgeDefs:{
-      north:{ y:0, to:'route1', tx:24, ty:36 },
+      north:{ y:0, to:'route1', tx:24, ty:24 },
       south:{ y:33, to:'route2', tx:24, ty:1 }
     }
   });
@@ -1765,7 +1766,7 @@ function applyWorldExpansion(MAPS) {
       { species:'fernsprout', x:18, y:27, range:2 }
     ],
     edgeDefs:{
-      north:{ y:0, to:'route2', tx:24, ty:36 },
+      north:{ y:0, to:'route2', tx:24, ty:40 },
       south:{ y:33, to:'pebblewood', tx:24, ty:1 }
     }
   });
@@ -1800,7 +1801,7 @@ function applyWorldExpansion(MAPS) {
       { species:'voltkit', x:14, y:25, range:2 }
     ],
     edgeDefs:{
-      north:{ y:0, to:'pebblewood', tx:24, ty:36 },
+      north:{ y:0, to:'pebblewood', tx:24, ty:44 },
       east:{ x:43, to:'mountain', tx:1, ty:20 },
       south:{ y:33, to:'glimcavern', tx:24, ty:1 }
     }
@@ -1836,7 +1837,7 @@ function applyWorldExpansion(MAPS) {
       { species:'glimkit', x:18, y:25, range:2 }
     ],
     edgeDefs:{
-      north:{ y:0, to:'glimcavern', tx:24, ty:36 },
+      north:{ y:0, to:'glimcavern', tx:28, ty:29 },
       south:{ y:33, to:'frostpeak', tx:24, ty:1 }
     }
   });
@@ -1871,8 +1872,8 @@ function applyWorldExpansion(MAPS) {
       { species:'mistfin', x:16, y:25, range:2 }
     ],
     edgeDefs:{
-      north:{ y:0, to:'frostpeak', tx:24, ty:36 },
-      east:{ x:43, to:'beach', tx:1, ty:20 },
+      north:{ y:0, to:'frostpeak', tx:24, ty:42 },
+      east:{ x:43, to:'beach', tx:1, ty:17 },
       south:{ y:33, to:'searoute', tx:24, ty:1 }
     }
   });
@@ -1906,78 +1907,70 @@ function applyWorldExpansion(MAPS) {
       { species:'glimkit', x:19, y:26, range:2 }
     ],
     edgeDefs:{
-      north:{ y:0, to:'searoute', tx:24, ty:36 },
+      north:{ y:0, to:'searoute', tx:24, ty:22 },
       east:{ x:43, to:'desert', tx:1, ty:20 }
     }
   });
 
+  // ROUTE 1 — short shaded oak corridor (48x26) with south-jumping ledges,
+  // a single bright meadow on the east side, and a hollow door tucked near
+  // the corner. Wider than tall, reads like a short walk between two towns.
   updateRoute('route1', {
-    fill:'Y', pathCode:',', pathRadius:1,
-    path:[[24,0],[24,5],[17,5],[17,10],[30,10],[30,15],[20,15],[20,22],[34,22],[34,29],[24,29],[24,37]],
+    fill:'Y', pathCode:',', pathRadius:1, h:26,
+    path:[[24,0],[24,5],[14,5],[14,12],[30,12],[30,18],[20,18],[20,24]],
     branches:[
-      { points:[[17,10],[8,10],[8,18],[14,18]], radius:1 },
-      { points:[[30,15],[40,15],[40,9],[37,9]], radius:1 },
-      { points:[[20,22],[10,22],[10,29],[18,29]], radius:1 },
-      { points:[[24,5],[31,5],[31,10]], radius:1 },
-      { points:[[34,22],[42,22],[42,30],[34,30]], radius:1 },
-      { points:[[24,29],[24,33],[16,33],[16,29]], radius:1 }
+      { points:[[14,5],[6,5],[6,11],[12,11]], radius:1 },
+      { points:[[30,12],[40,12],[40,7],[36,7]], radius:1 },
+      { points:[[30,18],[42,18],[42,23],[34,23]], radius:1 }
     ],
     pockets:[
-      { x:19, y:4, w:6, h:4, code:':' },
-      { x:6, y:15, w:9, h:5, code:':' },
-      { x:31, y:12, w:9, h:5, code:':' },
-      { x:12, y:27, w:8, h:5, code:':' },
-      { x:35, y:27, w:8, h:5, code:':' },
-      { x:2, y:3, w:8, h:4, code:'1' },
-      { x:26, y:31, w:7, h:4, code:'c' }
+      { x:16, y:6, w:9, h:5, code:':' },
+      { x:31, y:13, w:9, h:4, code:':' },
+      { x:8, y:14, w:6, h:5, code:'1' },
+      { x:34, y:19, w:8, h:4, code:':' }
     ],
     rects:[
-      { x:3, y:23, w:6, h:4, code:"'" },
-      { x:27, y:2, w:4, h:3, code:'1' }
+      { x:3, y:18, w:5, h:4, code:"'" },
+      { x:27, y:2, w:4, h:3, code:'1' },
+      { x:16, y:24, w:14, h:1, code:'L' }
     ],
-    decor:[{ on:'Y', codes:['K','E'], rate:15, seed:3 }, { on:'Y', codes:['c','e','1'], rate:8, seed:5 }],
+    decor:[{ on:'Y', codes:['K','E'], rate:14, seed:3 }, { on:'Y', codes:['c','e','1'], rate:8, seed:5 }],
     tiles:[
       { x:13, y:17, code:'<' }, { x:36, y:13, code:'|' },
-      { x:5, y:24, code:'{' }, { x:41, y:29, code:'(' }
+      { x:5, y:23, code:'{' }, { x:41, y:21, code:'(' }
     ],
-    doors:[{ x:37, y:9, to:'route1_hollow', tx:14, ty:18 }],
-    signs:{ '18,6':'ROUTE 1 - The first road now has a few secrets.' },
-    hidden:{ '18,29':{ item:'potion', count:1 }, '39,14':{ item:'rodball', count:2 } },
+    doors:[{ x:36, y:7, to:'route1_hollow', tx:14, ty:18 }],
+    signs:{ '18,4':'ROUTE 1 - Hop the south ledges to skip the long way back.' },
+    hidden:{ '12,11':{ item:'potion', count:1 }, '40,7':{ item:'rodball', count:2 } },
     encounters:[
-      { species:'nibblet',     minL:2, maxL:4, weight:2 },
-      { species:'flitwing',    minL:2, maxL:4, weight:2 },
-      { species:'crawlbug',    minL:2, maxL:3, weight:2 },
-      { species:'zapret',      minL:3, maxL:5, weight:1 }
+      { species:'nibblet',  minL:2, maxL:4, weight:3 },
+      { species:'flitwing', minL:2, maxL:4, weight:2 },
+      { species:'crawlbug', minL:2, maxL:3, weight:2 },
+      { species:'zapret',   minL:3, maxL:5, weight:1 }
     ],
     encounterZones:[
-      { x:6, y:15, w:9, h:5, encounters:[
+      { x:16, y:6, w:9, h:5, encounters:[
         { species:'silkuttle', minL:2, maxL:4, weight:4 },
         { species:'venipip',   minL:3, maxL:5, weight:3 },
-        { species:'pugpaw',    minL:3, maxL:5, weight:3 },
+        { species:'pugpaw',    minL:3, maxL:5, weight:2 },
         { species:'nibblet',   minL:2, maxL:4, weight:1 }
       ] },
-      { x:31, y:12, w:9, h:5, encounters:[
-        { species:'rivettot',  minL:3, maxL:5, weight:4 },
-        { species:'mindrop',   minL:3, maxL:5, weight:3 },
-        { species:'joltlet',   minL:3, maxL:5, weight:3 },
-        { species:'glimkit',   minL:3, maxL:5, weight:1 }
+      { x:31, y:13, w:9, h:4, encounters:[
+        { species:'rivettot', minL:3, maxL:5, weight:4 },
+        { species:'mindrop',  minL:3, maxL:5, weight:3 },
+        { species:'joltlet',  minL:3, maxL:5, weight:2 },
+        { species:'glimkit',  minL:3, maxL:5, weight:1 }
       ] },
-      { x:12, y:27, w:8, h:5, encounters:[
-        { species:'mudmote',   minL:3, maxL:6, weight:4 },
-        { species:'craglet',   minL:3, maxL:6, weight:4 },
-        { species:'frostnip',  minL:3, maxL:5, weight:3 },
-        { species:'crawlbug',  minL:2, maxL:4, weight:1 }
-      ] },
-      { x:19, y:4, w:6, h:4, encounters:[
-        { species:'breezlet',  minL:3, maxL:5, weight:4 },
-        { species:'joltlet',   minL:3, maxL:5, weight:2 },
-        { species:'pugpaw',    minL:3, maxL:5, weight:2 },
-        { species:'flitwing',  minL:2, maxL:4, weight:1 }
+      { x:34, y:19, w:8, h:4, encounters:[
+        { species:'mudmote',  minL:3, maxL:6, weight:4 },
+        { species:'craglet',  minL:3, maxL:6, weight:3 },
+        { species:'frostnip', minL:3, maxL:5, weight:2 },
+        { species:'crawlbug', minL:2, maxL:4, weight:1 }
       ] }
     ],
     npcs:[
-      movedNpc('route1', 0, 9, 18, 'right'),
-      roadTrainer(13, 18, 'left', 'trainer_bug_catcher', 'BUG CATCHER NOX',
+      movedNpc('route1', 0, 9, 11, 'right'),
+      roadTrainer(20, 8, 'left', 'trainer_bug_catcher', 'BUG CATCHER NOX',
         ["This meadow is crawling with tiny champions!","Show me what you caught!"],
         [['silkuttle',3],['venipip',4]], 180,
         ["My net missed the big moment!","Back to the tall grass for me."]),
@@ -1986,283 +1979,448 @@ function applyWorldExpansion(MAPS) {
         [['breezlet',4],['joltlet',4]], 220,
         ["That was a breezy little lesson.","I'll picnic and train some more."])
     ],
-    edges:{ north:{ y:0, to:'rodport', tx:22, ty:32 }, south:{ y:37, to:'brindale', tx:22, ty:1 } }
+    edges:{ north:{ y:0, to:'rodport', tx:22, ty:32 }, south:{ y:25, to:'brindale', tx:22, ty:1 } }
   });
 
+  // ROUTE 2 — long flower meadow bisected by a north-south river (48x42).
+  // A wood bridge crosses mid-route; an east branch leads to River Bend
+  // (small fishing dock side area). 3 trainers, 2 hidden items.
   updateRoute('route2', {
-    fill:'K', pathCode:',', pathRadius:1,
-    path:[[24,0],[24,4],[15,4],[15,9],[32,9],[32,14],[18,14],[18,20],[10,20],[10,28],[24,28],[24,37]],
+    fill:'K', pathCode:',', pathRadius:1, h:42,
+    path:[[24,0],[24,6],[15,6],[15,12],[28,12],[28,20],[15,20],[15,28],[28,28],[28,36],[24,36],[24,41]],
     branches:[
-      { points:[[15,9],[7,9],[7,16],[13,16]], radius:1 },
-      { points:[[32,14],[41,14],[41,22],[34,22]], radius:1 },
-      { points:[[18,20],[25,20],[25,25],[31,25]], radius:1 },
-      { points:[[24,4],[34,4],[34,9],[32,9]], radius:1 },
-      { points:[[32,14],[38,14],[38,28],[24,28]], radius:1 },
-      { points:[[18,20],[18,31],[28,31],[28,28]], radius:1 }
+      { points:[[15,12],[7,12],[7,22],[13,22]], radius:1 },
+      { points:[[28,20],[40,20],[40,28],[36,28]], radius:1 },
+      { points:[[15,28],[6,28],[6,36],[14,36]], radius:1 },
+      { points:[[28,12],[36,12],[36,6],[40,6]], radius:1 }
     ],
     pockets:[
-      { x:5, y:13, w:9, h:5, code:':' },
-      { x:33, y:19, w:9, h:5, code:':' },
-      { x:21, y:23, w:9, h:5, code:':' },
-      { x:30, y:3, w:7, h:5, code:':' },
-      { x:14, y:28, w:7, h:5, code:'1' }
+      { x:5, y:14, w:9, h:7, code:':' },
+      { x:31, y:13, w:7, h:6, code:':' },
+      { x:33, y:21, w:8, h:6, code:':' },
+      { x:5, y:31, w:8, h:5, code:'1' },
+      { x:29, y:30, w:8, h:5, code:':' },
+      { x:19, y:14, w:5, h:6, code:'W' },
+      { x:19, y:28, w:5, h:8, code:'W' }
     ],
     rects:[
-      { x:2, y:24, w:9, h:4, code:"'" },
-      { x:40, y:25, w:5, h:5, code:'m' },
-      { x:28, y:10, w:4, h:3, code:'c' }
+      { x:2, y:36, w:7, h:4, code:"'" },
+      { x:42, y:32, w:5, h:6, code:'m' },
+      { x:19, y:20, w:5, h:8, code:'A' },
+      { x:30, y:6, w:4, h:3, code:'c' }
     ],
     decor:[{ on:'K', codes:['m','c','1'], rate:8, seed:7 }, { on:'K', codes:['E'], rate:18, seed:2 }],
     tiles:[
-      { x:31, y:24, code:'<' }, { x:38, y:18, code:'|' },
-      { x:7, y:14, code:'{' }, { x:41, y:27, code:'(' }
+      { x:34, y:24, code:'<' }, { x:39, y:23, code:'|' },
+      { x:7, y:14, code:'{' }, { x:43, y:36, code:'(' }
     ],
-    signs:{ '16,5':'ROUTE 2 - Flower meadows hide longer bends.' },
-    hidden:{ '35,22':{ item:'greatball', count:1 }, '12,16':{ item:'awakening', count:1 } },
+    doors:[{ x:40, y:6, to:'route2_river_bend', tx:3, ty:9 }],
+    signs:{ '16,5':'ROUTE 2 - Cross the bridge or follow the river east.' },
+    hidden:{ '37,28':{ item:'greatball', count:1 }, '12,22':{ item:'awakening', count:1 } },
+    encounters:[
+      { species:'flitwing',    minL:4, maxL:7, weight:4 },
+      { species:'nibblet',     minL:4, maxL:7, weight:4 },
+      { species:'cinderpup',   minL:5, maxL:8, weight:2 },
+      { species:'fernsprout',  minL:5, maxL:8, weight:2 },
+      { species:'budling',     minL:5, maxL:8, weight:2 },
+      { species:'bumblesting', minL:4, maxL:7, weight:3 }
+    ],
+    encounterZones:[
+      { x:19, y:14, w:5, h:6, encounters:[
+        { species:'splashfin', minL:5, maxL:8, weight:5 },
+        { species:'aquapup',   minL:5, maxL:8, weight:3 }
+      ] },
+      { x:19, y:28, w:5, h:8, encounters:[
+        { species:'splashfin', minL:6, maxL:9, weight:4 },
+        { species:'mistfin',   minL:6, maxL:9, weight:3 },
+        { species:'aquapup',   minL:5, maxL:8, weight:3 }
+      ] }
+    ],
     npcs:[
-      movedNpc('route2', 0, 7, 16, 'right'),
-      roadTrainer(31, 25, 'left', 'trainer_camper', 'CAMPER TAVI',
+      movedNpc('route2', 0, 7, 22, 'right'),
+      roadTrainer(34, 24, 'left', 'trainer_camper', 'CAMPER TAVI',
         ["I looped around twice and still found a shortcut.","Let's see if your team can keep pace!"],
         [['nibblet',6],['cinderpup',7],['fernsprout',7]], 320,
-        ["Guess I packed too light.","At least the flowers are nice."])
+        ["Guess I packed too light.","At least the flowers are nice."]),
+      roadTrainer(21, 23, 'down', 'trainer_picnicker', 'BRIDGE WATCHER ELI',
+        ["Bridges are battlefields too.","En garde!"],
+        [['splashfin',7],['budling',7]], 360,
+        ["The current took my pride.","Carry on across, traveler."])
     ],
-    edges:{ north:{ y:0, to:'brindale', tx:22, ty:32 }, south:{ y:37, to:'woodfall', tx:22, ty:1 } }
+    edges:{ north:{ y:0, to:'brindale', tx:22, ty:32 }, south:{ y:41, to:'woodfall', tx:22, ty:1 } }
   });
 
+  // PEBBLEWOOD — sprawling 48x46 forest maze with four branching paths,
+  // mushroom grove, hidden clearing chest. The biggest route in the region.
   updateRoute('pebblewood', {
-    fill:'G', pathCode:'z', pathRadius:1,
-    path:[[24,0],[24,5],[14,5],[14,11],[29,11],[29,17],[18,17],[18,24],[34,24],[34,30],[24,30],[24,37]],
+    fill:'G', pathCode:'z', pathRadius:1, h:46,
+    path:[[24,0],[24,6],[12,6],[12,14],[30,14],[30,22],[14,22],[14,32],[34,32],[34,40],[24,40],[24,45]],
     branches:[
-      { points:[[14,11],[7,11],[7,22],[14,22]], code:'z', radius:1 },
-      { points:[[29,17],[40,17],[40,9],[37,9]], code:'z', radius:1 },
-      { points:[[18,24],[10,24],[10,30],[16,30]], code:'z', radius:1 },
-      { points:[[24,5],[33,5],[33,11],[29,11]], code:'z', radius:1 },
-      { points:[[29,17],[37,17],[37,25],[34,25],[34,24]], code:'z', radius:1 },
-      { points:[[18,24],[18,32],[25,32],[25,30]], code:'z', radius:1 }
+      { points:[[12,14],[5,14],[5,28],[13,28]], code:'z', radius:1 },
+      { points:[[30,14],[40,14],[40,7],[36,7]], code:'z', radius:1 },
+      { points:[[30,22],[42,22],[42,32],[35,32]], code:'z', radius:1 },
+      { points:[[14,32],[6,32],[6,40],[15,40]], code:'z', radius:1 },
+      { points:[[24,6],[33,6],[33,14],[30,14]], code:'z', radius:1 },
+      { points:[[14,22],[20,22],[20,32]], code:'z', radius:1 }
     ],
     pockets:[
-      { x:5, y:18, w:10, h:6, code:':' },
-      { x:31, y:13, w:10, h:6, code:':' },
-      { x:11, y:28, w:8, h:5, code:':' },
-      { x:29, y:3, w:8, h:5, code:'4' },
-      { x:34, y:23, w:8, h:5, code:':' }
+      { x:5, y:16, w:9, h:11, code:':' },
+      { x:32, y:15, w:9, h:6, code:':' },
+      { x:36, y:23, w:7, h:8, code:':' },
+      { x:5, y:34, w:8, h:5, code:':' },
+      { x:35, y:34, w:9, h:5, code:'4' },
+      { x:25, y:3, w:8, h:5, code:'4' }
     ],
     rects:[
-      { x:2, y:26, w:6, h:5, code:'4' },
-      { x:20, y:13, w:5, h:3, code:'n' },
-      { x:41, y:4, w:4, h:9, code:'U' }
+      { x:2, y:41, w:7, h:4, code:'4' },
+      { x:21, y:16, w:6, h:4, code:'n' },
+      { x:42, y:4, w:4, h:9, code:'U' },
+      { x:16, y:35, w:7, h:4, code:'n' }
     ],
-    decor:[{ on:'G', codes:['U','V','g'], rate:12, seed:4 }, { on:'G', codes:['4','n'], rate:14, seed:9 }],
+    decor:[{ on:'G', codes:['U','V','g'], rate:11, seed:4 }, { on:'G', codes:['4','n'], rate:13, seed:9 }],
     tiles:[
-      { x:12, y:21, code:'|' }, { x:37, y:16, code:'(' },
-      { x:22, y:14, code:'{' }, { x:35, y:24, code:'<' }
+      { x:13, y:25, code:'|' }, { x:40, y:23, code:'(' },
+      { x:24, y:18, code:'{' }, { x:36, y:31, code:'<' }
     ],
-    doors:[{ x:37, y:9, to:'pebblewood_cavern', tx:14, ty:18 }],
-    hidden:{ '16,30':{ item:'cavernball', count:1 }, '34,16':{ item:'antidote', count:1 } },
+    doors:[{ x:36, y:7, to:'pebblewood_cavern', tx:14, ty:18 }],
+    hidden:{ '17,38':{ item:'cavernball', count:1 }, '38,17':{ item:'antidote', count:1 }, '38,38':{ item:'sitrusberry', count:1 } },
+    encounters:[
+      { species:'crawlbug',    minL:6, maxL:9,  weight:5 },
+      { species:'bumblesting', minL:7, maxL:10, weight:4 },
+      { species:'sproutling',  minL:6, maxL:9,  weight:3 },
+      { species:'fernsprout',  minL:7, maxL:10, weight:3 },
+      { species:'mantilux',    minL:7, maxL:10, weight:3 },
+      { species:'dewfae',      minL:8, maxL:11, weight:2 },
+      { species:'clodlet',     minL:6, maxL:9,  weight:2 },
+      { species:'glimkit',     minL:8, maxL:11, weight:1 }
+    ],
+    encounterZones:[
+      { x:21, y:16, w:6, h:4, encounters:[
+        { species:'mothmane', minL:9,  maxL:12, weight:5 },
+        { species:'mantilux', minL:8,  maxL:11, weight:3 }
+      ] },
+      { x:35, y:34, w:9, h:5, encounters:[
+        { species:'budling',     minL:9,  maxL:12, weight:4 },
+        { species:'fernsprout',  minL:8,  maxL:11, weight:3 },
+        { species:'sproutling',  minL:8,  maxL:11, weight:3 }
+      ] }
+    ],
     npcs:[
-      movedNpc('pebblewood', 0, 14, 22, 'right'),
-      roadTrainer(12, 22, 'right', 'trainer_ranger', 'RANGER MOSS',
+      movedNpc('pebblewood', 0, 12, 25, 'right'),
+      roadTrainer(13, 30, 'right', 'trainer_ranger', 'RANGER MOSS',
         ["Pebblewood opens up if you trust the side trails.","I'll guard this grove with a battle."],
         [['sproutling',9],['bumblesting',10]], 460,
-        ["The grove likes you.","Mind your steps near the cavern."])
+        ["The grove likes you.","Mind your steps near the cavern."]),
+      roadTrainer(20, 26, 'down', 'trainer_camper', 'FORAGER PIM',
+        ["The mushroom grove is mine to defend!","Battle for the boletus!"],
+        [['mantilux',10],['mothmane',11]], 540,
+        ["Take a slice of fungus on your way out.","No, that's lichen — never mind."])
     ],
-    edges:{ north:{ y:0, to:'woodfall', tx:22, ty:32 }, south:{ y:37, to:'crestrock', tx:22, ty:1 } }
+    edges:{ north:{ y:0, to:'woodfall', tx:22, ty:32 }, south:{ y:45, to:'crestrock', tx:22, ty:1 } }
   });
 
+  // GLIMCAVERN — narrower 48x32 cave with multi-level chambers, crystal
+  // alcoves and a deep B1 entrance in the upper-right. The shortest open
+  // route, but most chambered.
   updateRoute('glimcavern', {
-    fill:'#', pathCode:'s', pathRadius:1, tags:['route','cave'],
-    path:[[24,0],[24,5],[15,5],[15,11],[32,11],[32,16],[18,16],[18,22],[31,22],[31,30],[24,30],[24,37]],
+    fill:'#', pathCode:'s', pathRadius:1, tags:['route','cave'], h:32,
+    path:[[24,0],[24,5],[14,5],[14,12],[32,12],[32,18],[18,18],[18,24],[28,24],[28,31]],
     branches:[
-      { points:[[15,11],[7,11],[7,23],[14,23]], code:'s', radius:1 },
-      { points:[[32,16],[40,16],[40,8],[37,8]], code:'s', radius:1 },
-      { points:[[18,22],[11,22],[11,29],[17,29]], code:'s', radius:1 },
-      { points:[[24,5],[34,5],[34,11],[32,11]], code:'s', radius:1 },
-      { points:[[32,16],[38,16],[38,27],[31,27],[31,30]], code:'I', radius:1 },
-      { points:[[18,22],[22,22],[22,32],[24,32],[24,30]], code:'s', radius:1 }
+      { points:[[14,12],[6,12],[6,22],[14,22]], code:'s', radius:1 },
+      { points:[[32,12],[42,12],[42,5],[38,5]], code:'s', radius:1 },
+      { points:[[32,18],[40,18],[40,28],[34,28]], code:'I', radius:1 },
+      { points:[[18,24],[10,24],[10,30],[18,30]], code:'s', radius:1 }
     ],
     pockets:[
-      { x:5, y:19, w:10, h:6, code:':' },
-      { x:32, y:12, w:9, h:6, code:':' },
-      { x:11, y:27, w:8, h:5, code:':' },
-      { x:28, y:3, w:9, h:5, code:'I' },
-      { x:24, y:25, w:8, h:5, code:':' }
+      { x:5, y:14, w:8, h:7, code:':' },
+      { x:33, y:13, w:9, h:5, code:':' },
+      { x:11, y:25, w:7, h:5, code:':' },
+      { x:24, y:25, w:8, h:5, code:'I' },
+      { x:34, y:19, w:8, h:8, code:':' }
     ],
     rects:[
       { x:2, y:3, w:7, h:4, code:')' },
-      { x:41, y:19, w:4, h:7, code:'(' },
-      { x:21, y:9, w:5, h:3, code:'I' }
+      { x:42, y:21, w:4, h:7, code:'(' },
+      { x:21, y:8, w:5, h:3, code:'I' }
     ],
-    decor:[{ on:'#', codes:['T',')'], rate:13, seed:8 }, { on:'#', codes:['('], rate:16, seed:6 }],
+    decor:[{ on:'#', codes:['T',')'], rate:11, seed:8 }, { on:'#', codes:['('], rate:14, seed:6 }],
     tiles:[
-      { x:34, y:14, code:'|' }, { x:28, y:26, code:'(' },
-      { x:38, y:26, code:'(' }, { x:22, y:31, code:'(' }
+      { x:34, y:15, code:'|' }, { x:28, y:27, code:'(' },
+      { x:42, y:18, code:'(' }, { x:22, y:30, code:'(' }
     ],
-    doors:[{ x:37, y:8, to:'glimcavern_b1', tx:10, ty:1 }],
-    hidden:{ '17,29':{ item:'cavernball', count:1 }, '36,15':{ item:'greatball', count:1 } },
+    doors:[{ x:38, y:5, to:'glimcavern_b1', tx:10, ty:1 }],
+    hidden:{ '14,29':{ item:'cavernball', count:1 }, '36,15':{ item:'greatball', count:1 }, '42,7':{ item:'maxpotion', count:1 } },
+    encounters:[
+      { species:'pebra',     minL:10, maxL:14, weight:5 },
+      { species:'geistmite', minL:10, maxL:14, weight:4 },
+      { species:'cavewing',  minL:10, maxL:14, weight:4 },
+      { species:'stoneworm', minL:11, maxL:15, weight:3 },
+      { species:'wraithlet', minL:11, maxL:14, weight:2 },
+      { species:'rivetbolt', minL:11, maxL:14, weight:2 },
+      { species:'crysthorn', minL:12, maxL:15, weight:1 }
+    ],
+    encounterZones:[
+      { x:34, y:19, w:8, h:8, encounters:[
+        { species:'crysthorn', minL:13, maxL:16, weight:5 },
+        { species:'rivetbolt', minL:13, maxL:16, weight:3 },
+        { species:'wraithlet', minL:12, maxL:15, weight:2 }
+      ] }
+    ],
     npcs:[
-      movedNpc('glimcavern', 0, 11, 22, 'right'),
-      movedNpc('glimcavern', 1, 35, 21, 'down'),
+      movedNpc('glimcavern', 0, 11, 24, 'right'),
+      movedNpc('glimcavern', 1, 38, 25, 'down'),
       roadTrainer(34, 15, 'left', 'trainer_miner', 'MINER ROOK',
         ["These tunnels fork more than my old pick.","Let's make some echoes!"],
         [['pebra',13],['geistmite',13],['stoneworm',14]], 620,
         ["Solid swing.","I'll mark the safer route with chalk."])
     ],
-    edges:{ north:{ y:0, to:'crestrock', tx:22, ty:32 }, south:{ y:37, to:'frostmere', tx:22, ty:1 } }
+    edges:{ north:{ y:0, to:'crestrock', tx:22, ty:32 }, south:{ y:31, to:'frostmere', tx:22, ty:1 } }
   });
 
+  // FROSTPEAK — 48x44 switchback ascent. Snow drift hedges (h tile, blocking)
+  // squeeze the path into a zig-zag; an ice cave door midway. Three trainers.
   updateRoute('frostpeak', {
-    fill:'Q', pathCode:'6', pathRadius:1, tags:['route','snow'],
-    path:[[24,0],[24,4],[16,4],[16,10],[31,10],[31,16],[19,16],[19,22],[36,22],[36,30],[24,30],[24,37]],
+    fill:'Q', pathCode:'6', pathRadius:1, tags:['route','snow'], h:44,
+    path:[[24,0],[24,5],[10,5],[10,12],[36,12],[36,20],[10,20],[10,28],[36,28],[36,36],[24,36],[24,43]],
     branches:[
-      { points:[[16,10],[8,10],[8,21],[14,21]], code:'6', radius:1 },
-      { points:[[31,16],[41,16],[41,9],[37,9]], code:'6', radius:1 },
-      { points:[[19,22],[12,22],[12,30],[18,30]], code:'6', radius:1 },
-      { points:[[24,4],[33,4],[33,10],[31,10]], code:'6', radius:1 },
-      { points:[[31,16],[39,16],[39,28],[36,28],[36,30]], code:'6', radius:1 },
-      { points:[[19,22],[23,22],[23,32],[24,32],[24,30]], code:'6', radius:1 }
+      { points:[[10,12],[5,12],[5,20]], code:'6', radius:1 },
+      { points:[[36,12],[42,12],[42,7],[39,7]], code:'6', radius:1 },
+      { points:[[36,28],[42,28],[42,36]], code:'6', radius:1 },
+      { points:[[10,28],[5,28],[5,36],[14,36]], code:'6', radius:1 }
     ],
     pockets:[
-      { x:6, y:17, w:9, h:6, code:':' },
-      { x:32, y:12, w:9, h:6, code:':' },
-      { x:13, y:28, w:8, h:5, code:':' },
-      { x:28, y:2, w:8, h:5, code:'2' },
-      { x:34, y:25, w:8, h:5, code:':' }
+      { x:14, y:6, w:7, h:5, code:':' },
+      { x:25, y:13, w:9, h:6, code:':' },
+      { x:14, y:21, w:7, h:6, code:':' },
+      { x:25, y:29, w:9, h:6, code:':' },
+      { x:30, y:2, w:7, h:5, code:'2' },
+      { x:5, y:38, w:9, h:5, code:':' }
     ],
     rects:[
-      { x:2, y:24, w:7, h:5, code:'2' },
+      { x:2, y:31, w:7, h:5, code:'2' },
       { x:3, y:4, w:5, h:4, code:'W' },
-      { x:42, y:3, w:4, h:9, code:'k' }
+      { x:42, y:14, w:4, h:9, code:'k' },
+      { x:21, y:11, w:6, h:1, code:'h' },
+      { x:21, y:19, w:6, h:1, code:'h' },
+      { x:21, y:27, w:6, h:1, code:'h' }
     ],
     decor:[{ on:'Q', codes:['k','2'], rate:8, seed:6 }, { on:'Q', codes:['('], rate:17, seed:12 }],
     tiles:[
-      { x:13, y:20, code:'<' }, { x:36, y:14, code:'|' },
-      { x:39, y:27, code:'(' }, { x:8, y:25, code:'(' }
+      { x:13, y:25, code:'<' }, { x:36, y:14, code:'|' },
+      { x:39, y:33, code:'(' }, { x:8, y:38, code:'(' }
     ],
-    doors:[{ x:37, y:9, to:'frostpeak_ice_cave', tx:14, ty:18 }],
-    hidden:{ '18,30':{ item:'ultraball', count:1 }, '35,15':{ item:'fullheal', count:1 } },
+    doors:[{ x:39, y:7, to:'frostpeak_ice_cave', tx:14, ty:18 }],
+    hidden:{ '24,40':{ item:'ultraball', count:1 }, '36,16':{ item:'fullheal', count:1 }, '10,12':{ item:'maxpotion', count:1 } },
+    encounters:[
+      { species:'frostpup',   minL:14, maxL:18, weight:5 },
+      { species:'snowox',     minL:14, maxL:18, weight:3 },
+      { species:'glimkit',    minL:14, maxL:18, weight:3 },
+      { species:'crysthorn',  minL:15, maxL:19, weight:2 },
+      { species:'frostbloom', minL:14, maxL:18, weight:3 },
+      { species:'galewing',   minL:14, maxL:18, weight:3 }
+    ],
+    encounterZones:[
+      { x:25, y:29, w:9, h:6, encounters:[
+        { species:'glacioxen',  minL:18, maxL:22, weight:3 },
+        { species:'snowox',     minL:18, maxL:22, weight:4 },
+        { species:'frostbloom', minL:17, maxL:21, weight:3 }
+      ] }
+    ],
     npcs:[
-      movedNpc('frostpeak', 0, 38, 16, 'left'),
-      roadTrainer(13, 21, 'right', 'trainer_skier', 'SKIER LUMI',
+      movedNpc('frostpeak', 0, 36, 16, 'left'),
+      roadTrainer(13, 25, 'right', 'trainer_skier', 'SKIER LUMI',
         ["The snow hides loops, shelves, and shortcuts.","I'll race you with a battle!"],
         [['frostnip',16],['frostpup',17],['snowox',18]], 840,
-        ["You carved the cleaner line.","Watch for the ice cave side path."])
+        ["You carved the cleaner line.","Watch for the ice cave side path."]),
+      roadTrainer(28, 33, 'left', 'trainer_hiker', 'CLIMBER PYR',
+        ["I keep a warm flask up here.","Care to test it before me?"],
+        [['snowox',18],['glacioxen',19]], 980,
+        ["Down to the bottom — where the air is thicker.","Mind the drifts."])
     ],
-    edges:{ north:{ y:0, to:'frostmere', tx:22, ty:32 }, south:{ y:37, to:'harborside', tx:22, ty:1 } }
+    edges:{ north:{ y:0, to:'frostmere', tx:22, ty:32 }, south:{ y:43, to:'harborside', tx:22, ty:1 } }
   });
 
+  // SEAROUTE — short 48x24 wide boardwalk run with three fishing piers and
+  // a tide-cave door in the corner. The shortest open route, all about water.
   updateRoute('searoute', {
-    fill:'O', pathCode:'t', pathRadius:1, tags:['route','water'],
-    path:[[24,0],[24,5],[15,5],[15,12],[31,12],[31,17],[18,17],[18,24],[35,24],[35,30],[24,30],[24,37]],
+    fill:'O', pathCode:'t', pathRadius:1, tags:['route','water'], h:24,
+    path:[[24,0],[24,4],[8,4],[8,12],[40,12],[40,18],[24,18],[24,23]],
     branches:[
-      { points:[[15,12],[7,12],[7,23],[13,23]], code:'u', radius:1 },
-      { points:[[31,17],[42,17],[42,8],[38,8]], code:'u', radius:1 },
-      { points:[[18,24],[11,24],[11,31],[17,31]], code:'u', radius:1 },
-      { points:[[24,5],[34,5],[34,12],[31,12]], code:'t', radius:1 },
-      { points:[[31,17],[37,17],[37,24],[35,24]], code:'u', radius:1 },
-      { points:[[18,24],[23,24],[23,32],[24,32],[24,30]], code:'t', radius:1 }
+      { points:[[8,12],[3,12],[3,18]], code:'t', radius:1 },
+      { points:[[40,12],[44,12],[44,5]], code:'u', radius:1 },
+      { points:[[24,4],[14,4],[14,8],[20,8]], code:'t', radius:1 },
+      { points:[[40,18],[34,18],[34,22]], code:'t', radius:1 }
     ],
     pockets:[
-      { x:5, y:19, w:9, h:6, code:':' },
-      { x:33, y:13, w:9, h:6, code:':' },
-      { x:29, y:2, w:8, h:6, code:'W' },
-      { x:40, y:22, w:7, h:7, code:'W' },
-      { x:29, y:23, w:9, h:5, code:':' },
-      { x:19, y:30, w:8, h:4, code:'3' }
+      { x:10, y:6, w:6, h:5, code:'W' },
+      { x:30, y:6, w:8, h:5, code:'W' },
+      { x:10, y:14, w:8, h:5, code:'W' },
+      { x:30, y:14, w:8, h:3, code:'W' },
+      { x:5, y:20, w:6, h:3, code:':' },
+      { x:38, y:20, w:8, h:3, code:':' }
     ],
     rects:[
-      { x:2, y:3, w:6, h:6, code:'W' },
-      { x:26, y:9, w:4, h:3, code:'s' },
-      { x:43, y:9, w:3, h:8, code:'3' }
+      { x:2, y:3, w:5, h:6, code:'W' },
+      { x:42, y:18, w:5, h:5, code:'W' },
+      { x:21, y:9, w:6, h:1, code:'t' }
     ],
-    decor:[{ on:'O', codes:['3','s'], rate:8, seed:13 }, { on:'O', codes:['W'], rate:32, seed:4 }],
+    decor:[{ on:'O', codes:['3','s'], rate:8, seed:13 }, { on:'O', codes:['W'], rate:30, seed:4 }],
     tiles:[
-      { x:37, y:23, code:'<' }, { x:8, y:22, code:'{' },
-      { x:34, y:14, code:'|' }, { x:22, y:31, code:'(' }
+      { x:34, y:13, code:'<' }, { x:8, y:7, code:'{' },
+      { x:14, y:11, code:'|' }, { x:21, y:21, code:'(' }
     ],
-    doors:[{ x:38, y:8, to:'searoute_tide_cavern', tx:14, ty:18 }],
-    hidden:{ '17,31':{ item:'quickball', count:1 }, '13,23':{ item:'superpotion', count:1 } },
+    doors:[{ x:44, y:5, to:'searoute_tide_cavern', tx:14, ty:18 }],
+    fishingEncounters:[
+      { species:'splashfin',  minL:18, maxL:22, weight:5 },
+      { species:'mistfin',    minL:18, maxL:22, weight:4 },
+      { species:'aquapup',    minL:18, maxL:22, weight:3 },
+      { species:'tideturtle', minL:20, maxL:24, weight:2 },
+      { species:'levifin',    minL:22, maxL:26, weight:1 }
+    ],
+    hidden:{ '7,7':{ item:'quickball', count:1 }, '38,21':{ item:'superpotion', count:1 } },
+    encounters:[
+      { species:'splashfin', minL:18, maxL:22, weight:5 },
+      { species:'mistfin',   minL:18, maxL:22, weight:4 },
+      { species:'aquapup',   minL:18, maxL:22, weight:3 },
+      { species:'galewing',  minL:18, maxL:22, weight:2 },
+      { species:'cavewing',  minL:18, maxL:22, weight:2 },
+      { species:'miasmite',  minL:18, maxL:22, weight:2 }
+    ],
     npcs:[
-      movedNpc('searoute', 0, 38, 17, 'left'),
-      roadTrainer(37, 24, 'left', 'trainer_sailor', 'SAILOR CORA',
+      movedNpc('searoute', 0, 21, 9, 'left'),
+      roadTrainer(34, 22, 'up', 'trainer_sailor', 'SAILOR CORA',
         ["This boardwalk bends with the tide.","Keep your balance and battle!"],
         [['mistfin',21],['splashfin',21],['cavewing',22]], 1180,
-        ["You kept your sea legs.","The tide cave is worth a peek."])
+        ["You kept your sea legs.","The tide cave is worth a peek."]),
+      roadTrainer(14, 11, 'down', 'trainer_picnicker', 'PIER FISHER OBI',
+        ["Reel and battle. Same energy.","Cast off!"],
+        [['splashfin',20],['aquapup',21]], 980,
+        ["The big one always gets away.","So did my team. Go on."])
     ],
-    edges:{ north:{ y:0, to:'harborside', tx:22, ty:32 }, south:{ y:37, to:'summitvale', tx:22, ty:1 } }
+    edges:{ north:{ y:0, to:'harborside', tx:22, ty:32 }, south:{ y:23, to:'summitvale', tx:22, ty:1 } }
   });
 
+  // HIGHSPIRE MOUNTAIN — 48x42 vertical climb. Switchback path zig-zags
+  // between rock walls; summit lookout at top has its own encounter zone.
+  // Reached only from CRESTROCK in the west.
   updateRoute('mountain', {
-    fill:'G', pathCode:'v', pathRadius:1, tags:['route','mountain'],
-    path:[[0,20],[6,20],[6,13],[15,13],[15,7],[28,7],[28,14],[39,14],[39,24],[31,24]],
+    fill:'G', pathCode:'v', pathRadius:1, tags:['route','mountain'], h:42,
+    path:[[0,20],[8,20],[8,30],[20,30],[20,22],[32,22],[32,14],[20,14],[20,6],[36,6]],
     branches:[
-      { points:[[15,13],[20,13],[20,22],[12,22]], code:'v', radius:1 },
-      { points:[[28,14],[35,14],[35,23]], code:'v', radius:1 },
-      { points:[[6,20],[6,29],[15,29]], code:'v', radius:1 },
-      { points:[[6,13],[12,13],[12,8],[15,8],[15,7]], code:'v', radius:1 },
-      { points:[[28,7],[36,7],[36,14],[39,14]], code:'v', radius:1 },
-      { points:[[20,22],[24,22],[24,29],[31,29],[31,24]], code:'v', radius:1 }
+      { points:[[8,30],[5,30],[5,38],[14,38]], code:'v', radius:1 },
+      { points:[[20,22],[12,22],[12,18]], code:'v', radius:1 },
+      { points:[[32,22],[40,22],[40,30],[34,30]], code:'v', radius:1 },
+      { points:[[32,14],[40,14],[40,6],[36,6]], code:'v', radius:1 },
+      { points:[[20,14],[16,14],[16,8]], code:'v', radius:1 },
+      { points:[[20,6],[14,6],[14,2]], code:'v', radius:1 }
     ],
     pockets:[
-      { x:9, y:19, w:9, h:6, code:':' },
-      { x:31, y:19, w:9, h:6, code:':' },
-      { x:11, y:27, w:8, h:5, code:':' },
-      { x:30, y:4, w:8, h:5, code:'2' },
-      { x:23, y:26, w:9, h:5, code:':' }
+      { x:13, y:24, w:7, h:6, code:':' },
+      { x:23, y:16, w:9, h:6, code:':' },
+      { x:23, y:8, w:9, h:6, code:':' },
+      { x:33, y:23, w:7, h:7, code:':' },
+      { x:9, y:33, w:7, h:5, code:':' },
+      { x:30, y:1, w:8, h:5, code:'2' }
     ],
     rects:[
-      { x:2, y:4, w:5, h:7, code:')' },
-      { x:41, y:18, w:4, h:9, code:'(' },
-      { x:18, y:3, w:5, h:3, code:'2' }
+      { x:2, y:24, w:5, h:7, code:')' },
+      { x:42, y:34, w:4, h:7, code:'(' },
+      { x:18, y:1, w:5, h:3, code:'2' },
+      { x:14, y:5, w:6, h:1, code:'h' },
+      { x:14, y:13, w:6, h:1, code:'h' },
+      { x:26, y:21, w:6, h:1, code:'h' }
     ],
     decor:[{ on:'G', codes:['#',')'], rate:10, seed:10 }, { on:'G', codes:['('], rate:13, seed:2 }],
     tiles:[
-      { x:12, y:21, code:'<' }, { x:35, y:13, code:'|' },
-      { x:25, y:28, code:'(' }, { x:6, y:28, code:'(' }
+      { x:12, y:25, code:'<' }, { x:35, y:13, code:'|' },
+      { x:25, y:28, code:'(' }, { x:6, y:34, code:'(' }
     ],
-    hidden:{ '15,29':{ item:'quickball', count:1 }, '34,20':{ item:'greatball', count:1 } },
+    hidden:{ '15,38':{ item:'quickball', count:1 }, '34,30':{ item:'greatball', count:1 }, '37,5':{ item:'maxrevive', count:1 } },
+    encounters:[
+      { species:'pebra',     minL:16, maxL:20, weight:5 },
+      { species:'stoneworm', minL:16, maxL:20, weight:4 },
+      { species:'crysthorn', minL:18, maxL:22, weight:2 },
+      { species:'geistmite', minL:16, maxL:20, weight:2 },
+      { species:'snowox',    minL:18, maxL:22, weight:2 },
+      { species:'draekit',   minL:18, maxL:22, weight:2 },
+      { species:'clawmonk',  minL:16, maxL:20, weight:2 }
+    ],
+    encounterZones:[
+      { x:23, y:8, w:9, h:6, encounters:[
+        { species:'draekit',   minL:20, maxL:24, weight:4 },
+        { species:'clawmonk',  minL:20, maxL:24, weight:3 },
+        { species:'rivetbolt', minL:20, maxL:24, weight:2 }
+      ] },
+      { x:30, y:1, w:8, h:5, encounters:[
+        { species:'galewing', minL:22, maxL:26, weight:5 },
+        { species:'tempestir', minL:22, maxL:26, weight:2 },
+        { species:'breezlet', minL:20, maxL:24, weight:3 }
+      ] }
+    ],
     npcs:[
-      movedNpc('mountain', 0, 35, 23, 'down'),
-      roadTrainer(12, 22, 'right', 'trainer_hiker', 'HIKER BRAM',
+      movedNpc('mountain', 0, 36, 7, 'down'),
+      roadTrainer(20, 26, 'right', 'trainer_hiker', 'HIKER BRAM',
         ["The old climb was too straight for my boots.","Try the switchbacks, then try me!"],
         [['pebra',24],['voltkit',24],['crysthorn',25]], 1360,
-        ["You found the firm footing.","Highspire opens up for careful walkers."])
+        ["You found the firm footing.","Highspire opens up for careful walkers."]),
+      roadTrainer(16, 11, 'right', 'trainer_ace', 'STEEL ASCETIC IRON',
+        ["The summit air is thin and so is your guard.","Battle me to climb on."],
+        [['rivettot',24],['rivetbolt',26]], 1620,
+        ["I tend the rivets up here.","Up you go, traveler."])
     ],
     edges:{ west:{ x:0, to:'crestrock', tx:42, ty:17 } }
   });
 
+  // SUNKISSED BEACH — 48x30 curving coastline with tide pools (each its own
+  // small fishing pool) and a sandbar branch in the upper-right leading to
+  // LIGHTHOUSE ISLE. Reached only from HARBORSIDE in the west.
   updateRoute('beach', {
-    fill:'O', pathCode:'u', pathRadius:1, tags:['route','water'],
-    path:[[0,20],[7,20],[7,12],[17,12],[17,7],[31,7],[31,15],[23,15],[23,25],[39,25]],
+    fill:'O', pathCode:'u', pathRadius:1, tags:['route','water'], h:30,
+    path:[[0,17],[10,17],[10,8],[26,8],[26,17],[36,17],[36,4],[44,4]],
     branches:[
-      { points:[[17,12],[10,12],[10,28],[18,28]], code:'t', radius:1 },
-      { points:[[31,15],[42,15],[42,8]], code:'t', radius:1 },
-      { points:[[23,25],[31,25],[31,31],[38,31]], code:'t', radius:1 },
-      { points:[[7,12],[14,12],[14,7],[17,7]], code:'u', radius:1 },
-      { points:[[31,15],[36,15],[36,25],[31,25]], code:'t', radius:1 },
-      { points:[[10,28],[10,33],[23,33],[23,25]], code:'u', radius:1 }
+      { points:[[10,17],[10,25],[20,25]], code:'u', radius:1 },
+      { points:[[26,17],[26,26],[34,26]], code:'u', radius:1 },
+      { points:[[36,17],[40,17],[40,22],[44,22]], code:'u', radius:1 }
     ],
     pockets:[
-      { x:8, y:24, w:10, h:6, code:':' },
-      { x:27, y:9, w:10, h:6, code:':' },
-      { x:39, y:1, w:8, h:30, code:'W' },
-      { x:12, y:3, w:8, h:5, code:'3' },
-      { x:28, y:27, w:8, h:5, code:':' }
+      { x:13, y:11, w:8, h:5, code:':' },
+      { x:28, y:11, w:6, h:5, code:':' },
+      { x:13, y:20, w:6, h:5, code:'W' },
+      { x:28, y:20, w:5, h:5, code:'W' },
+      { x:38, y:6, w:5, h:5, code:'W' },
+      { x:38, y:27, w:8, h:3, code:'W' }
     ],
     rects:[
-      { x:2, y:24, w:5, h:7, code:'W' },
+      { x:2, y:1, w:8, h:6, code:'W' },
+      { x:42, y:1, w:5, h:3, code:'3' },
       { x:20, y:18, w:5, h:4, code:'3' },
-      { x:43, y:32, w:4, h:4, code:'W' }
+      { x:42, y:11, w:6, h:4, code:'W' }
     ],
     decor:[{ on:'O', codes:['3','s'], rate:8, seed:4 }],
     tiles:[
-      { x:31, y:27, code:'<' }, { x:13, y:27, code:'{' },
-      { x:35, y:16, code:'|' }, { x:22, y:33, code:'(' }
+      { x:34, y:18, code:'<' }, { x:13, y:18, code:'{' },
+      { x:36, y:9, code:'|' }, { x:23, y:26, code:'(' }
     ],
-    hidden:{ '18,28':{ item:'greatball', count:1 }, '38,31':{ item:'quickball', count:1 } },
+    doors:[{ x:44, y:4, to:'lighthouse_isle', tx:0, ty:13 }],
+    fishingEncounters:[
+      { species:'splashfin',  minL:14, maxL:18, weight:5 },
+      { species:'aquapup',    minL:14, maxL:18, weight:4 },
+      { species:'mistfin',    minL:15, maxL:19, weight:3 },
+      { species:'tideturtle', minL:18, maxL:22, weight:2 },
+      { species:'levifin',    minL:20, maxL:24, weight:1 }
+    ],
+    hidden:{ '20,18':{ item:'greatball', count:1 }, '38,17':{ item:'quickball', count:1 }, '44,5':{ item:'sitrusberry', count:1 } },
+    encounters:[
+      { species:'splashfin', minL:14, maxL:18, weight:5 },
+      { species:'aquapup',   minL:14, maxL:18, weight:4 },
+      { species:'mistfin',   minL:14, maxL:18, weight:3 },
+      { species:'cavewing',  minL:14, maxL:18, weight:2 },
+      { species:'galewing',  minL:14, maxL:18, weight:3 }
+    ],
     npcs:[
-      { x:31, y:25, dir:'down', sprite:'npc_girl', name:'BEACHCOMBER RAE',
-        dialog:["Every tide leaves something interesting in a side pocket."] },
-      roadTrainer(31, 28, 'up', 'trainer_ace', 'ACE TRAINER VALE',
+      { x:33, y:17, dir:'down', sprite:'npc_girl', name:'BEACHCOMBER RAE',
+        dialog:["Every tide leaves something interesting in a side pocket.","The lighthouse keeper hands out something good if you reach him."] },
+      roadTrainer(34, 26, 'up', 'trainer_ace', 'ACE TRAINER VALE',
         ["A beach route with loops is perfect footwork practice.","Show me your cleanest battle line."],
         [['galewing',22],['aquapup',23],['breezlet',24]], 1480,
         ["Sharp footwork.","Even optional roads can make a team stronger."])
@@ -2270,42 +2428,64 @@ function applyWorldExpansion(MAPS) {
     edges:{ west:{ x:0, to:'harborside', tx:42, ty:17 } }
   });
 
+  // SUNBLEACH DESERT — 48x36 dunes hub with an oasis (water + fishing), a
+  // ruined arch leading to DESERT_RUINS_ENTRANCE, drift-sand southward
+  // ledges, and the only east-west loop tile back to RODPORT.
   updateRoute('desert', {
     name:'Sunbleach Desert Hub',
-    fill:'J', pathCode:'5', pathRadius:1, tags:['route','ruins'],
-    path:[[0,20],[6,20],[6,13],[16,13],[16,7],[30,7],[30,13],[38,13],[38,20],[47,20]],
+    fill:'J', pathCode:'5', pathRadius:1, tags:['route','ruins'], h:36,
+    path:[[0,20],[8,20],[8,12],[18,12],[18,6],[32,6],[32,14],[40,14],[40,22],[47,22]],
     branches:[
-      { points:[[16,13],[11,13],[11,26],[18,26]], code:'5', radius:1 },
-      { points:[[30,13],[34,13],[34,12]], code:'5', radius:1 },
-      { points:[[38,20],[38,29],[29,29]], code:'5', radius:1 },
-      { points:[[6,13],[13,13],[13,7],[16,7]], code:'5', radius:1 },
-      { points:[[30,7],[42,7],[42,13],[38,13]], code:'5', radius:1 },
-      { points:[[18,26],[23,26],[23,32],[29,32],[29,29]], code:'5', radius:1 }
+      { points:[[8,20],[8,30],[20,30]], code:'5', radius:1 },
+      { points:[[18,12],[12,12],[12,18],[18,18]], code:'5', radius:1 },
+      { points:[[32,6],[40,6],[40,11],[36,11]], code:'5', radius:1 },
+      { points:[[32,14],[28,14],[28,22],[40,22]], code:'5', radius:1 },
+      { points:[[40,22],[40,30],[32,30]], code:'5', radius:1 }
     ],
     pockets:[
-      { x:8, y:23, w:11, h:6, code:':' },
-      { x:28, y:9, w:10, h:6, code:':' },
-      { x:27, y:26, w:10, h:5, code:':' },
-      { x:19, y:15, w:6, h:4, code:'W' },
-      { x:39, y:5, w:7, h:5, code:'3' },
-      { x:20, y:29, w:8, h:5, code:'3' }
+      { x:10, y:24, w:10, h:6, code:':' },
+      { x:33, y:8, w:8, h:5, code:':' },
+      { x:30, y:26, w:8, h:6, code:':' },
+      { x:21, y:14, w:7, h:5, code:'W' },
+      { x:42, y:5, w:5, h:5, code:'3' },
+      { x:22, y:30, w:8, h:5, code:'3' },
+      { x:14, y:24, w:6, h:1, code:'L' }
     ],
     rects:[
       { x:2, y:4, w:7, h:5, code:'3' },
-      { x:41, y:24, w:4, h:7, code:'(' },
-      { x:25, y:16, w:6, h:3, code:')' }
+      { x:41, y:30, w:5, h:5, code:'(' },
+      { x:25, y:9, w:6, h:3, code:')' }
     ],
     decor:[{ on:'J', codes:['3','O'], rate:8, seed:14 }, { on:'J', codes:['('], rate:14, seed:3 }],
     tiles:[
-      { x:28, y:28, code:'<' }, { x:12, y:25, code:'{' },
-      { x:34, y:11, code:'S' }, { x:43, y:8, code:'(' }
+      { x:30, y:28, code:'<' }, { x:14, y:27, code:'{' },
+      { x:36, y:9, code:'S' }, { x:43, y:9, code:'(' }
     ],
-    doors:[{ x:34, y:12, to:'desert_ruins', tx:14, ty:18 }],
-    signs:{ '21,14':'SUNBLEACH DESERT - Oasis, ruins, and the Rodport loop.' },
-    hidden:{ '18,26':{ item:'quickball', count:1 }, '29,29':{ item:'ultraball', count:1 } },
+    doors:[{ x:36, y:11, to:'desert_ruins_entrance', tx:8, ty:11 }],
+    fishingEncounters:[
+      { species:'splashfin', minL:18, maxL:22, weight:4 },
+      { species:'aquapup',   minL:18, maxL:22, weight:3 },
+      { species:'mistfin',   minL:20, maxL:24, weight:2 }
+    ],
+    signs:{ '21,7':'SUNBLEACH DESERT - Oasis, ruins, and the Rodport loop.' },
+    hidden:{ '20,30':{ item:'quickball', count:1 }, '32,30':{ item:'ultraball', count:1 }, '14,18':{ item:'fullheal', count:1 } },
+    encounters:[
+      { species:'zapret',    minL:14, maxL:18, weight:4 },
+      { species:'pebra',     minL:14, maxL:18, weight:5 },
+      { species:'stoneworm', minL:14, maxL:18, weight:3 },
+      { species:'cinderpup', minL:15, maxL:18, weight:3 },
+      { species:'geistmite', minL:14, maxL:18, weight:2 }
+    ],
+    encounterZones:[
+      { x:30, y:26, w:8, h:6, encounters:[
+        { species:'umbrasire', minL:30, maxL:34, weight:2 },
+        { species:'shadefox',  minL:28, maxL:32, weight:4 },
+        { species:'geistmite', minL:18, maxL:22, weight:4 }
+      ] }
+    ],
     npcs:[
-      movedNpc('desert', 0, 29, 20, 'down'),
-      roadTrainer(28, 29, 'up', 'trainer_ruin_maniac', 'RUIN MANIAC SOL',
+      movedNpc('desert', 0, 32, 14, 'down'),
+      roadTrainer(30, 29, 'up', 'trainer_ruin_maniac', 'RUIN MANIAC SOL',
         ["The dunes spiral around old stones out here.","I dig up battles as often as relics."],
         [['stoneworm',33],['crysthorn',34],['mindrop',34]], 1880,
         ["A relic of a victory... yours, not mine.","The loop to Rodport lies beyond the heat."])
@@ -2336,7 +2516,7 @@ function applyWorldExpansion(MAPS) {
   updateExit('summitvale_mart', '5,10', 'summitvale', 19, 9);
   updateExit('summitvale_house', '3,6', 'summitvale', 33, 10);
   MAPS.glimcavern_b1.tags = ['cave'];
-  updateExit('glimcavern_b1', '10,1', 'glimcavern', 37, 9);
+  updateExit('glimcavern_b1', '10,1', 'glimcavern', 38, 6);
 
   MAPS.rodport_dockhouse = makeFlavorInterior('rodport_dockhouse', 'Dock House', 'rodport', 9, 26, {
     x:5, y:4, dir:'down', sprite:'npc_old', name:'CAPTAIN EDA',
@@ -2391,7 +2571,7 @@ function applyWorldExpansion(MAPS) {
     dialog:['Champions like open plazas.','They need room for dramatic pauses.']
   });
 
-  MAPS.route1_hollow = makeSideCave('route1_hollow', 'Route 1 Hollow', 'route1', 37, 10, {
+  MAPS.route1_hollow = makeSideCave('route1_hollow', 'Route 1 Hollow', 'route1', 36, 7, {
     seed:2,
     hidden:{ '23,5':{ item:'greatball', count:1 }, '11,13':{ item:'potion', count:1 } },
     encounters:[
@@ -2400,11 +2580,11 @@ function applyWorldExpansion(MAPS) {
       { species:'glimkit', minL:3, maxL:5, weight:1 }
     ]
   });
-  MAPS.pebblewood_cavern = makeSideCave('pebblewood_cavern', 'Pebblewood Cavern', 'pebblewood', 37, 10, {
+  MAPS.pebblewood_cavern = makeSideCave('pebblewood_cavern', 'Pebblewood Cavern', 'pebblewood', 36, 7, {
     seed:6,
     hidden:{ '23,5':{ item:'cavernball', count:1 }, '11,13':{ item:'greatball', count:1 } }
   });
-  MAPS.frostpeak_ice_cave = makeSideCave('frostpeak_ice_cave', 'Frostpeak Ice Cave', 'frostpeak', 37, 10, {
+  MAPS.frostpeak_ice_cave = makeSideCave('frostpeak_ice_cave', 'Frostpeak Ice Cave', 'frostpeak', 39, 7, {
     seed:11, tags:['cave','snow'],
     hidden:{ '23,5':{ item:'ultraball', count:1 }, '11,13':{ item:'fullheal', count:1 } },
     encounters:[
@@ -2413,7 +2593,7 @@ function applyWorldExpansion(MAPS) {
       { species:'crysthorn', minL:16, maxL:20, weight:2 }
     ]
   });
-  MAPS.searoute_tide_cavern = makeSideCave('searoute_tide_cavern', 'Tide Cavern', 'searoute', 38, 9, {
+  MAPS.searoute_tide_cavern = makeSideCave('searoute_tide_cavern', 'Tide Cavern', 'searoute', 44, 6, {
     seed:15, tags:['cave','water'],
     hidden:{ '23,5':{ item:'cavernball', count:1 }, '11,13':{ item:'quickball', count:1 } },
     encounters:[
@@ -2431,6 +2611,119 @@ function applyWorldExpansion(MAPS) {
       { species:'crysthorn', minL:21, maxL:25, weight:2 }
     ]
   });
+
+  // ----- New optional side branches ----------------------------------
+  // LIGHTHOUSE ISLE — reached via the BEACH sandbar (door at 44,4).
+  // Tiny island with an old keeper who hands out a GREAT BALL once.
+  MAPS.lighthouse_isle = {
+    id:'lighthouse_isle', name:'Lighthouse Isle', tags:['route','water'],
+    tiles:[
+      'WWWWWWWWWWWWWWWWWWWWWWWW',
+      'WWWWWWWWWWWWWWWWWWWWWWWW',
+      'WWWWWWOOOOOOOOOOWWWWWWWW',
+      'WWWWOOuuuuuuuuuuOOOWWWWW',
+      'WWWWOuuuuRRRuuuuuOWWWWWW',
+      'WWWWOuuuuRRRuuuuuOWWWWWW',
+      'WWWWOuuuuBDBuuuuuOWWWWWW',
+      'WWWWOuuuuuuuuuuuuOWWWWWW',
+      'WWWWOuuuuuuuuuuuuOWWWWWW',
+      'WWWWOOuuuuuuuuuuOOWWWWWW',
+      'WWWWWWuuuuuuuuOOWWWWWWWW',
+      'WWWWWWuuuuuuuuWWWWWWWWWW',
+      'WWWWWWuuOOOOOOWWWWWWWWWW',
+      'uuuuuuuOWWWWWWWWWWWWWWWW',
+      'WWWWWWWWWWWWWWWWWWWWWWWW',
+      'WWWWWWWWWWWWWWWWWWWWWWWW'
+    ],
+    npcs:[
+      { x:11, y:7, dir:'down', sprite:'npc_old', name:'KEEPER ALDER',
+        dialog:["You walked the sandbar at low tide!","Take this old GREAT BALL — I have crates of them."] }
+    ],
+    fishingEncounters:[
+      { species:'tideturtle', minL:18, maxL:24, weight:4 },
+      { species:'levifin',    minL:20, maxL:26, weight:3 },
+      { species:'mistfin',    minL:18, maxL:24, weight:3 }
+    ],
+    signs:{ '11,9':'LIGHTHOUSE ISLE - The keeper waits inside.' },
+    hidden:{ '4,13':{ item:'greatball', count:1 } },
+    edges:{ west:{ x:0, to:'beach', tx:43, ty:5 } }
+  };
+
+  // ROUTE 2 RIVER BEND — small fishing dock east of route2 (door at 40,6).
+  // One rare WATER mon spawn on the dock pool.
+  MAPS.route2_river_bend = {
+    id:'route2_river_bend', name:'River Bend', tags:['route','water'],
+    tiles:[
+      'KKKKKKKKKKKKKKKKKKKKKKKK',
+      'KK1cKKKKKKKKKKKKKKKKKKKK',
+      'K..,,,,,,,,,,,,,,,,,..KK',
+      'K..,KKKKKKKKKKKKKK,,..KK',
+      'K..,KK..KKKKKKK..,,..KKK',
+      'K..,KK.S......,,..KKKKKK',
+      'KX,,,...........,..KKKKK',
+      'K..,KK..........,..KKKKK',
+      'K..,KK,,,..KK..,,..KKKKK',
+      'K..,KKK,WWWWWWW.,,...KKK',
+      'K.K,K,K,WWWWWWW.,,..KKKK',
+      'K.K,K,K,WWWWWWW.,,..KKKK',
+      'K..K,K,,WWWWWWW.,,...KKK',
+      'KKK,,K,KKKKKKK,,,...KKKK',
+      'KKKKKKKKKKKKKKKKKKKKKKKK'
+    ],
+    npcs:[
+      { x:8, y:6, dir:'down', sprite:'npc_youth', name:'BEND ANGLER PIKE',
+        dialog:["I lost a big one to a Tidalwhal once.","Out here. With my own rod. Try yours."] }
+    ],
+    signs:{ '7,5':'RIVER BEND - The current is faster on this side.' },
+    fishingEncounters:[
+      { species:'splashfin',  minL:7,  maxL:10, weight:5 },
+      { species:'tidalwhal',  minL:18, maxL:22, weight:1 },
+      { species:'mistfin',    minL:8,  maxL:11, weight:3 }
+    ],
+    encounters:[
+      { species:'aquapup',   minL:6, maxL:9, weight:5 },
+      { species:'splashfin', minL:6, maxL:9, weight:4 }
+    ],
+    hidden:{ '20,4':{ item:'sitrusberry', count:1 } },
+    edges:{ west:{ x:1, to:'route2', tx:39, ty:7 } }
+  };
+
+  // DESERT RUINS ENTRANCE — outdoor courtyard between DESERT and the
+  // existing DESERT_RUINS interior. One trainer + two hidden items.
+  MAPS.desert_ruins_entrance = {
+    id:'desert_ruins_entrance', name:'Ruins Entrance', tags:['route','ruins'],
+    tiles:[
+      'JJJJJJJJJJJJJJJJJJJJJJJJ',
+      'JJJ5555555555555555555JJ',
+      'JJ55))))555555))))))555J',
+      'JJ5))JJJ55555JJJJ555))5J',
+      'X5555555555555555555555J',
+      'JJ5)JJ555555JJJJJJ))555J',
+      'JJ5)JJ5SS5JJJ))))JJ5555J',
+      'JJ5)JJ55SS5JJ)JJJJ555JJJ',
+      'JJ5)))J55555JJJJ))))55JJ',
+      'JJ55555555555555JJ)))JJJ',
+      'JJ555555555555555555555J',
+      'JJJ555555555D5555555JJJJ',
+      'JJJJJJJJJJJJJJJJJJJJJJJJ',
+      'JJJJJJJJJJJJJJJJJJJJJJJJ'
+    ],
+    npcs:[
+      { x:13, y:4, dir:'down', sprite:'trainer_ruin_maniac', name:'DUSTSTONE GUARDIAN',
+        dialog:["The ruins do not welcome strangers.","Earn your passage in battle."],
+        trainer:{ team:[['stoneworm',26],['crysthorn',27]], reward:1640,
+                  defeat:["Pass freely. The dust honors you."] } }
+    ],
+    signs:{ '7,6':'RUINS ENTRANCE - Heat shimmers on the door stones.' },
+    encounters:[
+      { species:'geistmite', minL:18, maxL:22, weight:4 },
+      { species:'stoneworm', minL:18, maxL:22, weight:3 },
+      { species:'crysthorn', minL:19, maxL:23, weight:2 }
+    ],
+    hidden:{ '20,1':{ item:'cavernball', count:1 }, '21,5':{ item:'fullheal', count:1 } },
+    doors:{ '12,11':{ to:'desert_ruins', x:14, y:18 } },
+    edges:{ west:{ x:0, to:'desert', tx:37, ty:11 } }
+  };
 
   for (const map of Object.values(MAPS)) {
     if (!map.tags) map.tags = map.interior ? ['interior'] : ['route'];

@@ -66,10 +66,10 @@ body[data-graphics="gba_firered"] {
 
 body[data-graphics="ds_diamond"] {
   --shell-bg: linear-gradient(180deg, #1b1d24 0%, #0c0d12 62%, #030407 100%);
-  --shell-top: linear-gradient(180deg, #282b34 0%, #0d0f16 100%);
-  --shell-top-text: #c9e4ff;
-  --shell-top-shadow: #02030a;
-  --shell-title: 'pokerod ds';
+  --shell-top: linear-gradient(180deg, #7d8fa8 0%, #475266 60%, #232a38 100%);
+  --shell-top-text: #fafcff;
+  --shell-top-shadow: #060a14;
+  --shell-title: 'POKEROD DS';
   --bezel-bg: linear-gradient(180deg, #090a0e 0%, #020306 100%);
   --bezel-line: #3f4654;
   --bezel-label: #7fb6ff;
@@ -79,6 +79,13 @@ body[data-graphics="ds_diamond"] {
   --abtn-b-bg: radial-gradient(circle at 35% 30%, #4a4f5c 0%, #11141b 56%, #020306 100%);
   --abtn-b-shadow: #010104;
 }
+
+/* Per-mode bezel sub-labels (the small "PR-DOT MATRIX" line beneath the
+   canvas). Each shell gets its own marketing phrase. */
+body[data-graphics="gb_red"]      #screen::after { content: 'GAME BOY'; letter-spacing: 4px; }
+body[data-graphics="gbc_yellow"]  #screen::after { content: 'GAME BOY COLOR'; letter-spacing: 3px; }
+body[data-graphics="gba_firered"] #screen::after { content: 'PR-DOT MATRIX'; }
+body[data-graphics="ds_diamond"]  #screen::after { content: 'NINTENDO DS'; letter-spacing: 4px; }
 
 * { box-sizing: border-box; }
 html, body {

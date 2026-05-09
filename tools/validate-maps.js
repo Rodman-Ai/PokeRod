@@ -11,10 +11,15 @@ require('../js/items.js');
 const { MAPS, TILE_PROPS, tileAt } = window.PR_MAPS;
 const CREATURES = window.PR_DATA.CREATURES;
 
-const REQUIRED_48x38 = [
+// Routes may have varied dimensions (each one designed to fit its theme),
+// but still need to be at least 24x18 so the camera/HUD fits, and use width
+// 48 so city <-> route x coordinates line up. Cities stay locked at 44x34.
+const REQUIRED_ROUTES = [
   'route1','route2','pebblewood','glimcavern','frostpeak',
   'searoute','mountain','beach','desert'
 ];
+const ROUTE_REQUIRED_W = 48;
+const ROUTE_MIN_H = 18;
 const REQUIRED_44x34 = [
   'rodport','brindale','woodfall','crestrock','frostmere',
   'harborside','summitvale'
@@ -166,8 +171,8 @@ for (const [id, map] of Object.entries(MAPS)) {
       if (!TILE_PROPS[code]) fail(`${id}: unknown tile ${JSON.stringify(code)} at ${x},${y}`);
     }
   }
-  if (REQUIRED_48x38.includes(id) && (d.w !== 48 || d.h !== 38)) {
-    fail(`${id}: expected 48x38, got ${d.w}x${d.h}`);
+  if (REQUIRED_ROUTES.includes(id) && (d.w !== ROUTE_REQUIRED_W || d.h < ROUTE_MIN_H)) {
+    fail(`${id}: expected ${ROUTE_REQUIRED_W}x>=${ROUTE_MIN_H}, got ${d.w}x${d.h}`);
   }
   if (REQUIRED_44x34.includes(id) && (d.w !== 44 || d.h !== 34)) {
     fail(`${id}: expected 44x34, got ${d.w}x${d.h}`);
