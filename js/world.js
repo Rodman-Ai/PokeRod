@@ -1539,6 +1539,24 @@
     return n;
   };
 
+  // True when the only walkable neighbour the player has is the one
+  // currently occupied by `blocker`. Used by tryMove to allow swap-past
+  // when the player would otherwise be trapped in a building pocket.
+  World.prototype._playerEscapingThrough = function(blocker) {
+    const p = this.player;
+    for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const ax = p.x + dx, ay = p.y + dy;
+      if (ax === blocker.x && ay === blocker.y) continue;
+      const code = this.tileAt(ax, ay);
+      const props = window.PR_MAPS.TILE_PROPS[code];
+      if (!props) continue;
+      if (props.walk !== true && props.walk !== 'south') continue;
+      if (this.npcBlockerAt(ax, ay)) continue;
+      return false; // there's another open neighbour — not trapped
+    }
+    return true;
+  };
+
   World.prototype.tryMove = function(dir) {
     if (this.anim.moving) return;
     const p = this.player;
@@ -1579,6 +1597,25 @@
             && this.state.onSign) {
           const msg = blocker.gate.message;
           this.state.onSign(Array.isArray(msg) ? msg[0] : (msg || 'The way is blocked.'));
+          return;
+        }
+        // Trap escape: if the only direction the player can step from
+        // their current tile is *into* this NPC (every other neighbour
+        // is non-walkable or blocked by another NPC), let them push
+        // past — the NPC swaps to the player's tile so the player can
+        // get out of the pocket. Gates / trainers / shop NPCs above
+        // already returned, so this only applies to ordinary villagers
+        // and story home characters.
+        if (this._playerEscapingThrough(blocker)) {
+          if (blocker.anim) blocker.anim.moving = false;
+          blocker.x = p.x;
+          blocker.y = p.y;
+          // Face the NPC back the way the player came so the displacement
+          // looks intentional rather than a bug.
+          const opp = { up:'down', down:'up', left:'right', right:'left' };
+          blocker.dir = opp[dir] || blocker.dir;
+          this.startMove(p.x, p.y, nx, ny, 0.16);
+          return;
         }
         return;
       }
