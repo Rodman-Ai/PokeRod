@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.45.1';
-  const BUILD = '2026.05.09-119';
+  const VERSION = 'v0.45.2';
+  const BUILD = '2026.05.09-120';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -512,16 +512,31 @@
     ] },
     { kind:'player', lines:[
       'The world of POKEROD awaits!',
-      'Press Z to begin.'
+      'Press A to begin.'
     ] }
   ];
 
+  // Pre-wrap each page's lines to a fixed column width so long copy
+  // doesn't overflow the dialog box at the bottom of the intro. Cached
+  // on the page object the first time it's needed.
+  function introWrappedRows(page) {
+    if (!page._wrapped) {
+      const rows = [];
+      for (const line of page.lines || []) {
+        const w = (window.PR_UI && window.PR_UI.wrap) ? window.PR_UI.wrap(line, 32) : [line];
+        for (const r of w) rows.push(r);
+      }
+      page._wrapped = rows;
+      page._wrappedJoined = rows.join('\n');
+    }
+    return page;
+  }
   function updateIntro(dt) {
     const I = window.PR_INPUT;
     state.intro.charT += dt * 60;
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
-      const page = INTRO_PAGES[state.intro.page];
-      const fullLen = page.lines.join('\n').length;
+      const page = introWrappedRows(INTRO_PAGES[state.intro.page]);
+      const fullLen = page._wrappedJoined.length;
       if (state.intro.charT < fullLen) {
         state.intro.charT = fullLen + 999;
         return;
@@ -564,16 +579,26 @@
     // Title bar.
     window.PR_UI.drawText(ctx, 'POKEROD', VIEW_W/2 - 21, 6, '#f0b03a');
 
-    // Text area at the bottom.
+    // Text area at the bottom. Render the page's PRE-WRAPPED rows
+    // (computed by introWrappedRows so long lines like "Some live wild;
+    // others walk with friends." don't overflow the box). The type-on
+    // effect respects line breaks: charT counts chars across the
+    // wrapped joined string, and we draw row-by-row up to that cursor.
+    introWrappedRows(page);
+    const rows = page._wrapped;
+    const fullJoined = page._wrappedJoined;
     const x = 8, y = VIEW_H - 56, w = VIEW_W - 16, h = 50;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    const fullText = page.lines.join('\n');
-    const shown = fullText.slice(0, Math.min(fullText.length, state.intro.charT|0));
-    window.PR_UI.drawText(ctx, shown, x + 6, y + 6, '#202020');
+    const cursor = Math.min(fullJoined.length, state.intro.charT | 0);
+    let shown = fullJoined.slice(0, cursor);
+    const visibleRows = shown.split('\n');
+    for (let i = 0; i < visibleRows.length; i++) {
+      window.PR_UI.drawText(ctx, visibleRows[i], x + 6, y + 6 + i * 10, '#202020');
+    }
     // Page indicator.
     window.PR_UI.drawText(ctx, (state.intro.page+1) + '/' + INTRO_PAGES.length,
       x + w - 22, y + h - 10, '#808080');
-    if (state.intro.charT >= fullText.length) {
+    if (state.intro.charT >= fullJoined.length) {
       const t = (performance.now() / 250) | 0;
       if (t % 2 === 0) {
         ctx.fillStyle = '#202020';
