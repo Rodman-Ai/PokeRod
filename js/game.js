@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.44.0';
-  const BUILD = '2026.05.09-116';
+  const VERSION = 'v0.44.1';
+  const BUILD = '2026.05.09-117';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1569,21 +1569,24 @@
     });
     // Update v.idx if it points outside the (re-sorted) list.
     if (v.idx >= ordered.length) v.idx = 0;
-    // Window the list to 7 visible rows so it fits the screen.
-    const rows = 7;
+    // Window the list to 6 visible rows. Each row is two text lines
+    // (name + desc) with the selectBar sized to ONLY cover the name
+    // so the gray description below sits cleanly outside the highlight.
+    const rows = 6;
+    const rowH = 18;
     const start = Math.max(0, Math.min(ordered.length - rows, v.idx - 3));
     for (let r = 0; r < rows; r++) {
       const i = start + r;
       if (i >= ordered.length) break;
       const e = ordered[i];
-      const cy = y + 28 + r * 16;
-      if (i === v.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 16, true);
+      const cy = y + 28 + r * rowH;
+      if (i === v.idx) window.PR_UI.selectBar(ctx, x + 4, cy - 2, w - 8, 11, true);
       const statusMark = e.status === 'done' ? '*' :
                         e.status === 'ready' ? '!' : '.';
       const statusColor = e.status === 'done' ? '#208830' :
                           e.status === 'ready' ? '#c84020' : '#202020';
       window.PR_UI.drawText(ctx, statusMark + ' ' + e.def.name.slice(0, 24), x + 8, cy, statusColor);
-      window.PR_UI.drawText(ctx, e.def.desc.slice(0, 36), x + 8, cy + 8, '#806040');
+      window.PR_UI.drawText(ctx, e.def.desc.slice(0, 36), x + 8, cy + 9, '#806040');
     }
   }
 
