@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.47.0';
-  const BUILD = '2026.05.09-126';
+  const VERSION = 'v0.48.0';
+  const BUILD = '2026.05.09-127';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -246,16 +246,6 @@
     // counter only ticks while the player is actually IN their save.
     if (state.mode !== 'title' && state.mode !== 'slots' && state.player && state.player.stats) {
       state.player.stats.timePlayed = (state.player.stats.timePlayed || 0) + dt;
-    }
-    // Global: Select toggles audio mute, except in the Pokedex
-    // where it cycles the all/seen/got filter (handled in updateDex).
-    if (state.mode !== 'dex' && window.PR_INPUT.consumePressed('Shift')) {
-      const A = window.PR_AUDIO;
-      if (A) {
-        A.unlock();
-        A.setMuted(!A.isMuted());
-        showFlash(A.isMuted() ? 'MUTED' : 'AUDIO ON');
-      }
     }
     if (updateKonamiCode()) return;
     if (state.konamiArmed && state.mode === 'battle' && state.battle && state.battle.forceWin) {
@@ -1246,8 +1236,12 @@
   // ---------- Pause menu ----------
   const MENU_ICONS = {
     MAP:'map', DEX:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
-    PROFILE:'profile', QUEST:'map', PVP:'party', SETTINGS:'gear', SAVE:'save', EXIT:'x'
+    PROFILE:'profile', QUEST:'map', PVP:'party', ERA:'gear',
+    SETTINGS:'gear', SAVE:'save', EXIT:'x'
   };
+  // Short labels for the in-menu ERA toggle (full GRAPHICS_LABELS like
+  // 'GBA FIRERED' don't fit in the 68px-wide menu cells).
+  const ERA_ABBREV = { gb_red:'GB', gbc_yellow:'GBC', gba_firered:'GBA', ds_diamond:'DS' };
 
   function reducedMotion() {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1260,7 +1254,7 @@
     }
   }
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','ERA','SETTINGS','SAVE','EXIT'] };
     state.mode = 'menu';
     startMenuAnim();
   }
@@ -1313,6 +1307,15 @@
         openQuests();
       } else if (opt === 'PVP') {
         startRivalDuel();
+      } else if (opt === 'ERA') {
+        // Single-tap toggle: cycle to the next era and apply
+        // immediately. No submenu; the player sees the new label
+        // (and the new visual style) without leaving the menu.
+        const stepIdx = GRAPHICS_STEPS.indexOf(state.settings.graphics);
+        state.settings.graphics = GRAPHICS_STEPS[(stepIdx + 1) % GRAPHICS_STEPS.length];
+        applySettings();
+        if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+        window.PR_SFX && window.PR_SFX.play('confirm');
       }
     }
   }
@@ -1362,7 +1365,10 @@
       const active = i === m.idx;
       window.PR_UI.selectBar(ctx, cx, cy - 2, cellW, 13, active);
       window.PR_UI.icon(ctx, MENU_ICONS[m.options[i]], cx + 4, cy, active ? '#1a0204' : '#385890');
-      window.PR_UI.drawText(ctx, m.options[i], cx + 16, cy + 2, active ? '#1a0204' : '#202020');
+      const label = m.options[i] === 'ERA'
+        ? 'ERA: ' + (ERA_ABBREV[state.settings && state.settings.graphics] || '?')
+        : m.options[i];
+      window.PR_UI.drawText(ctx, label, cx + 16, cy + 2, active ? '#1a0204' : '#202020');
     }
     // Currently equipped trinket (if any), shown beneath the menu list.
     const eq = state.player.equipment;
@@ -1596,7 +1602,8 @@
     textSpeed: 'normal', // slow | normal | fast
     reducedMotion: false,
     colorblind: false,
-    dayNightCycle: true
+    dayNightCycle: true,
+    mute: false
   };
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
@@ -1618,6 +1625,13 @@
     if (VOL_STEPS.indexOf(state.settings.sfxVol) === -1) state.settings.sfxVol = SETTINGS_DEFAULTS.sfxVol;
     if (VOL_STEPS.indexOf(state.settings.musicVol) === -1) state.settings.musicVol = SETTINGS_DEFAULTS.musicVol;
     if (TEXT_SPEED_STEPS.indexOf(state.settings.textSpeed) === -1) state.settings.textSpeed = SETTINGS_DEFAULTS.textSpeed;
+    // First-boot reconciliation: if state.settings.mute hasn't been
+    // explicitly set yet, mirror the live audio state so a player who
+    // muted before this setting existed isn't surprised on reload.
+    if (typeof state.settings.mute !== 'boolean') {
+      const A = window.PR_AUDIO;
+      state.settings.mute = !!(A && A.isMuted && A.isMuted());
+    }
   }
 
   function applySettings() {
@@ -1626,6 +1640,9 @@
     if (A) {
       if (A.sfxGain)   A.sfxGain.gain.value   = VOL_VALUES[state.settings.sfxVol];
       if (A.musicGain) A.musicGain.gain.value = VOL_VALUES[state.settings.musicVol] * 0.6;
+    }
+    if (window.PR_AUDIO && window.PR_AUDIO.setMuted) {
+      window.PR_AUDIO.setMuted(!!state.settings.mute);
     }
     if (window.PR_ATLAS && window.PR_ATLAS.setPreset) {
       window.PR_ATLAS.setPreset(state.settings.graphics || SETTINGS_DEFAULTS.graphics);
@@ -1644,14 +1661,16 @@
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
+  // GRAPHICS / era now lives on the START menu as a one-tap toggle —
+  // see the 'ERA' option below. Settings keeps audio + accessibility.
   const SETTINGS_ROWS = [
-    { key:'graphics',      label:'GRAPHICS',    type:'enum', steps:GRAPHICS_STEPS, labels:GRAPHICS_LABELS },
-    { key:'sfxVol',        label:'SFX VOLUME',   type:'enum', steps:VOL_STEPS },
-    { key:'musicVol',      label:'MUSIC VOLUME', type:'enum', steps:VOL_STEPS },
-    { key:'textSpeed',     label:'TEXT SPEED',   type:'enum', steps:TEXT_SPEED_STEPS },
+    { key:'mute',          label:'MUTE',           type:'bool' },
+    { key:'sfxVol',        label:'SFX VOLUME',     type:'enum', steps:VOL_STEPS },
+    { key:'musicVol',      label:'MUSIC VOLUME',   type:'enum', steps:VOL_STEPS },
+    { key:'textSpeed',     label:'TEXT SPEED',     type:'enum', steps:TEXT_SPEED_STEPS },
     { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
-    { key:'colorblind',    label:'COLOR-BLIND', type:'bool' },
-    { key:'dayNightCycle', label:'DAY/NIGHT', type:'bool' }
+    { key:'colorblind',    label:'COLOR-BLIND',    type:'bool' },
+    { key:'dayNightCycle', label:'DAY/NIGHT',      type:'bool' }
   ];
 
   function updateSettings() {

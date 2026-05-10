@@ -174,9 +174,10 @@ html, body {
 }
 
 #screen-bottom { display: none; }
-body[data-graphics="ds_diamond"] #app::before { display: none; }
-/* Top-screen margin matches the side gap (~4vw) so the bezel
-   sits inside an even frame on portrait phones. */
+/* In DS Diamond mode the #app::before title banner ('POKEROD DS') is
+   left visible — same as in non-DS modes — so the top screen sits at
+   the same y-position as the single screen in PR-DOT MATRIX / GBC /
+   GB. Without the banner the top screen used to ride too high. */
 body[data-graphics="ds_diamond"] #screen { margin: clamp(10px, 4vw, 28px) auto 0; }
 body[data-graphics="ds_diamond"] #screen-bottom {
   /* Height is the controlling dimension so the 2:1 ratio is always
