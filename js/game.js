@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.45.5';
-  const BUILD = '2026.05.09-123';
+  const VERSION = 'v0.46.0';
+  const BUILD = '2026.05.09-124';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -992,7 +992,17 @@
       });
       return;
     }
-    openDialog(npc.dialog || ['...']);
+    // Rotating banter pool: archetype lines (from npc_chatter.js) plus
+    // the NPC's own per-character lines (kept in maps.js for personality)
+    // — one random pick per interaction so pressing A always feels
+    // fresh. Sequential dialog is reserved for trainers / shops /
+    // healers / starter slots / gates / story homes — they all return
+    // earlier in handleNpcInteract.
+    if (window.PR_NPC_CHATTER && window.PR_NPC_CHATTER.pickLine) {
+      openDialog([window.PR_NPC_CHATTER.pickLine(npc)]);
+    } else {
+      openDialog(npc.dialog || ['...']);
+    }
   }
 
   function healAtCenter() {

@@ -261,6 +261,43 @@ for (const [id, map] of Object.entries(MAPS)) {
   }
 }
 
+// Plain-NPC sprite keys must have an archetype mapping in
+// js/npc_chatter.js so handleNpcInteract's rotating banter pool picks
+// up the right voice. NPCs with a special role (trainer / shop /
+// healer / starter / gate / story home) are excluded — they bypass the
+// rotation. Missing sprite keys silently fall back to the 'townie'
+// pool, which is fine; we just want a heads-up so a new sprite gets a
+// proper archetype assignment in the same PR.
+const SPRITE_TO_ARCHETYPE = (function() {
+  const src = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'js', 'npc_chatter.js'), 'utf8'
+  );
+  const m = src.match(/const SPRITE_TO_ARCHETYPE = \{([\s\S]*?)\};/);
+  if (!m) return {};
+  const out = {};
+  for (const part of m[1].split(',')) {
+    const kv = part.match(/([a-zA-Z_]+)\s*:\s*'([a-zA-Z]+)'/);
+    if (kv) out[kv[1]] = kv[2];
+  }
+  return out;
+})();
+const archetypeWarnings = new Set();
+for (const id of Object.keys(MAPS)) {
+  const map = MAPS[id];
+  if (!map.npcs) continue;
+  for (const npc of map.npcs) {
+    if (!npc.sprite) continue;
+    if (npc.trainer || npc.shop || npc.healer || npc.starter ||
+        npc.ballSlot !== undefined || npc.gate || npc.storyId) continue;
+    if (npc.archetype) continue;
+    if (!SPRITE_TO_ARCHETYPE[npc.sprite]) archetypeWarnings.add(npc.sprite);
+  }
+}
+if (archetypeWarnings.size) {
+  console.warn('warn: sprite keys without archetype mapping (will fall back to townie):',
+    Array.from(archetypeWarnings).sort().join(', '));
+}
+
 if (errors.length) {
   console.error(errors.join('\n'));
   process.exit(1);
