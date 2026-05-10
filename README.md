@@ -86,3 +86,5 @@ This project ships no third-party assets. Visual assets are generated from
 JavaScript canvas art into four atlas families such as `assets/atlas.png`,
 `assets/atlas-gb-red.png`, and matching JSON metadata; no external fonts,
 images, or audio are loaded.
+
+See `BACKLOG.md` for the prioritised feature backlog.
