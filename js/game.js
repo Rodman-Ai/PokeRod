@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.45.3';
-  const BUILD = '2026.05.09-121';
+  const VERSION = 'v0.45.4';
+  const BUILD = '2026.05.09-122';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -153,7 +153,16 @@
   }
 
   function startNewGame() {
-    window.PR_SAVE.clear();
+    // Pick the first empty slot for the new run; fall back to slot 0 if
+    // all three are taken (the slot picker still lets the player switch
+    // afterward). Clear ONLY that slot — never wipe the other saves.
+    // Older code called PR_SAVE.clear() with no argument, which nuked
+    // every slot plus the legacy + last-slot pointers.
+    const slotInfo = window.PR_SAVE.slotInfo();
+    const free = slotInfo.find(s => s.empty);
+    const slot = free ? free.slot : 0;
+    window.PR_SAVE.clear(slot);
+    state.activeSlot = slot;
     // Spawn on the cottage-row path just south of player_house's
     // door tile in the post-redesign rodport (player_house is at
     // x:3,y:6,w:7 with door at (6,9) → walkable spur at (6,11)).

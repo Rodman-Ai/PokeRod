@@ -481,11 +481,18 @@
       openSceneStep(state);
     } else if (step.kind === 'gift') {
       const items = window.PR_ITEMS;
-      if (items && items.add) items.add(state, step.item, step.count || 1);
+      const count = step.count || 1;
+      if (items && items.add) items.add(state, step.item, count);
       const def = items && items.ITEMS && items.ITEMS[step.item];
       const name = (def && def.name) || step.item;
-      const lines = [(charName ? charName + ': ' : '') + (step.text || ('Take this ' + name + '!'))];
+      const lines = [
+        (charName ? charName + ': ' : '') + (step.text || ('Take this ' + name + '!')),
+        'Got ' + count + ' ' + name + '!'
+      ];
       if (window.PR_SFX) window.PR_SFX.play('confirm');
+      // Flash banner so the player can't miss the gift even if they
+      // tap-mash through the dialog.
+      if (state.showFlash) state.showFlash('GOT ' + count + ' ' + name.toUpperCase() + '!');
       window.PR_GAME.openDialog(lines, () => {
         cs.sceneIdx++;
         if (state.cutscene === cs) openSceneStep(state);
