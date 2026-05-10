@@ -984,7 +984,7 @@
   Battle.prototype.drawMenu = function(ctx) {
     const x = 6, y = VIEW_H - 48, w = VIEW_W - 12, h = 44;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
-    const opts = ['FIGHT','RUN','PARTY','BALL'];
+    const opts = ['FIGHT','RUN','PARTY','ITEMS'];
     for (let i = 0; i < 4; i++) {
       const cx = x + 8 + (i % 2) * ((w - 16) / 2);
       const cy = y + 6 + Math.floor(i / 2) * 18;

@@ -122,11 +122,14 @@
       if (!b || !b.chooseMove) return;
       window.PR_SFX && window.PR_SFX.play('confirm');
       b.chooseMove(z.idx);
-    } else if (z.kind === 'cancel') {
-      const b = state.battle;
-      if (!b || !b.cancelMenu) return;
-      window.PR_SFX && window.PR_SFX.play('cancel');
-      b.cancelMenu();
+    } else if (z.kind === 'items') {
+      // Bottom-screen ITEMS button (replaces the old CANCEL button).
+      // Opens the bag from the battle main menu so phone players can
+      // get to potions / balls without diving through the battle menu.
+      // Keyboard X/B still cancels — this button is purely additive.
+      if (!window.PR_GAME || !window.PR_GAME.openBagFromBattle) return;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      window.PR_GAME.openBagFromBattle();
     }
   }
 
@@ -355,23 +358,25 @@
         hitZones.push({ id, kind:'move', idx:i, x, y, w:MOVE_TILE_W, h:MOVE_TILE_H });
       }
     }
-    // Cancel button (only meaningful from 'fight' phase; mirrors B/X).
-    const canCancel = phase === 'fight' || phase === 'party';
-    const cancelPressed = pressedTile === 'cancel';
-    ctx.fillStyle = canCancel ? '#1a1426' : '#3a3848';
+    // ITEMS button (replaces the old CANCEL button). Active only on
+    // the main battle menu — items from the fight/party sub-menus
+    // would be confusing. Keyboard X/B still cancels in those phases.
+    const canItems = phase === 'menu';
+    const itemsPressed = pressedTile === 'items';
+    ctx.fillStyle = canItems ? '#1a2618' : '#3a4838';
     ctx.fillRect(CANCEL_X, CANCEL_Y, CANCEL_W, CANCEL_H);
-    const cgrd = ctx.createLinearGradient(CANCEL_X, CANCEL_Y, CANCEL_X, CANCEL_Y + CANCEL_H);
-    cgrd.addColorStop(0, canCancel ? (cancelPressed ? '#3868b8' : '#5890e8') : '#7080a0');
-    cgrd.addColorStop(1, canCancel ? '#284878' : '#505c70');
-    ctx.fillStyle = cgrd;
+    const igrd = ctx.createLinearGradient(CANCEL_X, CANCEL_Y, CANCEL_X, CANCEL_Y + CANCEL_H);
+    igrd.addColorStop(0, canItems ? (itemsPressed ? '#3a8838' : '#5cb85c') : '#7090a0');
+    igrd.addColorStop(1, canItems ? '#2a6028' : '#505c70');
+    ctx.fillStyle = igrd;
     ctx.fillRect(CANCEL_X + 1, CANCEL_Y + 1, CANCEL_W - 2, CANCEL_H - 2);
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fillRect(CANCEL_X + 2, CANCEL_Y + 2, CANCEL_W - 4, 1);
-    const cancelLabel = 'CANCEL';
-    const cw = window.PR_UI.textWidth(cancelLabel);
-    window.PR_UI.drawText(ctx, cancelLabel, CANCEL_X + (CANCEL_W - cw) / 2 | 0, CANCEL_Y + 3, '#fff8e0');
-    if (canCancel) {
-      hitZones.push({ id:'cancel', kind:'cancel', x:CANCEL_X, y:CANCEL_Y, w:CANCEL_W, h:CANCEL_H });
+    const itemsLabel = 'ITEMS';
+    const cw = window.PR_UI.textWidth(itemsLabel);
+    window.PR_UI.drawText(ctx, itemsLabel, CANCEL_X + (CANCEL_W - cw) / 2 | 0, CANCEL_Y + 3, '#fff8e0');
+    if (canItems) {
+      hitZones.push({ id:'items', kind:'items', x:CANCEL_X, y:CANCEL_Y, w:CANCEL_W, h:CANCEL_H });
     }
   }
 
