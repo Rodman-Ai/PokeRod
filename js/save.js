@@ -21,6 +21,12 @@
       time: Date.now(),
       player: {
         name: state.player.name,
+        // Profile favourites set during the new-game intake (newprofile
+        // mode). They feed openDialog's {color}/{food}/{animal} token
+        // substitution and need to round-trip across save/reload.
+        favColor: state.player.favColor,
+        favFood: state.player.favFood,
+        favAnimal: state.player.favAnimal,
         map: state.player.map,
         x: state.player.x,
         y: state.player.y,

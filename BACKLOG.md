@@ -60,15 +60,18 @@ codes / spectator mode**, **bestiary completion percentages with
 rewards**, **avatar customisation** (clothes, hat, hair, skin),
 **birthday creature variants**, **random daily encounter forecast**.
 
-## Already shipped (as of v0.45.2 / build #120)
+## Already shipped (as of v0.49.1 / build #131)
 
 - Tile-based overworld with follow camera, day/night cycle, animated
-  water, ambient creatures, biome particles, **11 weather kinds** (rain
-  / sleet / snow tiers / hail / thunder / tornado / hurricane /
-  overcast).
+  water, ambient creatures, biome particles, **8 weather kinds** (rain
+  / sleet / snow / hail / thunder / hurricane / overcast / fog) across
+  **30 named presets** (drizzle, monsoon, lake-effect, whiteout,
+  sea-fog, smog, etc.). Tornado retired as a weather kind; its funnel
+  render lives on as a battle move effect.
 - Turn-based battles, 18-type chart, status effects, stat stages,
-  priority, **per-type + per-move VFX (18 types + 11 signature
-  overrides)**, critical-hit pulse on DS.
+  priority, **per-type + per-move VFX (18 types + 13 signature
+  overrides, including a gust / airslash twister)**, critical-hit
+  pulse on DS.
 - 77 hand-pixeled creatures across **4 graphics tiers** (GB Red, GBC
   Yellow, GBA FireRed, DS Diamond).
 - 5 ball types, hidden items, **fishing minigame** (A=fish, B=surf),
