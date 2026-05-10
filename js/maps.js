@@ -801,7 +801,7 @@ const MAPS = {
   },
 
   woodfall: {
-    id:'woodfall', name:'Woodfall Village', weather:'tornado',
+    id:'woodfall', name:'Woodfall Village', weather:'driving-rain',
     tiles: [
       'XXXXXXX,,XXXXXXXXXXX',
       'GGGGGGG,,GGGGGGGGGGG',
