@@ -931,6 +931,741 @@
     ctx.restore();
   }
 
+  // ---- 30 signature move effects ---------------------------------------
+  // Each one is wired into MOVE_EFFECTS below. Tier-branched (fancy DS
+  // version + basic GB/GBC/GBA fallback). All built on the shared
+  // helpers (px, disc, ring, star, streak, gradientFill, rng, isFancy).
+
+  // 1. tackle — shoulder-charge streak inbound, impact star + dust.
+  function drawTackle(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const t = Math.min(1, p / 0.6);
+    const sx = cx - 40 + 40 * t;
+    if (fancy) {
+      streak(ctx, sx - 16, cy - 6, sx + 2, cy + 4, 'rgba(255,255,255,0.85)', 4);
+      streak(ctx, sx - 10, cy - 10, sx, cy, 'rgba(255,232,168,0.7)', 2);
+    } else {
+      streak(ctx, sx - 8, cy, sx, cy, '#fff', 2);
+    }
+    if (p > 0.55) {
+      const k = (p - 0.55) / 0.45;
+      const r = 4 + k * 16;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, r, 'rgba(255,232,168,' + (0.6 * (1 - k)).toFixed(2) + ')', 'rgba(255,232,168,0)');
+        ring(ctx, cx, cy, r, 'rgba(255,255,255,' + (0.9 * (1 - k)).toFixed(2) + ')', 2);
+        for (let i = 0; i < 6; i++) {
+          const r2 = rng(i + 1);
+          const dx = (r2 - 0.5) * 28;
+          const dy = 8 - k * 12;
+          px(ctx, cx + dx | 0, cy + dy + (r2 * 4) | 0, 2, 2, 'rgba(200,180,140,' + (0.85 * (1 - k)).toFixed(2) + ')');
+        }
+      } else {
+        ring(ctx, cx, cy, r, '#fff', 1);
+        star(ctx, cx, cy, 3, '#fff');
+      }
+    }
+  }
+
+  // 2. scratch — three diagonal claw rakes appearing in sequence.
+  function drawScratch(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const stages = [0, 0.18, 0.36];
+    for (let i = 0; i < 3; i++) {
+      const local = (p - stages[i]) / 0.4;
+      if (local <= 0 || local > 1) continue;
+      const a = (1 - local).toFixed(2);
+      const ox = -14 + i * 12;
+      const oy = -14 + i * 6;
+      const len = 18;
+      for (let j = 0; j < 3; j++) {
+        const off = (j - 1) * 4;
+        streak(ctx, cx + ox + off + local * 4, cy + oy + off,
+                    cx + ox + off + len + local * 4, cy + oy + off + len,
+                    fancy ? 'rgba(248,80,80,' + a + ')' : '#f88', fancy ? 2 : 1);
+      }
+    }
+    if (fancy && p > 0.2 && p < 0.8) {
+      star(ctx, cx, cy, 3, 'rgba(255,232,168,' + (0.8 * (1 - p)).toFixed(2) + ')');
+    }
+  }
+
+  // 3. quickjab — three rapid jabs with afterimage trails.
+  function drawQuickJab(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const stages = [0.05, 0.30, 0.55];
+    for (let i = 0; i < 3; i++) {
+      const local = (p - stages[i]) / 0.18;
+      if (local <= 0 || local > 1) continue;
+      const a = (1 - local).toFixed(2);
+      const fy = cy + (i - 1) * 6;
+      const fx = cx - 18 + local * 24;
+      if (fancy) {
+        for (let k = 0; k < 3; k++) {
+          px(ctx, fx - k * 4, fy - 1, 5, 3, 'rgba(255,255,255,' + (a * (1 - k * 0.3)).toFixed(2) + ')');
+        }
+        streak(ctx, fx - 14, fy, fx, fy, 'rgba(255,232,168,' + a + ')', 2);
+      } else {
+        streak(ctx, fx - 8, fy, fx, fy, '#fff', 1);
+      }
+    }
+    if (fancy && p > 0.6) {
+      star(ctx, cx, cy, 4, 'rgba(255,255,255,' + (1 - p).toFixed(2) + ')');
+    }
+  }
+
+  // 4. growl — jagged red roar shape + concentric sound rings.
+  function drawGrowl(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    for (let i = 0; i < 3; i++) {
+      const r = 4 + (p + i * 0.18) * 22;
+      const a = Math.max(0, 0.7 - (p + i * 0.15));
+      ring(ctx, cx, cy, r, fancy ? 'rgba(248,80,80,' + a.toFixed(2) + ')' : '#f44', fancy ? 2 : 1);
+    }
+    if (fancy) {
+      const pulse = 1 + Math.sin(p * 18) * 0.15;
+      ctx.fillStyle = 'rgba(248,80,80,' + (0.9 * (1 - p)).toFixed(2) + ')';
+      ctx.beginPath();
+      ctx.moveTo(cx - 10 * pulse, cy);
+      ctx.lineTo(cx - 6, cy - 6);
+      ctx.lineTo(cx - 2, cy);
+      ctx.lineTo(cx + 2, cy - 6);
+      ctx.lineTo(cx + 6, cy);
+      ctx.lineTo(cx + 10 * pulse, cy);
+      ctx.lineTo(cx + 6, cy + 6);
+      ctx.lineTo(cx - 6, cy + 6);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // 5. tailwhip — sweeping arc with swish trail + dust kick.
+  function drawTailWhip(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const a = Math.PI * (p - 0.5) * 1.6;
+    const r = 18;
+    const tx = cx + Math.cos(a) * r;
+    const ty = cy + 6 + Math.sin(a) * 6;
+    const trail = fancy ? 8 : 3;
+    for (let i = 0; i < trail; i++) {
+      const ta = a - i * 0.18;
+      const dx = cx + Math.cos(ta) * r;
+      const dy = cy + 6 + Math.sin(ta) * 6;
+      const alpha = (1 - i / trail) * (fancy ? 0.7 : 0.6);
+      px(ctx, dx - 1, dy - 1, fancy ? 3 : 2, fancy ? 3 : 2, fancy ? 'rgba(220,220,220,' + alpha.toFixed(2) + ')' : '#ccc');
+    }
+    px(ctx, tx - 2, ty - 2, 4, 4, fancy ? 'rgba(255,255,255,0.95)' : '#fff');
+    if (fancy && p > 0.45) {
+      for (let i = 0; i < 4; i++) {
+        const r2 = rng(i + 2);
+        px(ctx, cx + (r2 - 0.5) * 20 | 0, cy + 10 + r2 * 4 | 0, 2, 2, 'rgba(200,180,140,' + (0.7 * (1 - p)).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 6. lullaby — floating musical notes + drifting Z.
+  function drawLullaby(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const notes = fancy ? 5 : 2;
+    for (let i = 0; i < notes; i++) {
+      const r = rng(i + 5);
+      const phase = (p + r * 0.3) % 1;
+      const nx = cx + Math.sin(phase * 6 + i) * 14 + (i - 2) * 6;
+      const ny = cy + 12 - phase * 30;
+      const a = (1 - phase).toFixed(2);
+      const col = fancy ? (i & 1 ? 'rgba(184,144,232,' + a + ')' : 'rgba(232,200,184,' + a + ')') : '#fff';
+      px(ctx, nx - 2, ny - 1, 4, 3, col);
+      px(ctx, nx + 2, ny - 6, 1, 6, col);
+      if (fancy && (i & 1) === 0) px(ctx, nx + 3, ny - 6, 3, 1, col);
+    }
+    if (fancy) {
+      const zy = cy - 18 + Math.sin(p * 4) * 3;
+      const za = (0.8 * (1 - p)).toFixed(2);
+      ctx.fillStyle = 'rgba(200,200,255,' + za + ')';
+      ctx.fillRect(cx + 14, zy, 5, 1);
+      ctx.fillRect(cx + 14, zy + 4, 5, 1);
+      ctx.fillRect(cx + 14, zy, 1, 5);
+      ctx.fillRect(cx + 18, zy, 1, 5);
+    }
+  }
+
+  // 7. harden — hex segments lock-click around target with sparkle.
+  function drawHarden(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const segs = 6;
+    const r = fancy ? 16 - Math.min(1, p * 1.4) * 4 : 14;
+    for (let i = 0; i < segs; i++) {
+      const a = (i / segs) * Math.PI * 2 + p * 0.4;
+      const sx = cx + Math.cos(a) * r;
+      const sy = cy + Math.sin(a) * r;
+      px(ctx, sx - 2, sy - 2, 5, 5, fancy ? 'rgba(168,180,200,0.95)' : '#bcc');
+      if (fancy) px(ctx, sx - 1, sy - 1, 2, 2, 'rgba(232,240,248,0.85)');
+    }
+    if (fancy && p > 0.5) {
+      const k = (p - 0.5) / 0.5;
+      ring(ctx, cx, cy, r + 2, 'rgba(232,240,248,' + (1 - k).toFixed(2) + ')', 2);
+      star(ctx, cx, cy, 4, 'rgba(255,255,255,' + (1 - k).toFixed(2) + ')');
+    }
+  }
+
+  // 8. screech — concentric jagged wave-fronts radiating outward.
+  function drawScreech(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const waves = fancy ? 4 : 2;
+    for (let i = 0; i < waves; i++) {
+      const r = 4 + ((p + i * 0.22) % 1) * 28;
+      const a = Math.max(0, 0.85 - r * 0.025);
+      ctx.strokeStyle = fancy ? 'rgba(248,232,168,' + a.toFixed(2) + ')' : '#fe8';
+      ctx.lineWidth = fancy ? 2 : 1;
+      ctx.beginPath();
+      const n = 12;
+      for (let k = 0; k <= n; k++) {
+        const ang = k / n * Math.PI * 2;
+        const jag = (k & 1) ? 1 : 0.82;
+        const x2 = cx + Math.cos(ang) * r * jag;
+        const y2 = cy + Math.sin(ang) * r * jag;
+        if (k === 0) ctx.moveTo(x2, y2); else ctx.lineTo(x2, y2);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // 9. ember — small puff of tumbling embers, low intensity.
+  function drawEmber(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const motes = fancy ? 6 : 3;
+    for (let i = 0; i < motes; i++) {
+      const r = rng(i + 3);
+      const dx = (r - 0.5) * 24;
+      const dy = 6 - p * 16 + Math.sin(p * 6 + i) * 2;
+      const a = (1 - p) * (0.85 - r * 0.2);
+      const col = fancy ? (r > 0.5 ? 'rgba(248,176,32,' + a.toFixed(2) + ')' : 'rgba(248,80,8,' + a.toFixed(2) + ')')
+                        : '#f80';
+      px(ctx, cx + dx | 0, cy + dy | 0, fancy ? 2 : 1, fancy ? 2 : 1, col);
+    }
+    if (fancy) {
+      gradientFill(ctx, cx, cy + 4, 12, 'rgba(248,120,16,' + (0.4 * (1 - p)).toFixed(2) + ')', 'rgba(248,80,8,0)');
+    }
+  }
+
+  // 10. vinelash — three curling vines whip around target with leaf flicks.
+  function drawVineLash(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const stages = [0, 0.22, 0.44];
+    for (let i = 0; i < 3; i++) {
+      const local = (p - stages[i]) / 0.4;
+      if (local <= 0 || local > 1) continue;
+      const baseAng = (i / 3) * Math.PI * 2;
+      const segs = 10;
+      ctx.strokeStyle = fancy ? 'rgba(72,168,72,0.95)' : '#4a8';
+      ctx.lineWidth = fancy ? 3 : 1;
+      ctx.beginPath();
+      for (let k = 0; k <= segs; k++) {
+        const t = k / segs;
+        const rr = 22 * (1 - t * local);
+        const ang = baseAng + t * Math.PI * 1.2 - local * 0.6;
+        const x = cx + Math.cos(ang) * rr;
+        const y = cy + Math.sin(ang) * rr;
+        if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (fancy) {
+        const ang = baseAng + Math.PI * 1.2 - local * 0.6;
+        const lx = cx + Math.cos(ang) * 22 * (1 - local);
+        const ly = cy + Math.sin(ang) * 22 * (1 - local);
+        px(ctx, lx - 1, ly - 1, 3, 3, 'rgba(96,200,96,0.95)');
+      }
+    }
+  }
+
+  // 11. bugbite — wing flutter trails + mandible bite-converge.
+  function drawBugBite(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.6) {
+      const flap = Math.sin(p * 30);
+      const wy = cy - 4 + flap * 3;
+      for (let s = -1; s <= 1; s += 2) {
+        const wx = cx + s * 16;
+        ctx.fillStyle = fancy ? 'rgba(168,200,120,0.85)' : '#aa6';
+        ctx.beginPath();
+        ctx.ellipse(wx, wy, 6, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    if (p > 0.35) {
+      const k = Math.min(1, (p - 0.35) / 0.35);
+      const opn = (1 - k) * 8 + 2;
+      const my = cy - 12 + k * 8;
+      for (let s = -1; s <= 1; s += 2) {
+        const col = fancy ? 'rgba(72,56,32,0.95)' : '#642';
+        streak(ctx, cx + s * opn, my - 4, cx + s * (opn - 2), my + 2, col, fancy ? 3 : 2);
+      }
+      if (fancy && k > 0.6) {
+        star(ctx, cx, cy - 4, 3, 'rgba(255,232,168,' + (1 - k).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 12. pinmissile — needle projectiles fanning inward, staggered.
+  function drawPinMissile(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 6 : 3;
+    for (let i = 0; i < n; i++) {
+      const delay = i * 0.08;
+      const local = (p - delay) / 0.5;
+      if (local <= 0 || local > 1) continue;
+      const ang = -Math.PI / 2 + (i - n / 2) * 0.3;
+      const dist = 32 * (1 - local);
+      const nx = cx + Math.cos(ang) * dist;
+      const ny = cy + Math.sin(ang) * dist;
+      const tipCol = fancy ? 'rgba(232,232,255,0.95)' : '#fff';
+      const shaftCol = fancy ? 'rgba(120,144,168,0.85)' : '#aaa';
+      streak(ctx, nx, ny, nx + Math.cos(ang) * 6, ny + Math.sin(ang) * 6, shaftCol, fancy ? 2 : 1);
+      px(ctx, nx - 1, ny - 1, 2, 2, tipCol);
+    }
+  }
+
+  // 13. poisonsting — sharp purple stinger thrust + droplet trail.
+  function drawPoisonSting(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const sx = cx - 28 + k * 28;
+    streak(ctx, sx - 12, cy, sx, cy, fancy ? 'rgba(168,80,184,0.95)' : '#a4a', fancy ? 3 : 2);
+    px(ctx, sx, cy - 1, fancy ? 4 : 3, fancy ? 3 : 2, fancy ? 'rgba(232,184,248,0.95)' : '#caf');
+    if (fancy) {
+      for (let i = 0; i < 3; i++) {
+        const tx = sx - 6 - i * 5;
+        const ty = cy + i * 2;
+        px(ctx, tx, ty, 2, 2, 'rgba(168,80,184,' + (0.7 - i * 0.2).toFixed(2) + ')');
+      }
+    }
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      gradientFill(ctx, cx, cy, 8 + ik * 6, 'rgba(168,80,184,' + (0.5 * (1 - ik)).toFixed(2) + ')', 'rgba(168,80,184,0)');
+    }
+  }
+
+  // 14. acidspray — bubbling green corrosive spray.
+  function drawAcidSpray(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (fancy) {
+      gradientFill(ctx, cx, cy + 2, 8 + p * 14, 'rgba(120,200,80,' + (0.55 * (1 - p)).toFixed(2) + ')', 'rgba(120,200,80,0)');
+    }
+    const bubbles = fancy ? 8 : 3;
+    for (let i = 0; i < bubbles; i++) {
+      const r = rng(i + 7);
+      const phase = (p + r * 0.4) % 1;
+      const bx = cx + (r - 0.5) * 28;
+      const by = cy + 6 - phase * 16;
+      const sz = (1 - phase) * (fancy ? 4 : 2);
+      if (sz < 0.8) continue;
+      const col = fancy ? 'rgba(96,200,96,' + (0.9 - phase * 0.5).toFixed(2) + ')' : '#6c6';
+      disc(ctx, bx, by, sz, col);
+      if (fancy) px(ctx, bx - 1, by - 1, 1, 1, 'rgba(232,255,200,0.9)');
+    }
+  }
+
+  // 15. toxicspike — caltrops slam from above + toxic mist.
+  function drawToxicSpike(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 5 : 3;
+    for (let i = 0; i < n; i++) {
+      const r = rng(i + 11);
+      const delay = i * 0.06;
+      const local = (p - delay) / 0.55;
+      if (local <= 0 || local > 1) continue;
+      const sx = cx + (r - 0.5) * 28;
+      const sy = cy - 24 + local * 28;
+      ctx.fillStyle = fancy ? 'rgba(120,72,168,0.95)' : '#74a';
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - 4);
+      ctx.lineTo(sx + 4, sy);
+      ctx.lineTo(sx, sy + 4);
+      ctx.lineTo(sx - 4, sy);
+      ctx.closePath();
+      ctx.fill();
+      if (fancy && local > 0.85) px(ctx, sx - 1, sy + 4, 3, 1, 'rgba(168,120,200,0.7)');
+    }
+    if (fancy && p > 0.65) {
+      gradientFill(ctx, cx, cy + 4, 14, 'rgba(168,120,200,' + (0.4 * (1 - p)).toFixed(2) + ')', 'rgba(168,120,200,0)');
+    }
+  }
+
+  // 16. rocktoss — rock chunks arcing in + cracks + dust on impact.
+  function drawRockToss(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 5 : 3;
+    for (let i = 0; i < n; i++) {
+      const r = rng(i + 13);
+      const delay = i * 0.05;
+      const local = (p - delay) / 0.55;
+      if (local <= 0 || local > 1) continue;
+      const sx0 = cx + (r - 0.5) * 50;
+      const sy0 = cy - 18;
+      const rx = sx0 + (cx - sx0) * local;
+      const ry = sy0 + (cy + 2 - sy0) * local + Math.sin(local * Math.PI) * -8;
+      const sz = fancy ? 4 : 3;
+      const col = fancy ? (r > 0.5 ? 'rgba(168,120,72,0.95)' : 'rgba(120,88,56,0.95)') : '#864';
+      px(ctx, rx - sz / 2, ry - sz / 2, sz, sz, col);
+    }
+    if (p > 0.55) {
+      const k = (p - 0.55) / 0.45;
+      if (fancy) {
+        for (let i = 0; i < 4; i++) {
+          const ang = (i / 4) * Math.PI * 2;
+          const r2 = 6 + k * 14;
+          streak(ctx, cx, cy + 4, cx + Math.cos(ang) * r2, cy + 4 + Math.sin(ang) * r2 * 0.4, 'rgba(72,56,40,' + (0.9 * (1 - k)).toFixed(2) + ')', 2);
+        }
+      }
+      for (let i = 0; i < 6; i++) {
+        const r2 = rng(i + 17);
+        px(ctx, cx + (r2 - 0.5) * 26 | 0, cy + 6 + r2 * 4 | 0, 2, 2, 'rgba(200,180,140,' + (0.7 * (1 - k)).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 17. earthbump — vertical earth pillar erupting from beneath.
+  function drawEarthBump(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.6);
+    const pillarH = k * 24;
+    ctx.fillStyle = fancy ? 'rgba(168,120,72,0.92)' : '#864';
+    ctx.fillRect(cx - 7, cy + 4 - pillarH, 14, pillarH + 4);
+    if (fancy) {
+      ctx.fillStyle = 'rgba(232,200,144,0.6)';
+      ctx.fillRect(cx - 2, cy + 4 - pillarH, 2, pillarH + 2);
+    }
+    if (fancy && p > 0.3) {
+      for (let i = 0; i < 6; i++) {
+        const r = rng(i + 19);
+        const pop = (p - 0.3) / 0.5;
+        const dx = (r - 0.5) * 28 * pop;
+        const dy = -pop * 20 + pop * pop * 18;
+        px(ctx, cx + dx | 0, cy + 2 + dy | 0, 2, 2, 'rgba(120,88,56,' + (1 - pop).toFixed(2) + ')');
+      }
+    }
+    if (p > 0.55 && fancy) {
+      const k2 = (p - 0.55) / 0.45;
+      gradientFill(ctx, cx, cy + 4 - pillarH, 10, 'rgba(232,200,144,' + (0.6 * (1 - k2)).toFixed(2) + ')', 'rgba(168,120,72,0)');
+    }
+  }
+
+  // 18. sandattack — horizontal sand cloud + tan motes.
+  function drawSandAttack(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (fancy) {
+      gradientFill(ctx, cx - 4 + p * 8, cy, 14 + p * 8, 'rgba(232,200,144,' + (0.55 * (1 - p)).toFixed(2) + ')', 'rgba(232,200,144,0)');
+    }
+    const motes = fancy ? 12 : 5;
+    for (let i = 0; i < motes; i++) {
+      const r = rng(i + 23);
+      const dx = -16 + (p + r * 0.4) * 36 - (r * 0.4 + 0.2) * 8;
+      const dy = (r - 0.5) * 10 + Math.sin(p * 10 + i) * 2;
+      const col = fancy ? (r > 0.5 ? 'rgba(232,200,144,0.95)' : 'rgba(184,160,112,0.95)') : '#dca';
+      px(ctx, cx + dx | 0, cy + dy | 0, fancy ? 2 : 1, fancy ? 2 : 1, col);
+    }
+  }
+
+  // 19. focusjab — concentration ring tightens, then impact starburst.
+  function drawFocusJab(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.55) {
+      const k = p / 0.55;
+      const r = 24 * (1 - k) + 6;
+      ring(ctx, cx, cy, r, fancy ? 'rgba(232,144,72,' + (0.85 * k).toFixed(2) + ')' : '#fa6', fancy ? 2 : 1);
+    }
+    if (p > 0.5) {
+      const k = (p - 0.5) / 0.5;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 6 + k * 10, 'rgba(248,200,80,' + (0.7 * (1 - k)).toFixed(2) + ')', 'rgba(248,80,8,0)');
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          const r0 = 4, r1 = 4 + k * 12;
+          streak(ctx, cx + Math.cos(a) * r0, cy + Math.sin(a) * r0,
+                      cx + Math.cos(a) * r1, cy + Math.sin(a) * r1,
+                      'rgba(255,232,168,' + (1 - k).toFixed(2) + ')', 2);
+        }
+      } else {
+        ring(ctx, cx, cy, 4 + k * 8, '#fc8', 1);
+        star(ctx, cx, cy, 4, '#fff');
+      }
+    }
+  }
+
+  // 20. palmstrike — open palm + shockwave pulse + dust ring.
+  function drawPalmStrike(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.45) {
+      const k = p / 0.45;
+      const px2 = cx - 20 + k * 18;
+      ctx.fillStyle = fancy ? 'rgba(248,200,144,0.9)' : '#fc8';
+      ctx.fillRect(px2 - 6, cy - 5, 6, 10);
+      ctx.fillRect(px2 - 8, cy - 6, 2, 3);
+    }
+    if (p > 0.4) {
+      const k = (p - 0.4) / 0.6;
+      const r = 4 + k * 22;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, r, 'rgba(248,232,168,' + (0.7 * (1 - k)).toFixed(2) + ')', 'rgba(248,200,80,0)');
+        ring(ctx, cx, cy, r, 'rgba(255,255,255,' + (0.9 * (1 - k)).toFixed(2) + ')', 2);
+      } else {
+        ring(ctx, cx, cy, r, '#fff', 1);
+      }
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        const rr = r * 1.1;
+        px(ctx, cx + Math.cos(a) * rr | 0, cy + 8 + Math.sin(a) * 2 | 0, 2, 2, 'rgba(200,180,140,' + (0.7 * (1 - k)).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 21. shimmer — wavy refraction lines + pastel halo.
+  function drawShimmer(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (fancy) {
+      gradientFill(ctx, cx, cy, 22, 'rgba(232,184,248,' + (0.45 * (1 - p)).toFixed(2) + ')', 'rgba(184,200,232,0)');
+    }
+    const lines = fancy ? 6 : 3;
+    for (let i = 0; i < lines; i++) {
+      const ly = cy - 12 + i * 5;
+      const off = Math.sin(p * 12 + i * 0.6) * 5;
+      const col = fancy ? 'rgba(248,216,232,' + (0.85 - i * 0.1).toFixed(2) + ')' : '#fcf';
+      streak(ctx, cx - 14 + off, ly, cx + 14 + off, ly, col, fancy ? 2 : 1);
+    }
+    if (fancy && p > 0.6) {
+      star(ctx, cx + 8, cy - 6, 3, 'rgba(255,255,255,' + (1 - p).toFixed(2) + ')');
+    }
+  }
+
+  // 22. dazzle — twinkling stars rotating around target like a tiara.
+  function drawDazzle(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 7 : 4;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + p * Math.PI * 2;
+      const rOrbit = 18;
+      const sx = cx + Math.cos(a) * rOrbit;
+      const sy = cy + Math.sin(a) * rOrbit * 0.6;
+      const twink = Math.sin(p * 18 + i) * 0.5 + 0.5;
+      const sz = 2 + Math.floor(twink * 3);
+      const col = fancy ? (i & 1 ? 'rgba(248,232,168,0.95)' : 'rgba(232,200,248,0.95)') : '#fef';
+      star(ctx, sx, sy, sz, col);
+    }
+    if (fancy) {
+      gradientFill(ctx, cx, cy, 16, 'rgba(248,232,200,' + (0.3 * Math.sin(p * Math.PI)).toFixed(2) + ')', 'rgba(248,200,168,0)');
+    }
+  }
+
+  // 23. hypnoray — slow-rotating hypnotic spiral + concentric rings.
+  function drawHypnoRay(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const arms = fancy ? 24 : 12;
+    const rotation = p * Math.PI * 2;
+    for (let i = 0; i < arms; i++) {
+      const t = i / arms;
+      const ang = rotation + t * Math.PI * 4;
+      const rr = t * 18;
+      const col = fancy ? (i & 1 ? 'rgba(144,96,200,0.9)' : 'rgba(232,200,255,0.9)') : '#a6c';
+      const x = cx + Math.cos(ang) * rr;
+      const y = cy + Math.sin(ang) * rr * 0.7;
+      px(ctx, x - 1, y - 1, fancy ? 3 : 2, fancy ? 3 : 2, col);
+    }
+    for (let i = 0; i < 3; i++) {
+      const rr = 6 + i * 6;
+      ring(ctx, cx, cy, rr, fancy ? 'rgba(184,144,232,0.65)' : '#a6c', 1);
+    }
+  }
+
+  // 24. agility — cyan speed-line trails radiating outward.
+  function drawAgility(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 12 : 6;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const r0 = 6 + p * 8;
+      const r1 = 14 + p * 16;
+      const col = fancy ? 'rgba(128,232,232,' + (0.85 * (1 - p)).toFixed(2) + ')' : '#8ee';
+      streak(ctx, cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * 0.7,
+                  cx + Math.cos(a) * r1, cy + Math.sin(a) * r1 * 0.7,
+                  col, fancy ? 2 : 1);
+    }
+    if (fancy && p < 0.5) {
+      gradientFill(ctx, cx, cy, 10, 'rgba(168,248,248,' + (0.5 * (1 - p * 2)).toFixed(2) + ')', 'rgba(128,232,232,0)');
+    }
+  }
+
+  // 25. bite — two crescent fangs converge on target with dark pulse.
+  function drawBite(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const gap = (1 - k) * 14 + 2;
+    for (let s = -1; s <= 1; s += 2) {
+      const fy = cy + s * gap;
+      ctx.fillStyle = fancy ? 'rgba(255,255,255,0.95)' : '#fff';
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, fy);
+      ctx.quadraticCurveTo(cx, fy + s * -6, cx + 10, fy);
+      ctx.quadraticCurveTo(cx, fy + s * -3, cx - 10, fy);
+      ctx.closePath();
+      ctx.fill();
+    }
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 6 + ik * 12, 'rgba(40,16,32,' + (0.55 * (1 - ik)).toFixed(2) + ')', 'rgba(40,16,32,0)');
+      }
+      if (ik > 0.3) star(ctx, cx, cy, 4, 'rgba(255,232,168,' + (1 - ik).toFixed(2) + ')');
+    }
+  }
+
+  // 26. freezewind — crystalline ice shards swirling cyclone-like.
+  function drawFreezeWind(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const shards = fancy ? 10 : 4;
+    for (let i = 0; i < shards; i++) {
+      const r = rng(i + 29);
+      const angBase = (i / shards) * Math.PI * 2;
+      const ang = angBase + p * Math.PI * 3;
+      const rad = 8 + r * 14;
+      const sx = cx + Math.cos(ang) * rad;
+      const sy = cy + Math.sin(ang) * rad * 0.6;
+      ctx.fillStyle = fancy ? (r > 0.5 ? 'rgba(200,232,248,0.95)' : 'rgba(168,216,248,0.95)') : '#aef';
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - 3);
+      ctx.lineTo(sx + 2, sy);
+      ctx.lineTo(sx, sy + 3);
+      ctx.lineTo(sx - 2, sy);
+      ctx.closePath();
+      ctx.fill();
+    }
+    if (fancy) {
+      gradientFill(ctx, cx, cy, 20, 'rgba(200,232,248,' + (0.3 * (1 - p)).toFixed(2) + ')', 'rgba(168,216,248,0)');
+    }
+  }
+
+  // 27. spectralhowl — ghostly face overlay + sound waves.
+  function drawSpectralHowl(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    for (let i = 0; i < 3; i++) {
+      const r = 4 + ((p + i * 0.22) % 1) * 24;
+      ring(ctx, cx, cy, r, fancy ? 'rgba(168,144,232,' + Math.max(0, 0.7 - r * 0.02).toFixed(2) + ')' : '#a8e', fancy ? 2 : 1);
+    }
+    if (fancy) {
+      const wob = Math.sin(p * 14) * 2;
+      const a = (0.85 * (1 - p * 0.5)).toFixed(2);
+      ctx.fillStyle = 'rgba(120,96,168,' + a + ')';
+      ctx.fillRect(cx - 6 + wob, cy - 4, 3, 4);
+      ctx.fillRect(cx + 3 + wob, cy - 4, 3, 4);
+      ctx.beginPath();
+      ctx.ellipse(cx + wob, cy + 4, 5, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 28. ghostgrip — spectral hand reaches up + grips target.
+  function drawGhostGrip(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const hy = cy + 18 - k * 22;
+    if (fancy) {
+      ctx.fillStyle = 'rgba(168,144,232,0.85)';
+      ctx.beginPath();
+      ctx.ellipse(cx, hy + 4, 8, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      for (let i = -1; i <= 2; i++) {
+        const fx = cx + i * 3 - 1;
+        ctx.fillRect(fx, hy - 6, 2, 10);
+      }
+      ctx.fillRect(cx - 8, hy, 2, 6);
+    } else {
+      px(ctx, cx - 5, hy - 4, 10, 8, '#a8e');
+    }
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      const sh = Math.sin(p * 40) * 2;
+      if (fancy) {
+        ring(ctx, cx + sh, cy + sh, 12 - ik * 4, 'rgba(120,96,168,' + (0.9 * (1 - ik)).toFixed(2) + ')', 2);
+        gradientFill(ctx, cx, cy, 14, 'rgba(80,56,120,' + (0.4 * (1 - ik)).toFixed(2) + ')', 'rgba(80,56,120,0)');
+      }
+    }
+  }
+
+  // 29. dragonbreath — multi-colour flame jet (gold envelope, purple core).
+  function drawDragonBreath(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.5);
+    const len = k * 32;
+    if (fancy) {
+      const grad = ctx.createLinearGradient(cx - len, cy, cx, cy);
+      grad.addColorStop(0, 'rgba(248,200,80,0)');
+      grad.addColorStop(0.4, 'rgba(248,200,80,0.85)');
+      grad.addColorStop(1, 'rgba(168,72,200,0.95)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(cx - len, cy - 1);
+      ctx.quadraticCurveTo(cx - len * 0.5, cy - 8, cx, cy - 4);
+      ctx.quadraticCurveTo(cx + 4, cy, cx, cy + 4);
+      ctx.quadraticCurveTo(cx - len * 0.5, cy + 8, cx - len, cy + 1);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(200,120,232,0.85)';
+      ctx.fillRect(cx - len * 0.7, cy - 2, len * 0.7, 4);
+      for (let i = 0; i < 8; i++) {
+        const r = rng(i + 31);
+        const sx = cx - r * len;
+        const sy = cy + (r - 0.5) * 8;
+        px(ctx, sx, sy, 1, 1, 'rgba(248,232,168,' + (0.9 - r * 0.3).toFixed(2) + ')');
+      }
+    } else {
+      streak(ctx, cx - len, cy, cx, cy, '#f8c', 3);
+    }
+    if (p > 0.55) {
+      const ik = (p - 0.55) / 0.45;
+      gradientFill(ctx, cx, cy, 8 + ik * 8, 'rgba(248,200,80,' + (0.7 * (1 - ik)).toFixed(2) + ')', 'rgba(168,72,200,0)');
+    }
+  }
+
+  // 30. fairykiss — heart bloom + lip-kiss outline + sparkle ring.
+  function drawFairyKiss(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.6);
+    if (fancy) {
+      const a = (1 - p * 0.5).toFixed(2);
+      const sz = 4 + k * 4;
+      disc(ctx, cx - sz * 0.6, cy - sz * 0.3, sz * 0.7, 'rgba(248,144,200,' + a + ')');
+      disc(ctx, cx + sz * 0.6, cy - sz * 0.3, sz * 0.7, 'rgba(248,144,200,' + a + ')');
+      ctx.fillStyle = 'rgba(248,144,200,' + a + ')';
+      ctx.beginPath();
+      ctx.moveTo(cx - sz, cy);
+      ctx.lineTo(cx + sz, cy);
+      ctx.lineTo(cx, cy + sz * 1.4);
+      ctx.closePath();
+      ctx.fill();
+      px(ctx, cx - sz * 0.5, cy - sz * 0.5, 2, 2, 'rgba(255,232,248,0.95)');
+    } else {
+      px(ctx, cx - 3, cy - 2, 7, 5, '#f8a');
+    }
+    if (fancy) {
+      const sparks = 6;
+      for (let i = 0; i < sparks; i++) {
+        const a = (i / sparks) * Math.PI * 2 + p * 2;
+        const rOrb = 14;
+        star(ctx, cx + Math.cos(a) * rOrb, cy + Math.sin(a) * rOrb * 0.7,
+             1 + Math.floor(Math.sin(p * 16 + i) * 1.5 + 1.5),
+             'rgba(255,232,248,' + (0.9 * (1 - p * 0.4)).toFixed(2) + ')');
+      }
+    }
+    if (p > 0.5 && fancy) {
+      const ik = (p - 0.5) / 0.5;
+      ctx.strokeStyle = 'rgba(248,144,200,' + (1 - ik).toFixed(2) + ')';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy);
+      ctx.quadraticCurveTo(cx, cy - 3, cx + 4, cy);
+      ctx.quadraticCurveTo(cx, cy + 3, cx - 4, cy);
+      ctx.stroke();
+    }
+  }
+
   const MOVE_EFFECTS = {
     spark:        drawShockwave,    // tier-1 electric uses simpler ring
     gust:         drawTornadoFunnel,
@@ -944,7 +1679,38 @@
     chromebash:   drawIronTail,
     ironswipe:    drawIronTail,
     dragonclaw:   drawDragonClaw,
-    moonbeam:     drawMoonbeam
+    moonbeam:     drawMoonbeam,
+    // 30 new signature overrides added in v0.50.0:
+    tackle:       drawTackle,
+    scratch:      drawScratch,
+    quickjab:     drawQuickJab,
+    growl:        drawGrowl,
+    tailwhip:     drawTailWhip,
+    lullaby:      drawLullaby,
+    harden:       drawHarden,
+    screech:      drawScreech,
+    ember:        drawEmber,
+    vinelash:     drawVineLash,
+    bugbite:      drawBugBite,
+    pinmissile:   drawPinMissile,
+    poisonsting:  drawPoisonSting,
+    acidspray:    drawAcidSpray,
+    toxicspike:   drawToxicSpike,
+    rocktoss:     drawRockToss,
+    earthbump:    drawEarthBump,
+    sandattack:   drawSandAttack,
+    focusjab:     drawFocusJab,
+    palmstrike:   drawPalmStrike,
+    shimmer:      drawShimmer,
+    dazzle:       drawDazzle,
+    hypnoray:     drawHypnoRay,
+    agility:      drawAgility,
+    bite:         drawBite,
+    freezewind:   drawFreezeWind,
+    spectralhowl: drawSpectralHowl,
+    ghostgrip:    drawGhostGrip,
+    dragonbreath: drawDragonBreath,
+    fairykiss:    drawFairyKiss
   };
 
   // Move-id overrides may want a longer / shorter timeline than the
@@ -962,7 +1728,23 @@
     ironswipe:   0.75,
     dragonclaw:  0.85,
     moonbeam:    0.85,
-    shockwave:   0.80
+    shockwave:   0.80,
+    // Multi-stage signature timings.
+    scratch:     0.80,
+    quickjab:    0.75,
+    harden:      0.95,
+    rocktoss:    0.95,
+    earthbump:   0.90,
+    vinelash:    0.90,
+    pinmissile:  0.85,
+    toxicspike:  0.85,
+    bite:        0.80,
+    freezewind:  0.95,
+    dragonbreath:0.95,
+    hypnoray:    1.00,
+    dazzle:      0.90,
+    ghostgrip:   0.90,
+    fairykiss:   0.85
   };
 
   function drawFor(ctx, anim, tier, tx, ty, tw, th) {
