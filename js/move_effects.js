@@ -890,8 +890,51 @@
     FAIRY:    drawFairy
   };
 
+  // ---------- Tornado funnel (reused from the retired tornado weather)
+  // Stacked thin ellipses growing narrower toward the bottom, with debris
+  // motes orbiting the center. Used by FLYING signature moves (gust /
+  // airslash) — fits any "twister" / "cyclone" feel.
+  function drawTornadoFunnel(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = tier !== 'gb_red';
+    const t = p * dur * 8; // walltime-ish driver for shimmer
+    // Build the funnel a bit above the target so it looks like the
+    // creature is being lifted/buffeted by wind from above.
+    const topY = cy - 26;
+    const layers = fancy ? 14 : 8;
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    for (let i = 0; i < layers; i++) {
+      const f = i / layers;
+      const fx = cx + Math.sin(t * 0.5 + i * 0.6) * (3 + f * 6);
+      const fy = topY + i * (44 / layers);
+      const rx = Math.max(2, 30 - i * (30 / layers));
+      const ry = 4;
+      ctx.fillStyle = 'rgba(60,52,40,' +
+        (0.30 + 0.06 * Math.sin(t * 0.75 + i)).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.ellipse(fx, fy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    if (!fancy) return;
+    // Orbiting debris motes — spiral inward as p grows.
+    ctx.save();
+    const motes = 7;
+    for (let i = 0; i < motes; i++) {
+      const ang = t * 1.6 + i * (Math.PI * 2 / motes);
+      const rad = 28 * (1 - 0.45 * p) + Math.sin(t + i) * 2;
+      const mx = cx + Math.cos(ang) * rad;
+      const my = (topY + 22) + Math.sin(ang) * rad * 0.5;
+      ctx.fillStyle = i & 1 ? 'rgba(120,108,80,0.75)' : 'rgba(80,68,52,0.85)';
+      ctx.fillRect(mx | 0, my | 0, 2, 2);
+    }
+    ctx.restore();
+  }
+
   const MOVE_EFFECTS = {
     spark:        drawShockwave,    // tier-1 electric uses simpler ring
+    gust:         drawTornadoFunnel,
+    airslash:     drawTornadoFunnel,
     zapburst:     drawThunderbolt,  // multi-strike
     shockwave:    drawShockwave,
     flamejet:     drawFlamethrower,
@@ -909,6 +952,8 @@
   // overrides — long enough for the multi-stage anims to read.
   const DURATIONS = {
     zapburst:    0.95,
+    gust:        0.90,
+    airslash:    0.95,
     flamejet:    0.85,
     watergun:    0.75,
     bubble:      0.65,

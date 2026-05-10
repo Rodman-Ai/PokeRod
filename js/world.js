@@ -223,30 +223,71 @@
   // ---- Weather schema ---------------------------------------------------
   // Maps opt into weather via map.weather. Accepted forms:
   //   weather: 'rain'              alias for 'medium-rain'
-  //   weather: 'light-rain' | 'medium-rain' | 'heavy-rain'
+  //   weather: 'light-rain' | 'medium-rain' | 'heavy-rain' (+ 10 variants)
   //   weather: 'sleet'
-  //   weather: 'light-snow' | 'medium-snow' | 'blizzard'
-  //   weather: 'hail' | 'thunder' | 'tornado' | 'hurricane' | 'overcast'
+  //   weather: 'light-snow' | 'medium-snow' | 'blizzard' (+ 10 variants)
+  //   weather: 'hail' | 'thunder' | 'hurricane' | 'overcast'
+  //   weather: 'light-fog' | 'heavy-fog' | 'sea-fog' | 'morning-haze' | 'smog'
   //   weather: { kind:'rain', intensity:0.7, wind:0.3 }
   // parseWeather() always returns { kind, intensity, wind } or null when
   // the value is unset / unknown.
+  //
+  // Rain / snow variants all share the same render path but differ in
+  // intensity + wind so map authors can pick a mood without coding new
+  // particle behaviour. Fog is its own kind with horizontal-band
+  // rendering (see drawWeatherOverlay).
+  //
+  // Tornado was retired as a weather kind in v0.49.0 — its funnel render
+  // is now a reusable battle-move effect (see js/move_effects.js
+  // drawTornadoFunnel, wired to FLYING moves gust / airslash).
   const WEATHER_PRESETS = {
-    'rain':         { kind:'rain',      intensity:0.55, wind:0.3 },
-    'light-rain':   { kind:'rain',      intensity:0.30, wind:0.2 },
-    'medium-rain':  { kind:'rain',      intensity:0.55, wind:0.3 },
-    'heavy-rain':   { kind:'rain',      intensity:0.95, wind:0.5 },
-    'sleet':        { kind:'sleet',     intensity:0.65, wind:0.4 },
-    'light-snow':   { kind:'snow',      intensity:0.30, wind:0.15 },
-    'medium-snow':  { kind:'snow',      intensity:0.55, wind:0.25 },
-    'blizzard':     { kind:'snow',      intensity:1.00, wind:0.95 },
-    'hail':         { kind:'hail',      intensity:0.80, wind:0.10 },
-    'thunder':      { kind:'thunder',   intensity:0.95, wind:0.55 },
-    'tornado':      { kind:'tornado',   intensity:0.85, wind:0.80 },
-    'hurricane':    { kind:'hurricane', intensity:1.00, wind:1.00 },
-    'overcast':     { kind:'overcast',  intensity:0.45, wind:0.20 }
+    // --- core rain (kept for backwards compat) ---
+    'rain':           { kind:'rain',     intensity:0.55, wind:0.30 },
+    'light-rain':     { kind:'rain',     intensity:0.30, wind:0.20 },
+    'medium-rain':    { kind:'rain',     intensity:0.55, wind:0.30 },
+    'heavy-rain':     { kind:'rain',     intensity:0.95, wind:0.50 },
+    // --- 10 new rain variants ---
+    'drizzle':        { kind:'rain',     intensity:0.18, wind:0.10 },
+    'shower':         { kind:'rain',     intensity:0.45, wind:0.25 },
+    'monsoon':        { kind:'rain',     intensity:1.00, wind:0.60 },
+    'downpour':       { kind:'rain',     intensity:0.90, wind:0.25 },
+    'sprinkles':      { kind:'rain',     intensity:0.22, wind:0.05 },
+    'sun-shower':     { kind:'rain',     intensity:0.35, wind:0.15 },
+    'evening-rain':   { kind:'rain',     intensity:0.40, wind:0.30 },
+    'cold-rain':      { kind:'rain',     intensity:0.55, wind:0.20 },
+    'wind-rain':      { kind:'rain',     intensity:0.65, wind:0.85 },
+    'driving-rain':   { kind:'rain',     intensity:0.85, wind:0.90 },
+    // --- sleet ---
+    'sleet':          { kind:'sleet',    intensity:0.65, wind:0.40 },
+    // --- core snow (kept for backwards compat) ---
+    'light-snow':     { kind:'snow',     intensity:0.30, wind:0.15 },
+    'medium-snow':    { kind:'snow',     intensity:0.55, wind:0.25 },
+    'blizzard':       { kind:'snow',     intensity:1.00, wind:0.95 },
+    // --- 10 new snow variants ---
+    'flurries':       { kind:'snow',     intensity:0.22, wind:0.10 },
+    'snowfall':       { kind:'snow',     intensity:0.45, wind:0.15 },
+    'lake-effect':    { kind:'snow',     intensity:0.85, wind:0.40 },
+    'powdery-snow':   { kind:'snow',     intensity:0.40, wind:0.05 },
+    'wet-snow':       { kind:'snow',     intensity:0.65, wind:0.20 },
+    'snow-shower':    { kind:'snow',     intensity:0.35, wind:0.30 },
+    'whiteout':       { kind:'snow',     intensity:1.00, wind:1.00 },
+    'graupel':        { kind:'snow',     intensity:0.70, wind:0.10 },
+    'sideways-snow':  { kind:'snow',     intensity:0.60, wind:0.90 },
+    'snow-squall':    { kind:'snow',     intensity:0.95, wind:0.75 },
+    // --- atmospheric ---
+    'hail':           { kind:'hail',     intensity:0.80, wind:0.10 },
+    'thunder':        { kind:'thunder',  intensity:0.95, wind:0.55 },
+    'hurricane':      { kind:'hurricane',intensity:1.00, wind:1.00 },
+    'overcast':       { kind:'overcast', intensity:0.45, wind:0.20 },
+    // --- 5 fog / haze variants (new 'fog' kind) ---
+    'light-fog':      { kind:'fog',      intensity:0.30, wind:0.10 },
+    'heavy-fog':      { kind:'fog',      intensity:0.85, wind:0.05 },
+    'sea-fog':        { kind:'fog',      intensity:0.55, wind:0.25 },
+    'morning-haze':   { kind:'fog',      intensity:0.25, wind:0.05 },
+    'smog':           { kind:'fog',      intensity:0.65, wind:0.02 }
   };
   const WEATHER_KINDS = new Set([
-    'rain','sleet','snow','hail','thunder','tornado','hurricane','overcast'
+    'rain','sleet','snow','hail','thunder','hurricane','overcast','fog'
   ]);
   function parseWeather(value) {
     if (!value) return null;
@@ -989,9 +1030,9 @@
     ctx.restore();
   }
   // Weather particle factory. Returns a particle object suited to the
-  // requested kind / intensity / wind. Tornado spawns special debris
-  // particles whose vortex motion is handled in tickBiomeParticles via
-  // p.kind === 'debris'. Hurricane spawns extreme-wind rain. Overcast
+  // requested kind / intensity / wind. Hurricane spawns extreme-wind
+  // rain (with occasional debris flecks). Fog/overcast spawn nothing —
+  // their visuals come from drawWeatherOverlay sheets. Overcast
   // spawns nothing (the look is overlay-based, not particle-based).
   function spawnWeatherParticle(kind, intensity, viewW, wind, vortexCx, vortexCy) {
     const widerW = viewW + 80;
@@ -1073,27 +1114,9 @@
       r.vx = -160; r.vy = 360; r.tail = 8;
       return r;
     }
-    if (kind === 'tornado') {
-      // Debris particle bound to the vortex. Stored angle + radius so
-      // the tick can rotate it around (vortexCx, vortexCy).
-      const ang = Math.random() * Math.PI * 2;
-      const rad = 30 + Math.random() * 110;
-      return {
-        kind: 'debris',
-        x: (vortexCx || 120) + Math.cos(ang) * rad,
-        y: (vortexCy || 80)  + Math.sin(ang) * rad * 0.6,
-        vx: 0, vy: 0,
-        life: 4 + Math.random() * 3,
-        maxLife: 6,
-        color: Math.random() < 0.5 ? 'rgba(80,68,52,0.85)' : 'rgba(120,108,80,0.75)',
-        size: 1 + Math.random() * 1.5,
-        spin: 0,
-        vortex: true,
-        ang: ang,
-        rad: rad,
-        angSpeed: 1.6 + Math.random() * 1.4
-      };
-    }
+    // Fog spawns slow-moving horizontal sheets rendered later by the
+    // overlay; no particles needed here, return null and let the
+    // overlay handle the look entirely.
     return null;
   }
   // Backwards-compat alias for any legacy callers.
@@ -1417,7 +1440,7 @@
   }
   // Full-screen weather overlays drawn AFTER the world is rendered:
   // - overcast: dark gray dim + cloud parallax (DS) / just dim (basic)
-  // - tornado: a screen-spanning vortex spiral behind the debris
+  // - fog: drifting translucent horizontal sheets
   // - hurricane: a subtle cyclonic shading + windswept streaks
   function drawWeatherOverlay(ctx, weather, viewW, viewH, tier, vortex) {
     if (!weather) return;
@@ -1441,23 +1464,25 @@
           ctx.fillRect(cx - 90, cy - 60, 180, 120);
         }
       }
-    } else if (weather.kind === 'tornado' && fancy) {
-      // Render a single dark funnel via stacked thin ellipses, growing
-      // narrower toward the bottom. Centred on the vortex point.
-      const cx = (vortex && vortex.x) || (viewW * 0.5);
-      const cy = (vortex && vortex.y) || (viewH * 0.4);
+    } else if (weather.kind === 'fog') {
+      // Slow-drifting horizontal sheets of translucent grey. Higher
+      // intensity = denser layers (more sheets + higher alpha). Wind
+      // controls drift speed. No particles — fog is overlay-only.
       ctx.save();
-      ctx.globalCompositeOperation = 'multiply';
-      for (let i = 0; i < 14; i++) {
-        const t = i / 14;
-        const fx = cx + Math.sin(wallTime * 4 + i * 0.6) * (4 + t * 6);
-        const fy = cy - 20 + i * 8;
-        const rx = 38 - i * 1.8;
-        const ry = 6;
-        ctx.fillStyle = 'rgba(60,52,40,' + (0.32 + 0.04 * Math.sin(wallTime * 6 + i)).toFixed(3) + ')';
-        ctx.beginPath();
-        ctx.ellipse(fx, fy, Math.max(2, rx), ry, 0, 0, Math.PI * 2);
-        ctx.fill();
+      const sheets = fancy ? 6 : 3;
+      const baseAlpha = 0.10 + 0.22 * weather.intensity;
+      const driftMul = 6 + 30 * weather.wind;
+      for (let i = 0; i < sheets; i++) {
+        const f = i / Math.max(1, sheets - 1);
+        const drift = (wallTime * driftMul + i * 73) % (viewW + 240) - 120;
+        const y = viewH * (0.18 + 0.60 * f);
+        const sheetH = 22 + 14 * f;
+        const grad = ctx.createLinearGradient(0, y, 0, y + sheetH);
+        grad.addColorStop(0,   'rgba(216,222,232,0)');
+        grad.addColorStop(0.5, 'rgba(216,222,232,' + baseAlpha.toFixed(3) + ')');
+        grad.addColorStop(1,   'rgba(216,222,232,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(-120 + drift, y, viewW + 240, sheetH);
       }
       ctx.restore();
     } else if (weather.kind === 'hurricane' && fancy) {
@@ -1476,9 +1501,10 @@
       ctx.restore();
     }
     // A subtle desaturating dim is shared by ALL precipitation weathers
-    // (rain / snow / sleet / hail / thunder / hurricane / tornado) so
-    // the world reads as cloudy underneath. Intensity-scaled, capped low.
-    if (weather.kind !== 'overcast') {
+    // (rain / snow / sleet / hail / thunder / hurricane) so the world
+    // reads as cloudy underneath. Intensity-scaled, capped low. Fog
+    // and overcast handle their own atmospheric look so they skip this.
+    if (weather.kind !== 'overcast' && weather.kind !== 'fog') {
       const dim = Math.min(0.18, 0.05 + 0.10 * weather.intensity);
       ctx.fillStyle = 'rgba(40,48,62,' + dim.toFixed(3) + ')';
       ctx.fillRect(0, 0, viewW, viewH);
@@ -2351,17 +2377,7 @@
     const weather = (cur2 && !cur2.interior && !reducedM2) ? parseWeather(cur2.weather) : null;
     this._weather = weather;
     if (weather) {
-      // Vortex tracking for tornado: the funnel slowly walks across
-      // the screen so debris feels alive.
-      if (weather.kind === 'tornado') {
-        if (!this._vortex) {
-          this._vortex = { x: VIEW_W * 0.3, y: VIEW_H * 0.45, vx: 12 };
-        }
-        this._vortex.x += this._vortex.vx * dt;
-        if (this._vortex.x < 60 || this._vortex.x > VIEW_W - 60) this._vortex.vx *= -1;
-      } else {
-        this._vortex = null;
-      }
+      this._vortex = null;
       tickBiomeParticles(this._rainParticles, dt, this._vortex);
       const cap = Math.max(8, Math.floor(tierParticleCap(tier) * weather.intensity));
       const spawnInterval = (weather.kind === 'snow' ? 0.10 : 0.04) /

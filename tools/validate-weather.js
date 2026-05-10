@@ -13,12 +13,25 @@ require('../js/maps.js');
 // preset table here so the validator stays standalone. Keep this list
 // in sync with the table in js/world.js.
 const PRESETS = new Set([
-  'rain','light-rain','medium-rain','heavy-rain','sleet',
+  // core rain
+  'rain','light-rain','medium-rain','heavy-rain',
+  // 10 new rain variants
+  'drizzle','shower','monsoon','downpour','sprinkles',
+  'sun-shower','evening-rain','cold-rain','wind-rain','driving-rain',
+  // sleet
+  'sleet',
+  // core snow
   'light-snow','medium-snow','blizzard',
-  'hail','thunder','tornado','hurricane','overcast'
+  // 10 new snow variants
+  'flurries','snowfall','lake-effect','powdery-snow','wet-snow',
+  'snow-shower','whiteout','graupel','sideways-snow','snow-squall',
+  // atmospheric
+  'hail','thunder','hurricane','overcast',
+  // 5 fog / haze variants (new 'fog' kind)
+  'light-fog','heavy-fog','sea-fog','morning-haze','smog'
 ]);
 const KINDS = new Set([
-  'rain','sleet','snow','hail','thunder','tornado','hurricane','overcast'
+  'rain','sleet','snow','hail','thunder','hurricane','overcast','fog'
 ]);
 
 const errors = [];
