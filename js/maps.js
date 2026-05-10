@@ -2278,7 +2278,15 @@ function applyWorldExpansion(MAPS) {
         dialog:["I carve charm-totems from fallen wood.","Each design tells a story of the forest."] },
       { x:28, y:20, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER OREN', wander:{ range:1 },
         dialog:["RUFUS sniffs out berry bushes for me."] },
-      { x:22, y:25, dir:'down',  sprite:'npc_jogger',      name:'TRAILRUNNER MAE', wander:{ range:1 },
+      // Moved off (22,25) — the gym building's central path runs straight
+      // through that tile (z `path_moss` carved across the roof footprint
+      // for visual continuity), so Mae sat on the corridor leading down
+      // to the gym door at (22,27). With wander she'd drift to (22,26),
+      // visually obscuring the door entrance for any approaching player.
+      // (10,22) puts her on the main east-west moss thoroughfare in the
+      // village square — a sensible spot for a jogger and clearly off
+      // the gym's entry path.
+      { x:10, y:22, dir:'right', sprite:'npc_jogger',      name:'TRAILRUNNER MAE', wander:{ range:1 },
         dialog:["Cross-country, twenty kilometers a day!"],
         trainer:{ team:[['flitwing',15],['nibblet',16],['pebra',16]], reward:560, defeat:["Wow! You set the new record!"] } },
       { x:18, y:23, dir:'right', sprite:'npc_kid_boy',     name:'KID PIP', wander:{ range:1 },
