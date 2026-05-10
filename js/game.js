@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.46.1';
-  const BUILD = '2026.05.09-125';
+  const VERSION = 'v0.47.0';
+  const BUILD = '2026.05.09-126';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -183,9 +183,18 @@
     if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
     state.world = new window.PR_WORLD.World(state);
     state.intro = { page: 0, charT: 0 };
-    state.mode = 'intro';
+    // Capture the player's name + favourites before the intro plays.
+    // Once they're set, transitionToIntro() runs (called from
+    // updateNewProfile after page 3 confirms).
+    state.newProfile = { page: 0, idx: 0 };
+    state.mode = 'newprofile';
     if (window.PR_STORY) window.PR_STORY.ensureFlags(state);
     showOverlay(false);
+  }
+
+  function transitionToIntro() {
+    state.newProfile = null;
+    state.mode = 'intro';
   }
 
   function continueGame() {
@@ -280,6 +289,7 @@
     else if (state.mode === 'shop') window.PR_SHOP && window.PR_SHOP.update(state);
     else if (state.mode === 'starter') updateStarter();
     else if (state.mode === 'fishing') updateFishing(dt);
+    else if (state.mode === 'newprofile') updateNewProfile();
   }
 
   // While a cutscene is active, the player can't move or interact. The
@@ -376,6 +386,7 @@
   function render() {
     if (state.mode === 'title') { withScale2(drawFlash); renderBottom(); return; }
     if (state.mode === 'intro') { withScale2(() => { drawIntro(); drawFlash(); }); renderBottom(); return; }
+    if (state.mode === 'newprofile') { withScale2(() => { drawNewProfile(); drawFlash(); }); renderBottom(); return; }
     if (state.mode === 'battle') { withScale2(() => { state.battle.render(ctx); drawFlash(); }); renderBottom(); return; }
     state.world.render(ctx);
     withScale2(() => {
@@ -413,12 +424,30 @@
   }
 
   // ---------- Dialog ----------
+  // Substitute {name}/{color}/{food}/{animal} with the current player's
+  // chosen values. Used by openDialog so any encounter line that
+  // references those tokens is rendered with the player's profile.
+  // Capitalises the favourites (they're stored lowercase in newprofile).
+  function capWord(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : ''; }
+  function formatLine(line) {
+    if (typeof line !== 'string' || line.indexOf('{') < 0) return line;
+    const p = state.player || {};
+    return line
+      .replace(/\{name\}/g,   p.name || 'YOU')
+      .replace(/\{color\}/g,  capWord(p.favColor)  || 'their favourite colour')
+      .replace(/\{food\}/g,   capWord(p.favFood)   || 'something tasty')
+      .replace(/\{animal\}/g, capWord(p.favAnimal) || 'a cute creature');
+  }
+
   function openDialog(lines, onDone, source) {
     // Pre-wrap each input line and chunk overflow into pages of 3
-    // visible lines, so long text never silently truncates.
+    // visible lines, so long text never silently truncates. Tokens
+    // are substituted before wrapping so wrapping considers the final
+    // expanded length.
     const PAGE_LINES = 3, WRAP_W = 30;
     const pages = [];
-    for (const line of lines) {
+    for (const rawLine of lines) {
+      const line = formatLine(rawLine);
       const wrapped = window.PR_UI.wrap(String(line == null ? '' : line), WRAP_W);
       if (wrapped.length === 0) { pages.push(['']); continue; }
       for (let i = 0; i < wrapped.length; i += PAGE_LINES) {
@@ -498,6 +527,116 @@
     startFishing,
     showFlash
   };
+
+  // ---------- New profile entry ----------
+  // 4 sequential pages: NAME, COLOUR, FOOD, ANIMAL. Each page presents
+  // an 8-option grid (D-pad navigates, A confirms, B goes back).
+  // Page 0 (NAME) also surfaces an "OTHER" button that drops to the
+  // browser's window.prompt() for an arbitrary name. The captured
+  // values land in state.player.name / favColor / favFood / favAnimal.
+  // After page 3 confirms, the intro plays as before.
+  const NAME_PRESETS = ['ALEX','JESSE','RILEY','JORDAN','MORGAN','CASEY','AVERY','LANE'];
+  const COLOR_PRESETS = ['RED','BLUE','GREEN','YELLOW','PURPLE','PINK','ORANGE','BLACK'];
+  const FOOD_PRESETS = ['PIZZA','PASTA','SUSHI','BURGER','SOUP','RICE','SALAD','CHOCOLATE'];
+  const ANIMAL_PRESETS = ['CAT','DOG','BIRD','FISH','RABBIT','FOX','DRAGON','OTTER'];
+  const NEWPROFILE_PAGES = [
+    { title:"WHAT'S YOUR NAME?",  options: NAME_PRESETS.concat(['OTHER']), field:'name',      lower:false },
+    { title:'FAVOURITE COLOUR?',  options: COLOR_PRESETS,                  field:'favColor',  lower:true  },
+    { title:'FAVOURITE FOOD?',    options: FOOD_PRESETS,                   field:'favFood',   lower:true  },
+    { title:'FAVOURITE ANIMAL?',  options: ANIMAL_PRESETS,                 field:'favAnimal', lower:true  }
+  ];
+
+  function updateNewProfile() {
+    const I = window.PR_INPUT;
+    const v = state.newProfile || (state.newProfile = { page:0, idx:0 });
+    const page = NEWPROFILE_PAGES[v.page];
+    const cols = 3, rows = Math.ceil(page.options.length / cols);
+    if (I.consumePressed('ArrowRight')) {
+      v.idx = (v.idx + 1) % page.options.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    } else if (I.consumePressed('ArrowLeft')) {
+      v.idx = (v.idx + page.options.length - 1) % page.options.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    } else if (I.consumePressed('ArrowDown')) {
+      const target = v.idx + cols;
+      if (target < page.options.length) v.idx = target;
+      window.PR_SFX && window.PR_SFX.play('select');
+    } else if (I.consumePressed('ArrowUp')) {
+      const target = v.idx - cols;
+      if (target >= 0) v.idx = target;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('z') || I.consumePressed('Enter')) {
+      const opt = page.options[v.idx];
+      let value = opt;
+      if (page.field === 'name' && opt === 'OTHER') {
+        // Browser-native prompt — works on desktop + mobile keyboards.
+        let custom = null;
+        try { custom = window.prompt('Your name?', 'YOU'); }
+        catch (_) { custom = null; }
+        if (custom == null) {
+          window.PR_SFX && window.PR_SFX.play('cancel');
+          return;
+        }
+        custom = String(custom).trim().slice(0, 12);
+        if (!custom) custom = 'YOU';
+        value = custom;
+      } else if (page.lower) {
+        value = String(opt).toLowerCase();
+      }
+      state.player[page.field] = value;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      if (v.page < NEWPROFILE_PAGES.length - 1) {
+        v.page++;
+        v.idx = 0;
+      } else {
+        transitionToIntro();
+      }
+    }
+    if (I.consumePressed('x')) {
+      // B goes back a page; B on page 0 keeps defaults and skips ahead
+      // (so a player who really doesn't care can mash B).
+      if (v.page > 0) {
+        v.page--;
+        v.idx = 0;
+        window.PR_SFX && window.PR_SFX.play('cancel');
+      } else {
+        transitionToIntro();
+      }
+    }
+  }
+
+  function drawNewProfile() {
+    const v = state.newProfile || { page:0, idx:0 };
+    const page = NEWPROFILE_PAGES[v.page];
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#fff8e0', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, page.title, x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, (v.page + 1) + '/' + NEWPROFILE_PAGES.length, x + w - 28, y + 4, '#806040');
+    // Live preview of what's been chosen so far.
+    const summary = [
+      state.player.name      ? 'NAME: '   + state.player.name      : '',
+      state.player.favColor  ? 'COLOUR: ' + state.player.favColor.toUpperCase()  : '',
+      state.player.favFood   ? 'FOOD: '   + state.player.favFood.toUpperCase()   : '',
+      state.player.favAnimal ? 'ANIMAL: ' + state.player.favAnimal.toUpperCase() : ''
+    ].filter(Boolean).join('  ');
+    if (summary) window.PR_UI.drawText(ctx, summary.slice(0, 38), x + 8, y + 18, '#385890');
+    // 3x3 option grid.
+    const cols = 3;
+    const cellW = (w - 24) / cols;
+    const cellH = 18;
+    const startY = y + 32;
+    for (let i = 0; i < page.options.length; i++) {
+      const cx = x + 12 + (i % cols) * cellW;
+      const cy = startY + Math.floor(i / cols) * (cellH + 4);
+      window.PR_UI.selectBar(ctx, cx, cy, cellW - 4, cellH - 2, i === v.idx);
+      const label = page.options[i];
+      const lw = window.PR_UI.textWidth(label);
+      const tx = cx + ((cellW - 4) - lw) / 2 | 0;
+      window.PR_UI.drawText(ctx, label, tx, cy + 4, i === v.idx ? '#1a0204' : '#202020');
+    }
+    window.PR_UI.drawText(ctx, 'A: PICK   B: BACK', x + 8, y + h - 12, '#806040');
+  }
 
   // ---------- Intro ----------
   const INTRO_PAGES = [
@@ -987,9 +1126,35 @@
         return;
       }
       const lines = (npc.dialog || ['Battle!']).slice();
-      openDialog(lines, () => {
-        startBattleAgainstTrainer(npc, trainerKey);
-      });
+      if (npc.gym) {
+        // Gym leaders are mandatory — preserve auto-start.
+        openDialog(lines, () => {
+          startBattleAgainstTrainer(npc, trainerKey);
+        });
+      } else {
+        // Road / path / forest trainers: ask the player if they want
+        // the fight. Cancelling backs out gracefully (the trainer is
+        // still considered un-defeated; player can return any time).
+        openDialog(lines, () => {
+          state.dialog = {
+            choice: {
+              prompt: 'Battle?',
+              options: ['Yes - bring it!', 'Not now.'],
+              cursor: 0,
+              onPick: (idx) => {
+                state.dialog = null;
+                state.mode = 'overworld';
+                if (idx === 0) {
+                  startBattleAgainstTrainer(npc, trainerKey);
+                } else {
+                  window.PR_SFX && window.PR_SFX.play('select');
+                }
+              }
+            }
+          };
+          state.mode = 'choice';
+        });
+      }
       return;
     }
     // Rotating banter pool: archetype lines (from npc_chatter.js) plus

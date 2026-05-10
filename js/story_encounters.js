@@ -67,13 +67,13 @@
       trigger:{ type:'starter' },
       condition: (s) => s.flags && s.flags.starterChosen,
       scene: [
-        { kind:'line', text:'You actually picked one. Pathetic choice.' },
+        { kind:'line', text:'You actually picked one, {name}. Pathetic choice.' },
         { kind:'choice', prompt:'How do you reply?', options:[
           { label:'Yeah. Problem?', set:{ rivalTone:'rude' } },
           { label:'It\'s a great partner!', set:{ rivalTone:'soft' } },
           { label:'Why are you here?', set:{ rivalTone:'aloof' } }
         ]},
-        { kind:'line', text:'Whatever. See you on the road.' }
+        { kind:'line', text:'Whatever. See you on the road, {name}.' }
       ]
     },
     { id:'rival_01_route1', chain:'rival', chainStep:1,
@@ -184,14 +184,14 @@
       trigger:{ type:'starter' },
       condition: (s) => s.flags && s.flags.starterChosen && (s.flags.chains.rival || 0) >= 1,
       scene: [
-        { kind:'line', text:'Hi! I\'m PEARL — PROF. ROD\'s other apprentice.' },
+        { kind:'line', text:'Hi {name}! I\'m PEARL — PROF. ROD\'s other apprentice.' },
         { kind:'line', text:'I picked the third starter. We\'re a journey class of two!' },
         { kind:'choice', prompt:'?', options:[
           { label:'Nice to meet you.' },
           { label:'A rival, then?', set:{ pearlTone:'spark' } },
           { label:'Hands off my dex.' }
         ]},
-        { kind:'line', text:'See you on the road. Be safe!' }
+        { kind:'line', text:'Oh — {color}, right? Same! See you on the road, {name}.' }
       ]
     },
     { id:'pearl_01', chain:'apprentice', chainStep:1,
@@ -276,8 +276,8 @@
       character: NICO, priority:80,
       trigger:{ type:'firstVisit', map:'brindale' },
       scene: [
-        { kind:'line', text:'You\'re the new dex-keeper, aren\'t you? NICO. Roving reporter.' },
-        { kind:'line', text:'I write about every dex that gets above 5 species. I\'ll find you.' }
+        { kind:'line', text:'You\'re the new dex-keeper, aren\'t you? {name}. Got it.' },
+        { kind:'line', text:'NICO. Roving reporter. I\'ll find you when you hit 5 species.' }
       ]
     },
     { id:'nico_01', chain:'journalist', chainStep:1,
@@ -344,9 +344,9 @@
       trigger:{ type:'firstVisit', map:'route1' },
       condition: (s) => (s.flags.chains.rival || 0) >= 2,
       scene: [
-        { kind:'line', text:'I-I\'m gonna be a champion! Battle me!' },
+        { kind:'line', text:'I-I\'m gonna be a champion, {name}! Battle me!' },
         { kind:'battle', team:[['nibblet', 4]], reward:60, defeat:['NO! ...I\'ll get stronger!'] },
-        { kind:'line', text:'I\'ll find you. I\'ll be ready next time.' }
+        { kind:'line', text:'I\'ll find you, {name}. I\'ll be ready next time.' }
       ]
     },
     { id:'meek_01', chain:'meek', chainStep:1,
@@ -407,8 +407,8 @@
       character: OMA, priority:60,
       trigger:{ type:'firstVisit', map:'brindale' },
       scene: [
-        { kind:'line', text:'My, look at you. Trainer through and through.' },
-        { kind:'gift', item:'oranberry', count:3, text:'Three ORAN BERRIES — eat one yourself if you must.' }
+        { kind:'line', text:'My, look at you, {name}. Trainer through and through.' },
+        { kind:'gift', item:'oranberry', count:3, text:'Three ORAN BERRIES, dear. I\'ll bring {food} next time.' }
       ]
     },
     { id:'oma_01', chain:'oma', chainStep:1,
@@ -466,7 +466,7 @@
       character: KEL, priority:50,
       trigger:{ type:'spend', total:1 },
       scene: [
-        { kind:'line', text:'Excuse me. DR. KEL, regional economist.' },
+        { kind:'line', text:'Excuse me. {name}? DR. KEL, regional economist.' },
         { kind:'line', text:'Every transaction tells a story. I\'ll be tracking yours.' }
       ]
     },
@@ -530,7 +530,7 @@
       character: TANK, priority:75,
       trigger:{ type:'whiteout', count:1 },
       scene: [
-        { kind:'line', text:'Took a beating, did you. Happens to all of us.' },
+        { kind:'line', text:'Took a beating, did you, {name}. Happens to all of us.' },
         { kind:'gift', item:'revive', count:1, text:'Take a REVIVE. Don\'t come back without one.' }
       ]
     },
@@ -562,7 +562,7 @@
       character: NIM, priority:65,
       trigger:{ type:'firstVisit', map:'pebblewood_cavern' },
       scene: [
-        { kind:'line', text:'Welcome to the dark. The bugs love it down here.' },
+        { kind:'line', text:'Welcome to the dark, {name}. The bugs love it down here.' },
         { kind:'gift', item:'cavernball', count:2, text:'Two CAVERN BALLS — they catch better in the dark.' }
       ]
     },
@@ -596,7 +596,7 @@
     { id:'marla_first_hidden', character: MARLA, priority:55,
       trigger:{ type:'hiddenItem', count:1 },
       scene: [
-        { kind:'line', text:'You\'ve got an explorer\'s eye. I knew it.' },
+        { kind:'line', text:'You\'ve got an explorer\'s eye, {name}. I knew it.' },
         { kind:'gift', item:'rodball', count:3, text:'Three ROD BALLS to keep you searching.' }
       ]
     },
@@ -612,7 +612,7 @@
         return false;
       },
       scene: [
-        { kind:'line', text:'A water companion! The tide takes care of trainers like you.' },
+        { kind:'line', text:'A water companion, {name}! The tide takes care of trainers like you.' },
         { kind:'gift', item:'rodball', count:2, text:'Surfer\'s gift — two ROD BALLS.' }
       ]
     },
@@ -628,7 +628,7 @@
         return false;
       },
       scene: [
-        { kind:'line', text:'A draekit. They almost never let themselves be seen.' },
+        { kind:'line', text:'A draekit, {name}. They almost never let themselves be seen.' },
         { kind:'gift', item:'oranberry', count:5, text:'Five ORAN BERRIES from the high temple.' }
       ]
     },
@@ -723,8 +723,8 @@
       phases: [
         { upTo: 2, // before the route1 first battle
           first:[
-            'Hmph. You hover at the door like a stray.',
-            'Don\'t lose to anything embarrassing on Route 1.',
+            'Hmph. {name}, you hover at the door like a stray.',
+            'Don\'t lose to anything embarrassing on Route 1, {name}.',
             'I\'ll be there. I\'ll be watching.'
           ],
           second:[
@@ -814,7 +814,7 @@
       phases: [
         { upTo: 1,
           firstFn:(state) => [
-            'Welcome to the lab! I\'m PEARL.',
+            'Welcome to the lab, {name}! I\'m PEARL.',
             'I started a week before you, so I\'m basically your senior.',
             'Don\'t look at me like that.'
           ],
@@ -1107,9 +1107,9 @@
       phases: [
         { upTo: 1,
           first:[
-            'Look who came through the door.',
-            'Sit down. Eat something.',
-            'I made too much, on purpose.'
+            'Look who came through the door — {name}!',
+            'Sit down, {name}. Eat something.',
+            'I made too much {food}, on purpose.'
           ],
           second:[
             'Don\'t mind the OLD MAN by the porch.',
@@ -1303,7 +1303,7 @@
       phases: [
         { upTo: 1,
           first:[
-            'Hey, kid.',
+            'Hey, {name}.',
             'Sit if you need to.',
             'No questions.'
           ],
@@ -1400,7 +1400,7 @@
       phases: [
         { upTo: 1,
           first:[
-            'Don\'t startle the lichen.',
+            'Don\'t startle the lichen, {name}.',
             'It thinks.',
             'Slowly. But it thinks.'
           ],
@@ -1693,9 +1693,9 @@
         { upTo: 0,
           condition:(state) => !dexHasType(state, 'DRAGON'),
           first:[
-            'The wind speaks.',
+            'The wind speaks, {name}.',
             'It says you walked far for this view.',
-            'Welcome.'
+            'It also shows me {animal}-shaped clouds. You picked well.'
           ],
           second:[
             'Dragons sleep in high quiet places.',
@@ -1792,7 +1792,7 @@
         { upTo: 0,
           condition:(state) => ((state.player && state.player.badges) || []).length < 4,
           first:[
-            'AKIRA. League recruiter.',
+            'AKIRA. League recruiter. {name}, right?',
             'I watch trainers. I take notes.',
             'You have my attention.'
           ],
