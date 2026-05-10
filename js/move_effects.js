@@ -1666,6 +1666,947 @@
     }
   }
 
+  // ---- 30 more signature move effects (v0.51.0) ------------------------
+  // New moves added in tandem to js/data.js MOVES. Each follows the same
+  // tier-branched pattern: rich DS Diamond render + stripped GB/GBC/GBA.
+
+  // 31. megapunch — wind-up ring → giant glove punches in with screen flash.
+  function drawMegaPunch(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.45) {
+      const k = p / 0.45;
+      // Wind-up: focusing ring tightens.
+      const r = 30 * (1 - k) + 8;
+      ring(ctx, cx, cy, r, fancy ? 'rgba(232,144,72,' + (0.9 * k).toFixed(2) + ')' : '#fa6', fancy ? 2 : 1);
+    }
+    if (p > 0.4) {
+      const k = (p - 0.4) / 0.6;
+      const fx = cx - 22 + k * 22;
+      // Glove (large rounded rect).
+      const col = fancy ? 'rgba(232,144,72,0.95)' : '#fa6';
+      ctx.fillStyle = col;
+      ctx.fillRect(fx - 10, cy - 7, 12, 14);
+      ctx.fillStyle = fancy ? 'rgba(255,200,144,0.9)' : '#fda';
+      ctx.fillRect(fx - 8, cy - 5, 8, 10);
+      // Impact flash.
+      if (k > 0.6) {
+        const ik = (k - 0.6) / 0.4;
+        if (fancy) {
+          gradientFill(ctx, cx, cy, 8 + ik * 14, 'rgba(255,232,168,' + (0.85 * (1 - ik)).toFixed(2) + ')', 'rgba(255,232,168,0)');
+        }
+        star(ctx, cx, cy, 5, 'rgba(255,255,255,' + (1 - ik).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 32. bodyslam — silhouette drops from top, dust-ring shockwave on contact.
+  function drawBodySlam(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.55) {
+      const k = p / 0.55;
+      const sy = cy - 30 + k * 28;
+      // Silhouette: dark oblong shape.
+      const col = fancy ? 'rgba(40,32,40,0.85)' : '#322';
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(cx, sy, 12, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Speed lines above.
+      for (let i = 0; i < 4; i++) {
+        const lx = cx + (i - 1.5) * 6;
+        streak(ctx, lx, sy - 18, lx, sy - 8, fancy ? 'rgba(255,255,255,0.6)' : '#fff', 1);
+      }
+    } else {
+      const k = (p - 0.55) / 0.45;
+      // Dust shockwave.
+      const r = 8 + k * 24;
+      if (fancy) {
+        gradientFill(ctx, cx, cy + 6, r, 'rgba(232,200,144,' + (0.7 * (1 - k)).toFixed(2) + ')', 'rgba(200,180,140,0)');
+      }
+      ring(ctx, cx, cy + 6, r, fancy ? 'rgba(200,180,140,' + (0.85 * (1 - k)).toFixed(2) + ')' : '#dca', fancy ? 2 : 1);
+      // Dust motes.
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const dx = cx + Math.cos(a) * r;
+        const dy = cy + 6 + Math.sin(a) * 2;
+        px(ctx, dx | 0, dy | 0, 2, 2, 'rgba(200,180,140,' + (0.7 * (1 - k)).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 33. magmaburst — fire pillar erupts from the ground + lava splatter.
+  function drawMagmaBurst(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const pillarH = k * 30;
+    // Pillar of fire.
+    if (fancy) {
+      const grad = ctx.createLinearGradient(0, cy + 8, 0, cy + 8 - pillarH);
+      grad.addColorStop(0, 'rgba(248,80,8,0.95)');
+      grad.addColorStop(0.5, 'rgba(248,176,32,0.92)');
+      grad.addColorStop(1, 'rgba(255,232,168,0.6)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, cy + 8);
+      ctx.quadraticCurveTo(cx - 4, cy + 8 - pillarH * 0.5, cx, cy + 8 - pillarH);
+      ctx.quadraticCurveTo(cx + 4, cy + 8 - pillarH * 0.5, cx + 8, cy + 8);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#f80';
+      ctx.fillRect(cx - 4, cy + 8 - pillarH, 8, pillarH);
+    }
+    // Lava splatter at the top + ember motes flying.
+    if (p > 0.3) {
+      for (let i = 0; i < (fancy ? 10 : 4); i++) {
+        const r = rng(i + 33);
+        const pop = (p - 0.3) / 0.7;
+        const ang = (i / 10) * Math.PI * 2;
+        const dist = pop * (12 + r * 18);
+        const dx = Math.cos(ang) * dist;
+        const dy = -pop * 14 - Math.sin(ang) * dist * 0.5;
+        const col = fancy ? (r > 0.5 ? 'rgba(248,176,32,' + (1 - pop).toFixed(2) + ')' : 'rgba(248,80,8,' + (1 - pop).toFixed(2) + ')') : '#f80';
+        px(ctx, cx + dx | 0, cy + 8 - pillarH + dy | 0, 2, 2, col);
+      }
+    }
+  }
+
+  // 34. solarflare — focused ray descends from sky-disc, scorch ring at landing.
+  function drawSolarFlare(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Sky-disc at top.
+    if (fancy) {
+      const dy = cy - 36;
+      gradientFill(ctx, cx, dy, 10, 'rgba(255,232,80,0.95)', 'rgba(248,200,80,0)');
+      ring(ctx, cx, dy, 8, 'rgba(255,255,200,' + (0.8 - p * 0.5).toFixed(2) + ')', 2);
+    }
+    // Beam descending.
+    if (p > 0.25) {
+      const k = (p - 0.25) / 0.4;
+      const beamY1 = cy - 36;
+      const beamY2 = cy - 36 + k * 30;
+      const grad = fancy ? ctx.createLinearGradient(cx, beamY1, cx, beamY2) : null;
+      if (fancy) {
+        grad.addColorStop(0, 'rgba(255,232,80,0.9)');
+        grad.addColorStop(1, 'rgba(255,200,80,0.85)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(cx - 4, beamY1, 8, beamY2 - beamY1);
+      } else {
+        ctx.fillStyle = '#fe4';
+        ctx.fillRect(cx - 2, beamY1, 4, beamY2 - beamY1);
+      }
+    }
+    // Scorch ring at landing.
+    if (p > 0.55) {
+      const k = (p - 0.55) / 0.45;
+      const r = 4 + k * 18;
+      if (fancy) {
+        gradientFill(ctx, cx, cy + 4, r, 'rgba(248,200,80,' + (0.85 * (1 - k)).toFixed(2) + ')', 'rgba(248,80,8,0)');
+        ring(ctx, cx, cy + 4, r, 'rgba(255,255,168,' + (1 - k).toFixed(2) + ')', 2);
+      } else {
+        ring(ctx, cx, cy + 4, r, '#fe8', 1);
+      }
+    }
+  }
+
+  // 35. tidalwave — full-width blue wave sweeps with foam crest.
+  function drawTidalWave(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Wave silhouette sweeping left → right.
+    const xOff = -30 + p * 70;
+    if (fancy) {
+      ctx.fillStyle = 'rgba(56,136,232,0.75)';
+      ctx.beginPath();
+      ctx.moveTo(cx - 28 + xOff, cy + 12);
+      ctx.quadraticCurveTo(cx + xOff, cy - 14, cx + 28 + xOff, cy + 12);
+      ctx.lineTo(cx + 28 + xOff, cy + 16);
+      ctx.lineTo(cx - 28 + xOff, cy + 16);
+      ctx.closePath();
+      ctx.fill();
+      // Foam crest.
+      ctx.fillStyle = 'rgba(232,248,255,0.95)';
+      for (let i = 0; i < 5; i++) {
+        const fx = cx - 20 + xOff + i * 10;
+        const fy = cy - 10 + Math.sin(p * 8 + i) * 3;
+        px(ctx, fx, fy, 3, 2, 'rgba(232,248,255,0.95)');
+      }
+      // Splash droplets.
+      for (let i = 0; i < 8; i++) {
+        const r = rng(i + 35);
+        const dx = (r - 0.5) * 50;
+        const dy = -8 - r * 8;
+        px(ctx, cx + dx + xOff | 0, cy + dy | 0, 1, 1, 'rgba(168,200,248,0.85)');
+      }
+    } else {
+      ctx.fillStyle = '#48c';
+      ctx.fillRect(cx - 16 + xOff, cy - 4, 28, 14);
+    }
+  }
+
+  // 36. icebeam — cyan beam converges to target, crystals form on impact.
+  function drawIceBeam(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.55) {
+      const k = p / 0.55;
+      const bx1 = cx - 36 + k * 22;
+      const bx2 = cx - 14 + k * 22;
+      if (fancy) {
+        const grad = ctx.createLinearGradient(bx1, cy, bx2, cy);
+        grad.addColorStop(0, 'rgba(168,216,248,0)');
+        grad.addColorStop(0.5, 'rgba(200,232,248,0.95)');
+        grad.addColorStop(1, 'rgba(248,255,255,0.95)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(bx1, cy - 2, bx2 - bx1, 4);
+      } else {
+        streak(ctx, bx1, cy, bx2, cy, '#aef', 2);
+      }
+    }
+    if (p > 0.5) {
+      const k = (p - 0.5) / 0.5;
+      // Crystals form: 5 diamond shapes around target.
+      for (let i = 0; i < 5; i++) {
+        const ang = (i / 5) * Math.PI * 2;
+        const r = 14 - k * 4;
+        const sx = cx + Math.cos(ang) * r;
+        const sy = cy + Math.sin(ang) * r * 0.7;
+        ctx.fillStyle = fancy ? 'rgba(200,232,248,0.95)' : '#aef';
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - 4);
+        ctx.lineTo(sx + 3, sy);
+        ctx.lineTo(sx, sy + 4);
+        ctx.lineTo(sx - 3, sy);
+        ctx.closePath();
+        ctx.fill();
+      }
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 16, 'rgba(248,255,255,' + (0.4 * (1 - k)).toFixed(2) + ')', 'rgba(168,216,248,0)');
+      }
+    }
+  }
+
+  // 37. avalanche — cascading ice chunks tumble in from above.
+  function drawAvalanche(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 10 : 4;
+    for (let i = 0; i < n; i++) {
+      const r = rng(i + 37);
+      const delay = i * 0.04;
+      const local = (p - delay) / 0.7;
+      if (local <= 0 || local > 1) continue;
+      const sx = cx + (r - 0.5) * 40;
+      const sy = cy - 28 + local * 36;
+      const sz = fancy ? (3 + r * 3 | 0) : 3;
+      const col = fancy ? (r > 0.5 ? 'rgba(232,248,255,0.95)' : 'rgba(168,216,248,0.95)') : '#aef';
+      // Tumbling chunk rotates: alternate diamond vs square.
+      if ((i & 1) === 0) {
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - sz);
+        ctx.lineTo(sx + sz, sy);
+        ctx.lineTo(sx, sy + sz);
+        ctx.lineTo(sx - sz, sy);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        px(ctx, sx - sz / 2, sy - sz / 2, sz, sz, col);
+      }
+    }
+    if (fancy && p > 0.6) {
+      const k = (p - 0.6) / 0.4;
+      gradientFill(ctx, cx, cy + 8, 16, 'rgba(232,248,255,' + (0.4 * (1 - k)).toFixed(2) + ')', 'rgba(168,216,248,0)');
+    }
+  }
+
+  // 38. thunderclap — two angular forks crack from corners + screen flash.
+  function drawThunderclap(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p > 0.1 && p < 0.55) {
+      const k = (p - 0.1) / 0.45;
+      // Two zigzag forks: top-left and top-right.
+      const forks = [{ x: cx - 30, y: cy - 22 }, { x: cx + 30, y: cy - 22 }];
+      for (const f of forks) {
+        const points = [
+          [f.x, f.y],
+          [f.x + (cx - f.x) * 0.3 + 4, f.y + (cy - f.y) * 0.3],
+          [f.x + (cx - f.x) * 0.55 - 4, f.y + (cy - f.y) * 0.55],
+          [f.x + (cx - f.x) * 0.8 + 2, f.y + (cy - f.y) * 0.8],
+          [cx, cy]
+        ];
+        ctx.strokeStyle = fancy ? 'rgba(255,232,80,' + (0.95 * k).toFixed(2) + ')' : '#fe4';
+        ctx.lineWidth = fancy ? 3 : 2;
+        ctx.beginPath();
+        for (let j = 0; j < points.length; j++) {
+          if (j === 0) ctx.moveTo(points[j][0], points[j][1]);
+          else ctx.lineTo(points[j][0], points[j][1]);
+        }
+        ctx.stroke();
+      }
+    }
+    if (p > 0.4) {
+      const k = (p - 0.4) / 0.6;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 12 + k * 16, 'rgba(255,255,232,' + (0.85 * (1 - k)).toFixed(2) + ')', 'rgba(255,232,80,0)');
+      }
+      ring(ctx, cx, cy, 6 + k * 10, fancy ? 'rgba(255,232,80,' + (1 - k).toFixed(2) + ')' : '#fe4', fancy ? 2 : 1);
+    }
+  }
+
+  // 39. voltcage — vertical electric prison bars with zaps between.
+  function drawVoltCage(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const bars = fancy ? 5 : 3;
+    const cageH = 22;
+    for (let i = 0; i < bars; i++) {
+      const bx = cx - 16 + i * (32 / (bars - 1));
+      const col = fancy ? 'rgba(255,232,80,' + (0.85 + 0.1 * Math.sin(p * 20 + i)).toFixed(2) + ')' : '#fe4';
+      ctx.fillStyle = col;
+      ctx.fillRect(bx - 1, cy - cageH / 2, 2, cageH);
+    }
+    if (fancy) {
+      // Zap arcs between bars.
+      for (let i = 0; i < 5; i++) {
+        const ang = rng(i + 39 + Math.floor(p * 30));
+        const fromBar = Math.floor(ang * bars);
+        const toBar = (fromBar + 1) % bars;
+        const fx = cx - 16 + fromBar * (32 / (bars - 1));
+        const tx = cx - 16 + toBar * (32 / (bars - 1));
+        const my = cy - cageH / 2 + ang * cageH;
+        streak(ctx, fx, my, tx, my + (ang - 0.5) * 6, 'rgba(255,255,232,0.85)', 1);
+      }
+      // Glow halo.
+      gradientFill(ctx, cx, cy, 22, 'rgba(255,232,80,' + (0.25 + 0.15 * Math.sin(p * 8)).toFixed(2) + ')', 'rgba(255,232,80,0)');
+    }
+  }
+
+  // 40. hurricaneblast — tight rotating cyclone with leaf debris.
+  function drawHurricaneBlast(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Cyclone: stacked ellipses with wobble.
+    const layers = fancy ? 12 : 6;
+    ctx.save();
+    if (fancy) ctx.globalCompositeOperation = 'multiply';
+    for (let i = 0; i < layers; i++) {
+      const f = i / layers;
+      const fx = cx + Math.sin(p * 16 + i * 0.7) * (4 + f * 4);
+      const fy = cy - 14 + i * (28 / layers);
+      const rx = Math.max(3, 18 * (1 - f * 0.4));
+      const col = fancy ? 'rgba(96,144,200,' + (0.35 + 0.06 * Math.sin(p * 10 + i)).toFixed(2) + ')' : 'rgba(120,160,200,0.7)';
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(fx, fy, rx, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    if (fancy) {
+      // Leaf debris orbiting.
+      for (let i = 0; i < 6; i++) {
+        const a = p * 10 + i * (Math.PI * 2 / 6);
+        const rad = 20 - p * 8;
+        const lx = cx + Math.cos(a) * rad;
+        const ly = cy + Math.sin(a) * rad * 0.6;
+        px(ctx, lx | 0, ly | 0, 2, 2, i & 1 ? 'rgba(96,200,96,0.85)' : 'rgba(168,120,72,0.85)');
+      }
+    }
+  }
+
+  // 41. skyrend — diving streak from top-right + feather trail + dust.
+  function drawSkyRend(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const sx = cx + 26 - k * 26;
+    const sy = cy - 26 + k * 26;
+    if (fancy) {
+      streak(ctx, sx + 8, sy - 8, sx - 4, sy + 4, 'rgba(255,255,255,0.85)', 3);
+      streak(ctx, sx + 4, sy - 4, sx - 2, sy + 2, 'rgba(200,232,255,0.7)', 2);
+      // Feather trail.
+      for (let i = 0; i < 5; i++) {
+        const ti = i * 0.06;
+        const tk = Math.max(0, k - ti);
+        if (tk <= 0) continue;
+        const tx = cx + 26 - tk * 26;
+        const ty = cy - 26 + tk * 26;
+        px(ctx, tx + 2, ty - 2, 2, 4, 'rgba(232,248,255,' + (0.7 - i * 0.12).toFixed(2) + ')');
+      }
+    } else {
+      streak(ctx, sx + 4, sy - 4, sx, sy, '#fff', 2);
+    }
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      // Ground impact dust.
+      for (let i = 0; i < 6; i++) {
+        const r = rng(i + 41);
+        const dx = (r - 0.5) * 22;
+        const dy = ik * 4 + r * 2;
+        px(ctx, cx + dx | 0, cy + 6 + dy | 0, 2, 2, 'rgba(200,180,140,' + (0.7 * (1 - ik)).toFixed(2) + ')');
+      }
+      if (fancy) ring(ctx, cx, cy + 4, 4 + ik * 12, 'rgba(232,232,232,' + (1 - ik).toFixed(2) + ')', 2);
+    }
+  }
+
+  // 42. earthquake — cracks split outward, screen tremor shake.
+  function drawEarthquake(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Tremor: small random offset.
+    const shake = Math.sin(p * 80) * 2;
+    const sx = cx + shake;
+    // Cracks fanning outward.
+    const cracks = fancy ? 6 : 4;
+    for (let i = 0; i < cracks; i++) {
+      const ang = (i / cracks) * Math.PI * 2;
+      const k = Math.min(1, p / 0.7);
+      const r = k * 26;
+      const x1 = sx + Math.cos(ang) * 2;
+      const y1 = cy + 6 + Math.sin(ang) * 1;
+      const x2 = sx + Math.cos(ang) * r;
+      const y2 = cy + 6 + Math.sin(ang) * r * 0.4;
+      streak(ctx, x1, y1, x2, y2, fancy ? 'rgba(72,56,40,0.95)' : '#642', fancy ? 3 : 2);
+      // Jag mid-points.
+      if (fancy) {
+        const mx = sx + Math.cos(ang) * r * 0.5;
+        const my = cy + 6 + Math.sin(ang) * r * 0.5 * 0.4;
+        streak(ctx, mx, my, mx + 3, my + 1, 'rgba(72,56,40,0.85)', 2);
+      }
+    }
+    // Rising soil chunks.
+    if (fancy && p > 0.2) {
+      for (let i = 0; i < 8; i++) {
+        const r = rng(i + 43);
+        const pop = (p - 0.2) / 0.7;
+        const dx = (r - 0.5) * 30;
+        const dy = -pop * 14 + pop * pop * 12;
+        px(ctx, sx + dx | 0, cy + 6 + dy | 0, 2, 2, 'rgba(120,88,56,' + (1 - pop).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 43. sandstorm — diagonal sand sheets across screen + swirling motes.
+  function drawSandstorm(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Diagonal sand sheets.
+    if (fancy) {
+      const sheets = 4;
+      for (let i = 0; i < sheets; i++) {
+        const f = i / sheets;
+        const drift = (p * 60 + i * 30) % 60 - 20;
+        const grad = ctx.createLinearGradient(cx - 30 + drift, cy - 14 + f * 8, cx + 30 + drift, cy + 8 + f * 8);
+        grad.addColorStop(0, 'rgba(232,200,144,0)');
+        grad.addColorStop(0.5, 'rgba(232,200,144,' + (0.4 - f * 0.1).toFixed(2) + ')');
+        grad.addColorStop(1, 'rgba(232,200,144,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(cx - 30, cy - 14 + f * 8, 60, 8);
+      }
+    }
+    // Swirling motes.
+    const motes = fancy ? 16 : 6;
+    for (let i = 0; i < motes; i++) {
+      const r = rng(i + 45);
+      const a = (i / motes) * Math.PI * 2 + p * 4;
+      const rad = 16 + Math.sin(p * 6 + i) * 4;
+      const dx = Math.cos(a) * rad;
+      const dy = Math.sin(a) * rad * 0.5;
+      const col = fancy ? (r > 0.5 ? 'rgba(232,200,144,0.85)' : 'rgba(184,160,112,0.85)') : '#dca';
+      px(ctx, cx + dx | 0, cy + dy | 0, fancy ? 2 : 1, fancy ? 2 : 1, col);
+    }
+  }
+
+  // 44. rockslide — 6-8 rocks raining diagonally with impact dust pings.
+  function drawRockSlide(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 8 : 4;
+    for (let i = 0; i < n; i++) {
+      const r = rng(i + 47);
+      const delay = i * 0.04;
+      const local = (p - delay) / 0.5;
+      if (local <= 0 || local > 1) continue;
+      const sx = cx + (r - 0.5) * 50 - 18 + local * 18;
+      const sy = cy - 24 + local * 32;
+      const sz = fancy ? 4 : 3;
+      const col = fancy ? (r > 0.5 ? 'rgba(168,120,72,0.95)' : 'rgba(120,88,56,0.95)') : '#864';
+      px(ctx, sx - sz / 2 | 0, sy - sz / 2 | 0, sz, sz, col);
+      // Trail.
+      if (fancy) px(ctx, sx - sz / 2 - 1, sy - sz / 2 - 1, 1, 1, 'rgba(232,200,144,0.6)');
+      // Impact ping.
+      if (local > 0.92) {
+        const px2 = cx + (r - 0.5) * 50;
+        for (let j = 0; j < 3; j++) {
+          px(ctx, px2 + (j - 1) * 2 | 0, cy + 8 | 0, 1, 1, 'rgba(200,180,140,0.9)');
+        }
+      }
+    }
+  }
+
+  // 45. stoneedge — stone spike thrusts up from the ground.
+  function drawStoneEdge(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.6);
+    const spikeH = k * 26;
+    // Spike body (triangle).
+    const col = fancy ? 'rgba(120,88,56,0.95)' : '#864';
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(cx - 7, cy + 8);
+    ctx.lineTo(cx + 7, cy + 8);
+    ctx.lineTo(cx, cy + 8 - spikeH);
+    ctx.closePath();
+    ctx.fill();
+    if (fancy) {
+      // Highlight edge.
+      ctx.fillStyle = 'rgba(232,200,144,0.6)';
+      ctx.beginPath();
+      ctx.moveTo(cx - 2, cy + 8);
+      ctx.lineTo(cx, cy + 8 - spikeH);
+      ctx.lineTo(cx + 2, cy + 8);
+      ctx.closePath();
+      ctx.fill();
+      // Jagged smaller spikes alongside.
+      for (let s = -1; s <= 1; s += 2) {
+        ctx.fillStyle = 'rgba(168,120,72,0.9)';
+        ctx.beginPath();
+        ctx.moveTo(cx + s * 6, cy + 8);
+        ctx.lineTo(cx + s * 12, cy + 8);
+        ctx.lineTo(cx + s * 9, cy + 8 - spikeH * 0.5);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    if (fancy && p > 0.55) {
+      const ik = (p - 0.55) / 0.45;
+      // Burst at the tip on full extension.
+      gradientFill(ctx, cx, cy + 8 - spikeH, 8, 'rgba(248,232,168,' + (0.7 * (1 - ik)).toFixed(2) + ')', 'rgba(168,120,72,0)');
+    }
+  }
+
+  // 46. petalstorm — pink/green petals spiral around target.
+  function drawPetalStorm(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 14 : 6;
+    for (let i = 0; i < n; i++) {
+      const r = rng(i + 49);
+      const a = (i / n) * Math.PI * 2 + p * 4;
+      const rad = 6 + p * 16 + (r - 0.5) * 4;
+      const dx = Math.cos(a) * rad;
+      const dy = Math.sin(a) * rad * 0.65;
+      const col = fancy ? (i & 1 ? 'rgba(248,168,200,0.95)' : 'rgba(248,200,168,0.95)') : '#fae';
+      // Petal = small ellipse rotated.
+      if (fancy) {
+        ctx.save();
+        ctx.translate(cx + dx, cy + dy);
+        ctx.rotate(a);
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 3, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        px(ctx, cx + dx | 0, cy + dy | 0, 2, 1, col);
+      }
+    }
+    if (fancy) {
+      gradientFill(ctx, cx, cy, 14, 'rgba(248,200,232,' + (0.35 * Math.sin(p * Math.PI)).toFixed(2) + ')', 'rgba(248,168,200,0)');
+    }
+  }
+
+  // 47. rootbind — roots grow from below wrapping the target.
+  function drawRootBind(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.7);
+    // 4 roots growing upward, curving inward.
+    const roots = fancy ? 5 : 3;
+    for (let i = 0; i < roots; i++) {
+      const baseX = cx + (i - (roots - 1) / 2) * 8;
+      const segs = 8;
+      ctx.strokeStyle = fancy ? 'rgba(120,80,48,0.95)' : '#763';
+      ctx.lineWidth = fancy ? 3 : 2;
+      ctx.beginPath();
+      for (let j = 0; j <= segs; j++) {
+        const t = j / segs * k;
+        const x = baseX + Math.sin(t * Math.PI * 1.5 + i * 0.6) * 5;
+        const y = cy + 14 - t * 24;
+        if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      if (fancy && k > 0.6) {
+        const tipX = baseX + Math.sin(Math.PI * 1.5 + i * 0.6) * 5;
+        const tipY = cy + 14 - k * 24;
+        px(ctx, tipX - 1, tipY - 1, 3, 3, 'rgba(96,200,96,0.95)');
+      }
+    }
+    if (fancy && p > 0.6) {
+      // Constriction halo.
+      const ik = (p - 0.6) / 0.4;
+      ring(ctx, cx, cy, 10 - ik * 2, 'rgba(120,80,48,' + (0.7 * (1 - ik)).toFixed(2) + ')', 2);
+    }
+  }
+
+  // 48. toxicgas — expanding green-purple gas cloud with bubble pops.
+  function drawToxicGas(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (fancy) {
+      // Two overlapping clouds.
+      gradientFill(ctx, cx - 4, cy, 8 + p * 16, 'rgba(120,200,80,' + (0.55 * (1 - p * 0.5)).toFixed(2) + ')', 'rgba(120,200,80,0)');
+      gradientFill(ctx, cx + 4, cy + 2, 6 + p * 14, 'rgba(168,120,200,' + (0.55 * (1 - p * 0.5)).toFixed(2) + ')', 'rgba(168,120,200,0)');
+    }
+    const bubbles = fancy ? 10 : 4;
+    for (let i = 0; i < bubbles; i++) {
+      const r = rng(i + 51);
+      const phase = (p + r * 0.4) % 1;
+      const bx = cx + (r - 0.5) * 30 + Math.sin(p * 4 + i) * 3;
+      const by = cy + 6 - phase * 18;
+      const sz = (1 - phase) * (fancy ? 4 : 2);
+      if (sz < 0.8) continue;
+      const col = fancy ? (i & 1 ? 'rgba(120,200,96,' + (0.9 - phase * 0.5).toFixed(2) + ')' : 'rgba(168,120,200,' + (0.9 - phase * 0.5).toFixed(2) + ')') : '#9c6';
+      disc(ctx, bx, by, sz, col);
+    }
+  }
+
+  // 49. venomtide — purple wave sweeping in with dripping toxic mist.
+  function drawVenomTide(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const xOff = -24 + p * 48;
+    if (fancy) {
+      ctx.fillStyle = 'rgba(120,72,168,0.85)';
+      ctx.beginPath();
+      ctx.moveTo(cx - 20 + xOff, cy + 8);
+      ctx.quadraticCurveTo(cx + xOff, cy - 8, cx + 20 + xOff, cy + 8);
+      ctx.lineTo(cx + 20 + xOff, cy + 12);
+      ctx.lineTo(cx - 20 + xOff, cy + 12);
+      ctx.closePath();
+      ctx.fill();
+      // Toxic mist trail above.
+      for (let i = 0; i < 5; i++) {
+        const dx = -16 + i * 8;
+        const dy = -4 - Math.sin(p * 6 + i) * 3;
+        px(ctx, cx + dx + xOff | 0, cy + dy | 0, 2, 2, 'rgba(168,120,200,' + (0.7 - i * 0.1).toFixed(2) + ')');
+      }
+      // Dripping motes below.
+      for (let i = 0; i < 6; i++) {
+        const r = rng(i + 53);
+        const phase = (p + r * 0.3) % 1;
+        const dx = (r - 0.5) * 30 + xOff;
+        const dy = 12 + phase * 8;
+        px(ctx, cx + dx | 0, cy + dy | 0, 2, 2, 'rgba(120,72,168,' + (0.85 - phase * 0.5).toFixed(2) + ')');
+      }
+    } else {
+      ctx.fillStyle = '#84a';
+      ctx.fillRect(cx - 14 + xOff, cy - 2, 24, 12);
+    }
+  }
+
+  // 50. mindcrush — eight psychic shards converge from outside toward centre.
+  function drawMindCrush(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const shards = 8;
+    for (let i = 0; i < shards; i++) {
+      const ang = (i / shards) * Math.PI * 2;
+      const dist = (1 - Math.min(1, p / 0.7)) * 28 + 4;
+      const sx = cx + Math.cos(ang) * dist;
+      const sy = cy + Math.sin(ang) * dist * 0.7;
+      // Shard = diamond shape.
+      ctx.fillStyle = fancy ? 'rgba(168,144,232,0.95)' : '#a8e';
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - 4);
+      ctx.lineTo(sx + 3, sy);
+      ctx.lineTo(sx, sy + 4);
+      ctx.lineTo(sx - 3, sy);
+      ctx.closePath();
+      ctx.fill();
+      if (fancy) {
+        // Tracer.
+        const tx = cx + Math.cos(ang) * (dist + 4);
+        const ty = cy + Math.sin(ang) * (dist + 4) * 0.7;
+        streak(ctx, sx, sy, tx, ty, 'rgba(232,200,255,0.7)', 1);
+      }
+    }
+    if (p > 0.6 && fancy) {
+      const k = (p - 0.6) / 0.4;
+      gradientFill(ctx, cx, cy, 14, 'rgba(232,200,255,' + (0.7 * (1 - k)).toFixed(2) + ')', 'rgba(168,144,232,0)');
+      star(ctx, cx, cy, 4, 'rgba(255,255,255,' + (1 - k).toFixed(2) + ')');
+    }
+  }
+
+  // 51. telekinesis — target framed by floating energy lift lines.
+  function drawTelekinesis(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Lift lines: 4 angular lines pulling upward.
+    const lines = fancy ? 8 : 4;
+    for (let i = 0; i < lines; i++) {
+      const ang = (i / lines) * Math.PI * 2;
+      const r = 14;
+      const x1 = cx + Math.cos(ang) * r;
+      const y1 = cy + Math.sin(ang) * r * 0.6;
+      const y2 = y1 - 4 - Math.sin(p * 6 + i) * 3;
+      streak(ctx, x1, y1, x1, y2, fancy ? 'rgba(232,200,255,' + (0.85 - p * 0.3).toFixed(2) + ')' : '#cae', fancy ? 2 : 1);
+    }
+    if (fancy) {
+      // Subtle aura.
+      gradientFill(ctx, cx, cy - 2, 14, 'rgba(184,144,232,' + (0.3 + 0.15 * Math.sin(p * 8)).toFixed(2) + ')', 'rgba(184,144,232,0)');
+      // Sparkles.
+      for (let i = 0; i < 4; i++) {
+        const r = rng(i + 55);
+        const phase = (p + r * 0.3) % 1;
+        if (phase < 0.5) continue;
+        const sx = cx + (r - 0.5) * 24;
+        const sy = cy - 2 - (r * 8);
+        star(ctx, sx, sy, 2, 'rgba(255,255,232,' + (1 - phase).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 52. swarmstrike — bug silhouettes dart inward in flurries.
+  function drawSwarmStrike(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 12 : 6;
+    for (let i = 0; i < n; i++) {
+      const r = rng(i + 57);
+      const delay = i * 0.05;
+      const local = (p - delay) / 0.5;
+      if (local <= 0 || local > 1) continue;
+      // Spawn from outer ring, fly to centre.
+      const ang = r * Math.PI * 2;
+      const dist = (1 - local) * 26 + 2;
+      const sx = cx + Math.cos(ang) * dist;
+      const sy = cy + Math.sin(ang) * dist * 0.7;
+      // Bug body + wing.
+      const col = fancy ? (r > 0.5 ? 'rgba(168,200,72,0.95)' : 'rgba(120,144,48,0.95)') : '#9b3';
+      ctx.fillStyle = col;
+      ctx.fillRect(sx - 1, sy - 1, 3, 2);
+      if (fancy) {
+        const wing = Math.sin(p * 30 + i) * 2;
+        px(ctx, sx - 2 + wing, sy - 2, 2, 1, 'rgba(232,255,200,0.7)');
+      }
+    }
+  }
+
+  // 53. karatechop — quick downward chop with sharp motion line.
+  function drawKarateChop(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.5);
+    const cy0 = cy - 18 + k * 18;
+    // Chop blade (vertical orange line).
+    if (fancy) {
+      ctx.fillStyle = 'rgba(232,144,72,0.95)';
+      ctx.fillRect(cx - 1, cy0 - 8, 3, 12);
+      // Motion line trailing up.
+      streak(ctx, cx, cy0 - 14, cx, cy0 - 6, 'rgba(255,200,144,0.7)', 2);
+      streak(ctx, cx, cy0 - 20, cx, cy0 - 10, 'rgba(255,232,168,0.4)', 1);
+    } else {
+      px(ctx, cx - 1, cy0 - 6, 2, 8, '#fa6');
+    }
+    if (p > 0.45) {
+      const ik = (p - 0.45) / 0.55;
+      // Impact spark.
+      if (fancy) {
+        // 4-direction crisp lines.
+        for (let i = 0; i < 4; i++) {
+          const ang = (i / 4) * Math.PI * 2 + Math.PI / 4;
+          const r0 = 4, r1 = 4 + ik * 10;
+          streak(ctx, cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0,
+                      cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1,
+                      'rgba(255,232,168,' + (1 - ik).toFixed(2) + ')', 2);
+        }
+      }
+      star(ctx, cx, cy, 4, fancy ? 'rgba(255,255,255,' + (1 - ik).toFixed(2) + ')' : '#fff');
+    }
+  }
+
+  // 54. focusblast — charging orb → bursts outward in a ring.
+  function drawFocusBlast(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.6) {
+      const k = p / 0.6;
+      // Charging orb pulses.
+      const r = 4 + k * 6;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, r + 4, 'rgba(96,200,232,' + (0.85 * k).toFixed(2) + ')', 'rgba(96,168,248,0)');
+        disc(ctx, cx, cy, r, 'rgba(168,232,255,0.95)');
+      } else {
+        disc(ctx, cx, cy, r, '#8df');
+      }
+      // Energy ring tightening.
+      ring(ctx, cx, cy, 18 - k * 8, fancy ? 'rgba(232,255,200,' + (0.7 * k).toFixed(2) + ')' : '#cf8', fancy ? 2 : 1);
+    } else {
+      const k = (p - 0.6) / 0.4;
+      // Burst outward.
+      const r = 6 + k * 22;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, r, 'rgba(168,232,255,' + (0.85 * (1 - k)).toFixed(2) + ')', 'rgba(96,168,248,0)');
+        ring(ctx, cx, cy, r, 'rgba(232,255,200,' + (1 - k).toFixed(2) + ')', 3);
+      } else {
+        ring(ctx, cx, cy, r, '#8df', 2);
+      }
+      // Sparks.
+      for (let i = 0; i < 8; i++) {
+        const ang = (i / 8) * Math.PI * 2;
+        const sx = cx + Math.cos(ang) * r;
+        const sy = cy + Math.sin(ang) * r;
+        px(ctx, sx | 0, sy | 0, 2, 2, fancy ? 'rgba(255,255,232,' + (1 - k).toFixed(2) + ')' : '#ffd');
+      }
+    }
+  }
+
+  // 55. shadowstrike — dark tendril stabs across screen with shadow wake.
+  function drawShadowStrike(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.45);
+    const sx = cx - 24 + k * 24;
+    if (fancy) {
+      // Tendril: curved dark line.
+      ctx.strokeStyle = 'rgba(40,16,40,0.95)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(sx - 18, cy + 4);
+      ctx.quadraticCurveTo(sx - 8, cy - 6, sx, cy);
+      ctx.stroke();
+      // Wake.
+      ctx.strokeStyle = 'rgba(80,40,80,0.55)';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(sx - 22, cy + 6);
+      ctx.quadraticCurveTo(sx - 10, cy - 4, sx + 1, cy + 1);
+      ctx.stroke();
+      // Tip.
+      px(ctx, sx - 1, cy - 1, 3, 3, 'rgba(80,40,120,0.95)');
+    } else {
+      streak(ctx, sx - 16, cy, sx, cy, '#404', 3);
+    }
+    if (p > 0.45) {
+      const ik = (p - 0.45) / 0.55;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 8 + ik * 12, 'rgba(40,16,40,' + (0.7 * (1 - ik)).toFixed(2) + ')', 'rgba(40,16,40,0)');
+      }
+      star(ctx, cx, cy, 4, 'rgba(168,120,200,' + (1 - ik).toFixed(2) + ')');
+    }
+  }
+
+  // 56. nightveil — dark curtain falls from top, target dim under it.
+  function drawNightVeil(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.7);
+    const curtainBottomY = cy - 22 + k * 36;
+    if (fancy) {
+      // Layered curtain with slight vertical streaks.
+      const grad = ctx.createLinearGradient(0, cy - 22, 0, curtainBottomY);
+      grad.addColorStop(0, 'rgba(20,16,32,0.85)');
+      grad.addColorStop(1, 'rgba(40,32,56,' + (0.55 * (1 - p * 0.3)).toFixed(2) + ')');
+      ctx.fillStyle = grad;
+      ctx.fillRect(cx - 22, cy - 22, 44, curtainBottomY - (cy - 22));
+      // Folds.
+      for (let i = 0; i < 5; i++) {
+        const fx = cx - 16 + i * 8;
+        streak(ctx, fx, cy - 22, fx, curtainBottomY, 'rgba(80,56,96,0.4)', 1);
+      }
+      // Sparkles at the falling edge.
+      for (let i = 0; i < 6; i++) {
+        const r = rng(i + 59);
+        const sx = cx - 18 + r * 36;
+        px(ctx, sx | 0, curtainBottomY - 1, 2, 2, 'rgba(168,144,232,' + (0.7 + 0.2 * Math.sin(p * 10 + i)).toFixed(2) + ')');
+      }
+    } else {
+      ctx.fillStyle = 'rgba(40,32,56,0.7)';
+      ctx.fillRect(cx - 16, cy - 18, 32, curtainBottomY - (cy - 18));
+    }
+  }
+
+  // 57. hauntcurse — purple runes circle target, eyes blink, then dim flash.
+  function drawHauntCurse(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const runes = fancy ? 6 : 3;
+    for (let i = 0; i < runes; i++) {
+      const a = (i / runes) * Math.PI * 2 + p * Math.PI * 1.2;
+      const rad = 16;
+      const sx = cx + Math.cos(a) * rad;
+      const sy = cy + Math.sin(a) * rad * 0.6;
+      const col = fancy ? 'rgba(168,120,232,0.95)' : '#a8e';
+      // Rune: small cross + box.
+      px(ctx, sx - 1, sy - 2, 2, 5, col);
+      px(ctx, sx - 2, sy - 1, 5, 2, col);
+      if (fancy) px(ctx, sx, sy, 1, 1, 'rgba(232,200,255,0.95)');
+    }
+    if (fancy && p > 0.4) {
+      // Glowing eyes blinking at centre.
+      const blink = Math.sin(p * 14) > 0 ? 1 : 0;
+      if (blink) {
+        ctx.fillStyle = 'rgba(255,72,72,0.95)';
+        ctx.fillRect(cx - 4, cy - 1, 2, 3);
+        ctx.fillRect(cx + 2, cy - 1, 2, 3);
+      }
+    }
+    if (p > 0.7 && fancy) {
+      const k = (p - 0.7) / 0.3;
+      gradientFill(ctx, cx, cy, 16, 'rgba(80,40,120,' + (0.5 * (1 - k)).toFixed(2) + ')', 'rgba(40,16,40,0)');
+    }
+  }
+
+  // 58. phantompulse — translucent pulse wave with ghostly afterimage.
+  function drawPhantomPulse(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Three pulse waves staggered.
+    for (let i = 0; i < 3; i++) {
+      const local = (p - i * 0.18);
+      if (local <= 0) continue;
+      const r = local * 24;
+      const a = Math.max(0, 0.7 - r * 0.025);
+      ring(ctx, cx, cy, r, fancy ? 'rgba(184,160,232,' + a.toFixed(2) + ')' : '#a9e', fancy ? 2 : 1);
+    }
+    if (fancy) {
+      // Ghostly afterimage of the target's silhouette pulsing.
+      const wob = Math.sin(p * 14) * 2;
+      ctx.fillStyle = 'rgba(168,144,232,' + (0.3 + 0.15 * Math.sin(p * 12)).toFixed(2) + ')';
+      ctx.beginPath();
+      ctx.ellipse(cx + wob, cy, 10, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 59. dragonpulse — concentric draconic energy rings, gold/purple core.
+  function drawDragonPulse(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (fancy) {
+      // Core orb.
+      gradientFill(ctx, cx, cy, 8 + Math.sin(p * 16) * 2,
+        'rgba(255,232,168,0.95)', 'rgba(168,72,200,0)');
+    }
+    // Rings expanding.
+    for (let i = 0; i < 4; i++) {
+      const r = ((p + i * 0.2) % 1) * 22;
+      const a = Math.max(0, 0.85 - r * 0.03);
+      ring(ctx, cx, cy, r, fancy ? (i & 1 ? 'rgba(248,200,80,' + a.toFixed(2) + ')' : 'rgba(168,72,200,' + a.toFixed(2) + ')') : '#a4c', fancy ? 2 : 1);
+    }
+    if (fancy) {
+      // Draconic scale shimmer dots.
+      for (let i = 0; i < 8; i++) {
+        const ang = (i / 8) * Math.PI * 2 + p * 4;
+        const rad = 14 + Math.sin(p * 6 + i) * 2;
+        const sx = cx + Math.cos(ang) * rad;
+        const sy = cy + Math.sin(ang) * rad * 0.7;
+        px(ctx, sx | 0, sy | 0, 2, 2, i & 1 ? 'rgba(248,232,168,0.9)' : 'rgba(232,168,255,0.9)');
+      }
+    }
+  }
+
+  // 60. stardust — twinkling cosmic dust falling around target.
+  function drawStardust(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 18 : 7;
+    for (let i = 0; i < n; i++) {
+      const r = rng(i + 61);
+      const phase = (p + r * 0.5) % 1;
+      const sx = cx + (r - 0.5) * 36 + Math.sin(p * 4 + i) * 2;
+      const sy = cy - 16 + phase * 28;
+      const twink = Math.sin(p * 18 + i) * 0.5 + 0.5;
+      const sz = 1 + Math.floor(twink * 2);
+      const col = fancy ? (i % 3 === 0 ? 'rgba(255,232,168,' + (1 - phase).toFixed(2) + ')'
+                          : i % 3 === 1 ? 'rgba(184,200,248,' + (1 - phase).toFixed(2) + ')'
+                                        : 'rgba(248,200,232,' + (1 - phase).toFixed(2) + ')')
+                        : '#fef';
+      if (twink > 0.5) star(ctx, sx, sy, sz, col);
+      else px(ctx, sx | 0, sy | 0, 1, 1, col);
+    }
+    if (fancy) {
+      gradientFill(ctx, cx, cy, 16, 'rgba(232,200,255,' + (0.3 * Math.sin(p * Math.PI)).toFixed(2) + ')', 'rgba(184,160,232,0)');
+    }
+  }
+
   const MOVE_EFFECTS = {
     spark:        drawShockwave,    // tier-1 electric uses simpler ring
     gust:         drawTornadoFunnel,
@@ -1710,7 +2651,39 @@
     spectralhowl: drawSpectralHowl,
     ghostgrip:    drawGhostGrip,
     dragonbreath: drawDragonBreath,
-    fairykiss:    drawFairyKiss
+    fairykiss:    drawFairyKiss,
+    // 30 more signatures added in v0.51.0 (each pairs with a new move
+    // in js/data.js):
+    megapunch:      drawMegaPunch,
+    bodyslam:       drawBodySlam,
+    magmaburst:     drawMagmaBurst,
+    solarflare:     drawSolarFlare,
+    tidalwave:      drawTidalWave,
+    icebeam:        drawIceBeam,
+    avalanche:      drawAvalanche,
+    thunderclap:    drawThunderclap,
+    voltcage:       drawVoltCage,
+    hurricaneblast: drawHurricaneBlast,
+    skyrend:        drawSkyRend,
+    earthquake:     drawEarthquake,
+    sandstorm:      drawSandstorm,
+    rockslide:      drawRockSlide,
+    stoneedge:      drawStoneEdge,
+    petalstorm:     drawPetalStorm,
+    rootbind:       drawRootBind,
+    toxicgas:       drawToxicGas,
+    venomtide:      drawVenomTide,
+    mindcrush:      drawMindCrush,
+    telekinesis:    drawTelekinesis,
+    swarmstrike:    drawSwarmStrike,
+    karatechop:     drawKarateChop,
+    focusblast:     drawFocusBlast,
+    shadowstrike:   drawShadowStrike,
+    nightveil:      drawNightVeil,
+    hauntcurse:     drawHauntCurse,
+    phantompulse:   drawPhantomPulse,
+    dragonpulse:    drawDragonPulse,
+    stardust:       drawStardust
   };
 
   // Move-id overrides may want a longer / shorter timeline than the
@@ -1744,7 +2717,23 @@
     hypnoray:    1.00,
     dazzle:      0.90,
     ghostgrip:   0.90,
-    fairykiss:   0.85
+    fairykiss:   0.85,
+    // v0.51.0 multi-stage signatures.
+    avalanche:      1.00,
+    earthquake:     0.95,
+    hurricaneblast: 1.00,
+    focusblast:     1.00,
+    telekinesis:    0.95,
+    voltcage:       0.95,
+    swarmstrike:    0.90,
+    petalstorm:     0.95,
+    rootbind:       1.00,
+    magmaburst:     0.95,
+    solarflare:     1.10,
+    dragonpulse:    0.95,
+    tidalwave:      0.95,
+    sandstorm:      0.90,
+    stardust:       0.95
   };
 
   function drawFor(ctx, anim, tier, tx, ty, tw, th) {
