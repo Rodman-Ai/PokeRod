@@ -1034,7 +1034,7 @@
   // rain (with occasional debris flecks). Fog/overcast spawn nothing —
   // their visuals come from drawWeatherOverlay sheets. Overcast
   // spawns nothing (the look is overlay-based, not particle-based).
-  function spawnWeatherParticle(kind, intensity, viewW, wind, vortexCx, vortexCy) {
+  function spawnWeatherParticle(kind, intensity, viewW, wind) {
     const widerW = viewW + 80;
     if (kind === 'rain' || kind === 'thunder') {
       const heavy = (kind === 'thunder' || intensity > 0.7);
@@ -1316,18 +1316,11 @@
     }
     return null;
   }
-  function tickBiomeParticles(particles, dt, vortex) {
+  function tickBiomeParticles(particles, dt) {
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.life -= dt;
-      if (p.vortex && vortex) {
-        // Vortex-bound debris orbits the moving vortex centre. Radius
-        // shrinks slowly so debris spirals inward over its lifetime.
-        p.ang += (p.angSpeed || 2.0) * dt;
-        p.rad = Math.max(8, p.rad - 4 * dt);
-        p.x = vortex.x + Math.cos(p.ang) * p.rad;
-        p.y = vortex.y + Math.sin(p.ang) * p.rad * 0.6;
-      } else {
+      {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
         if (p.kind === 'snow' && p.spin) {
@@ -1442,7 +1435,7 @@
   // - overcast: dark gray dim + cloud parallax (DS) / just dim (basic)
   // - fog: drifting translucent horizontal sheets
   // - hurricane: a subtle cyclonic shading + windswept streaks
-  function drawWeatherOverlay(ctx, weather, viewW, viewH, tier, vortex) {
+  function drawWeatherOverlay(ctx, weather, viewW, viewH, tier) {
     if (!weather) return;
     const fancy = (tier === 'ds_diamond');
     const wallTime = (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
@@ -2368,7 +2361,7 @@
     }
     // Weather tick. parseWeather() resolves 'medium-snow' / explicit
     // {kind, intensity, wind} / etc. into a normalised triple.
-    // Particle spawn / lightning / vortex are all driven from there.
+    // Particle spawn / lightning / overlay are all driven from there.
     // Reduced motion gates the entire system so the player can opt
     // out and the world stays calm.
     const cur2 = this.currentMap();
@@ -2377,22 +2370,20 @@
     const weather = (cur2 && !cur2.interior && !reducedM2) ? parseWeather(cur2.weather) : null;
     this._weather = weather;
     if (weather) {
-      this._vortex = null;
-      tickBiomeParticles(this._rainParticles, dt, this._vortex);
+      tickBiomeParticles(this._rainParticles, dt);
       const cap = Math.max(8, Math.floor(tierParticleCap(tier) * weather.intensity));
       const spawnInterval = (weather.kind === 'snow' ? 0.10 : 0.04) /
                             Math.max(0.05, weather.intensity * tierSpawnMul(tier));
       this._rainSpawnTimer -= dt;
       let spawnsThisFrame = 0;
       while (this._rainSpawnTimer <= 0 && this._rainParticles.length < cap && spawnsThisFrame < 6) {
-        const p = spawnWeatherParticle(weather.kind, weather.intensity, VIEW_W, weather.wind,
-          this._vortex && this._vortex.x, this._vortex && this._vortex.y);
+        const p = spawnWeatherParticle(weather.kind, weather.intensity, VIEW_W, weather.wind);
         if (p) this._rainParticles.push(p);
         this._rainSpawnTimer += spawnInterval;
         spawnsThisFrame++;
       }
-      // Lightning: rain (heavy) / thunder / hurricane fire; tornado
-      // doesn't strike. Frequency scales on intensity.
+      // Lightning: rain (heavy) / thunder / hurricane fire. Frequency
+      // scales on intensity.
       const wantsLightning = (weather.kind === 'thunder' ||
                               weather.kind === 'hurricane' ||
                               (weather.kind === 'rain' && weather.intensity >= 0.7));
@@ -2416,7 +2407,6 @@
     } else if (this._rainParticles.length || this._lightningFlash > 0) {
       this._rainParticles.length = 0;
       this._lightningFlash = 0;
-      this._vortex = null;
     }
 
     if (this.anim.moving) {
@@ -2786,7 +2776,7 @@
     // hurricane sweep), then particles (rain / snow / sleet / hail /
     // debris) on top. Drawn before vignette + HUD.
     if (this._weather) {
-      drawWeatherOverlay(ctx, this._weather, VIEW_W, VIEW_H, graphicsTier(), this._vortex);
+      drawWeatherOverlay(ctx, this._weather, VIEW_W, VIEW_H, graphicsTier());
     }
     if (this._rainParticles && this._rainParticles.length) {
       drawBiomeParticles(ctx, this._rainParticles, graphicsTier());
