@@ -225,8 +225,13 @@
     const world = state.world;
     const spawn = pickSpawnTile(world);
     if (!spawn) {
-      // No walkable off-screen tile? Just teleport-spawn adjacent and skip
-      // the walk-in (rare; happens in cramped interiors).
+      // No walkable off-screen tile? Plant the NPC adjacent and skip
+      // the walk-in. Common in cramped interiors like the lab right
+      // after the starter pick. We jump straight to 'speak' here and
+      // open the first scene step at the end of this function — if we
+      // left phase as 'enter' (or 'walk_in' with an empty path), the
+      // tick loop has nothing to advance and the cutscene mode locks
+      // the game until refresh.
       const adj = pickAdjacentTile(world);
       if (!adj) return false;
       state.cutscene = {
@@ -234,7 +239,7 @@
         encounter:enc,
         npc:{ x:adj.x, y:adj.y, dir:facingTo(adj.x, adj.y, world.player.x, world.player.y),
               sprite:enc.character.sprite, name:enc.character.name, anim:null },
-        phase:'enter',
+        phase:'speak',
         steps:expandScene(enc.scene, enc),
         sceneIdx:0,
         spawn:{ x:adj.x, y:adj.y },
@@ -255,6 +260,12 @@
     }
     state.mode = 'cutscene';
     if (window.PR_SFX) window.PR_SFX.play('select');
+    // If we skipped the walk-in (cramped interior fallback) start the
+    // dialog immediately so the player isn't staring at a frozen
+    // screen waiting for a phase that has nothing to advance.
+    if (state.cutscene.phase === 'speak') {
+      openSceneStep(state);
+    }
     return true;
   }
 
@@ -360,6 +371,15 @@
         cs.homePath = path || [];
         cs.pathIdx = 0;
         cs.stepTimer = 0;
+        // Safety net: if BFS didn't reach the player at all, skip the
+        // walk-in entirely and start the dialog. Better than locking
+        // state.mode = 'cutscene' forever and forcing a refresh.
+        if (cs.homePath.length < 2) {
+          cs.npc.dir = facingTo(cs.npc.x, cs.npc.y, world.player.x, world.player.y);
+          cs.phase = 'speak';
+          openSceneStep(state);
+          return;
+        }
       }
       cs.stepTimer = (cs.stepTimer || 0) - dt;
       if (cs.stepTimer <= 0) {
