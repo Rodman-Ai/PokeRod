@@ -282,6 +282,18 @@
       "*Vampirothy hangs upside down, beard dangling proudly.*",
       "Eeep-eep!",
       "*It folds and unfolds its wings in slow approval.*"
+    ],
+    // Chickens are ambient farm fauna, not dex creatures, but the
+    // overworld lets you walk up and press A on them. Without these
+    // lines they fall through to the generic "*It watches you...*"
+    // fallback in chatterFor.
+    chicken: [
+      "*Cluck cluck.*",
+      "*The chicken pecks at the dirt.*",
+      "Bawk!",
+      "*The chicken eyes you, then waddles past.*",
+      "*The chicken fluffs its feathers and tilts its head.*",
+      "Buk-buk-buk!"
     ]
   };
 

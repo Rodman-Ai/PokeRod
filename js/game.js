@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.45.4';
-  const BUILD = '2026.05.09-122';
+  const VERSION = 'v0.45.5';
+  const BUILD = '2026.05.09-123';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -71,9 +71,15 @@
       if (window.PR_STORY) window.PR_STORY.emit(state, 'hidden_item', { id, item:entry.item, count:entry.count });
     });
   };
+  // Display names for ambient sprites that aren't dex creatures
+  // (chickens etc.). Without this, state.onAmbient falls through to
+  // 'Creature' for chickens and the dialog reads "Creature: ..." even
+  // though they're chickens.
+  const AMBIENT_NAMES = { chicken: 'Chicken' };
+
   state.onAmbient = (amb) => {
     const sp = window.PR_DATA.CREATURES[amb.species];
-    const name = (sp && sp.name) || 'Creature';
+    const name = (sp && sp.name) || AMBIENT_NAMES[amb.species] || 'Creature';
     const line = window.PR_CHATTER ? window.PR_CHATTER.chatterFor(amb.species) : '...';
     openDialog([name + ':', line]);
   };
