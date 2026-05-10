@@ -516,6 +516,16 @@ body[data-graphics="ds_diamond"] #game-bottom {
 }
 
 #touch {
+  /* Anchored to the viewport bottom so the dpad / A-B / SELECT-START
+     sit at the same y-position regardless of which era mode (and so
+     regardless of whether DS Diamond's bottom screen is taking up
+     the middle slot or not). Anything above (banner + screen +
+     optional bottom screen) flex-stacks from the top; the leftover
+     space is just empty shell background. */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: grid;
   grid-template-columns: auto auto;
   grid-template-rows: auto auto;
@@ -530,8 +540,7 @@ body[data-graphics="ds_diamond"] #game-bottom {
   row-gap: 10px;
   width: min(100vw, 760px);
   padding: 12px clamp(12px, 4vw, 28px) var(--pad);
-  margin: 4px auto 0;
-  flex: 1 1 auto;
+  margin: 0 auto;
 }
 #dpad      { grid-area: dpad; align-self: end; justify-self: start; margin-top: clamp(10px, 3vw, 20px); }
 #startsel  { grid-area: startsel; display: flex; flex-direction: row; gap: 8px; justify-self: center; transform: none; }
