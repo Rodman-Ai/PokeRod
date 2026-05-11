@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.1';
-  const BUILD = '2026.05.10-143';
+  const VERSION = 'v0.55.2';
+  const BUILD = '2026.05.11-144';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -2821,7 +2821,7 @@
     const ox = mx + (mx - cx) * bend;
     const oy = my + (my - cy) * bend;
     ctx.save();
-    ctx.strokeStyle = 'rgba(32,20,10,0.35)';
+    ctx.strokeStyle = window.PR_UI.pf('rgba(32,20,10,0.35)');
     ctx.lineWidth = link.gate ? 3 : 4;
     if (link.spur || link.gate) ctx.setLineDash([3, 2]);
     ctx.beginPath();
@@ -2829,7 +2829,7 @@
     ctx.quadraticCurveTo(ox, oy + 2, b.x, b.y + 2);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.strokeStyle = link.color;
+    ctx.strokeStyle = window.PR_UI.pf(link.color);
     ctx.lineWidth = link.gate ? 2 : 3;
     if (link.spur || link.gate) ctx.setLineDash([3, 2]);
     ctx.beginPath();
@@ -3200,13 +3200,13 @@
       if (f.phase === 'hooked') bobY = 100 - Math.round(f.t * 80);
       if (f.phase === 'missed') bobY = 100 + 6;
     }
-    ctx.strokeStyle = '#806040';
+    ctx.strokeStyle = window.PR_UI.pf('#806040');
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(VIEW_W - 14, 22);
     ctx.lineTo(VIEW_W - 60, 60);
     ctx.stroke();
-    ctx.strokeStyle = '#fff8c8';
+    ctx.strokeStyle = window.PR_UI.pf('#fff8c8');
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(VIEW_W - 60, 60);
@@ -3220,7 +3220,7 @@
     ctx.fillRect(cx - 1, bobY + 1, 4, 2);
     if (f && (f.phase === 'cast' || f.phase === 'hooked')) {
       const r = (f.phase === 'cast' ? 4 + (1 - f.t / 0.5) * 12 : 6 + f.t * 30) | 0;
-      ctx.strokeStyle = 'rgba(200,232,255,0.7)';
+      ctx.strokeStyle = window.PR_UI.pf('rgba(200,232,255,0.7)');
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.arc(cx + 1, 102, Math.max(1, r), 0, Math.PI * 2);

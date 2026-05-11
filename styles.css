@@ -280,10 +280,10 @@ html, body {
 }
 
 #screen-bottom { display: none; }
-/* In DS Diamond mode the #app::before title banner ('POKEROD DS') is
-   left visible — same as in non-DS modes — so the top screen sits at
-   the same y-position as the single screen in PR-DOT MATRIX / GBC /
-   GB. Without the banner the top screen used to ride too high. */
+/* The #app::before title banner is hidden in every era (see the
+   display: none rule above), so #screen no longer needs to budget
+   space for a banner. This top margin just matches the inset used
+   on single-screen eras so the DS top screen lines up visually. */
 body[data-graphics="ds_diamond"] #screen { margin: clamp(10px, 4vw, 28px) auto 0; }
 body[data-graphics="ds_diamond"] #screen-bottom {
   /* Height is the controlling dimension so the 2:1 ratio is always
