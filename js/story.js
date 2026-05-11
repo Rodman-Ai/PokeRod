@@ -23,6 +23,7 @@
       f.encountersDone = new Set(Array.isArray(f.encountersDone) ? f.encountersDone : []);
     }
     if (!f.chains) f.chains = {};
+    if (!f.chainCooldowns) f.chainCooldowns = {};
     if (!f.npcVisits) f.npcVisits = {};
     if (typeof f.totalSpent !== 'number') f.totalSpent = 0;
     if (typeof f.totalSold  !== 'number') f.totalSold = 0;
@@ -155,6 +156,15 @@
     if (enc.chain) {
       const step = f.chains[enc.chain] || 0;
       if (step !== (enc.chainStep | 0)) return false;
+      // Cooldown: after any encounter on this chain fires, require the
+      // player to take CHAIN_COOLDOWN_STEPS overworld steps before the
+      // next one can trigger. Without this, a player who satisfies
+      // several thresholds at once (e.g. they already spent >5000 by
+      // the time kel_01 first fires) gets the entire chain back-to-back
+      // on consecutive buys / sells / catches.
+      const playerSteps = (state.player && state.player.steps) || 0;
+      const cooldownUntil = f.chainCooldowns[enc.chain] || 0;
+      if (playerSteps < cooldownUntil) return false;
     }
     if (!triggerMatches(enc.trigger, state, event, payload)) return false;
     if (enc.condition) {
@@ -163,6 +173,11 @@
     }
     return true;
   }
+  // Steps the player must take between any two encounters on the same
+  // chain. ~30 = roughly thirty seconds of walking, enough to break the
+  // shop-purchase-chain-spam loop without making chain encounters feel
+  // gated behind a long delay.
+  const CHAIN_COOLDOWN_STEPS = 30;
 
   function pickEncounter(state, event, payload) {
     const list = (window.PR_STORY_ENCOUNTERS && window.PR_STORY_ENCOUNTERS.ENCOUNTERS) || [];
@@ -543,6 +558,10 @@
     state.flags.encountersDone.add(enc.id);
     if (enc.chain) {
       state.flags.chains[enc.chain] = (state.flags.chains[enc.chain] || 0) + 1;
+      // Park the chain in cooldown so the next encounter in this chain
+      // can't fire immediately if its threshold is already satisfied.
+      state.flags.chainCooldowns[enc.chain] =
+        ((state.player && state.player.steps) || 0) + CHAIN_COOLDOWN_STEPS;
       // Reset visit counts for any home character bound to this chain so
       // their next walk-up dialog opens with the new phase's "first" lines.
       const list = (window.PR_STORY_ENCOUNTERS && window.PR_STORY_ENCOUNTERS.STORY_CHARACTERS) || [];
