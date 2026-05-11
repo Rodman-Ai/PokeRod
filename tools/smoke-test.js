@@ -116,9 +116,9 @@ async function main() {
     const styleChecks = await page.evaluate(async () => {
       const styles = ['gb_red', 'gbc_yellow', 'gba_firered', 'ds_diamond'];
       const expectedTitles = {
-        gb_red: 'pokerod classic',
-        gbc_yellow: 'pokerod classic',
-        gba_firered: 'pokerod advance',
+        gb_red: 'Nintendo GAME BOY',
+        gbc_yellow: 'GAME BOY COLOR',
+        gba_firered: 'GAME BOY ADVANCE',
         ds_diamond: 'pokerod ds'
       };
       const out = [];
