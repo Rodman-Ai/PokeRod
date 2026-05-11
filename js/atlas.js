@@ -8,6 +8,7 @@
   const DEFAULT_PRESET = 'ds_diamond';
   const PRESETS = {
     gb_red: { label:'GB RED', json:'assets/atlas-gb-red.json', image:'assets/atlas-gb-red.png' },
+    gb_pocket: { label:'GB POCKET', json:'assets/atlas-gb-pocket.json', image:'assets/atlas-gb-pocket.png' },
     gbc_yellow: { label:'GBC YELLOW', json:'assets/atlas-gbc-yellow.json', image:'assets/atlas-gbc-yellow.png' },
     gba_firered: { label:'GBA FIRERED', json:'assets/atlas.json', image:'assets/atlas.png' },
     ds_diamond: { label:'DS DIAMOND', json:'assets/atlas-ds-diamond.json', image:'assets/atlas-ds-diamond.png' }

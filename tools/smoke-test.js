@@ -114,9 +114,10 @@ async function main() {
     console.log('wrote', outPath, 'bytes=', buf.length);
 
     const styleChecks = await page.evaluate(async () => {
-      const styles = ['gb_red', 'gbc_yellow', 'gba_firered', 'ds_diamond'];
+      const styles = ['gb_red', 'gb_pocket', 'gbc_yellow', 'gba_firered', 'ds_diamond'];
       const expectedTitles = {
         gb_red: 'Nintendo GAME BOY',
+        gb_pocket: 'GAME BOY pocket',
         gbc_yellow: 'GAME BOY COLOR',
         gba_firered: 'GAME BOY ADVANCE',
         ds_diamond: 'pokerod ds'

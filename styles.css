@@ -67,6 +67,40 @@ body[data-graphics="gb_red"] {
   --dpad-hub-bg: #1a1a1c;
 }
 
+body[data-graphics="gb_pocket"] {
+  /* Game Boy Pocket: silver shell, blue Nintendo logo, "GAME BOY pocket"
+     below the screen, black A & B buttons, B&W LCD. */
+  --shell-bg: linear-gradient(180deg, #d4d6da 0%, #aeb0b6 58%, #7d7f86 100%);
+  --shell-top: linear-gradient(180deg, #e2e4e8 0%, #a8aab0 100%);
+  --shell-top-text: #1f2a4a;
+  --shell-top-shadow: #6a6c72;
+  --shell-title: 'GAME BOY pocket';
+  --bezel-bg: linear-gradient(180deg, #c0c2c6 0%, #8c8e94 100%);
+  --bezel-line: #4c4e54;
+  --bezel-label: #1f2a4a;
+  --game-glow: rgba(200,206,210,0.20);
+  /* Black A & B buttons matching the photo. */
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #4a4c52 0%, #18191c 56%, #060708 100%);
+  --abtn-a-shadow: #050608;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #4a4c52 0%, #18191c 56%, #060708 100%);
+  --abtn-b-shadow: #050608;
+  /* Small dark gray SELECT / START pills. */
+  --ss-bg: linear-gradient(180deg, #6c6e74 0%, #3a3c42 100%);
+  --ss-text: #d6dae2;
+  --ss-border: #4a4c52;
+  --ss-shadow: #2a2c32;
+  /* Black plus on a slightly darker silver well. */
+  --dpad-well-bg: #888a90;
+  --dpad-well-edge: #5e6066;
+  --dpad-well-inset: #44464c;
+  --dpad-btn-bg: linear-gradient(180deg, #2a2c32 0%, #0c0e12 100%);
+  --dpad-btn-active-bg: linear-gradient(180deg, #0c0e12 0%, #2a2c32 100%);
+  --dpad-btn-text: #d6dae2;
+  --dpad-btn-top: #4a4d54;
+  --dpad-btn-bot: #050608;
+  --dpad-hub-bg: #14161a;
+}
+
 body[data-graphics="gbc_yellow"] {
   /* Game Boy Color (yellow edition): bright yellow shell, dark navy
      bezel around the LCD, dark navy A & B, dark almost-black
@@ -151,6 +185,7 @@ body[data-graphics="ds_diamond"] {
 /* Per-mode bezel sub-labels (the small "PR-DOT MATRIX" line beneath the
    canvas). Each shell gets its own marketing phrase. */
 body[data-graphics="gb_red"]      #screen::after { content: 'DOT MATRIX WITH STEREO SOUND'; letter-spacing: 1px; font-size: 6px; }
+body[data-graphics="gb_pocket"]   #screen::after { content: 'GAME BOY pocket'; letter-spacing: 2px; }
 body[data-graphics="gbc_yellow"]  #screen::after { content: 'GAME BOY COLOR'; letter-spacing: 3px; }
 body[data-graphics="gba_firered"] #screen::after { content: 'GAME BOY ADVANCE SP'; letter-spacing: 2px; }
 body[data-graphics="ds_diamond"]  #screen::after { content: 'NINTENDO DS'; letter-spacing: 4px; }
