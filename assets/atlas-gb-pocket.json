@@ -1,1 +1,6749 @@
-{"frames":{"tile_grass":{"x":0,"y":0,"w":32,"h":32},"tile_grass_alt":{"x":33,"y":0,"w":32,"h":32},"tile_grass_flower":{"x":66,"y":0,"w":32,"h":32},"tile_grass_light":{"x":99,"y":0,"w":32,"h":32},"tile_grass_dry":{"x":132,"y":0,"w":32,"h":32},"tile_grass_lush":{"x":165,"y":0,"w":32,"h":32},"tile_tallgrass":{"x":198,"y":0,"w":32,"h":32},"tile_sand":{"x":231,"y":0,"w":32,"h":32},"tile_path":{"x":264,"y":0,"w":32,"h":32},"tile_path_cobble":{"x":297,"y":0,"w":32,"h":32},"tile_path_dirt":{"x":330,"y":0,"w":32,"h":32},"tile_path_stepstone":{"x":363,"y":0,"w":32,"h":32},"tile_path_gravel":{"x":396,"y":0,"w":32,"h":32},"tile_path_redbrick":{"x":429,"y":0,"w":32,"h":32},"tile_path_yellowbrick":{"x":462,"y":0,"w":32,"h":32},"tile_path_park":{"x":495,"y":0,"w":32,"h":32},"tile_path_mosaic":{"x":0,"y":33,"w":32,"h":32},"tile_path_boardwalk":{"x":33,"y":33,"w":32,"h":32},"tile_path_sand":{"x":66,"y":33,"w":32,"h":32},"tile_path_rocky":{"x":99,"y":33,"w":32,"h":32},"tile_path_wetstone":{"x":132,"y":33,"w":32,"h":32},"tile_path_crossroads":{"x":165,"y":33,"w":32,"h":32},"tile_path_moss":{"x":198,"y":33,"w":32,"h":32},"tile_path_autumn":{"x":231,"y":33,"w":32,"h":32},"tile_path_bridge":{"x":264,"y":33,"w":32,"h":32},"tile_path_zen":{"x":297,"y":33,"w":32,"h":32},"tile_path_lantern":{"x":330,"y":33,"w":32,"h":32},"tile_path_desert":{"x":363,"y":33,"w":32,"h":32},"tile_path_snow":{"x":396,"y":33,"w":32,"h":32},"tile_tree":{"x":429,"y":33,"w":32,"h":32},"tile_tree_oak":{"x":462,"y":33,"w":32,"h":32},"tile_tree_cherry":{"x":495,"y":33,"w":32,"h":32},"tile_tree_autumn":{"x":0,"y":66,"w":32,"h":32},"tile_tree_ancient":{"x":33,"y":66,"w":32,"h":32},"tile_tree_palm":{"x":66,"y":66,"w":32,"h":32},"tile_tree_dead":{"x":99,"y":66,"w":32,"h":32},"tile_tree_snowypine":{"x":132,"y":66,"w":32,"h":32},"tile_tree_birch":{"x":165,"y":66,"w":32,"h":32},"tile_tree_mushroom":{"x":198,"y":66,"w":32,"h":32},"tile_tree_willow":{"x":231,"y":66,"w":32,"h":32},"tile_tree_var_spring_a":{"x":264,"y":66,"w":32,"h":32},"tile_tree_var_spring_b":{"x":297,"y":66,"w":32,"h":32},"tile_tree_var_spring_c":{"x":330,"y":66,"w":32,"h":32},"tile_tree_var_summer_a":{"x":363,"y":66,"w":32,"h":32},"tile_tree_var_summer_b":{"x":396,"y":66,"w":32,"h":32},"tile_tree_var_oak_gnarled":{"x":429,"y":66,"w":32,"h":32},"tile_tree_var_oak_white":{"x":462,"y":66,"w":32,"h":32},"tile_tree_var_oak_dwarf":{"x":495,"y":66,"w":32,"h":32},"tile_tree_var_cherry_white":{"x":0,"y":99,"w":32,"h":32},"tile_tree_var_cherry_weeping":{"x":33,"y":99,"w":32,"h":32},"tile_tree_var_palm_coconut":{"x":66,"y":99,"w":32,"h":32},"tile_tree_var_palm_fan":{"x":99,"y":99,"w":32,"h":32},"tile_tree_var_autumn_fiery":{"x":132,"y":99,"w":32,"h":32},"tile_tree_var_autumn_golden":{"x":165,"y":99,"w":32,"h":32},"tile_tree_var_birch_paper":{"x":198,"y":99,"w":32,"h":32},"tile_tree_var_birch_silver":{"x":231,"y":99,"w":32,"h":32},"tile_tree_var_pine_snowy_alt":{"x":264,"y":99,"w":32,"h":32},"tile_tree_var_pine_fir":{"x":297,"y":99,"w":32,"h":32},"tile_tree_var_pine_spruce":{"x":330,"y":99,"w":32,"h":32},"tile_bush":{"x":363,"y":99,"w":32,"h":32},"tile_bush_flower":{"x":396,"y":99,"w":32,"h":32},"tile_bush_berry":{"x":429,"y":99,"w":32,"h":32},"tile_bush_thorn":{"x":462,"y":99,"w":32,"h":32},"tile_bush_autumn":{"x":495,"y":99,"w":32,"h":32},"tile_bush_snowy":{"x":0,"y":132,"w":32,"h":32},"tile_bush_blueflower":{"x":33,"y":132,"w":32,"h":32},"tile_bush_purpleflower":{"x":66,"y":132,"w":32,"h":32},"tile_thorn_cluster":{"x":99,"y":132,"w":32,"h":32},"tile_hedge":{"x":132,"y":132,"w":32,"h":32},"tile_water":{"x":165,"y":132,"w":32,"h":32},"tile_floor":{"x":198,"y":132,"w":32,"h":32},"tile_roof_blue":{"x":231,"y":132,"w":32,"h":32},"tile_roof_terracotta":{"x":264,"y":132,"w":32,"h":32},"tile_roof_slate":{"x":297,"y":132,"w":32,"h":32},"tile_roof_thatched":{"x":330,"y":132,"w":32,"h":32},"tile_roof_dome":{"x":363,"y":132,"w":32,"h":32},"tile_roof_snow":{"x":396,"y":132,"w":32,"h":32},"tile_roof_moss":{"x":429,"y":132,"w":32,"h":32},"tile_roof_leaf":{"x":462,"y":132,"w":32,"h":32},"tile_wall_stone":{"x":495,"y":132,"w":32,"h":32},"tile_wall_timber":{"x":0,"y":165,"w":32,"h":32},"tile_wall_brick":{"x":33,"y":165,"w":32,"h":32},"tile_wall_log":{"x":66,"y":165,"w":32,"h":32},"tile_wall_white":{"x":99,"y":165,"w":32,"h":32},"tile_wall_lattice":{"x":132,"y":165,"w":32,"h":32},"tile_door_blue":{"x":165,"y":165,"w":32,"h":32},"tile_door_shop":{"x":198,"y":165,"w":32,"h":32},"tile_window_left":{"x":231,"y":165,"w":32,"h":32},"tile_window_right":{"x":264,"y":165,"w":32,"h":32},"tile_chimney":{"x":297,"y":165,"w":32,"h":32},"tile_smokestack":{"x":330,"y":165,"w":32,"h":32},"tile_bench":{"x":363,"y":165,"w":32,"h":32},"tile_street_lamp":{"x":396,"y":165,"w":32,"h":32},"tile_hydrant":{"x":429,"y":165,"w":32,"h":32},"tile_flower_pot":{"x":462,"y":165,"w":32,"h":32},"tile_shelf":{"x":495,"y":165,"w":32,"h":32},"tile_sign":{"x":0,"y":198,"w":32,"h":32},"tile_grass_ledge":{"x":33,"y":198,"w":32,"h":32},"tile_door_dark":{"x":66,"y":198,"w":32,"h":32},"tile_marker_red":{"x":99,"y":198,"w":32,"h":32},"tile_marker_brown":{"x":132,"y":198,"w":32,"h":32},"tile_marker_pink":{"x":165,"y":198,"w":32,"h":32},"tile_marker_blue":{"x":198,"y":198,"w":32,"h":32},"tile_marker_tan":{"x":231,"y":198,"w":32,"h":32},"tile_marker_redalt":{"x":264,"y":198,"w":32,"h":32},"tile_hospital":{"x":297,"y":198,"w":32,"h":32},"tile_house_roof":{"x":330,"y":198,"w":32,"h":32},"tile_house_wall":{"x":363,"y":198,"w":32,"h":32},"tile_center_roof":{"x":396,"y":198,"w":32,"h":32},"tile_mart_roof":{"x":429,"y":198,"w":32,"h":32},"tile_counter":{"x":462,"y":198,"w":32,"h":32},"tile_heal_pad":{"x":495,"y":198,"w":32,"h":32},"tile_house_door":{"x":0,"y":231,"w":32,"h":32},"tile_small_rock":{"x":33,"y":231,"w":32,"h":32},"tile_large_rock":{"x":66,"y":231,"w":32,"h":32},"tile_fence_h":{"x":99,"y":231,"w":32,"h":32},"tile_fence_v":{"x":132,"y":231,"w":32,"h":32},"tile_mailbox":{"x":165,"y":231,"w":32,"h":32},"tile_pc_terminal":{"x":198,"y":231,"w":32,"h":32},"tile_vending":{"x":231,"y":231,"w":32,"h":32},"tile_potted_plant":{"x":264,"y":231,"w":32,"h":32},"tile_gardenbed":{"x":297,"y":231,"w":32,"h":32},"tile_gba_grass":{"x":330,"y":231,"w":32,"h":32},"tile_gba_edge_grass":{"x":363,"y":231,"w":32,"h":32},"tile_gba_flower_grass":{"x":396,"y":231,"w":32,"h":32},"tile_gba_light_grass":{"x":429,"y":231,"w":32,"h":32},"tile_gba_dry_grass":{"x":462,"y":231,"w":32,"h":32},"tile_gba_lush_grass":{"x":495,"y":231,"w":32,"h":32},"tile_gba_tallgrass":{"x":0,"y":264,"w":32,"h":32},"tile_gba_sand":{"x":33,"y":264,"w":32,"h":32},"tile_gba_water":{"x":66,"y":264,"w":32,"h":32},"tile_gba_floor":{"x":99,"y":264,"w":32,"h":32},"tile_gba_rug":{"x":132,"y":264,"w":32,"h":32},"tile_gba_path_dirt_clean":{"x":165,"y":264,"w":32,"h":32},"tile_gba_path_cobble_clean":{"x":198,"y":264,"w":32,"h":32},"tile_gba_path_dirt_deep":{"x":231,"y":264,"w":32,"h":32},"tile_gba_path_stepstone_clean":{"x":264,"y":264,"w":32,"h":32},"tile_gba_path_gravel_clean":{"x":297,"y":264,"w":32,"h":32},"tile_gba_path_redbrick_clean":{"x":330,"y":264,"w":32,"h":32},"tile_gba_path_yellowbrick_clean":{"x":363,"y":264,"w":32,"h":32},"tile_gba_path_park_clean":{"x":396,"y":264,"w":32,"h":32},"tile_gba_path_mosaic_clean":{"x":429,"y":264,"w":32,"h":32},"tile_gba_path_boardwalk_clean":{"x":462,"y":264,"w":32,"h":32},"tile_gba_path_beach_clean":{"x":495,"y":264,"w":32,"h":32},"tile_gba_path_rocky_clean":{"x":0,"y":297,"w":32,"h":32},"tile_gba_path_wetstone_clean":{"x":33,"y":297,"w":32,"h":32},"tile_gba_path_crossroads_clean":{"x":66,"y":297,"w":32,"h":32},"tile_gba_path_moss_clean":{"x":99,"y":297,"w":32,"h":32},"tile_gba_path_autumn_clean":{"x":132,"y":297,"w":32,"h":32},"tile_gba_path_bridge_clean":{"x":165,"y":297,"w":32,"h":32},"tile_gba_path_zen_clean":{"x":198,"y":297,"w":32,"h":32},"tile_gba_path_lantern_clean":{"x":231,"y":297,"w":32,"h":32},"tile_gba_path_desert_clean":{"x":264,"y":297,"w":32,"h":32},"tile_gba_path_snow_clean":{"x":297,"y":297,"w":32,"h":32},"tile_gba_46_grass_a":{"x":330,"y":297,"w":32,"h":32},"tile_gba_46_grass_b":{"x":363,"y":297,"w":32,"h":32},"tile_gba_46_grass_c":{"x":396,"y":297,"w":32,"h":32},"tile_gba_88_grass_a":{"x":429,"y":297,"w":32,"h":32},"tile_gba_88_grass_b":{"x":462,"y":297,"w":32,"h":32},"tile_gba_88_grass_c":{"x":495,"y":297,"w":32,"h":32},"tile_gba_path_var_44_a":{"x":0,"y":330,"w":32,"h":32},"tile_gba_path_var_44_b":{"x":33,"y":330,"w":32,"h":32},"tile_gba_path_var_94_a":{"x":66,"y":330,"w":32,"h":32},"tile_gba_path_var_94_b":{"x":99,"y":330,"w":32,"h":32},"tile_gba_path_var_59_a":{"x":132,"y":330,"w":32,"h":32},"tile_gba_path_var_59_b":{"x":165,"y":330,"w":32,"h":32},"tile_gba_path_var_112_a":{"x":198,"y":330,"w":32,"h":32},"tile_gba_path_var_112_b":{"x":231,"y":330,"w":32,"h":32},"tile_gba_path_var_97_a":{"x":264,"y":330,"w":32,"h":32},"tile_gba_path_var_97_b":{"x":297,"y":330,"w":32,"h":32},"tile_gba_path_var_95_a":{"x":330,"y":330,"w":32,"h":32},"tile_gba_path_var_95_b":{"x":363,"y":330,"w":32,"h":32},"tile_gba_path_var_117_a":{"x":396,"y":330,"w":32,"h":32},"tile_gba_path_var_117_b":{"x":429,"y":330,"w":32,"h":32},"tile_gba_path_var_118_a":{"x":462,"y":330,"w":32,"h":32},"tile_gba_path_var_118_b":{"x":495,"y":330,"w":32,"h":32},"tile_gba_path_var_122_a":{"x":0,"y":363,"w":32,"h":32},"tile_gba_path_var_122_b":{"x":33,"y":363,"w":32,"h":32},"tile_gba_path_var_53_a":{"x":66,"y":363,"w":32,"h":32},"tile_gba_path_var_53_b":{"x":99,"y":363,"w":32,"h":32},"tile_gba_path_var_54_a":{"x":132,"y":363,"w":32,"h":32},"tile_gba_path_var_54_b":{"x":165,"y":363,"w":32,"h":32},"tile_gba_water_alt_a":{"x":198,"y":363,"w":32,"h":32},"tile_gba_water_alt_b":{"x":231,"y":363,"w":32,"h":32},"tile_gba_tree_green":{"x":264,"y":363,"w":32,"h":32},"tile_gba_tree_oak":{"x":297,"y":363,"w":32,"h":32},"tile_gba_tree_cherry":{"x":330,"y":363,"w":32,"h":32},"tile_gba_tree_autumn":{"x":363,"y":363,"w":32,"h":32},"tile_gba_tree_ancient":{"x":396,"y":363,"w":32,"h":32},"tile_gba_tree_palm":{"x":429,"y":363,"w":32,"h":32},"tile_gba_tree_dead":{"x":462,"y":363,"w":32,"h":32},"tile_gba_tree_snowpine":{"x":495,"y":363,"w":32,"h":32},"tile_gba_tree_birch":{"x":0,"y":396,"w":32,"h":32},"tile_gba_tree_mushroom":{"x":33,"y":396,"w":32,"h":32},"tile_gba_tree_willow":{"x":66,"y":396,"w":32,"h":32},"tile_gba_bush":{"x":99,"y":396,"w":32,"h":32},"tile_gba_bush_flower":{"x":132,"y":396,"w":32,"h":32},"tile_gba_bush_berry":{"x":165,"y":396,"w":32,"h":32},"tile_gba_bush_thorn":{"x":198,"y":396,"w":32,"h":32},"tile_gba_bush_autumn":{"x":231,"y":396,"w":32,"h":32},"tile_gba_bush_snow":{"x":264,"y":396,"w":32,"h":32},"tile_gba_bush_blueflower":{"x":297,"y":396,"w":32,"h":32},"tile_gba_bush_purpleflower":{"x":330,"y":396,"w":32,"h":32},"tile_gba_thorn_cluster":{"x":363,"y":396,"w":32,"h":32},"tile_gba_hedge":{"x":396,"y":396,"w":32,"h":32},"tile_gba_house_red_roof":{"x":429,"y":396,"w":32,"h":32},"tile_gba_house_red_roof_center":{"x":462,"y":396,"w":32,"h":32},"tile_gba_house_red_roof_top":{"x":495,"y":396,"w":32,"h":32},"tile_gba_house_red_roof_bottom":{"x":0,"y":429,"w":32,"h":32},"tile_gba_house_red_roof_left":{"x":33,"y":429,"w":32,"h":32},"tile_gba_house_red_roof_right":{"x":66,"y":429,"w":32,"h":32},"tile_gba_house_red_roof_top_left":{"x":99,"y":429,"w":32,"h":32},"tile_gba_house_red_roof_top_right":{"x":132,"y":429,"w":32,"h":32},"tile_gba_house_red_roof_bottom_left":{"x":165,"y":429,"w":32,"h":32},"tile_gba_house_red_roof_bottom_right":{"x":198,"y":429,"w":32,"h":32},"tile_gba_center_roof":{"x":231,"y":429,"w":32,"h":32},"tile_gba_center_roof_center":{"x":264,"y":429,"w":32,"h":32},"tile_gba_center_roof_top":{"x":297,"y":429,"w":32,"h":32},"tile_gba_center_roof_bottom":{"x":330,"y":429,"w":32,"h":32},"tile_gba_center_roof_left":{"x":363,"y":429,"w":32,"h":32},"tile_gba_center_roof_right":{"x":396,"y":429,"w":32,"h":32},"tile_gba_center_roof_top_left":{"x":429,"y":429,"w":32,"h":32},"tile_gba_center_roof_top_right":{"x":462,"y":429,"w":32,"h":32},"tile_gba_center_roof_bottom_left":{"x":495,"y":429,"w":32,"h":32},"tile_gba_center_roof_bottom_right":{"x":0,"y":462,"w":32,"h":32},"tile_gba_mart_roof":{"x":33,"y":462,"w":32,"h":32},"tile_gba_mart_roof_center":{"x":66,"y":462,"w":32,"h":32},"tile_gba_mart_roof_top":{"x":99,"y":462,"w":32,"h":32},"tile_gba_mart_roof_bottom":{"x":132,"y":462,"w":32,"h":32},"tile_gba_mart_roof_left":{"x":165,"y":462,"w":32,"h":32},"tile_gba_mart_roof_right":{"x":198,"y":462,"w":32,"h":32},"tile_gba_mart_roof_top_left":{"x":231,"y":462,"w":32,"h":32},"tile_gba_mart_roof_top_right":{"x":264,"y":462,"w":32,"h":32},"tile_gba_mart_roof_bottom_left":{"x":297,"y":462,"w":32,"h":32},"tile_gba_mart_roof_bottom_right":{"x":330,"y":462,"w":32,"h":32},"tile_gba_blue_roof":{"x":363,"y":462,"w":32,"h":32},"tile_gba_blue_roof_center":{"x":396,"y":462,"w":32,"h":32},"tile_gba_blue_roof_top":{"x":429,"y":462,"w":32,"h":32},"tile_gba_blue_roof_bottom":{"x":462,"y":462,"w":32,"h":32},"tile_gba_blue_roof_left":{"x":495,"y":462,"w":32,"h":32},"tile_gba_blue_roof_right":{"x":0,"y":495,"w":32,"h":32},"tile_gba_blue_roof_top_left":{"x":33,"y":495,"w":32,"h":32},"tile_gba_blue_roof_top_right":{"x":66,"y":495,"w":32,"h":32},"tile_gba_blue_roof_bottom_left":{"x":99,"y":495,"w":32,"h":32},"tile_gba_blue_roof_bottom_right":{"x":132,"y":495,"w":32,"h":32},"tile_gba_thatch_roof":{"x":165,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_center":{"x":198,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_top":{"x":231,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_bottom":{"x":264,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_left":{"x":297,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_right":{"x":330,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_top_left":{"x":363,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_top_right":{"x":396,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_bottom_left":{"x":429,"y":495,"w":32,"h":32},"tile_gba_thatch_roof_bottom_right":{"x":462,"y":495,"w":32,"h":32},"tile_gba_terra_roof":{"x":495,"y":495,"w":32,"h":32},"tile_gba_terra_roof_center":{"x":0,"y":528,"w":32,"h":32},"tile_gba_terra_roof_top":{"x":33,"y":528,"w":32,"h":32},"tile_gba_terra_roof_bottom":{"x":66,"y":528,"w":32,"h":32},"tile_gba_terra_roof_left":{"x":99,"y":528,"w":32,"h":32},"tile_gba_terra_roof_right":{"x":132,"y":528,"w":32,"h":32},"tile_gba_terra_roof_top_left":{"x":165,"y":528,"w":32,"h":32},"tile_gba_terra_roof_top_right":{"x":198,"y":528,"w":32,"h":32},"tile_gba_terra_roof_bottom_left":{"x":231,"y":528,"w":32,"h":32},"tile_gba_terra_roof_bottom_right":{"x":264,"y":528,"w":32,"h":32},"tile_gba_dome_roof":{"x":297,"y":528,"w":32,"h":32},"tile_gba_dome_roof_center":{"x":330,"y":528,"w":32,"h":32},"tile_gba_dome_roof_top":{"x":363,"y":528,"w":32,"h":32},"tile_gba_dome_roof_bottom":{"x":396,"y":528,"w":32,"h":32},"tile_gba_dome_roof_left":{"x":429,"y":528,"w":32,"h":32},"tile_gba_dome_roof_right":{"x":462,"y":528,"w":32,"h":32},"tile_gba_dome_roof_top_left":{"x":495,"y":528,"w":32,"h":32},"tile_gba_dome_roof_top_right":{"x":0,"y":561,"w":32,"h":32},"tile_gba_dome_roof_bottom_left":{"x":33,"y":561,"w":32,"h":32},"tile_gba_dome_roof_bottom_right":{"x":66,"y":561,"w":32,"h":32},"tile_gba_snow_roof":{"x":99,"y":561,"w":32,"h":32},"tile_gba_snow_roof_center":{"x":132,"y":561,"w":32,"h":32},"tile_gba_snow_roof_top":{"x":165,"y":561,"w":32,"h":32},"tile_gba_snow_roof_bottom":{"x":198,"y":561,"w":32,"h":32},"tile_gba_snow_roof_left":{"x":231,"y":561,"w":32,"h":32},"tile_gba_snow_roof_right":{"x":264,"y":561,"w":32,"h":32},"tile_gba_snow_roof_top_left":{"x":297,"y":561,"w":32,"h":32},"tile_gba_snow_roof_top_right":{"x":330,"y":561,"w":32,"h":32},"tile_gba_snow_roof_bottom_left":{"x":363,"y":561,"w":32,"h":32},"tile_gba_snow_roof_bottom_right":{"x":396,"y":561,"w":32,"h":32},"tile_gba_slate_roof":{"x":429,"y":561,"w":32,"h":32},"tile_gba_slate_roof_center":{"x":462,"y":561,"w":32,"h":32},"tile_gba_slate_roof_top":{"x":495,"y":561,"w":32,"h":32},"tile_gba_slate_roof_bottom":{"x":0,"y":594,"w":32,"h":32},"tile_gba_slate_roof_left":{"x":33,"y":594,"w":32,"h":32},"tile_gba_slate_roof_right":{"x":66,"y":594,"w":32,"h":32},"tile_gba_slate_roof_top_left":{"x":99,"y":594,"w":32,"h":32},"tile_gba_slate_roof_top_right":{"x":132,"y":594,"w":32,"h":32},"tile_gba_slate_roof_bottom_left":{"x":165,"y":594,"w":32,"h":32},"tile_gba_slate_roof_bottom_right":{"x":198,"y":594,"w":32,"h":32},"tile_gba_moss_roof":{"x":231,"y":594,"w":32,"h":32},"tile_gba_moss_roof_center":{"x":264,"y":594,"w":32,"h":32},"tile_gba_moss_roof_top":{"x":297,"y":594,"w":32,"h":32},"tile_gba_moss_roof_bottom":{"x":330,"y":594,"w":32,"h":32},"tile_gba_moss_roof_left":{"x":363,"y":594,"w":32,"h":32},"tile_gba_moss_roof_right":{"x":396,"y":594,"w":32,"h":32},"tile_gba_moss_roof_top_left":{"x":429,"y":594,"w":32,"h":32},"tile_gba_moss_roof_top_right":{"x":462,"y":594,"w":32,"h":32},"tile_gba_moss_roof_bottom_left":{"x":495,"y":594,"w":32,"h":32},"tile_gba_moss_roof_bottom_right":{"x":0,"y":627,"w":32,"h":32},"tile_gba_leaf_roof":{"x":33,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_center":{"x":66,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_top":{"x":99,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_bottom":{"x":132,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_left":{"x":165,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_right":{"x":198,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_top_left":{"x":231,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_top_right":{"x":264,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_bottom_left":{"x":297,"y":627,"w":32,"h":32},"tile_gba_leaf_roof_bottom_right":{"x":330,"y":627,"w":32,"h":32},"tile_gba_wall_house":{"x":363,"y":627,"w":32,"h":32},"tile_gba_wall_stone":{"x":396,"y":627,"w":32,"h":32},"tile_gba_wall_timber":{"x":429,"y":627,"w":32,"h":32},"tile_gba_wall_brick":{"x":462,"y":627,"w":32,"h":32},"tile_gba_wall_log":{"x":495,"y":627,"w":32,"h":32},"tile_gba_wall_white":{"x":0,"y":660,"w":32,"h":32},"tile_gba_wall_lattice":{"x":33,"y":660,"w":32,"h":32},"tile_gba_door_blue":{"x":66,"y":660,"w":32,"h":32},"tile_gba_door_shop":{"x":99,"y":660,"w":32,"h":32},"tile_gba_door_dark":{"x":132,"y":660,"w":32,"h":32},"tile_gba_window_left":{"x":165,"y":660,"w":32,"h":32},"tile_gba_window_right":{"x":198,"y":660,"w":32,"h":32},"tile_gba_sign":{"x":231,"y":660,"w":32,"h":32},"tile_gba_sign_center":{"x":264,"y":660,"w":32,"h":32},"tile_gba_sign_mart":{"x":297,"y":660,"w":32,"h":32},"tile_gba_sign_gym":{"x":330,"y":660,"w":32,"h":32},"tile_gba_ledge":{"x":363,"y":660,"w":32,"h":32},"tile_gba_counter":{"x":396,"y":660,"w":32,"h":32},"tile_gba_heal_pad":{"x":429,"y":660,"w":32,"h":32},"tile_gba_small_rock":{"x":462,"y":660,"w":32,"h":32},"tile_gba_large_rock":{"x":495,"y":660,"w":32,"h":32},"tile_gba_bench":{"x":0,"y":693,"w":32,"h":32},"tile_gba_street_lamp":{"x":33,"y":693,"w":32,"h":32},"tile_gba_hydrant":{"x":66,"y":693,"w":32,"h":32},"tile_gba_flower_pot":{"x":99,"y":693,"w":32,"h":32},"tile_gba_shelf":{"x":132,"y":693,"w":32,"h":32},"tile_gba_fence_h":{"x":165,"y":693,"w":32,"h":32},"tile_gba_fence_v":{"x":198,"y":693,"w":32,"h":32},"tile_gba_mailbox":{"x":231,"y":693,"w":32,"h":32},"tile_gba_pc_terminal":{"x":264,"y":693,"w":32,"h":32},"tile_gba_vending":{"x":297,"y":693,"w":32,"h":32},"tile_gba_potted_plant":{"x":330,"y":693,"w":32,"h":32},"tile_gba_gardenbed":{"x":363,"y":693,"w":32,"h":32},"decor_bench_park_brown":{"x":396,"y":693,"w":32,"h":32},"decor_bench_park_green":{"x":429,"y":693,"w":32,"h":32},"decor_bench_marble_white":{"x":462,"y":693,"w":32,"h":32},"decor_bench_stone_grey":{"x":495,"y":693,"w":32,"h":32},"decor_bench_picnic_red":{"x":0,"y":726,"w":32,"h":32},"decor_bench_log":{"x":33,"y":726,"w":32,"h":32},"decor_bench_garden_iron":{"x":66,"y":726,"w":32,"h":32},"decor_bench_pier_wood":{"x":99,"y":726,"w":32,"h":32},"decor_shelf_books":{"x":132,"y":726,"w":32,"h":32},"decor_shelf_potions":{"x":165,"y":726,"w":32,"h":32},"decor_shelf_pokeballs":{"x":198,"y":726,"w":32,"h":32},"decor_shelf_berries":{"x":231,"y":726,"w":32,"h":32},"decor_shelf_tms":{"x":264,"y":726,"w":32,"h":32},"decor_shelf_souvenirs":{"x":297,"y":726,"w":32,"h":32},"decor_shelf_clothing":{"x":330,"y":726,"w":32,"h":32},"decor_shelf_food":{"x":363,"y":726,"w":32,"h":32},"decor_shelf_displays_glass":{"x":396,"y":726,"w":32,"h":32},"decor_shelf_empty_wooden":{"x":429,"y":726,"w":32,"h":32},"decor_sign_post_arrow":{"x":462,"y":726,"w":32,"h":32},"decor_sign_post_wood":{"x":495,"y":726,"w":32,"h":32},"decor_sign_billboard_yellow":{"x":0,"y":759,"w":32,"h":32},"decor_sign_billboard_blue":{"x":33,"y":759,"w":32,"h":32},"decor_sign_gym_red":{"x":66,"y":759,"w":32,"h":32},"decor_sign_gym_blue":{"x":99,"y":759,"w":32,"h":32},"decor_sign_warning":{"x":132,"y":759,"w":32,"h":32},"decor_sign_marker_stone":{"x":165,"y":759,"w":32,"h":32},"decor_trash_grey_lid":{"x":198,"y":759,"w":32,"h":32},"decor_trash_blue_recycle":{"x":231,"y":759,"w":32,"h":32},"decor_trash_green_compost":{"x":264,"y":759,"w":32,"h":32},"decor_trash_dumpster":{"x":297,"y":759,"w":32,"h":32},"decor_trash_basket_wicker":{"x":330,"y":759,"w":32,"h":32},"decor_trash_urn_park":{"x":363,"y":759,"w":32,"h":32},"decor_pot_terracotta_red":{"x":396,"y":759,"w":32,"h":32},"decor_pot_ceramic_blue":{"x":429,"y":759,"w":32,"h":32},"decor_pot_painted_yellow":{"x":462,"y":759,"w":32,"h":32},"decor_pot_marble_white":{"x":495,"y":759,"w":32,"h":32},"decor_pot_hanging_basket":{"x":0,"y":792,"w":32,"h":32},"decor_pot_window_box":{"x":33,"y":792,"w":32,"h":32},"decor_pot_succulent_small":{"x":66,"y":792,"w":32,"h":32},"decor_pot_tall_lily":{"x":99,"y":792,"w":32,"h":32},"decor_planter_hedge_round":{"x":132,"y":792,"w":32,"h":32},"decor_planter_hedge_long":{"x":165,"y":792,"w":32,"h":32},"decor_planter_herb_box":{"x":198,"y":792,"w":32,"h":32},"decor_planter_flowerbed_oval":{"x":231,"y":792,"w":32,"h":32},"decor_planter_raised_wood":{"x":264,"y":792,"w":32,"h":32},"decor_planter_zen_stone":{"x":297,"y":792,"w":32,"h":32},"decor_table_wood_round":{"x":330,"y":792,"w":32,"h":32},"decor_table_wood_square":{"x":363,"y":792,"w":32,"h":32},"decor_table_marble_round":{"x":396,"y":792,"w":32,"h":32},"decor_table_glass_modern":{"x":429,"y":792,"w":32,"h":32},"decor_table_dining_long":{"x":462,"y":792,"w":32,"h":32},"decor_table_picnic_red_check":{"x":495,"y":792,"w":32,"h":32},"decor_table_workbench":{"x":0,"y":825,"w":32,"h":32},"decor_table_round_chess":{"x":33,"y":825,"w":32,"h":32},"decor_table_low_tea":{"x":66,"y":825,"w":32,"h":32},"decor_table_long_buffet":{"x":99,"y":825,"w":32,"h":32},"decor_display_potions_counter":{"x":132,"y":825,"w":32,"h":32},"decor_display_pokeballs_rack":{"x":165,"y":825,"w":32,"h":32},"decor_display_clothing_rack":{"x":198,"y":825,"w":32,"h":32},"decor_display_food_counter":{"x":231,"y":825,"w":32,"h":32},"decor_display_register":{"x":264,"y":825,"w":32,"h":32},"decor_display_souvenir":{"x":297,"y":825,"w":32,"h":32},"decor_display_glass_case":{"x":330,"y":825,"w":32,"h":32},"decor_display_basket":{"x":363,"y":825,"w":32,"h":32},"decor_pod_healing_idle":{"x":396,"y":825,"w":32,"h":32},"decor_pod_healing_glow1":{"x":429,"y":825,"w":32,"h":32},"decor_pod_healing_glow2":{"x":462,"y":825,"w":32,"h":32},"decor_pod_healing_complete":{"x":495,"y":825,"w":32,"h":32},"decor_pod_console":{"x":0,"y":858,"w":32,"h":32},"decor_pod_bed_left":{"x":33,"y":858,"w":32,"h":32},"decor_lamp_ornate_gold":{"x":66,"y":858,"w":32,"h":32},"decor_lamp_oil_brass":{"x":99,"y":858,"w":32,"h":32},"decor_lamp_modern_chrome":{"x":132,"y":858,"w":32,"h":32},"decor_lamp_paper_lantern":{"x":165,"y":858,"w":32,"h":32},"decor_lamp_table_brass":{"x":198,"y":858,"w":32,"h":32},"decor_lamp_floor_tall":{"x":231,"y":858,"w":32,"h":32},"decor_bookshelf_tall":{"x":264,"y":858,"w":32,"h":32},"decor_dresser_wood":{"x":297,"y":858,"w":32,"h":32},"decor_nightstand":{"x":330,"y":858,"w":32,"h":32},"decor_bed_single_blue":{"x":363,"y":858,"w":32,"h":32},"decor_bed_single_pink":{"x":396,"y":858,"w":32,"h":32},"decor_rug_round_red":{"x":429,"y":858,"w":32,"h":32},"decor_rug_long_persian":{"x":462,"y":858,"w":32,"h":32},"decor_picture_frame_landscape":{"x":495,"y":858,"w":32,"h":32},"decor_wall_clock_round":{"x":0,"y":891,"w":32,"h":32},"decor_calendar_wall":{"x":33,"y":891,"w":32,"h":32},"decor_coat_rack":{"x":66,"y":891,"w":32,"h":32},"decor_umbrella_stand":{"x":99,"y":891,"w":32,"h":32},"decor_vending_drinks_blue":{"x":132,"y":891,"w":32,"h":32},"decor_vending_snacks_red":{"x":165,"y":891,"w":32,"h":32},"decor_water_fountain_round":{"x":198,"y":891,"w":32,"h":32},"decor_wishing_well":{"x":231,"y":891,"w":32,"h":32},"decor_basketball_hoop":{"x":264,"y":891,"w":32,"h":32},"decor_pedestal_statue":{"x":297,"y":891,"w":32,"h":32},"decor_street_clock":{"x":330,"y":891,"w":32,"h":32},"decor_bus_stop_sign":{"x":363,"y":891,"w":32,"h":32},"decor_bike_rack":{"x":396,"y":891,"w":32,"h":32},"decor_parking_meter":{"x":429,"y":891,"w":32,"h":32},"decor_bollard":{"x":462,"y":891,"w":32,"h":32},"decor_streetlamp_ornate_double":{"x":495,"y":891,"w":32,"h":32},"decor_lighthouse_base":{"x":0,"y":924,"w":32,"h":32},"decor_lighthouse_tower":{"x":33,"y":924,"w":32,"h":32},"decor_lighthouse_top":{"x":66,"y":924,"w":32,"h":32},"decor_obelisk_base":{"x":99,"y":924,"w":32,"h":32},"decor_obelisk_top":{"x":132,"y":924,"w":32,"h":32},"decor_ancient_oak_bot":{"x":165,"y":924,"w":32,"h":32},"decor_ancient_oak_top":{"x":198,"y":924,"w":32,"h":32},"decor_meteor_pedestal":{"x":231,"y":924,"w":32,"h":32},"decor_ice_sculpture":{"x":264,"y":924,"w":32,"h":32},"decor_anchor":{"x":297,"y":924,"w":32,"h":32},"decor_mining_cart":{"x":330,"y":924,"w":32,"h":32},"decor_torii_gate":{"x":363,"y":924,"w":32,"h":32},"decor_cherry_arch":{"x":396,"y":924,"w":32,"h":32},"decor_fish_market_stall":{"x":429,"y":924,"w":32,"h":32},"decor_champion_statue":{"x":462,"y":924,"w":32,"h":32},"decor_wildlife_sparrow_perched":{"x":495,"y":924,"w":32,"h":32},"decor_wildlife_sparrow_flying":{"x":0,"y":957,"w":32,"h":32},"decor_wildlife_pigeon_perched":{"x":33,"y":957,"w":32,"h":32},"decor_wildlife_pigeon_flying":{"x":66,"y":957,"w":32,"h":32},"decor_wildlife_crow_perched":{"x":99,"y":957,"w":32,"h":32},"decor_wildlife_crow_flying":{"x":132,"y":957,"w":32,"h":32},"player_down_0":{"x":0,"y":990,"w":32,"h":32},"player_up_0":{"x":33,"y":990,"w":32,"h":32},"player_left_0":{"x":66,"y":990,"w":32,"h":32},"player_right_0":{"x":99,"y":990,"w":32,"h":32},"player_down_1":{"x":132,"y":990,"w":32,"h":32},"player_up_1":{"x":165,"y":990,"w":32,"h":32},"player_left_1":{"x":198,"y":990,"w":32,"h":32},"player_right_1":{"x":231,"y":990,"w":32,"h":32},"npc_oak_down_0":{"x":264,"y":990,"w":32,"h":32},"npc_oak_up_0":{"x":297,"y":990,"w":32,"h":32},"npc_oak_left_0":{"x":330,"y":990,"w":32,"h":32},"npc_oak_right_0":{"x":363,"y":990,"w":32,"h":32},"npc_oak_down_1":{"x":396,"y":990,"w":32,"h":32},"npc_oak_up_1":{"x":429,"y":990,"w":32,"h":32},"npc_oak_left_1":{"x":462,"y":990,"w":32,"h":32},"npc_oak_right_1":{"x":495,"y":990,"w":32,"h":32},"npc_mom_down_0":{"x":0,"y":1023,"w":32,"h":32},"npc_mom_up_0":{"x":33,"y":1023,"w":32,"h":32},"npc_mom_left_0":{"x":66,"y":1023,"w":32,"h":32},"npc_mom_right_0":{"x":99,"y":1023,"w":32,"h":32},"npc_mom_down_1":{"x":132,"y":1023,"w":32,"h":32},"npc_mom_up_1":{"x":165,"y":1023,"w":32,"h":32},"npc_mom_left_1":{"x":198,"y":1023,"w":32,"h":32},"npc_mom_right_1":{"x":231,"y":1023,"w":32,"h":32},"npc_sis_down_0":{"x":264,"y":1023,"w":32,"h":32},"npc_sis_up_0":{"x":297,"y":1023,"w":32,"h":32},"npc_sis_left_0":{"x":330,"y":1023,"w":32,"h":32},"npc_sis_right_0":{"x":363,"y":1023,"w":32,"h":32},"npc_sis_down_1":{"x":396,"y":1023,"w":32,"h":32},"npc_sis_up_1":{"x":429,"y":1023,"w":32,"h":32},"npc_sis_left_1":{"x":462,"y":1023,"w":32,"h":32},"npc_sis_right_1":{"x":495,"y":1023,"w":32,"h":32},"npc_rival_down_0":{"x":0,"y":1056,"w":32,"h":32},"npc_rival_up_0":{"x":33,"y":1056,"w":32,"h":32},"npc_rival_left_0":{"x":66,"y":1056,"w":32,"h":32},"npc_rival_right_0":{"x":99,"y":1056,"w":32,"h":32},"npc_rival_down_1":{"x":132,"y":1056,"w":32,"h":32},"npc_rival_up_1":{"x":165,"y":1056,"w":32,"h":32},"npc_rival_left_1":{"x":198,"y":1056,"w":32,"h":32},"npc_rival_right_1":{"x":231,"y":1056,"w":32,"h":32},"npc_girl_down_0":{"x":264,"y":1056,"w":32,"h":32},"npc_girl_up_0":{"x":297,"y":1056,"w":32,"h":32},"npc_girl_left_0":{"x":330,"y":1056,"w":32,"h":32},"npc_girl_right_0":{"x":363,"y":1056,"w":32,"h":32},"npc_girl_down_1":{"x":396,"y":1056,"w":32,"h":32},"npc_girl_up_1":{"x":429,"y":1056,"w":32,"h":32},"npc_girl_left_1":{"x":462,"y":1056,"w":32,"h":32},"npc_girl_right_1":{"x":495,"y":1056,"w":32,"h":32},"npc_youth_down_0":{"x":0,"y":1089,"w":32,"h":32},"npc_youth_up_0":{"x":33,"y":1089,"w":32,"h":32},"npc_youth_left_0":{"x":66,"y":1089,"w":32,"h":32},"npc_youth_right_0":{"x":99,"y":1089,"w":32,"h":32},"npc_youth_down_1":{"x":132,"y":1089,"w":32,"h":32},"npc_youth_up_1":{"x":165,"y":1089,"w":32,"h":32},"npc_youth_left_1":{"x":198,"y":1089,"w":32,"h":32},"npc_youth_right_1":{"x":231,"y":1089,"w":32,"h":32},"npc_old_down_0":{"x":264,"y":1089,"w":32,"h":32},"npc_old_up_0":{"x":297,"y":1089,"w":32,"h":32},"npc_old_left_0":{"x":330,"y":1089,"w":32,"h":32},"npc_old_right_0":{"x":363,"y":1089,"w":32,"h":32},"npc_old_down_1":{"x":396,"y":1089,"w":32,"h":32},"npc_old_up_1":{"x":429,"y":1089,"w":32,"h":32},"npc_old_left_1":{"x":462,"y":1089,"w":32,"h":32},"npc_old_right_1":{"x":495,"y":1089,"w":32,"h":32},"nurse_down_0":{"x":0,"y":1122,"w":32,"h":32},"nurse_up_0":{"x":33,"y":1122,"w":32,"h":32},"nurse_left_0":{"x":66,"y":1122,"w":32,"h":32},"nurse_right_0":{"x":99,"y":1122,"w":32,"h":32},"nurse_down_1":{"x":132,"y":1122,"w":32,"h":32},"nurse_up_1":{"x":165,"y":1122,"w":32,"h":32},"nurse_left_1":{"x":198,"y":1122,"w":32,"h":32},"nurse_right_1":{"x":231,"y":1122,"w":32,"h":32},"clerk_down_0":{"x":264,"y":1122,"w":32,"h":32},"clerk_up_0":{"x":297,"y":1122,"w":32,"h":32},"clerk_left_0":{"x":330,"y":1122,"w":32,"h":32},"clerk_right_0":{"x":363,"y":1122,"w":32,"h":32},"clerk_down_1":{"x":396,"y":1122,"w":32,"h":32},"clerk_up_1":{"x":429,"y":1122,"w":32,"h":32},"clerk_left_1":{"x":462,"y":1122,"w":32,"h":32},"clerk_right_1":{"x":495,"y":1122,"w":32,"h":32},"trainer_bug_catcher_down_0":{"x":0,"y":1155,"w":32,"h":32},"trainer_bug_catcher_up_0":{"x":33,"y":1155,"w":32,"h":32},"trainer_bug_catcher_left_0":{"x":66,"y":1155,"w":32,"h":32},"trainer_bug_catcher_right_0":{"x":99,"y":1155,"w":32,"h":32},"trainer_bug_catcher_down_1":{"x":132,"y":1155,"w":32,"h":32},"trainer_bug_catcher_up_1":{"x":165,"y":1155,"w":32,"h":32},"trainer_bug_catcher_left_1":{"x":198,"y":1155,"w":32,"h":32},"trainer_bug_catcher_right_1":{"x":231,"y":1155,"w":32,"h":32},"trainer_picnicker_down_0":{"x":264,"y":1155,"w":32,"h":32},"trainer_picnicker_up_0":{"x":297,"y":1155,"w":32,"h":32},"trainer_picnicker_left_0":{"x":330,"y":1155,"w":32,"h":32},"trainer_picnicker_right_0":{"x":363,"y":1155,"w":32,"h":32},"trainer_picnicker_down_1":{"x":396,"y":1155,"w":32,"h":32},"trainer_picnicker_up_1":{"x":429,"y":1155,"w":32,"h":32},"trainer_picnicker_left_1":{"x":462,"y":1155,"w":32,"h":32},"trainer_picnicker_right_1":{"x":495,"y":1155,"w":32,"h":32},"trainer_camper_down_0":{"x":0,"y":1188,"w":32,"h":32},"trainer_camper_up_0":{"x":33,"y":1188,"w":32,"h":32},"trainer_camper_left_0":{"x":66,"y":1188,"w":32,"h":32},"trainer_camper_right_0":{"x":99,"y":1188,"w":32,"h":32},"trainer_camper_down_1":{"x":132,"y":1188,"w":32,"h":32},"trainer_camper_up_1":{"x":165,"y":1188,"w":32,"h":32},"trainer_camper_left_1":{"x":198,"y":1188,"w":32,"h":32},"trainer_camper_right_1":{"x":231,"y":1188,"w":32,"h":32},"trainer_ranger_down_0":{"x":264,"y":1188,"w":32,"h":32},"trainer_ranger_up_0":{"x":297,"y":1188,"w":32,"h":32},"trainer_ranger_left_0":{"x":330,"y":1188,"w":32,"h":32},"trainer_ranger_right_0":{"x":363,"y":1188,"w":32,"h":32},"trainer_ranger_down_1":{"x":396,"y":1188,"w":32,"h":32},"trainer_ranger_up_1":{"x":429,"y":1188,"w":32,"h":32},"trainer_ranger_left_1":{"x":462,"y":1188,"w":32,"h":32},"trainer_ranger_right_1":{"x":495,"y":1188,"w":32,"h":32},"trainer_miner_down_0":{"x":0,"y":1221,"w":32,"h":32},"trainer_miner_up_0":{"x":33,"y":1221,"w":32,"h":32},"trainer_miner_left_0":{"x":66,"y":1221,"w":32,"h":32},"trainer_miner_right_0":{"x":99,"y":1221,"w":32,"h":32},"trainer_miner_down_1":{"x":132,"y":1221,"w":32,"h":32},"trainer_miner_up_1":{"x":165,"y":1221,"w":32,"h":32},"trainer_miner_left_1":{"x":198,"y":1221,"w":32,"h":32},"trainer_miner_right_1":{"x":231,"y":1221,"w":32,"h":32},"trainer_hiker_down_0":{"x":264,"y":1221,"w":32,"h":32},"trainer_hiker_up_0":{"x":297,"y":1221,"w":32,"h":32},"trainer_hiker_left_0":{"x":330,"y":1221,"w":32,"h":32},"trainer_hiker_right_0":{"x":363,"y":1221,"w":32,"h":32},"trainer_hiker_down_1":{"x":396,"y":1221,"w":32,"h":32},"trainer_hiker_up_1":{"x":429,"y":1221,"w":32,"h":32},"trainer_hiker_left_1":{"x":462,"y":1221,"w":32,"h":32},"trainer_hiker_right_1":{"x":495,"y":1221,"w":32,"h":32},"trainer_skier_down_0":{"x":0,"y":1254,"w":32,"h":32},"trainer_skier_up_0":{"x":33,"y":1254,"w":32,"h":32},"trainer_skier_left_0":{"x":66,"y":1254,"w":32,"h":32},"trainer_skier_right_0":{"x":99,"y":1254,"w":32,"h":32},"trainer_skier_down_1":{"x":132,"y":1254,"w":32,"h":32},"trainer_skier_up_1":{"x":165,"y":1254,"w":32,"h":32},"trainer_skier_left_1":{"x":198,"y":1254,"w":32,"h":32},"trainer_skier_right_1":{"x":231,"y":1254,"w":32,"h":32},"trainer_sailor_down_0":{"x":264,"y":1254,"w":32,"h":32},"trainer_sailor_up_0":{"x":297,"y":1254,"w":32,"h":32},"trainer_sailor_left_0":{"x":330,"y":1254,"w":32,"h":32},"trainer_sailor_right_0":{"x":363,"y":1254,"w":32,"h":32},"trainer_sailor_down_1":{"x":396,"y":1254,"w":32,"h":32},"trainer_sailor_up_1":{"x":429,"y":1254,"w":32,"h":32},"trainer_sailor_left_1":{"x":462,"y":1254,"w":32,"h":32},"trainer_sailor_right_1":{"x":495,"y":1254,"w":32,"h":32},"trainer_ace_down_0":{"x":0,"y":1287,"w":32,"h":32},"trainer_ace_up_0":{"x":33,"y":1287,"w":32,"h":32},"trainer_ace_left_0":{"x":66,"y":1287,"w":32,"h":32},"trainer_ace_right_0":{"x":99,"y":1287,"w":32,"h":32},"trainer_ace_down_1":{"x":132,"y":1287,"w":32,"h":32},"trainer_ace_up_1":{"x":165,"y":1287,"w":32,"h":32},"trainer_ace_left_1":{"x":198,"y":1287,"w":32,"h":32},"trainer_ace_right_1":{"x":231,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_down_0":{"x":264,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_up_0":{"x":297,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_left_0":{"x":330,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_right_0":{"x":363,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_down_1":{"x":396,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_up_1":{"x":429,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_left_1":{"x":462,"y":1287,"w":32,"h":32},"trainer_ruin_maniac_right_1":{"x":495,"y":1287,"w":32,"h":32},"npc_rollerblader_down_0":{"x":0,"y":1320,"w":32,"h":32},"npc_rollerblader_up_0":{"x":33,"y":1320,"w":32,"h":32},"npc_rollerblader_left_0":{"x":66,"y":1320,"w":32,"h":32},"npc_rollerblader_right_0":{"x":99,"y":1320,"w":32,"h":32},"npc_rollerblader_down_1":{"x":132,"y":1320,"w":32,"h":32},"npc_rollerblader_up_1":{"x":165,"y":1320,"w":32,"h":32},"npc_rollerblader_left_1":{"x":198,"y":1320,"w":32,"h":32},"npc_rollerblader_right_1":{"x":231,"y":1320,"w":32,"h":32},"npc_jogger_down_0":{"x":264,"y":1320,"w":32,"h":32},"npc_jogger_up_0":{"x":297,"y":1320,"w":32,"h":32},"npc_jogger_left_0":{"x":330,"y":1320,"w":32,"h":32},"npc_jogger_right_0":{"x":363,"y":1320,"w":32,"h":32},"npc_jogger_down_1":{"x":396,"y":1320,"w":32,"h":32},"npc_jogger_up_1":{"x":429,"y":1320,"w":32,"h":32},"npc_jogger_left_1":{"x":462,"y":1320,"w":32,"h":32},"npc_jogger_right_1":{"x":495,"y":1320,"w":32,"h":32},"npc_cyclist_down_0":{"x":0,"y":1353,"w":32,"h":32},"npc_cyclist_up_0":{"x":33,"y":1353,"w":32,"h":32},"npc_cyclist_left_0":{"x":66,"y":1353,"w":32,"h":32},"npc_cyclist_right_0":{"x":99,"y":1353,"w":32,"h":32},"npc_cyclist_down_1":{"x":132,"y":1353,"w":32,"h":32},"npc_cyclist_up_1":{"x":165,"y":1353,"w":32,"h":32},"npc_cyclist_left_1":{"x":198,"y":1353,"w":32,"h":32},"npc_cyclist_right_1":{"x":231,"y":1353,"w":32,"h":32},"npc_dancer_down_0":{"x":264,"y":1353,"w":32,"h":32},"npc_dancer_up_0":{"x":297,"y":1353,"w":32,"h":32},"npc_dancer_left_0":{"x":330,"y":1353,"w":32,"h":32},"npc_dancer_right_0":{"x":363,"y":1353,"w":32,"h":32},"npc_dancer_down_1":{"x":396,"y":1353,"w":32,"h":32},"npc_dancer_up_1":{"x":429,"y":1353,"w":32,"h":32},"npc_dancer_left_1":{"x":462,"y":1353,"w":32,"h":32},"npc_dancer_right_1":{"x":495,"y":1353,"w":32,"h":32},"npc_policeman_down_0":{"x":0,"y":1386,"w":32,"h":32},"npc_policeman_up_0":{"x":33,"y":1386,"w":32,"h":32},"npc_policeman_left_0":{"x":66,"y":1386,"w":32,"h":32},"npc_policeman_right_0":{"x":99,"y":1386,"w":32,"h":32},"npc_policeman_down_1":{"x":132,"y":1386,"w":32,"h":32},"npc_policeman_up_1":{"x":165,"y":1386,"w":32,"h":32},"npc_policeman_left_1":{"x":198,"y":1386,"w":32,"h":32},"npc_policeman_right_1":{"x":231,"y":1386,"w":32,"h":32},"npc_firefighter_down_0":{"x":264,"y":1386,"w":32,"h":32},"npc_firefighter_up_0":{"x":297,"y":1386,"w":32,"h":32},"npc_firefighter_left_0":{"x":330,"y":1386,"w":32,"h":32},"npc_firefighter_right_0":{"x":363,"y":1386,"w":32,"h":32},"npc_firefighter_down_1":{"x":396,"y":1386,"w":32,"h":32},"npc_firefighter_up_1":{"x":429,"y":1386,"w":32,"h":32},"npc_firefighter_left_1":{"x":462,"y":1386,"w":32,"h":32},"npc_firefighter_right_1":{"x":495,"y":1386,"w":32,"h":32},"npc_paramedic_down_0":{"x":0,"y":1419,"w":32,"h":32},"npc_paramedic_up_0":{"x":33,"y":1419,"w":32,"h":32},"npc_paramedic_left_0":{"x":66,"y":1419,"w":32,"h":32},"npc_paramedic_right_0":{"x":99,"y":1419,"w":32,"h":32},"npc_paramedic_down_1":{"x":132,"y":1419,"w":32,"h":32},"npc_paramedic_up_1":{"x":165,"y":1419,"w":32,"h":32},"npc_paramedic_left_1":{"x":198,"y":1419,"w":32,"h":32},"npc_paramedic_right_1":{"x":231,"y":1419,"w":32,"h":32},"npc_security_down_0":{"x":264,"y":1419,"w":32,"h":32},"npc_security_up_0":{"x":297,"y":1419,"w":32,"h":32},"npc_security_left_0":{"x":330,"y":1419,"w":32,"h":32},"npc_security_right_0":{"x":363,"y":1419,"w":32,"h":32},"npc_security_down_1":{"x":396,"y":1419,"w":32,"h":32},"npc_security_up_1":{"x":429,"y":1419,"w":32,"h":32},"npc_security_left_1":{"x":462,"y":1419,"w":32,"h":32},"npc_security_right_1":{"x":495,"y":1419,"w":32,"h":32},"npc_construction_down_0":{"x":0,"y":1452,"w":32,"h":32},"npc_construction_up_0":{"x":33,"y":1452,"w":32,"h":32},"npc_construction_left_0":{"x":66,"y":1452,"w":32,"h":32},"npc_construction_right_0":{"x":99,"y":1452,"w":32,"h":32},"npc_construction_down_1":{"x":132,"y":1452,"w":32,"h":32},"npc_construction_up_1":{"x":165,"y":1452,"w":32,"h":32},"npc_construction_left_1":{"x":198,"y":1452,"w":32,"h":32},"npc_construction_right_1":{"x":231,"y":1452,"w":32,"h":32},"npc_journalist_down_0":{"x":264,"y":1452,"w":32,"h":32},"npc_journalist_up_0":{"x":297,"y":1452,"w":32,"h":32},"npc_journalist_left_0":{"x":330,"y":1452,"w":32,"h":32},"npc_journalist_right_0":{"x":363,"y":1452,"w":32,"h":32},"npc_journalist_down_1":{"x":396,"y":1452,"w":32,"h":32},"npc_journalist_up_1":{"x":429,"y":1452,"w":32,"h":32},"npc_journalist_left_1":{"x":462,"y":1452,"w":32,"h":32},"npc_journalist_right_1":{"x":495,"y":1452,"w":32,"h":32},"npc_businessman_down_0":{"x":0,"y":1485,"w":32,"h":32},"npc_businessman_up_0":{"x":33,"y":1485,"w":32,"h":32},"npc_businessman_left_0":{"x":66,"y":1485,"w":32,"h":32},"npc_businessman_right_0":{"x":99,"y":1485,"w":32,"h":32},"npc_businessman_down_1":{"x":132,"y":1485,"w":32,"h":32},"npc_businessman_up_1":{"x":165,"y":1485,"w":32,"h":32},"npc_businessman_left_1":{"x":198,"y":1485,"w":32,"h":32},"npc_businessman_right_1":{"x":231,"y":1485,"w":32,"h":32},"npc_saleswoman_down_0":{"x":264,"y":1485,"w":32,"h":32},"npc_saleswoman_up_0":{"x":297,"y":1485,"w":32,"h":32},"npc_saleswoman_left_0":{"x":330,"y":1485,"w":32,"h":32},"npc_saleswoman_right_0":{"x":363,"y":1485,"w":32,"h":32},"npc_saleswoman_down_1":{"x":396,"y":1485,"w":32,"h":32},"npc_saleswoman_up_1":{"x":429,"y":1485,"w":32,"h":32},"npc_saleswoman_left_1":{"x":462,"y":1485,"w":32,"h":32},"npc_saleswoman_right_1":{"x":495,"y":1485,"w":32,"h":32},"npc_doctor_down_0":{"x":0,"y":1518,"w":32,"h":32},"npc_doctor_up_0":{"x":33,"y":1518,"w":32,"h":32},"npc_doctor_left_0":{"x":66,"y":1518,"w":32,"h":32},"npc_doctor_right_0":{"x":99,"y":1518,"w":32,"h":32},"npc_doctor_down_1":{"x":132,"y":1518,"w":32,"h":32},"npc_doctor_up_1":{"x":165,"y":1518,"w":32,"h":32},"npc_doctor_left_1":{"x":198,"y":1518,"w":32,"h":32},"npc_doctor_right_1":{"x":231,"y":1518,"w":32,"h":32},"npc_scientist_down_0":{"x":264,"y":1518,"w":32,"h":32},"npc_scientist_up_0":{"x":297,"y":1518,"w":32,"h":32},"npc_scientist_left_0":{"x":330,"y":1518,"w":32,"h":32},"npc_scientist_right_0":{"x":363,"y":1518,"w":32,"h":32},"npc_scientist_down_1":{"x":396,"y":1518,"w":32,"h":32},"npc_scientist_up_1":{"x":429,"y":1518,"w":32,"h":32},"npc_scientist_left_1":{"x":462,"y":1518,"w":32,"h":32},"npc_scientist_right_1":{"x":495,"y":1518,"w":32,"h":32},"npc_teacher_down_0":{"x":0,"y":1551,"w":32,"h":32},"npc_teacher_up_0":{"x":33,"y":1551,"w":32,"h":32},"npc_teacher_left_0":{"x":66,"y":1551,"w":32,"h":32},"npc_teacher_right_0":{"x":99,"y":1551,"w":32,"h":32},"npc_teacher_down_1":{"x":132,"y":1551,"w":32,"h":32},"npc_teacher_up_1":{"x":165,"y":1551,"w":32,"h":32},"npc_teacher_left_1":{"x":198,"y":1551,"w":32,"h":32},"npc_teacher_right_1":{"x":231,"y":1551,"w":32,"h":32},"npc_librarian_down_0":{"x":264,"y":1551,"w":32,"h":32},"npc_librarian_up_0":{"x":297,"y":1551,"w":32,"h":32},"npc_librarian_left_0":{"x":330,"y":1551,"w":32,"h":32},"npc_librarian_right_0":{"x":363,"y":1551,"w":32,"h":32},"npc_librarian_down_1":{"x":396,"y":1551,"w":32,"h":32},"npc_librarian_up_1":{"x":429,"y":1551,"w":32,"h":32},"npc_librarian_left_1":{"x":462,"y":1551,"w":32,"h":32},"npc_librarian_right_1":{"x":495,"y":1551,"w":32,"h":32},"npc_baker_down_0":{"x":0,"y":1584,"w":32,"h":32},"npc_baker_up_0":{"x":33,"y":1584,"w":32,"h":32},"npc_baker_left_0":{"x":66,"y":1584,"w":32,"h":32},"npc_baker_right_0":{"x":99,"y":1584,"w":32,"h":32},"npc_baker_down_1":{"x":132,"y":1584,"w":32,"h":32},"npc_baker_up_1":{"x":165,"y":1584,"w":32,"h":32},"npc_baker_left_1":{"x":198,"y":1584,"w":32,"h":32},"npc_baker_right_1":{"x":231,"y":1584,"w":32,"h":32},"npc_chef_down_0":{"x":264,"y":1584,"w":32,"h":32},"npc_chef_up_0":{"x":297,"y":1584,"w":32,"h":32},"npc_chef_left_0":{"x":330,"y":1584,"w":32,"h":32},"npc_chef_right_0":{"x":363,"y":1584,"w":32,"h":32},"npc_chef_down_1":{"x":396,"y":1584,"w":32,"h":32},"npc_chef_up_1":{"x":429,"y":1584,"w":32,"h":32},"npc_chef_left_1":{"x":462,"y":1584,"w":32,"h":32},"npc_chef_right_1":{"x":495,"y":1584,"w":32,"h":32},"npc_waiter_down_0":{"x":0,"y":1617,"w":32,"h":32},"npc_waiter_up_0":{"x":33,"y":1617,"w":32,"h":32},"npc_waiter_left_0":{"x":66,"y":1617,"w":32,"h":32},"npc_waiter_right_0":{"x":99,"y":1617,"w":32,"h":32},"npc_waiter_down_1":{"x":132,"y":1617,"w":32,"h":32},"npc_waiter_up_1":{"x":165,"y":1617,"w":32,"h":32},"npc_waiter_left_1":{"x":198,"y":1617,"w":32,"h":32},"npc_waiter_right_1":{"x":231,"y":1617,"w":32,"h":32},"npc_artist_down_0":{"x":264,"y":1617,"w":32,"h":32},"npc_artist_up_0":{"x":297,"y":1617,"w":32,"h":32},"npc_artist_left_0":{"x":330,"y":1617,"w":32,"h":32},"npc_artist_right_0":{"x":363,"y":1617,"w":32,"h":32},"npc_artist_down_1":{"x":396,"y":1617,"w":32,"h":32},"npc_artist_up_1":{"x":429,"y":1617,"w":32,"h":32},"npc_artist_left_1":{"x":462,"y":1617,"w":32,"h":32},"npc_artist_right_1":{"x":495,"y":1617,"w":32,"h":32},"npc_dog_walker_down_0":{"x":0,"y":1650,"w":32,"h":32},"npc_dog_walker_up_0":{"x":33,"y":1650,"w":32,"h":32},"npc_dog_walker_left_0":{"x":66,"y":1650,"w":32,"h":32},"npc_dog_walker_right_0":{"x":99,"y":1650,"w":32,"h":32},"npc_dog_walker_down_1":{"x":132,"y":1650,"w":32,"h":32},"npc_dog_walker_up_1":{"x":165,"y":1650,"w":32,"h":32},"npc_dog_walker_left_1":{"x":198,"y":1650,"w":32,"h":32},"npc_dog_walker_right_1":{"x":231,"y":1650,"w":32,"h":32},"npc_swimmer_m_down_0":{"x":264,"y":1650,"w":32,"h":32},"npc_swimmer_m_up_0":{"x":297,"y":1650,"w":32,"h":32},"npc_swimmer_m_left_0":{"x":330,"y":1650,"w":32,"h":32},"npc_swimmer_m_right_0":{"x":363,"y":1650,"w":32,"h":32},"npc_swimmer_m_down_1":{"x":396,"y":1650,"w":32,"h":32},"npc_swimmer_m_up_1":{"x":429,"y":1650,"w":32,"h":32},"npc_swimmer_m_left_1":{"x":462,"y":1650,"w":32,"h":32},"npc_swimmer_m_right_1":{"x":495,"y":1650,"w":32,"h":32},"npc_swimmer_f_down_0":{"x":0,"y":1683,"w":32,"h":32},"npc_swimmer_f_up_0":{"x":33,"y":1683,"w":32,"h":32},"npc_swimmer_f_left_0":{"x":66,"y":1683,"w":32,"h":32},"npc_swimmer_f_right_0":{"x":99,"y":1683,"w":32,"h":32},"npc_swimmer_f_down_1":{"x":132,"y":1683,"w":32,"h":32},"npc_swimmer_f_up_1":{"x":165,"y":1683,"w":32,"h":32},"npc_swimmer_f_left_1":{"x":198,"y":1683,"w":32,"h":32},"npc_swimmer_f_right_1":{"x":231,"y":1683,"w":32,"h":32},"npc_tourist_down_0":{"x":264,"y":1683,"w":32,"h":32},"npc_tourist_up_0":{"x":297,"y":1683,"w":32,"h":32},"npc_tourist_left_0":{"x":330,"y":1683,"w":32,"h":32},"npc_tourist_right_0":{"x":363,"y":1683,"w":32,"h":32},"npc_tourist_down_1":{"x":396,"y":1683,"w":32,"h":32},"npc_tourist_up_1":{"x":429,"y":1683,"w":32,"h":32},"npc_tourist_left_1":{"x":462,"y":1683,"w":32,"h":32},"npc_tourist_right_1":{"x":495,"y":1683,"w":32,"h":32},"npc_punk_down_0":{"x":0,"y":1716,"w":32,"h":32},"npc_punk_up_0":{"x":33,"y":1716,"w":32,"h":32},"npc_punk_left_0":{"x":66,"y":1716,"w":32,"h":32},"npc_punk_right_0":{"x":99,"y":1716,"w":32,"h":32},"npc_punk_down_1":{"x":132,"y":1716,"w":32,"h":32},"npc_punk_up_1":{"x":165,"y":1716,"w":32,"h":32},"npc_punk_left_1":{"x":198,"y":1716,"w":32,"h":32},"npc_punk_right_1":{"x":231,"y":1716,"w":32,"h":32},"npc_kid_boy_down_0":{"x":264,"y":1716,"w":32,"h":32},"npc_kid_boy_up_0":{"x":297,"y":1716,"w":32,"h":32},"npc_kid_boy_left_0":{"x":330,"y":1716,"w":32,"h":32},"npc_kid_boy_right_0":{"x":363,"y":1716,"w":32,"h":32},"npc_kid_boy_down_1":{"x":396,"y":1716,"w":32,"h":32},"npc_kid_boy_up_1":{"x":429,"y":1716,"w":32,"h":32},"npc_kid_boy_left_1":{"x":462,"y":1716,"w":32,"h":32},"npc_kid_boy_right_1":{"x":495,"y":1716,"w":32,"h":32},"npc_kid_girl_down_0":{"x":0,"y":1749,"w":32,"h":32},"npc_kid_girl_up_0":{"x":33,"y":1749,"w":32,"h":32},"npc_kid_girl_left_0":{"x":66,"y":1749,"w":32,"h":32},"npc_kid_girl_right_0":{"x":99,"y":1749,"w":32,"h":32},"npc_kid_girl_down_1":{"x":132,"y":1749,"w":32,"h":32},"npc_kid_girl_up_1":{"x":165,"y":1749,"w":32,"h":32},"npc_kid_girl_left_1":{"x":198,"y":1749,"w":32,"h":32},"npc_kid_girl_right_1":{"x":231,"y":1749,"w":32,"h":32},"npc_old_man_alt_down_0":{"x":264,"y":1749,"w":32,"h":32},"npc_old_man_alt_up_0":{"x":297,"y":1749,"w":32,"h":32},"npc_old_man_alt_left_0":{"x":330,"y":1749,"w":32,"h":32},"npc_old_man_alt_right_0":{"x":363,"y":1749,"w":32,"h":32},"npc_old_man_alt_down_1":{"x":396,"y":1749,"w":32,"h":32},"npc_old_man_alt_up_1":{"x":429,"y":1749,"w":32,"h":32},"npc_old_man_alt_left_1":{"x":462,"y":1749,"w":32,"h":32},"npc_old_man_alt_right_1":{"x":495,"y":1749,"w":32,"h":32},"npc_old_woman_down_0":{"x":0,"y":1782,"w":32,"h":32},"npc_old_woman_up_0":{"x":33,"y":1782,"w":32,"h":32},"npc_old_woman_left_0":{"x":66,"y":1782,"w":32,"h":32},"npc_old_woman_right_0":{"x":99,"y":1782,"w":32,"h":32},"npc_old_woman_down_1":{"x":132,"y":1782,"w":32,"h":32},"npc_old_woman_up_1":{"x":165,"y":1782,"w":32,"h":32},"npc_old_woman_left_1":{"x":198,"y":1782,"w":32,"h":32},"npc_old_woman_right_1":{"x":231,"y":1782,"w":32,"h":32},"npc_hiker_alt_down_0":{"x":264,"y":1782,"w":32,"h":32},"npc_hiker_alt_up_0":{"x":297,"y":1782,"w":32,"h":32},"npc_hiker_alt_left_0":{"x":330,"y":1782,"w":32,"h":32},"npc_hiker_alt_right_0":{"x":363,"y":1782,"w":32,"h":32},"npc_hiker_alt_down_1":{"x":396,"y":1782,"w":32,"h":32},"npc_hiker_alt_up_1":{"x":429,"y":1782,"w":32,"h":32},"npc_hiker_alt_left_1":{"x":462,"y":1782,"w":32,"h":32},"npc_hiker_alt_right_1":{"x":495,"y":1782,"w":32,"h":32},"npc_blaine_down_0":{"x":0,"y":1815,"w":32,"h":32},"npc_blaine_up_0":{"x":33,"y":1815,"w":32,"h":32},"npc_blaine_left_0":{"x":66,"y":1815,"w":32,"h":32},"npc_blaine_right_0":{"x":99,"y":1815,"w":32,"h":32},"npc_blaine_down_1":{"x":132,"y":1815,"w":32,"h":32},"npc_blaine_up_1":{"x":165,"y":1815,"w":32,"h":32},"npc_blaine_left_1":{"x":198,"y":1815,"w":32,"h":32},"npc_blaine_right_1":{"x":231,"y":1815,"w":32,"h":32},"npc_pearl_down_0":{"x":264,"y":1815,"w":32,"h":32},"npc_pearl_up_0":{"x":297,"y":1815,"w":32,"h":32},"npc_pearl_left_0":{"x":330,"y":1815,"w":32,"h":32},"npc_pearl_right_0":{"x":363,"y":1815,"w":32,"h":32},"npc_pearl_down_1":{"x":396,"y":1815,"w":32,"h":32},"npc_pearl_up_1":{"x":429,"y":1815,"w":32,"h":32},"npc_pearl_left_1":{"x":462,"y":1815,"w":32,"h":32},"npc_pearl_right_1":{"x":495,"y":1815,"w":32,"h":32},"npc_nico_down_0":{"x":0,"y":1848,"w":32,"h":32},"npc_nico_up_0":{"x":33,"y":1848,"w":32,"h":32},"npc_nico_left_0":{"x":66,"y":1848,"w":32,"h":32},"npc_nico_right_0":{"x":99,"y":1848,"w":32,"h":32},"npc_nico_down_1":{"x":132,"y":1848,"w":32,"h":32},"npc_nico_up_1":{"x":165,"y":1848,"w":32,"h":32},"npc_nico_left_1":{"x":198,"y":1848,"w":32,"h":32},"npc_nico_right_1":{"x":231,"y":1848,"w":32,"h":32},"npc_meek_down_0":{"x":264,"y":1848,"w":32,"h":32},"npc_meek_up_0":{"x":297,"y":1848,"w":32,"h":32},"npc_meek_left_0":{"x":330,"y":1848,"w":32,"h":32},"npc_meek_right_0":{"x":363,"y":1848,"w":32,"h":32},"npc_meek_down_1":{"x":396,"y":1848,"w":32,"h":32},"npc_meek_up_1":{"x":429,"y":1848,"w":32,"h":32},"npc_meek_left_1":{"x":462,"y":1848,"w":32,"h":32},"npc_meek_right_1":{"x":495,"y":1848,"w":32,"h":32},"npc_oma_down_0":{"x":0,"y":1881,"w":32,"h":32},"npc_oma_up_0":{"x":33,"y":1881,"w":32,"h":32},"npc_oma_left_0":{"x":66,"y":1881,"w":32,"h":32},"npc_oma_right_0":{"x":99,"y":1881,"w":32,"h":32},"npc_oma_down_1":{"x":132,"y":1881,"w":32,"h":32},"npc_oma_up_1":{"x":165,"y":1881,"w":32,"h":32},"npc_oma_left_1":{"x":198,"y":1881,"w":32,"h":32},"npc_oma_right_1":{"x":231,"y":1881,"w":32,"h":32},"npc_kel_down_0":{"x":264,"y":1881,"w":32,"h":32},"npc_kel_up_0":{"x":297,"y":1881,"w":32,"h":32},"npc_kel_left_0":{"x":330,"y":1881,"w":32,"h":32},"npc_kel_right_0":{"x":363,"y":1881,"w":32,"h":32},"npc_kel_down_1":{"x":396,"y":1881,"w":32,"h":32},"npc_kel_up_1":{"x":429,"y":1881,"w":32,"h":32},"npc_kel_left_1":{"x":462,"y":1881,"w":32,"h":32},"npc_kel_right_1":{"x":495,"y":1881,"w":32,"h":32},"npc_tank_down_0":{"x":0,"y":1914,"w":32,"h":32},"npc_tank_up_0":{"x":33,"y":1914,"w":32,"h":32},"npc_tank_left_0":{"x":66,"y":1914,"w":32,"h":32},"npc_tank_right_0":{"x":99,"y":1914,"w":32,"h":32},"npc_tank_down_1":{"x":132,"y":1914,"w":32,"h":32},"npc_tank_up_1":{"x":165,"y":1914,"w":32,"h":32},"npc_tank_left_1":{"x":198,"y":1914,"w":32,"h":32},"npc_tank_right_1":{"x":231,"y":1914,"w":32,"h":32},"npc_nim_down_0":{"x":264,"y":1914,"w":32,"h":32},"npc_nim_up_0":{"x":297,"y":1914,"w":32,"h":32},"npc_nim_left_0":{"x":330,"y":1914,"w":32,"h":32},"npc_nim_right_0":{"x":363,"y":1914,"w":32,"h":32},"npc_nim_down_1":{"x":396,"y":1914,"w":32,"h":32},"npc_nim_up_1":{"x":429,"y":1914,"w":32,"h":32},"npc_nim_left_1":{"x":462,"y":1914,"w":32,"h":32},"npc_nim_right_1":{"x":495,"y":1914,"w":32,"h":32},"npc_marla_down_0":{"x":0,"y":1947,"w":32,"h":32},"npc_marla_up_0":{"x":33,"y":1947,"w":32,"h":32},"npc_marla_left_0":{"x":66,"y":1947,"w":32,"h":32},"npc_marla_right_0":{"x":99,"y":1947,"w":32,"h":32},"npc_marla_down_1":{"x":132,"y":1947,"w":32,"h":32},"npc_marla_up_1":{"x":165,"y":1947,"w":32,"h":32},"npc_marla_left_1":{"x":198,"y":1947,"w":32,"h":32},"npc_marla_right_1":{"x":231,"y":1947,"w":32,"h":32},"npc_faye_down_0":{"x":264,"y":1947,"w":32,"h":32},"npc_faye_up_0":{"x":297,"y":1947,"w":32,"h":32},"npc_faye_left_0":{"x":330,"y":1947,"w":32,"h":32},"npc_faye_right_0":{"x":363,"y":1947,"w":32,"h":32},"npc_faye_down_1":{"x":396,"y":1947,"w":32,"h":32},"npc_faye_up_1":{"x":429,"y":1947,"w":32,"h":32},"npc_faye_left_1":{"x":462,"y":1947,"w":32,"h":32},"npc_faye_right_1":{"x":495,"y":1947,"w":32,"h":32},"npc_wryn_down_0":{"x":0,"y":1980,"w":32,"h":32},"npc_wryn_up_0":{"x":33,"y":1980,"w":32,"h":32},"npc_wryn_left_0":{"x":66,"y":1980,"w":32,"h":32},"npc_wryn_right_0":{"x":99,"y":1980,"w":32,"h":32},"npc_wryn_down_1":{"x":132,"y":1980,"w":32,"h":32},"npc_wryn_up_1":{"x":165,"y":1980,"w":32,"h":32},"npc_wryn_left_1":{"x":198,"y":1980,"w":32,"h":32},"npc_wryn_right_1":{"x":231,"y":1980,"w":32,"h":32},"npc_akira_down_0":{"x":264,"y":1980,"w":32,"h":32},"npc_akira_up_0":{"x":297,"y":1980,"w":32,"h":32},"npc_akira_left_0":{"x":330,"y":1980,"w":32,"h":32},"npc_akira_right_0":{"x":363,"y":1980,"w":32,"h":32},"npc_akira_down_1":{"x":396,"y":1980,"w":32,"h":32},"npc_akira_up_1":{"x":429,"y":1980,"w":32,"h":32},"npc_akira_left_1":{"x":462,"y":1980,"w":32,"h":32},"npc_akira_right_1":{"x":495,"y":1980,"w":32,"h":32},"ball":{"x":0,"y":2013,"w":32,"h":32},"chicken_down_0":{"x":33,"y":2013,"w":32,"h":32},"chicken_up_0":{"x":66,"y":2013,"w":32,"h":32},"chicken_left_0":{"x":99,"y":2013,"w":32,"h":32},"chicken_right_0":{"x":132,"y":2013,"w":32,"h":32},"chicken_down_1":{"x":165,"y":2013,"w":32,"h":32},"chicken_up_1":{"x":198,"y":2013,"w":32,"h":32},"chicken_left_1":{"x":231,"y":2013,"w":32,"h":32},"chicken_right_1":{"x":264,"y":2013,"w":32,"h":32},"creature_emberkit":{"x":0,"y":2046,"w":64,"h":64},"creature_flarebound":{"x":65,"y":2046,"w":64,"h":64},"creature_infernarok":{"x":130,"y":2046,"w":64,"h":64},"creature_aquapup":{"x":195,"y":2046,"w":64,"h":64},"creature_tideturtle":{"x":260,"y":2046,"w":64,"h":64},"creature_maelstroth":{"x":325,"y":2046,"w":64,"h":64},"creature_sproutling":{"x":390,"y":2046,"w":64,"h":64},"creature_leafurge":{"x":455,"y":2046,"w":64,"h":64},"creature_verdantsage":{"x":0,"y":2111,"w":64,"h":64},"creature_zapret":{"x":65,"y":2111,"w":64,"h":64},"creature_boltbeard":{"x":130,"y":2111,"w":64,"h":64},"creature_pebra":{"x":195,"y":2111,"w":64,"h":64},"creature_boulderon":{"x":260,"y":2111,"w":64,"h":64},"creature_flitwing":{"x":325,"y":2111,"w":64,"h":64},"creature_skylordan":{"x":390,"y":2111,"w":64,"h":64},"creature_nibblet":{"x":455,"y":2111,"w":64,"h":64},"creature_whiskaroth":{"x":0,"y":2176,"w":64,"h":64},"creature_crawlbug":{"x":65,"y":2176,"w":64,"h":64},"creature_mothmane":{"x":130,"y":2176,"w":64,"h":64},"creature_cavewing":{"x":195,"y":2176,"w":64,"h":64},"creature_vampirothy":{"x":260,"y":2176,"w":64,"h":64},"creature_splashfin":{"x":325,"y":2176,"w":64,"h":64},"creature_levifin":{"x":390,"y":2176,"w":64,"h":64},"creature_glimkit":{"x":455,"y":2176,"w":64,"h":64},"creature_lustrofox":{"x":0,"y":2241,"w":64,"h":64},"creature_cinderpup":{"x":65,"y":2241,"w":64,"h":64},"creature_pyrohound":{"x":130,"y":2241,"w":64,"h":64},"creature_magmaron":{"x":195,"y":2241,"w":64,"h":64},"creature_mistfin":{"x":260,"y":2241,"w":64,"h":64},"creature_tidalwhal":{"x":325,"y":2241,"w":64,"h":64},"creature_glacierock":{"x":390,"y":2241,"w":64,"h":64},"creature_fernsprout":{"x":455,"y":2241,"w":64,"h":64},"creature_bramblewood":{"x":0,"y":2306,"w":64,"h":64},"creature_thornedred":{"x":65,"y":2306,"w":64,"h":64},"creature_voltkit":{"x":130,"y":2306,"w":64,"h":64},"creature_voltlynx":{"x":195,"y":2306,"w":64,"h":64},"creature_stormfangis":{"x":260,"y":2306,"w":64,"h":64},"creature_stoneworm":{"x":325,"y":2306,"w":64,"h":64},"creature_quakeworm":{"x":390,"y":2306,"w":64,"h":64},"creature_tectonarch":{"x":455,"y":2306,"w":64,"h":64},"creature_bumblesting":{"x":0,"y":2371,"w":64,"h":64},"creature_hivequeen":{"x":65,"y":2371,"w":64,"h":64},"creature_royalwasp":{"x":130,"y":2371,"w":64,"h":64},"creature_galewing":{"x":195,"y":2371,"w":64,"h":64},"creature_tempestir":{"x":260,"y":2371,"w":64,"h":64},"creature_solarwing":{"x":325,"y":2371,"w":64,"h":64},"creature_solarcrest":{"x":390,"y":2371,"w":64,"h":64},"creature_frostpup":{"x":455,"y":2371,"w":64,"h":64},"creature_snowox":{"x":0,"y":2436,"w":64,"h":64},"creature_glacioxen":{"x":65,"y":2436,"w":64,"h":64},"creature_crysthorn":{"x":130,"y":2436,"w":64,"h":64},"creature_prismage":{"x":195,"y":2436,"w":64,"h":64},"creature_geistmite":{"x":260,"y":2436,"w":64,"h":64},"creature_shadefox":{"x":325,"y":2436,"w":64,"h":64},"creature_umbrasire":{"x":390,"y":2436,"w":64,"h":64},"creature_dreamilly":{"x":455,"y":2436,"w":64,"h":64},"creature_reverieus":{"x":0,"y":2501,"w":64,"h":64},"creature_rivettot":{"x":65,"y":2501,"w":64,"h":64},"creature_mindrop":{"x":130,"y":2501,"w":64,"h":64},"creature_pugpaw":{"x":195,"y":2501,"w":64,"h":64},"creature_joltlet":{"x":260,"y":2501,"w":64,"h":64},"creature_breezlet":{"x":325,"y":2501,"w":64,"h":64},"creature_silkuttle":{"x":390,"y":2501,"w":64,"h":64},"creature_venipip":{"x":455,"y":2501,"w":64,"h":64},"creature_mudmote":{"x":0,"y":2566,"w":64,"h":64},"creature_frostnip":{"x":65,"y":2566,"w":64,"h":64},"creature_craglet":{"x":130,"y":2566,"w":64,"h":64},"creature_wraithlet":{"x":195,"y":2566,"w":64,"h":64},"creature_draekit":{"x":260,"y":2566,"w":64,"h":64},"creature_dewfae":{"x":325,"y":2566,"w":64,"h":64},"creature_clawmonk":{"x":390,"y":2566,"w":64,"h":64},"creature_rivetbolt":{"x":455,"y":2566,"w":64,"h":64},"creature_frostbloom":{"x":0,"y":2631,"w":64,"h":64},"creature_mantilux":{"x":65,"y":2631,"w":64,"h":64},"creature_clodlet":{"x":130,"y":2631,"w":64,"h":64},"creature_budling":{"x":195,"y":2631,"w":64,"h":64},"creature_miasmite":{"x":260,"y":2631,"w":64,"h":64}},"image":"atlas-gb-pocket.png","style":{"id":"gb_pocket","label":"GB POCKET"},"tile_size":32,"creature_size":64,"tile_code_to_key":{"0":"tile_gba_wall_lattice","1":"tile_gba_flower_grass","2":"tile_gba_light_grass","3":"tile_gba_dry_grass","4":"tile_gba_lush_grass","5":"tile_gba_path_desert_clean","6":"tile_gba_path_snow_clean","7":"tile_gba_moss_roof","8":"tile_gba_leaf_roof","9":"tile_gba_vending",".":"tile_gba_grass","X":"tile_gba_edge_grass",":":"tile_gba_tallgrass","s":"tile_gba_sand",",":"tile_gba_path_dirt_clean","_":"tile_gba_path_cobble_clean","^":"tile_gba_path_dirt_deep","o":"tile_gba_path_stepstone_clean",";":"tile_gba_path_gravel_clean","i":"tile_gba_path_redbrick_clean","y":"tile_gba_path_yellowbrick_clean","p":"tile_gba_path_park_clean","q":"tile_gba_path_mosaic_clean","t":"tile_gba_path_boardwalk_clean","u":"tile_gba_path_beach_clean","v":"tile_gba_path_rocky_clean","w":"tile_gba_path_wetstone_clean","x":"tile_gba_path_crossroads_clean","z":"tile_gba_path_moss_clean","a":"tile_gba_path_autumn_clean","A":"tile_gba_path_bridge_clean","Z":"tile_gba_path_zen_clean","I":"tile_gba_path_lantern_clean","T":"tile_gba_tree_green","Y":"tile_gba_tree_oak","K":"tile_gba_tree_cherry","E":"tile_gba_tree_autumn","G":"tile_gba_tree_ancient","O":"tile_gba_tree_palm","J":"tile_gba_tree_dead","Q":"tile_gba_tree_snowpine","N":"tile_gba_tree_birch","U":"tile_gba_tree_mushroom","V":"tile_gba_tree_willow","b":"tile_gba_bush","c":"tile_gba_bush_flower","e":"tile_gba_bush_berry","g":"tile_gba_bush_thorn","j":"tile_gba_bush_autumn","k":"tile_gba_bush_snow","l":"tile_gba_bush_blueflower","m":"tile_gba_bush_purpleflower","n":"tile_gba_thorn_cluster","h":"tile_gba_hedge","W":"tile_gba_water","F":"tile_gba_floor","+":"tile_gba_blue_roof","=":"tile_gba_terra_roof","&":"tile_gba_slate_roof","-":"tile_gba_thatch_roof","*":"tile_gba_dome_roof","%":"tile_gba_snow_roof","#":"tile_gba_wall_stone","@":"tile_gba_wall_timber","$":"tile_gba_wall_brick","?":"tile_gba_wall_log","!":"tile_gba_wall_white","d":"tile_gba_door_blue","f":"tile_gba_door_shop","[":"tile_gba_window_left","]":"tile_gba_window_right","(":"tile_gba_small_rock",")":"tile_gba_large_rock","<":"tile_gba_bench","|":"tile_gba_street_lamp","~":"tile_gba_hydrant","{":"tile_gba_flower_pot",">":"tile_gba_shelf","S":"tile_gba_sign","L":"tile_gba_ledge","D":"tile_gba_door_dark","R":"tile_gba_house_red_roof","B":"tile_gba_wall_house","P":"tile_gba_center_roof","M":"tile_gba_mart_roof","C":"tile_gba_counter","r":"tile_gba_rug","H":"tile_gba_heal_pad","`":"tile_gba_fence_h","\"":"tile_gba_fence_v","\\":"tile_gba_mailbox","/":"tile_gba_pc_terminal","}":"tile_gba_potted_plant","'":"tile_gba_gardenbed"},"tile_variants":{"5":{"random":["tile_gba_path_var_53_a","tile_gba_path_var_53_b"],"context":{}},"6":{"random":["tile_gba_path_var_54_a","tile_gba_path_var_54_b"],"context":{}},"7":{"random":[],"context":{"center":"tile_gba_moss_roof_center","top":"tile_gba_moss_roof_top","bottom":"tile_gba_moss_roof_bottom","left":"tile_gba_moss_roof_left","right":"tile_gba_moss_roof_right","top_left":"tile_gba_moss_roof_top_left","top_right":"tile_gba_moss_roof_top_right","bottom_left":"tile_gba_moss_roof_bottom_left","bottom_right":"tile_gba_moss_roof_bottom_right"}},"8":{"random":[],"context":{"center":"tile_gba_leaf_roof_center","top":"tile_gba_leaf_roof_top","bottom":"tile_gba_leaf_roof_bottom","left":"tile_gba_leaf_roof_left","right":"tile_gba_leaf_roof_right","top_left":"tile_gba_leaf_roof_top_left","top_right":"tile_gba_leaf_roof_top_right","bottom_left":"tile_gba_leaf_roof_bottom_left","bottom_right":"tile_gba_leaf_roof_bottom_right"}},"T":{"random":["tile_tree_var_spring_a","tile_tree_var_spring_b","tile_tree_var_spring_c","tile_tree_var_summer_a","tile_tree_var_summer_b"],"context":{}},"Y":{"random":["tile_tree_var_oak_gnarled","tile_tree_var_oak_white","tile_tree_var_oak_dwarf"],"context":{}},"K":{"random":["tile_tree_var_cherry_white","tile_tree_var_cherry_weeping"],"context":{}},"O":{"random":["tile_tree_var_palm_coconut","tile_tree_var_palm_fan"],"context":{}},"E":{"random":["tile_tree_var_autumn_fiery","tile_tree_var_autumn_golden"],"context":{}},"N":{"random":["tile_tree_var_birch_paper","tile_tree_var_birch_silver"],"context":{}},"Q":{"random":["tile_tree_var_pine_snowy_alt","tile_tree_var_pine_fir","tile_tree_var_pine_spruce"],"context":{}},".":{"random":["tile_gba_46_grass_a","tile_gba_46_grass_b","tile_gba_46_grass_c"],"context":{}},"X":{"random":["tile_gba_88_grass_a","tile_gba_88_grass_b","tile_gba_88_grass_c"],"context":{}},",":{"random":["tile_gba_path_var_44_a","tile_gba_path_var_44_b"],"context":{}},"^":{"random":["tile_gba_path_var_94_a","tile_gba_path_var_94_b"],"context":{}},";":{"random":["tile_gba_path_var_59_a","tile_gba_path_var_59_b"],"context":{}},"p":{"random":["tile_gba_path_var_112_a","tile_gba_path_var_112_b"],"context":{}},"a":{"random":["tile_gba_path_var_97_a","tile_gba_path_var_97_b"],"context":{}},"_":{"random":["tile_gba_path_var_95_a","tile_gba_path_var_95_b"],"context":{}},"u":{"random":["tile_gba_path_var_117_a","tile_gba_path_var_117_b"],"context":{}},"v":{"random":["tile_gba_path_var_118_a","tile_gba_path_var_118_b"],"context":{}},"z":{"random":["tile_gba_path_var_122_a","tile_gba_path_var_122_b"],"context":{}},"W":{"random":["tile_gba_water_alt_a","tile_gba_water_alt_b"],"context":{}},"R":{"random":[],"context":{"center":"tile_gba_house_red_roof_center","top":"tile_gba_house_red_roof_top","bottom":"tile_gba_house_red_roof_bottom","left":"tile_gba_house_red_roof_left","right":"tile_gba_house_red_roof_right","top_left":"tile_gba_house_red_roof_top_left","top_right":"tile_gba_house_red_roof_top_right","bottom_left":"tile_gba_house_red_roof_bottom_left","bottom_right":"tile_gba_house_red_roof_bottom_right"}},"P":{"random":[],"context":{"center":"tile_gba_center_roof_center","top":"tile_gba_center_roof_top","bottom":"tile_gba_center_roof_bottom","left":"tile_gba_center_roof_left","right":"tile_gba_center_roof_right","top_left":"tile_gba_center_roof_top_left","top_right":"tile_gba_center_roof_top_right","bottom_left":"tile_gba_center_roof_bottom_left","bottom_right":"tile_gba_center_roof_bottom_right"}},"M":{"random":[],"context":{"center":"tile_gba_mart_roof_center","top":"tile_gba_mart_roof_top","bottom":"tile_gba_mart_roof_bottom","left":"tile_gba_mart_roof_left","right":"tile_gba_mart_roof_right","top_left":"tile_gba_mart_roof_top_left","top_right":"tile_gba_mart_roof_top_right","bottom_left":"tile_gba_mart_roof_bottom_left","bottom_right":"tile_gba_mart_roof_bottom_right"}},"+":{"random":[],"context":{"center":"tile_gba_blue_roof_center","top":"tile_gba_blue_roof_top","bottom":"tile_gba_blue_roof_bottom","left":"tile_gba_blue_roof_left","right":"tile_gba_blue_roof_right","top_left":"tile_gba_blue_roof_top_left","top_right":"tile_gba_blue_roof_top_right","bottom_left":"tile_gba_blue_roof_bottom_left","bottom_right":"tile_gba_blue_roof_bottom_right"}},"-":{"random":[],"context":{"center":"tile_gba_thatch_roof_center","top":"tile_gba_thatch_roof_top","bottom":"tile_gba_thatch_roof_bottom","left":"tile_gba_thatch_roof_left","right":"tile_gba_thatch_roof_right","top_left":"tile_gba_thatch_roof_top_left","top_right":"tile_gba_thatch_roof_top_right","bottom_left":"tile_gba_thatch_roof_bottom_left","bottom_right":"tile_gba_thatch_roof_bottom_right"}},"=":{"random":[],"context":{"center":"tile_gba_terra_roof_center","top":"tile_gba_terra_roof_top","bottom":"tile_gba_terra_roof_bottom","left":"tile_gba_terra_roof_left","right":"tile_gba_terra_roof_right","top_left":"tile_gba_terra_roof_top_left","top_right":"tile_gba_terra_roof_top_right","bottom_left":"tile_gba_terra_roof_bottom_left","bottom_right":"tile_gba_terra_roof_bottom_right"}},"*":{"random":[],"context":{"center":"tile_gba_dome_roof_center","top":"tile_gba_dome_roof_top","bottom":"tile_gba_dome_roof_bottom","left":"tile_gba_dome_roof_left","right":"tile_gba_dome_roof_right","top_left":"tile_gba_dome_roof_top_left","top_right":"tile_gba_dome_roof_top_right","bottom_left":"tile_gba_dome_roof_bottom_left","bottom_right":"tile_gba_dome_roof_bottom_right"}},"%":{"random":[],"context":{"center":"tile_gba_snow_roof_center","top":"tile_gba_snow_roof_top","bottom":"tile_gba_snow_roof_bottom","left":"tile_gba_snow_roof_left","right":"tile_gba_snow_roof_right","top_left":"tile_gba_snow_roof_top_left","top_right":"tile_gba_snow_roof_top_right","bottom_left":"tile_gba_snow_roof_bottom_left","bottom_right":"tile_gba_snow_roof_bottom_right"}},"&":{"random":[],"context":{"center":"tile_gba_slate_roof_center","top":"tile_gba_slate_roof_top","bottom":"tile_gba_slate_roof_bottom","left":"tile_gba_slate_roof_left","right":"tile_gba_slate_roof_right","top_left":"tile_gba_slate_roof_top_left","top_right":"tile_gba_slate_roof_top_right","bottom_left":"tile_gba_slate_roof_bottom_left","bottom_right":"tile_gba_slate_roof_bottom_right"}},"S":{"random":[],"context":{"sign_center":"tile_gba_sign_center","sign_mart":"tile_gba_sign_mart","sign_gym":"tile_gba_sign_gym"}}}}
+{
+  "frames": {
+    "tile_grass": {
+      "x": 0,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_grass_alt": {
+      "x": 33,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_grass_flower": {
+      "x": 66,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_grass_light": {
+      "x": 99,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_grass_dry": {
+      "x": 132,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_grass_lush": {
+      "x": 165,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tallgrass": {
+      "x": 198,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_sand": {
+      "x": 231,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path": {
+      "x": 264,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_cobble": {
+      "x": 297,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_dirt": {
+      "x": 330,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_stepstone": {
+      "x": 363,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_gravel": {
+      "x": 396,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_redbrick": {
+      "x": 429,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_yellowbrick": {
+      "x": 462,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_park": {
+      "x": 495,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_mosaic": {
+      "x": 0,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_boardwalk": {
+      "x": 33,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_sand": {
+      "x": 66,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_rocky": {
+      "x": 99,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_wetstone": {
+      "x": 132,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_crossroads": {
+      "x": 165,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_moss": {
+      "x": 198,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_autumn": {
+      "x": 231,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_bridge": {
+      "x": 264,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_zen": {
+      "x": 297,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_lantern": {
+      "x": 330,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_desert": {
+      "x": 363,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_path_snow": {
+      "x": 396,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree": {
+      "x": 429,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_oak": {
+      "x": 462,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_cherry": {
+      "x": 495,
+      "y": 33,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_autumn": {
+      "x": 0,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_ancient": {
+      "x": 33,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_palm": {
+      "x": 66,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_dead": {
+      "x": 99,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_snowypine": {
+      "x": 132,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_birch": {
+      "x": 165,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_mushroom": {
+      "x": 198,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_willow": {
+      "x": 231,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_spring_a": {
+      "x": 264,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_spring_b": {
+      "x": 297,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_spring_c": {
+      "x": 330,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_summer_a": {
+      "x": 363,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_summer_b": {
+      "x": 396,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_oak_gnarled": {
+      "x": 429,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_oak_white": {
+      "x": 462,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_oak_dwarf": {
+      "x": 495,
+      "y": 66,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_cherry_white": {
+      "x": 0,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_cherry_weeping": {
+      "x": 33,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_palm_coconut": {
+      "x": 66,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_palm_fan": {
+      "x": 99,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_autumn_fiery": {
+      "x": 132,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_autumn_golden": {
+      "x": 165,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_birch_paper": {
+      "x": 198,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_birch_silver": {
+      "x": 231,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_pine_snowy_alt": {
+      "x": 264,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_pine_fir": {
+      "x": 297,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_tree_var_pine_spruce": {
+      "x": 330,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush": {
+      "x": 363,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush_flower": {
+      "x": 396,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush_berry": {
+      "x": 429,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush_thorn": {
+      "x": 462,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush_autumn": {
+      "x": 495,
+      "y": 99,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush_snowy": {
+      "x": 0,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush_blueflower": {
+      "x": 33,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bush_purpleflower": {
+      "x": 66,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_thorn_cluster": {
+      "x": 99,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_hedge": {
+      "x": 132,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_water": {
+      "x": 165,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_floor": {
+      "x": 198,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_blue": {
+      "x": 231,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_terracotta": {
+      "x": 264,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_slate": {
+      "x": 297,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_thatched": {
+      "x": 330,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_dome": {
+      "x": 363,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_snow": {
+      "x": 396,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_moss": {
+      "x": 429,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_roof_leaf": {
+      "x": 462,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_wall_stone": {
+      "x": 495,
+      "y": 132,
+      "w": 32,
+      "h": 32
+    },
+    "tile_wall_timber": {
+      "x": 0,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_wall_brick": {
+      "x": 33,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_wall_log": {
+      "x": 66,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_wall_white": {
+      "x": 99,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_wall_lattice": {
+      "x": 132,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_door_blue": {
+      "x": 165,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_door_shop": {
+      "x": 198,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_window_left": {
+      "x": 231,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_window_right": {
+      "x": 264,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_chimney": {
+      "x": 297,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_smokestack": {
+      "x": 330,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_bench": {
+      "x": 363,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_street_lamp": {
+      "x": 396,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_hydrant": {
+      "x": 429,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_flower_pot": {
+      "x": 462,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_shelf": {
+      "x": 495,
+      "y": 165,
+      "w": 32,
+      "h": 32
+    },
+    "tile_sign": {
+      "x": 0,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_grass_ledge": {
+      "x": 33,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_door_dark": {
+      "x": 66,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_marker_red": {
+      "x": 99,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_marker_brown": {
+      "x": 132,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_marker_pink": {
+      "x": 165,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_marker_blue": {
+      "x": 198,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_marker_tan": {
+      "x": 231,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_marker_redalt": {
+      "x": 264,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_hospital": {
+      "x": 297,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_house_roof": {
+      "x": 330,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_house_wall": {
+      "x": 363,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_center_roof": {
+      "x": 396,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_mart_roof": {
+      "x": 429,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_counter": {
+      "x": 462,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_heal_pad": {
+      "x": 495,
+      "y": 198,
+      "w": 32,
+      "h": 32
+    },
+    "tile_house_door": {
+      "x": 0,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_small_rock": {
+      "x": 33,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_large_rock": {
+      "x": 66,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_fence_h": {
+      "x": 99,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_fence_v": {
+      "x": 132,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_mailbox": {
+      "x": 165,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_pc_terminal": {
+      "x": 198,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_vending": {
+      "x": 231,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_potted_plant": {
+      "x": 264,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gardenbed": {
+      "x": 297,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_grass": {
+      "x": 330,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_edge_grass": {
+      "x": 363,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_flower_grass": {
+      "x": 396,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_light_grass": {
+      "x": 429,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dry_grass": {
+      "x": 462,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_lush_grass": {
+      "x": 495,
+      "y": 231,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tallgrass": {
+      "x": 0,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_sand": {
+      "x": 33,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_water": {
+      "x": 66,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_floor": {
+      "x": 99,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_rug": {
+      "x": 132,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_dirt_clean": {
+      "x": 165,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_cobble_clean": {
+      "x": 198,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_dirt_deep": {
+      "x": 231,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_stepstone_clean": {
+      "x": 264,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_gravel_clean": {
+      "x": 297,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_redbrick_clean": {
+      "x": 330,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_yellowbrick_clean": {
+      "x": 363,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_park_clean": {
+      "x": 396,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_mosaic_clean": {
+      "x": 429,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_boardwalk_clean": {
+      "x": 462,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_beach_clean": {
+      "x": 495,
+      "y": 264,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_rocky_clean": {
+      "x": 0,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_wetstone_clean": {
+      "x": 33,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_crossroads_clean": {
+      "x": 66,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_moss_clean": {
+      "x": 99,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_autumn_clean": {
+      "x": 132,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_bridge_clean": {
+      "x": 165,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_zen_clean": {
+      "x": 198,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_lantern_clean": {
+      "x": 231,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_desert_clean": {
+      "x": 264,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_snow_clean": {
+      "x": 297,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_46_grass_a": {
+      "x": 330,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_46_grass_b": {
+      "x": 363,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_46_grass_c": {
+      "x": 396,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_88_grass_a": {
+      "x": 429,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_88_grass_b": {
+      "x": 462,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_88_grass_c": {
+      "x": 495,
+      "y": 297,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_44_a": {
+      "x": 0,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_44_b": {
+      "x": 33,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_94_a": {
+      "x": 66,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_94_b": {
+      "x": 99,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_59_a": {
+      "x": 132,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_59_b": {
+      "x": 165,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_112_a": {
+      "x": 198,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_112_b": {
+      "x": 231,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_97_a": {
+      "x": 264,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_97_b": {
+      "x": 297,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_95_a": {
+      "x": 330,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_95_b": {
+      "x": 363,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_117_a": {
+      "x": 396,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_117_b": {
+      "x": 429,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_118_a": {
+      "x": 462,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_118_b": {
+      "x": 495,
+      "y": 330,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_122_a": {
+      "x": 0,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_122_b": {
+      "x": 33,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_53_a": {
+      "x": 66,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_53_b": {
+      "x": 99,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_54_a": {
+      "x": 132,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_path_var_54_b": {
+      "x": 165,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_water_alt_a": {
+      "x": 198,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_water_alt_b": {
+      "x": 231,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_green": {
+      "x": 264,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_oak": {
+      "x": 297,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_cherry": {
+      "x": 330,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_autumn": {
+      "x": 363,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_ancient": {
+      "x": 396,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_palm": {
+      "x": 429,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_dead": {
+      "x": 462,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_snowpine": {
+      "x": 495,
+      "y": 363,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_birch": {
+      "x": 0,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_mushroom": {
+      "x": 33,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_tree_willow": {
+      "x": 66,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush": {
+      "x": 99,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush_flower": {
+      "x": 132,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush_berry": {
+      "x": 165,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush_thorn": {
+      "x": 198,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush_autumn": {
+      "x": 231,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush_snow": {
+      "x": 264,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush_blueflower": {
+      "x": 297,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bush_purpleflower": {
+      "x": 330,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thorn_cluster": {
+      "x": 363,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_hedge": {
+      "x": 396,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof": {
+      "x": 429,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_center": {
+      "x": 462,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_top": {
+      "x": 495,
+      "y": 396,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_bottom": {
+      "x": 0,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_left": {
+      "x": 33,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_right": {
+      "x": 66,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_top_left": {
+      "x": 99,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_top_right": {
+      "x": 132,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_bottom_left": {
+      "x": 165,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_house_red_roof_bottom_right": {
+      "x": 198,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof": {
+      "x": 231,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_center": {
+      "x": 264,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_top": {
+      "x": 297,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_bottom": {
+      "x": 330,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_left": {
+      "x": 363,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_right": {
+      "x": 396,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_top_left": {
+      "x": 429,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_top_right": {
+      "x": 462,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_bottom_left": {
+      "x": 495,
+      "y": 429,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_center_roof_bottom_right": {
+      "x": 0,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof": {
+      "x": 33,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_center": {
+      "x": 66,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_top": {
+      "x": 99,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_bottom": {
+      "x": 132,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_left": {
+      "x": 165,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_right": {
+      "x": 198,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_top_left": {
+      "x": 231,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_top_right": {
+      "x": 264,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_bottom_left": {
+      "x": 297,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mart_roof_bottom_right": {
+      "x": 330,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof": {
+      "x": 363,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_center": {
+      "x": 396,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_top": {
+      "x": 429,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_bottom": {
+      "x": 462,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_left": {
+      "x": 495,
+      "y": 462,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_right": {
+      "x": 0,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_top_left": {
+      "x": 33,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_top_right": {
+      "x": 66,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_bottom_left": {
+      "x": 99,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_blue_roof_bottom_right": {
+      "x": 132,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof": {
+      "x": 165,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_center": {
+      "x": 198,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_top": {
+      "x": 231,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_bottom": {
+      "x": 264,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_left": {
+      "x": 297,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_right": {
+      "x": 330,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_top_left": {
+      "x": 363,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_top_right": {
+      "x": 396,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_bottom_left": {
+      "x": 429,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_thatch_roof_bottom_right": {
+      "x": 462,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof": {
+      "x": 495,
+      "y": 495,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_center": {
+      "x": 0,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_top": {
+      "x": 33,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_bottom": {
+      "x": 66,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_left": {
+      "x": 99,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_right": {
+      "x": 132,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_top_left": {
+      "x": 165,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_top_right": {
+      "x": 198,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_bottom_left": {
+      "x": 231,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_terra_roof_bottom_right": {
+      "x": 264,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof": {
+      "x": 297,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_center": {
+      "x": 330,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_top": {
+      "x": 363,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_bottom": {
+      "x": 396,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_left": {
+      "x": 429,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_right": {
+      "x": 462,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_top_left": {
+      "x": 495,
+      "y": 528,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_top_right": {
+      "x": 0,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_bottom_left": {
+      "x": 33,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_dome_roof_bottom_right": {
+      "x": 66,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof": {
+      "x": 99,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_center": {
+      "x": 132,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_top": {
+      "x": 165,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_bottom": {
+      "x": 198,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_left": {
+      "x": 231,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_right": {
+      "x": 264,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_top_left": {
+      "x": 297,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_top_right": {
+      "x": 330,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_bottom_left": {
+      "x": 363,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_snow_roof_bottom_right": {
+      "x": 396,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof": {
+      "x": 429,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_center": {
+      "x": 462,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_top": {
+      "x": 495,
+      "y": 561,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_bottom": {
+      "x": 0,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_left": {
+      "x": 33,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_right": {
+      "x": 66,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_top_left": {
+      "x": 99,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_top_right": {
+      "x": 132,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_bottom_left": {
+      "x": 165,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_slate_roof_bottom_right": {
+      "x": 198,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof": {
+      "x": 231,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_center": {
+      "x": 264,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_top": {
+      "x": 297,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_bottom": {
+      "x": 330,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_left": {
+      "x": 363,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_right": {
+      "x": 396,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_top_left": {
+      "x": 429,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_top_right": {
+      "x": 462,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_bottom_left": {
+      "x": 495,
+      "y": 594,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_moss_roof_bottom_right": {
+      "x": 0,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof": {
+      "x": 33,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_center": {
+      "x": 66,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_top": {
+      "x": 99,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_bottom": {
+      "x": 132,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_left": {
+      "x": 165,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_right": {
+      "x": 198,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_top_left": {
+      "x": 231,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_top_right": {
+      "x": 264,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_bottom_left": {
+      "x": 297,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_leaf_roof_bottom_right": {
+      "x": 330,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_wall_house": {
+      "x": 363,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_wall_stone": {
+      "x": 396,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_wall_timber": {
+      "x": 429,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_wall_brick": {
+      "x": 462,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_wall_log": {
+      "x": 495,
+      "y": 627,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_wall_white": {
+      "x": 0,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_wall_lattice": {
+      "x": 33,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_door_blue": {
+      "x": 66,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_door_shop": {
+      "x": 99,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_door_dark": {
+      "x": 132,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_window_left": {
+      "x": 165,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_window_right": {
+      "x": 198,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_sign": {
+      "x": 231,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_sign_center": {
+      "x": 264,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_sign_mart": {
+      "x": 297,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_sign_gym": {
+      "x": 330,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_ledge": {
+      "x": 363,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_counter": {
+      "x": 396,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_heal_pad": {
+      "x": 429,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_small_rock": {
+      "x": 462,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_large_rock": {
+      "x": 495,
+      "y": 660,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_bench": {
+      "x": 0,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_street_lamp": {
+      "x": 33,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_hydrant": {
+      "x": 66,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_flower_pot": {
+      "x": 99,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_shelf": {
+      "x": 132,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_fence_h": {
+      "x": 165,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_fence_v": {
+      "x": 198,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_mailbox": {
+      "x": 231,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_pc_terminal": {
+      "x": 264,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_vending": {
+      "x": 297,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_potted_plant": {
+      "x": 330,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "tile_gba_gardenbed": {
+      "x": 363,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_park_brown": {
+      "x": 396,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_park_green": {
+      "x": 429,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_marble_white": {
+      "x": 462,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_stone_grey": {
+      "x": 495,
+      "y": 693,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_picnic_red": {
+      "x": 0,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_log": {
+      "x": 33,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_garden_iron": {
+      "x": 66,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bench_pier_wood": {
+      "x": 99,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_books": {
+      "x": 132,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_potions": {
+      "x": 165,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_pokeballs": {
+      "x": 198,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_berries": {
+      "x": 231,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_tms": {
+      "x": 264,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_souvenirs": {
+      "x": 297,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_clothing": {
+      "x": 330,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_food": {
+      "x": 363,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_displays_glass": {
+      "x": 396,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_shelf_empty_wooden": {
+      "x": 429,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_post_arrow": {
+      "x": 462,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_post_wood": {
+      "x": 495,
+      "y": 726,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_billboard_yellow": {
+      "x": 0,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_billboard_blue": {
+      "x": 33,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_gym_red": {
+      "x": 66,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_gym_blue": {
+      "x": 99,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_warning": {
+      "x": 132,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_sign_marker_stone": {
+      "x": 165,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_grey_lid": {
+      "x": 198,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_blue_recycle": {
+      "x": 231,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_green_compost": {
+      "x": 264,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_dumpster": {
+      "x": 297,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_basket_wicker": {
+      "x": 330,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_trash_urn_park": {
+      "x": 363,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_terracotta_red": {
+      "x": 396,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_ceramic_blue": {
+      "x": 429,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_painted_yellow": {
+      "x": 462,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_marble_white": {
+      "x": 495,
+      "y": 759,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_hanging_basket": {
+      "x": 0,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_window_box": {
+      "x": 33,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_succulent_small": {
+      "x": 66,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pot_tall_lily": {
+      "x": 99,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_hedge_round": {
+      "x": 132,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_hedge_long": {
+      "x": 165,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_herb_box": {
+      "x": 198,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_flowerbed_oval": {
+      "x": 231,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_raised_wood": {
+      "x": 264,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_planter_zen_stone": {
+      "x": 297,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_wood_round": {
+      "x": 330,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_wood_square": {
+      "x": 363,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_marble_round": {
+      "x": 396,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_glass_modern": {
+      "x": 429,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_dining_long": {
+      "x": 462,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_picnic_red_check": {
+      "x": 495,
+      "y": 792,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_workbench": {
+      "x": 0,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_round_chess": {
+      "x": 33,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_low_tea": {
+      "x": 66,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_table_long_buffet": {
+      "x": 99,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_potions_counter": {
+      "x": 132,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_pokeballs_rack": {
+      "x": 165,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_clothing_rack": {
+      "x": 198,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_food_counter": {
+      "x": 231,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_register": {
+      "x": 264,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_souvenir": {
+      "x": 297,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_glass_case": {
+      "x": 330,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_display_basket": {
+      "x": 363,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_idle": {
+      "x": 396,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_glow1": {
+      "x": 429,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_glow2": {
+      "x": 462,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_healing_complete": {
+      "x": 495,
+      "y": 825,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_console": {
+      "x": 0,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pod_bed_left": {
+      "x": 33,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_ornate_gold": {
+      "x": 66,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_oil_brass": {
+      "x": 99,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_modern_chrome": {
+      "x": 132,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_paper_lantern": {
+      "x": 165,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_table_brass": {
+      "x": 198,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lamp_floor_tall": {
+      "x": 231,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bookshelf_tall": {
+      "x": 264,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_dresser_wood": {
+      "x": 297,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_nightstand": {
+      "x": 330,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bed_single_blue": {
+      "x": 363,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bed_single_pink": {
+      "x": 396,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_rug_round_red": {
+      "x": 429,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_rug_long_persian": {
+      "x": 462,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_picture_frame_landscape": {
+      "x": 495,
+      "y": 858,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wall_clock_round": {
+      "x": 0,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_calendar_wall": {
+      "x": 33,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_coat_rack": {
+      "x": 66,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_umbrella_stand": {
+      "x": 99,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_vending_drinks_blue": {
+      "x": 132,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_vending_snacks_red": {
+      "x": 165,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_water_fountain_round": {
+      "x": 198,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wishing_well": {
+      "x": 231,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_basketball_hoop": {
+      "x": 264,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_pedestal_statue": {
+      "x": 297,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_street_clock": {
+      "x": 330,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bus_stop_sign": {
+      "x": 363,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bike_rack": {
+      "x": 396,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_parking_meter": {
+      "x": 429,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_bollard": {
+      "x": 462,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_streetlamp_ornate_double": {
+      "x": 495,
+      "y": 891,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lighthouse_base": {
+      "x": 0,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lighthouse_tower": {
+      "x": 33,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_lighthouse_top": {
+      "x": 66,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_obelisk_base": {
+      "x": 99,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_obelisk_top": {
+      "x": 132,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_ancient_oak_bot": {
+      "x": 165,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_ancient_oak_top": {
+      "x": 198,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_meteor_pedestal": {
+      "x": 231,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_ice_sculpture": {
+      "x": 264,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_anchor": {
+      "x": 297,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_mining_cart": {
+      "x": 330,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_torii_gate": {
+      "x": 363,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_cherry_arch": {
+      "x": 396,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_fish_market_stall": {
+      "x": 429,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_produce_stall": {
+      "x": 462,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_craft_stall": {
+      "x": 495,
+      "y": 924,
+      "w": 32,
+      "h": 32
+    },
+    "decor_winter_tent": {
+      "x": 0,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_champion_statue": {
+      "x": 33,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_sparrow_perched": {
+      "x": 66,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_sparrow_flying": {
+      "x": 99,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_pigeon_perched": {
+      "x": 132,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_pigeon_flying": {
+      "x": 165,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_crow_perched": {
+      "x": 198,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_crow_flying": {
+      "x": 231,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "player_down_0": {
+      "x": 0,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "player_up_0": {
+      "x": 33,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "player_left_0": {
+      "x": 66,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "player_right_0": {
+      "x": 99,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "player_down_1": {
+      "x": 132,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "player_up_1": {
+      "x": 165,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "player_left_1": {
+      "x": 198,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "player_right_1": {
+      "x": 231,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_down_0": {
+      "x": 264,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_up_0": {
+      "x": 297,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_left_0": {
+      "x": 330,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_right_0": {
+      "x": 363,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_down_1": {
+      "x": 396,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_up_1": {
+      "x": 429,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_left_1": {
+      "x": 462,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oak_right_1": {
+      "x": 495,
+      "y": 990,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_down_0": {
+      "x": 0,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_up_0": {
+      "x": 33,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_left_0": {
+      "x": 66,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_right_0": {
+      "x": 99,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_down_1": {
+      "x": 132,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_up_1": {
+      "x": 165,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_left_1": {
+      "x": 198,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_mom_right_1": {
+      "x": 231,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_down_0": {
+      "x": 264,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_up_0": {
+      "x": 297,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_left_0": {
+      "x": 330,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_right_0": {
+      "x": 363,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_down_1": {
+      "x": 396,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_up_1": {
+      "x": 429,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_left_1": {
+      "x": 462,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_sis_right_1": {
+      "x": 495,
+      "y": 1023,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_down_0": {
+      "x": 0,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_up_0": {
+      "x": 33,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_left_0": {
+      "x": 66,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_right_0": {
+      "x": 99,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_down_1": {
+      "x": 132,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_up_1": {
+      "x": 165,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_left_1": {
+      "x": 198,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rival_right_1": {
+      "x": 231,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_down_0": {
+      "x": 264,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_up_0": {
+      "x": 297,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_left_0": {
+      "x": 330,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_right_0": {
+      "x": 363,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_down_1": {
+      "x": 396,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_up_1": {
+      "x": 429,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_left_1": {
+      "x": 462,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_girl_right_1": {
+      "x": 495,
+      "y": 1056,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_down_0": {
+      "x": 0,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_up_0": {
+      "x": 33,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_left_0": {
+      "x": 66,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_right_0": {
+      "x": 99,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_down_1": {
+      "x": 132,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_up_1": {
+      "x": 165,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_left_1": {
+      "x": 198,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_youth_right_1": {
+      "x": 231,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_down_0": {
+      "x": 264,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_up_0": {
+      "x": 297,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_left_0": {
+      "x": 330,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_right_0": {
+      "x": 363,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_down_1": {
+      "x": 396,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_up_1": {
+      "x": 429,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_left_1": {
+      "x": 462,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_right_1": {
+      "x": 495,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_down_0": {
+      "x": 0,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_up_0": {
+      "x": 33,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_left_0": {
+      "x": 66,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_right_0": {
+      "x": 99,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_down_1": {
+      "x": 132,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_up_1": {
+      "x": 165,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_left_1": {
+      "x": 198,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "nurse_right_1": {
+      "x": 231,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_down_0": {
+      "x": 264,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_up_0": {
+      "x": 297,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_left_0": {
+      "x": 330,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_right_0": {
+      "x": 363,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_down_1": {
+      "x": 396,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_up_1": {
+      "x": 429,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_left_1": {
+      "x": 462,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "clerk_right_1": {
+      "x": 495,
+      "y": 1122,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_down_0": {
+      "x": 0,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_up_0": {
+      "x": 33,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_left_0": {
+      "x": 66,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_right_0": {
+      "x": 99,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_down_1": {
+      "x": 132,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_up_1": {
+      "x": 165,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_left_1": {
+      "x": 198,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_bug_catcher_right_1": {
+      "x": 231,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_down_0": {
+      "x": 264,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_up_0": {
+      "x": 297,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_left_0": {
+      "x": 330,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_right_0": {
+      "x": 363,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_down_1": {
+      "x": 396,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_up_1": {
+      "x": 429,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_left_1": {
+      "x": 462,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_picnicker_right_1": {
+      "x": 495,
+      "y": 1155,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_down_0": {
+      "x": 0,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_up_0": {
+      "x": 33,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_left_0": {
+      "x": 66,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_right_0": {
+      "x": 99,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_down_1": {
+      "x": 132,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_up_1": {
+      "x": 165,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_left_1": {
+      "x": 198,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_camper_right_1": {
+      "x": 231,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_down_0": {
+      "x": 264,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_up_0": {
+      "x": 297,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_left_0": {
+      "x": 330,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_right_0": {
+      "x": 363,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_down_1": {
+      "x": 396,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_up_1": {
+      "x": 429,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_left_1": {
+      "x": 462,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ranger_right_1": {
+      "x": 495,
+      "y": 1188,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_down_0": {
+      "x": 0,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_up_0": {
+      "x": 33,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_left_0": {
+      "x": 66,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_right_0": {
+      "x": 99,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_down_1": {
+      "x": 132,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_up_1": {
+      "x": 165,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_left_1": {
+      "x": 198,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_miner_right_1": {
+      "x": 231,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_down_0": {
+      "x": 264,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_up_0": {
+      "x": 297,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_left_0": {
+      "x": 330,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_right_0": {
+      "x": 363,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_down_1": {
+      "x": 396,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_up_1": {
+      "x": 429,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_left_1": {
+      "x": 462,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_hiker_right_1": {
+      "x": 495,
+      "y": 1221,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_down_0": {
+      "x": 0,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_up_0": {
+      "x": 33,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_left_0": {
+      "x": 66,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_right_0": {
+      "x": 99,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_down_1": {
+      "x": 132,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_up_1": {
+      "x": 165,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_left_1": {
+      "x": 198,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_skier_right_1": {
+      "x": 231,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_down_0": {
+      "x": 264,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_up_0": {
+      "x": 297,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_left_0": {
+      "x": 330,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_right_0": {
+      "x": 363,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_down_1": {
+      "x": 396,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_up_1": {
+      "x": 429,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_left_1": {
+      "x": 462,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_sailor_right_1": {
+      "x": 495,
+      "y": 1254,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_down_0": {
+      "x": 0,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_up_0": {
+      "x": 33,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_left_0": {
+      "x": 66,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_right_0": {
+      "x": 99,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_down_1": {
+      "x": 132,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_up_1": {
+      "x": 165,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_left_1": {
+      "x": 198,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ace_right_1": {
+      "x": 231,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_down_0": {
+      "x": 264,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_up_0": {
+      "x": 297,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_left_0": {
+      "x": 330,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_right_0": {
+      "x": 363,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_down_1": {
+      "x": 396,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_up_1": {
+      "x": 429,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_left_1": {
+      "x": 462,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "trainer_ruin_maniac_right_1": {
+      "x": 495,
+      "y": 1287,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_down_0": {
+      "x": 0,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_up_0": {
+      "x": 33,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_left_0": {
+      "x": 66,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_right_0": {
+      "x": 99,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_down_1": {
+      "x": 132,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_up_1": {
+      "x": 165,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_left_1": {
+      "x": 198,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_rollerblader_right_1": {
+      "x": 231,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_down_0": {
+      "x": 264,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_up_0": {
+      "x": 297,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_left_0": {
+      "x": 330,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_right_0": {
+      "x": 363,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_down_1": {
+      "x": 396,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_up_1": {
+      "x": 429,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_left_1": {
+      "x": 462,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_jogger_right_1": {
+      "x": 495,
+      "y": 1320,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_down_0": {
+      "x": 0,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_up_0": {
+      "x": 33,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_left_0": {
+      "x": 66,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_right_0": {
+      "x": 99,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_down_1": {
+      "x": 132,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_up_1": {
+      "x": 165,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_left_1": {
+      "x": 198,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_cyclist_right_1": {
+      "x": 231,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_down_0": {
+      "x": 264,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_up_0": {
+      "x": 297,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_left_0": {
+      "x": 330,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_right_0": {
+      "x": 363,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_down_1": {
+      "x": 396,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_up_1": {
+      "x": 429,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_left_1": {
+      "x": 462,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dancer_right_1": {
+      "x": 495,
+      "y": 1353,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_down_0": {
+      "x": 0,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_up_0": {
+      "x": 33,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_left_0": {
+      "x": 66,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_right_0": {
+      "x": 99,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_down_1": {
+      "x": 132,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_up_1": {
+      "x": 165,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_left_1": {
+      "x": 198,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_policeman_right_1": {
+      "x": 231,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_down_0": {
+      "x": 264,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_up_0": {
+      "x": 297,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_left_0": {
+      "x": 330,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_right_0": {
+      "x": 363,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_down_1": {
+      "x": 396,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_up_1": {
+      "x": 429,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_left_1": {
+      "x": 462,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_firefighter_right_1": {
+      "x": 495,
+      "y": 1386,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_down_0": {
+      "x": 0,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_up_0": {
+      "x": 33,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_left_0": {
+      "x": 66,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_right_0": {
+      "x": 99,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_down_1": {
+      "x": 132,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_up_1": {
+      "x": 165,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_left_1": {
+      "x": 198,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_paramedic_right_1": {
+      "x": 231,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_down_0": {
+      "x": 264,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_up_0": {
+      "x": 297,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_left_0": {
+      "x": 330,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_right_0": {
+      "x": 363,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_down_1": {
+      "x": 396,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_up_1": {
+      "x": 429,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_left_1": {
+      "x": 462,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_security_right_1": {
+      "x": 495,
+      "y": 1419,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_down_0": {
+      "x": 0,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_up_0": {
+      "x": 33,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_left_0": {
+      "x": 66,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_right_0": {
+      "x": 99,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_down_1": {
+      "x": 132,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_up_1": {
+      "x": 165,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_left_1": {
+      "x": 198,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_construction_right_1": {
+      "x": 231,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_down_0": {
+      "x": 264,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_up_0": {
+      "x": 297,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_left_0": {
+      "x": 330,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_right_0": {
+      "x": 363,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_down_1": {
+      "x": 396,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_up_1": {
+      "x": 429,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_left_1": {
+      "x": 462,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_journalist_right_1": {
+      "x": 495,
+      "y": 1452,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_down_0": {
+      "x": 0,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_up_0": {
+      "x": 33,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_left_0": {
+      "x": 66,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_right_0": {
+      "x": 99,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_down_1": {
+      "x": 132,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_up_1": {
+      "x": 165,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_left_1": {
+      "x": 198,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_businessman_right_1": {
+      "x": 231,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_down_0": {
+      "x": 264,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_up_0": {
+      "x": 297,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_left_0": {
+      "x": 330,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_right_0": {
+      "x": 363,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_down_1": {
+      "x": 396,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_up_1": {
+      "x": 429,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_left_1": {
+      "x": 462,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_saleswoman_right_1": {
+      "x": 495,
+      "y": 1485,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_down_0": {
+      "x": 0,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_up_0": {
+      "x": 33,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_left_0": {
+      "x": 66,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_right_0": {
+      "x": 99,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_down_1": {
+      "x": 132,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_up_1": {
+      "x": 165,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_left_1": {
+      "x": 198,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_doctor_right_1": {
+      "x": 231,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_down_0": {
+      "x": 264,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_up_0": {
+      "x": 297,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_left_0": {
+      "x": 330,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_right_0": {
+      "x": 363,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_down_1": {
+      "x": 396,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_up_1": {
+      "x": 429,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_left_1": {
+      "x": 462,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_scientist_right_1": {
+      "x": 495,
+      "y": 1518,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_down_0": {
+      "x": 0,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_up_0": {
+      "x": 33,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_left_0": {
+      "x": 66,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_right_0": {
+      "x": 99,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_down_1": {
+      "x": 132,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_up_1": {
+      "x": 165,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_left_1": {
+      "x": 198,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_teacher_right_1": {
+      "x": 231,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_down_0": {
+      "x": 264,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_up_0": {
+      "x": 297,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_left_0": {
+      "x": 330,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_right_0": {
+      "x": 363,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_down_1": {
+      "x": 396,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_up_1": {
+      "x": 429,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_left_1": {
+      "x": 462,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_librarian_right_1": {
+      "x": 495,
+      "y": 1551,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_down_0": {
+      "x": 0,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_up_0": {
+      "x": 33,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_left_0": {
+      "x": 66,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_right_0": {
+      "x": 99,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_down_1": {
+      "x": 132,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_up_1": {
+      "x": 165,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_left_1": {
+      "x": 198,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_baker_right_1": {
+      "x": 231,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_down_0": {
+      "x": 264,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_up_0": {
+      "x": 297,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_left_0": {
+      "x": 330,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_right_0": {
+      "x": 363,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_down_1": {
+      "x": 396,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_up_1": {
+      "x": 429,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_left_1": {
+      "x": 462,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_chef_right_1": {
+      "x": 495,
+      "y": 1584,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_down_0": {
+      "x": 0,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_up_0": {
+      "x": 33,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_left_0": {
+      "x": 66,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_right_0": {
+      "x": 99,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_down_1": {
+      "x": 132,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_up_1": {
+      "x": 165,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_left_1": {
+      "x": 198,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_waiter_right_1": {
+      "x": 231,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_down_0": {
+      "x": 264,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_up_0": {
+      "x": 297,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_left_0": {
+      "x": 330,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_right_0": {
+      "x": 363,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_down_1": {
+      "x": 396,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_up_1": {
+      "x": 429,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_left_1": {
+      "x": 462,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_artist_right_1": {
+      "x": 495,
+      "y": 1617,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_down_0": {
+      "x": 0,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_up_0": {
+      "x": 33,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_left_0": {
+      "x": 66,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_right_0": {
+      "x": 99,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_down_1": {
+      "x": 132,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_up_1": {
+      "x": 165,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_left_1": {
+      "x": 198,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_dog_walker_right_1": {
+      "x": 231,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_down_0": {
+      "x": 264,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_up_0": {
+      "x": 297,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_left_0": {
+      "x": 330,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_right_0": {
+      "x": 363,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_down_1": {
+      "x": 396,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_up_1": {
+      "x": 429,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_left_1": {
+      "x": 462,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_m_right_1": {
+      "x": 495,
+      "y": 1650,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_down_0": {
+      "x": 0,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_up_0": {
+      "x": 33,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_left_0": {
+      "x": 66,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_right_0": {
+      "x": 99,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_down_1": {
+      "x": 132,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_up_1": {
+      "x": 165,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_left_1": {
+      "x": 198,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_swimmer_f_right_1": {
+      "x": 231,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_down_0": {
+      "x": 264,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_up_0": {
+      "x": 297,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_left_0": {
+      "x": 330,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_right_0": {
+      "x": 363,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_down_1": {
+      "x": 396,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_up_1": {
+      "x": 429,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_left_1": {
+      "x": 462,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tourist_right_1": {
+      "x": 495,
+      "y": 1683,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_down_0": {
+      "x": 0,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_up_0": {
+      "x": 33,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_left_0": {
+      "x": 66,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_right_0": {
+      "x": 99,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_down_1": {
+      "x": 132,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_up_1": {
+      "x": 165,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_left_1": {
+      "x": 198,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_punk_right_1": {
+      "x": 231,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_down_0": {
+      "x": 264,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_up_0": {
+      "x": 297,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_left_0": {
+      "x": 330,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_right_0": {
+      "x": 363,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_down_1": {
+      "x": 396,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_up_1": {
+      "x": 429,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_left_1": {
+      "x": 462,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_boy_right_1": {
+      "x": 495,
+      "y": 1716,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_down_0": {
+      "x": 0,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_up_0": {
+      "x": 33,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_left_0": {
+      "x": 66,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_right_0": {
+      "x": 99,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_down_1": {
+      "x": 132,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_up_1": {
+      "x": 165,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_left_1": {
+      "x": 198,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kid_girl_right_1": {
+      "x": 231,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_down_0": {
+      "x": 264,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_up_0": {
+      "x": 297,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_left_0": {
+      "x": 330,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_right_0": {
+      "x": 363,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_down_1": {
+      "x": 396,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_up_1": {
+      "x": 429,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_left_1": {
+      "x": 462,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_man_alt_right_1": {
+      "x": 495,
+      "y": 1749,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_down_0": {
+      "x": 0,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_up_0": {
+      "x": 33,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_left_0": {
+      "x": 66,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_right_0": {
+      "x": 99,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_down_1": {
+      "x": 132,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_up_1": {
+      "x": 165,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_left_1": {
+      "x": 198,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_old_woman_right_1": {
+      "x": 231,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_down_0": {
+      "x": 264,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_up_0": {
+      "x": 297,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_left_0": {
+      "x": 330,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_right_0": {
+      "x": 363,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_down_1": {
+      "x": 396,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_up_1": {
+      "x": 429,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_left_1": {
+      "x": 462,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_hiker_alt_right_1": {
+      "x": 495,
+      "y": 1782,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_down_0": {
+      "x": 0,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_up_0": {
+      "x": 33,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_left_0": {
+      "x": 66,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_right_0": {
+      "x": 99,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_down_1": {
+      "x": 132,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_up_1": {
+      "x": 165,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_left_1": {
+      "x": 198,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_blaine_right_1": {
+      "x": 231,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_down_0": {
+      "x": 264,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_up_0": {
+      "x": 297,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_left_0": {
+      "x": 330,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_right_0": {
+      "x": 363,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_down_1": {
+      "x": 396,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_up_1": {
+      "x": 429,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_left_1": {
+      "x": 462,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_pearl_right_1": {
+      "x": 495,
+      "y": 1815,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_down_0": {
+      "x": 0,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_up_0": {
+      "x": 33,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_left_0": {
+      "x": 66,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_right_0": {
+      "x": 99,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_down_1": {
+      "x": 132,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_up_1": {
+      "x": 165,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_left_1": {
+      "x": 198,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nico_right_1": {
+      "x": 231,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_down_0": {
+      "x": 264,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_up_0": {
+      "x": 297,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_left_0": {
+      "x": 330,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_right_0": {
+      "x": 363,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_down_1": {
+      "x": 396,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_up_1": {
+      "x": 429,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_left_1": {
+      "x": 462,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_meek_right_1": {
+      "x": 495,
+      "y": 1848,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_down_0": {
+      "x": 0,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_up_0": {
+      "x": 33,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_left_0": {
+      "x": 66,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_right_0": {
+      "x": 99,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_down_1": {
+      "x": 132,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_up_1": {
+      "x": 165,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_left_1": {
+      "x": 198,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_oma_right_1": {
+      "x": 231,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_down_0": {
+      "x": 264,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_up_0": {
+      "x": 297,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_left_0": {
+      "x": 330,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_right_0": {
+      "x": 363,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_down_1": {
+      "x": 396,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_up_1": {
+      "x": 429,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_left_1": {
+      "x": 462,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_kel_right_1": {
+      "x": 495,
+      "y": 1881,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_down_0": {
+      "x": 0,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_up_0": {
+      "x": 33,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_left_0": {
+      "x": 66,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_right_0": {
+      "x": 99,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_down_1": {
+      "x": 132,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_up_1": {
+      "x": 165,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_left_1": {
+      "x": 198,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_tank_right_1": {
+      "x": 231,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_down_0": {
+      "x": 264,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_up_0": {
+      "x": 297,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_left_0": {
+      "x": 330,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_right_0": {
+      "x": 363,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_down_1": {
+      "x": 396,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_up_1": {
+      "x": 429,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_left_1": {
+      "x": 462,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_nim_right_1": {
+      "x": 495,
+      "y": 1914,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_down_0": {
+      "x": 0,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_up_0": {
+      "x": 33,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_left_0": {
+      "x": 66,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_right_0": {
+      "x": 99,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_down_1": {
+      "x": 132,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_up_1": {
+      "x": 165,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_left_1": {
+      "x": 198,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_marla_right_1": {
+      "x": 231,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_down_0": {
+      "x": 264,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_up_0": {
+      "x": 297,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_left_0": {
+      "x": 330,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_right_0": {
+      "x": 363,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_down_1": {
+      "x": 396,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_up_1": {
+      "x": 429,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_left_1": {
+      "x": 462,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_faye_right_1": {
+      "x": 495,
+      "y": 1947,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_down_0": {
+      "x": 0,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_up_0": {
+      "x": 33,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_left_0": {
+      "x": 66,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_right_0": {
+      "x": 99,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_down_1": {
+      "x": 132,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_up_1": {
+      "x": 165,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_left_1": {
+      "x": 198,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_wryn_right_1": {
+      "x": 231,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_down_0": {
+      "x": 264,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_up_0": {
+      "x": 297,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_left_0": {
+      "x": 330,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_right_0": {
+      "x": 363,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_down_1": {
+      "x": 396,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_up_1": {
+      "x": 429,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_left_1": {
+      "x": 462,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "npc_akira_right_1": {
+      "x": 495,
+      "y": 1980,
+      "w": 32,
+      "h": 32
+    },
+    "ball": {
+      "x": 0,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_down_0": {
+      "x": 33,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_up_0": {
+      "x": 66,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_left_0": {
+      "x": 99,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_right_0": {
+      "x": 132,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_down_1": {
+      "x": 165,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_up_1": {
+      "x": 198,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_left_1": {
+      "x": 231,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "chicken_right_1": {
+      "x": 264,
+      "y": 2013,
+      "w": 32,
+      "h": 32
+    },
+    "creature_emberkit": {
+      "x": 0,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_flarebound": {
+      "x": 65,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_infernarok": {
+      "x": 130,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_aquapup": {
+      "x": 195,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_tideturtle": {
+      "x": 260,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_maelstroth": {
+      "x": 325,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_sproutling": {
+      "x": 390,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_leafurge": {
+      "x": 455,
+      "y": 2046,
+      "w": 64,
+      "h": 64
+    },
+    "creature_verdantsage": {
+      "x": 0,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_zapret": {
+      "x": 65,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_boltbeard": {
+      "x": 130,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_pebra": {
+      "x": 195,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_boulderon": {
+      "x": 260,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_flitwing": {
+      "x": 325,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_skylordan": {
+      "x": 390,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_nibblet": {
+      "x": 455,
+      "y": 2111,
+      "w": 64,
+      "h": 64
+    },
+    "creature_whiskaroth": {
+      "x": 0,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_crawlbug": {
+      "x": 65,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_mothmane": {
+      "x": 130,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_cavewing": {
+      "x": 195,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_vampirothy": {
+      "x": 260,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_splashfin": {
+      "x": 325,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_levifin": {
+      "x": 390,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_glimkit": {
+      "x": 455,
+      "y": 2176,
+      "w": 64,
+      "h": 64
+    },
+    "creature_lustrofox": {
+      "x": 0,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_cinderpup": {
+      "x": 65,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_pyrohound": {
+      "x": 130,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_magmaron": {
+      "x": 195,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_mistfin": {
+      "x": 260,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_tidalwhal": {
+      "x": 325,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_glacierock": {
+      "x": 390,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_fernsprout": {
+      "x": 455,
+      "y": 2241,
+      "w": 64,
+      "h": 64
+    },
+    "creature_bramblewood": {
+      "x": 0,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_thornedred": {
+      "x": 65,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_voltkit": {
+      "x": 130,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_voltlynx": {
+      "x": 195,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_stormfangis": {
+      "x": 260,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_stoneworm": {
+      "x": 325,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_quakeworm": {
+      "x": 390,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_tectonarch": {
+      "x": 455,
+      "y": 2306,
+      "w": 64,
+      "h": 64
+    },
+    "creature_bumblesting": {
+      "x": 0,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_hivequeen": {
+      "x": 65,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_royalwasp": {
+      "x": 130,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_galewing": {
+      "x": 195,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_tempestir": {
+      "x": 260,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_solarwing": {
+      "x": 325,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_solarcrest": {
+      "x": 390,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_frostpup": {
+      "x": 455,
+      "y": 2371,
+      "w": 64,
+      "h": 64
+    },
+    "creature_snowox": {
+      "x": 0,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_glacioxen": {
+      "x": 65,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_crysthorn": {
+      "x": 130,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_prismage": {
+      "x": 195,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_geistmite": {
+      "x": 260,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_shadefox": {
+      "x": 325,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_umbrasire": {
+      "x": 390,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_dreamilly": {
+      "x": 455,
+      "y": 2436,
+      "w": 64,
+      "h": 64
+    },
+    "creature_reverieus": {
+      "x": 0,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_rivettot": {
+      "x": 65,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_mindrop": {
+      "x": 130,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_pugpaw": {
+      "x": 195,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_joltlet": {
+      "x": 260,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_breezlet": {
+      "x": 325,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_silkuttle": {
+      "x": 390,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_venipip": {
+      "x": 455,
+      "y": 2501,
+      "w": 64,
+      "h": 64
+    },
+    "creature_mudmote": {
+      "x": 0,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_frostnip": {
+      "x": 65,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_craglet": {
+      "x": 130,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_wraithlet": {
+      "x": 195,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_draekit": {
+      "x": 260,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_dewfae": {
+      "x": 325,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_clawmonk": {
+      "x": 390,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_rivetbolt": {
+      "x": 455,
+      "y": 2566,
+      "w": 64,
+      "h": 64
+    },
+    "creature_frostbloom": {
+      "x": 0,
+      "y": 2631,
+      "w": 64,
+      "h": 64
+    },
+    "creature_mantilux": {
+      "x": 65,
+      "y": 2631,
+      "w": 64,
+      "h": 64
+    },
+    "creature_clodlet": {
+      "x": 130,
+      "y": 2631,
+      "w": 64,
+      "h": 64
+    },
+    "creature_budling": {
+      "x": 195,
+      "y": 2631,
+      "w": 64,
+      "h": 64
+    },
+    "creature_miasmite": {
+      "x": 260,
+      "y": 2631,
+      "w": 64,
+      "h": 64
+    }
+  },
+  "image": "atlas-gb-pocket.png",
+  "style": {
+    "id": "gb_pocket",
+    "label": "GB POCKET"
+  },
+  "tile_size": 32,
+  "creature_size": 64,
+  "tile_code_to_key": {
+    "0": "tile_gba_wall_lattice",
+    "1": "tile_gba_flower_grass",
+    "2": "tile_gba_light_grass",
+    "3": "tile_gba_dry_grass",
+    "4": "tile_gba_lush_grass",
+    "5": "tile_gba_path_desert_clean",
+    "6": "tile_gba_path_snow_clean",
+    "7": "tile_gba_moss_roof",
+    "8": "tile_gba_leaf_roof",
+    "9": "tile_gba_vending",
+    ".": "tile_gba_grass",
+    "X": "tile_gba_edge_grass",
+    ":": "tile_gba_tallgrass",
+    "s": "tile_gba_sand",
+    ",": "tile_gba_path_dirt_clean",
+    "_": "tile_gba_path_cobble_clean",
+    "^": "tile_gba_path_dirt_deep",
+    "o": "tile_gba_path_stepstone_clean",
+    ";": "tile_gba_path_gravel_clean",
+    "i": "tile_gba_path_redbrick_clean",
+    "y": "tile_gba_path_yellowbrick_clean",
+    "p": "tile_gba_path_park_clean",
+    "q": "tile_gba_path_mosaic_clean",
+    "t": "tile_gba_path_boardwalk_clean",
+    "u": "tile_gba_path_beach_clean",
+    "v": "tile_gba_path_rocky_clean",
+    "w": "tile_gba_path_wetstone_clean",
+    "x": "tile_gba_path_crossroads_clean",
+    "z": "tile_gba_path_moss_clean",
+    "a": "tile_gba_path_autumn_clean",
+    "A": "tile_gba_path_bridge_clean",
+    "Z": "tile_gba_path_zen_clean",
+    "I": "tile_gba_path_lantern_clean",
+    "T": "tile_gba_tree_green",
+    "Y": "tile_gba_tree_oak",
+    "K": "tile_gba_tree_cherry",
+    "E": "tile_gba_tree_autumn",
+    "G": "tile_gba_tree_ancient",
+    "O": "tile_gba_tree_palm",
+    "J": "tile_gba_tree_dead",
+    "Q": "tile_gba_tree_snowpine",
+    "N": "tile_gba_tree_birch",
+    "U": "tile_gba_tree_mushroom",
+    "V": "tile_gba_tree_willow",
+    "b": "tile_gba_bush",
+    "c": "tile_gba_bush_flower",
+    "e": "tile_gba_bush_berry",
+    "g": "tile_gba_bush_thorn",
+    "j": "tile_gba_bush_autumn",
+    "k": "tile_gba_bush_snow",
+    "l": "tile_gba_bush_blueflower",
+    "m": "tile_gba_bush_purpleflower",
+    "n": "tile_gba_thorn_cluster",
+    "h": "tile_gba_hedge",
+    "W": "tile_gba_water",
+    "F": "tile_gba_floor",
+    "+": "tile_gba_blue_roof",
+    "=": "tile_gba_terra_roof",
+    "&": "tile_gba_slate_roof",
+    "-": "tile_gba_thatch_roof",
+    "*": "tile_gba_dome_roof",
+    "%": "tile_gba_snow_roof",
+    "#": "tile_gba_wall_stone",
+    "@": "tile_gba_wall_timber",
+    "$": "tile_gba_wall_brick",
+    "?": "tile_gba_wall_log",
+    "!": "tile_gba_wall_white",
+    "d": "tile_gba_door_blue",
+    "f": "tile_gba_door_shop",
+    "[": "tile_gba_window_left",
+    "]": "tile_gba_window_right",
+    "(": "tile_gba_small_rock",
+    ")": "tile_gba_large_rock",
+    "<": "tile_gba_bench",
+    "|": "tile_gba_street_lamp",
+    "~": "tile_gba_hydrant",
+    "{": "tile_gba_flower_pot",
+    ">": "tile_gba_shelf",
+    "S": "tile_gba_sign",
+    "L": "tile_gba_ledge",
+    "D": "tile_gba_door_dark",
+    "R": "tile_gba_house_red_roof",
+    "B": "tile_gba_wall_house",
+    "P": "tile_gba_center_roof",
+    "M": "tile_gba_mart_roof",
+    "C": "tile_gba_counter",
+    "r": "tile_gba_rug",
+    "H": "tile_gba_heal_pad",
+    "`": "tile_gba_fence_h",
+    "\"": "tile_gba_fence_v",
+    "\\": "tile_gba_mailbox",
+    "/": "tile_gba_pc_terminal",
+    "}": "tile_gba_potted_plant",
+    "'": "tile_gba_gardenbed"
+  },
+  "tile_variants": {
+    "5": {
+      "random": [
+        "tile_gba_path_var_53_a",
+        "tile_gba_path_var_53_b"
+      ],
+      "context": {}
+    },
+    "6": {
+      "random": [
+        "tile_gba_path_var_54_a",
+        "tile_gba_path_var_54_b"
+      ],
+      "context": {}
+    },
+    "7": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_moss_roof_center",
+        "top": "tile_gba_moss_roof_top",
+        "bottom": "tile_gba_moss_roof_bottom",
+        "left": "tile_gba_moss_roof_left",
+        "right": "tile_gba_moss_roof_right",
+        "top_left": "tile_gba_moss_roof_top_left",
+        "top_right": "tile_gba_moss_roof_top_right",
+        "bottom_left": "tile_gba_moss_roof_bottom_left",
+        "bottom_right": "tile_gba_moss_roof_bottom_right"
+      }
+    },
+    "8": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_leaf_roof_center",
+        "top": "tile_gba_leaf_roof_top",
+        "bottom": "tile_gba_leaf_roof_bottom",
+        "left": "tile_gba_leaf_roof_left",
+        "right": "tile_gba_leaf_roof_right",
+        "top_left": "tile_gba_leaf_roof_top_left",
+        "top_right": "tile_gba_leaf_roof_top_right",
+        "bottom_left": "tile_gba_leaf_roof_bottom_left",
+        "bottom_right": "tile_gba_leaf_roof_bottom_right"
+      }
+    },
+    "T": {
+      "random": [
+        "tile_tree_var_spring_a",
+        "tile_tree_var_spring_b",
+        "tile_tree_var_spring_c",
+        "tile_tree_var_summer_a",
+        "tile_tree_var_summer_b"
+      ],
+      "context": {}
+    },
+    "Y": {
+      "random": [
+        "tile_tree_var_oak_gnarled",
+        "tile_tree_var_oak_white",
+        "tile_tree_var_oak_dwarf"
+      ],
+      "context": {}
+    },
+    "K": {
+      "random": [
+        "tile_tree_var_cherry_white",
+        "tile_tree_var_cherry_weeping"
+      ],
+      "context": {}
+    },
+    "O": {
+      "random": [
+        "tile_tree_var_palm_coconut",
+        "tile_tree_var_palm_fan"
+      ],
+      "context": {}
+    },
+    "E": {
+      "random": [
+        "tile_tree_var_autumn_fiery",
+        "tile_tree_var_autumn_golden"
+      ],
+      "context": {}
+    },
+    "N": {
+      "random": [
+        "tile_tree_var_birch_paper",
+        "tile_tree_var_birch_silver"
+      ],
+      "context": {}
+    },
+    "Q": {
+      "random": [
+        "tile_tree_var_pine_snowy_alt",
+        "tile_tree_var_pine_fir",
+        "tile_tree_var_pine_spruce"
+      ],
+      "context": {}
+    },
+    ".": {
+      "random": [
+        "tile_gba_46_grass_a",
+        "tile_gba_46_grass_b",
+        "tile_gba_46_grass_c"
+      ],
+      "context": {}
+    },
+    "X": {
+      "random": [
+        "tile_gba_88_grass_a",
+        "tile_gba_88_grass_b",
+        "tile_gba_88_grass_c"
+      ],
+      "context": {}
+    },
+    ",": {
+      "random": [
+        "tile_gba_path_var_44_a",
+        "tile_gba_path_var_44_b"
+      ],
+      "context": {}
+    },
+    "^": {
+      "random": [
+        "tile_gba_path_var_94_a",
+        "tile_gba_path_var_94_b"
+      ],
+      "context": {}
+    },
+    ";": {
+      "random": [
+        "tile_gba_path_var_59_a",
+        "tile_gba_path_var_59_b"
+      ],
+      "context": {}
+    },
+    "p": {
+      "random": [
+        "tile_gba_path_var_112_a",
+        "tile_gba_path_var_112_b"
+      ],
+      "context": {}
+    },
+    "a": {
+      "random": [
+        "tile_gba_path_var_97_a",
+        "tile_gba_path_var_97_b"
+      ],
+      "context": {}
+    },
+    "_": {
+      "random": [
+        "tile_gba_path_var_95_a",
+        "tile_gba_path_var_95_b"
+      ],
+      "context": {}
+    },
+    "u": {
+      "random": [
+        "tile_gba_path_var_117_a",
+        "tile_gba_path_var_117_b"
+      ],
+      "context": {}
+    },
+    "v": {
+      "random": [
+        "tile_gba_path_var_118_a",
+        "tile_gba_path_var_118_b"
+      ],
+      "context": {}
+    },
+    "z": {
+      "random": [
+        "tile_gba_path_var_122_a",
+        "tile_gba_path_var_122_b"
+      ],
+      "context": {}
+    },
+    "W": {
+      "random": [
+        "tile_gba_water_alt_a",
+        "tile_gba_water_alt_b"
+      ],
+      "context": {}
+    },
+    "R": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_house_red_roof_center",
+        "top": "tile_gba_house_red_roof_top",
+        "bottom": "tile_gba_house_red_roof_bottom",
+        "left": "tile_gba_house_red_roof_left",
+        "right": "tile_gba_house_red_roof_right",
+        "top_left": "tile_gba_house_red_roof_top_left",
+        "top_right": "tile_gba_house_red_roof_top_right",
+        "bottom_left": "tile_gba_house_red_roof_bottom_left",
+        "bottom_right": "tile_gba_house_red_roof_bottom_right"
+      }
+    },
+    "P": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_center_roof_center",
+        "top": "tile_gba_center_roof_top",
+        "bottom": "tile_gba_center_roof_bottom",
+        "left": "tile_gba_center_roof_left",
+        "right": "tile_gba_center_roof_right",
+        "top_left": "tile_gba_center_roof_top_left",
+        "top_right": "tile_gba_center_roof_top_right",
+        "bottom_left": "tile_gba_center_roof_bottom_left",
+        "bottom_right": "tile_gba_center_roof_bottom_right"
+      }
+    },
+    "M": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_mart_roof_center",
+        "top": "tile_gba_mart_roof_top",
+        "bottom": "tile_gba_mart_roof_bottom",
+        "left": "tile_gba_mart_roof_left",
+        "right": "tile_gba_mart_roof_right",
+        "top_left": "tile_gba_mart_roof_top_left",
+        "top_right": "tile_gba_mart_roof_top_right",
+        "bottom_left": "tile_gba_mart_roof_bottom_left",
+        "bottom_right": "tile_gba_mart_roof_bottom_right"
+      }
+    },
+    "+": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_blue_roof_center",
+        "top": "tile_gba_blue_roof_top",
+        "bottom": "tile_gba_blue_roof_bottom",
+        "left": "tile_gba_blue_roof_left",
+        "right": "tile_gba_blue_roof_right",
+        "top_left": "tile_gba_blue_roof_top_left",
+        "top_right": "tile_gba_blue_roof_top_right",
+        "bottom_left": "tile_gba_blue_roof_bottom_left",
+        "bottom_right": "tile_gba_blue_roof_bottom_right"
+      }
+    },
+    "-": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_thatch_roof_center",
+        "top": "tile_gba_thatch_roof_top",
+        "bottom": "tile_gba_thatch_roof_bottom",
+        "left": "tile_gba_thatch_roof_left",
+        "right": "tile_gba_thatch_roof_right",
+        "top_left": "tile_gba_thatch_roof_top_left",
+        "top_right": "tile_gba_thatch_roof_top_right",
+        "bottom_left": "tile_gba_thatch_roof_bottom_left",
+        "bottom_right": "tile_gba_thatch_roof_bottom_right"
+      }
+    },
+    "=": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_terra_roof_center",
+        "top": "tile_gba_terra_roof_top",
+        "bottom": "tile_gba_terra_roof_bottom",
+        "left": "tile_gba_terra_roof_left",
+        "right": "tile_gba_terra_roof_right",
+        "top_left": "tile_gba_terra_roof_top_left",
+        "top_right": "tile_gba_terra_roof_top_right",
+        "bottom_left": "tile_gba_terra_roof_bottom_left",
+        "bottom_right": "tile_gba_terra_roof_bottom_right"
+      }
+    },
+    "*": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_dome_roof_center",
+        "top": "tile_gba_dome_roof_top",
+        "bottom": "tile_gba_dome_roof_bottom",
+        "left": "tile_gba_dome_roof_left",
+        "right": "tile_gba_dome_roof_right",
+        "top_left": "tile_gba_dome_roof_top_left",
+        "top_right": "tile_gba_dome_roof_top_right",
+        "bottom_left": "tile_gba_dome_roof_bottom_left",
+        "bottom_right": "tile_gba_dome_roof_bottom_right"
+      }
+    },
+    "%": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_snow_roof_center",
+        "top": "tile_gba_snow_roof_top",
+        "bottom": "tile_gba_snow_roof_bottom",
+        "left": "tile_gba_snow_roof_left",
+        "right": "tile_gba_snow_roof_right",
+        "top_left": "tile_gba_snow_roof_top_left",
+        "top_right": "tile_gba_snow_roof_top_right",
+        "bottom_left": "tile_gba_snow_roof_bottom_left",
+        "bottom_right": "tile_gba_snow_roof_bottom_right"
+      }
+    },
+    "&": {
+      "random": [],
+      "context": {
+        "center": "tile_gba_slate_roof_center",
+        "top": "tile_gba_slate_roof_top",
+        "bottom": "tile_gba_slate_roof_bottom",
+        "left": "tile_gba_slate_roof_left",
+        "right": "tile_gba_slate_roof_right",
+        "top_left": "tile_gba_slate_roof_top_left",
+        "top_right": "tile_gba_slate_roof_top_right",
+        "bottom_left": "tile_gba_slate_roof_bottom_left",
+        "bottom_right": "tile_gba_slate_roof_bottom_right"
+      }
+    },
+    "S": {
+      "random": [],
+      "context": {
+        "sign_center": "tile_gba_sign_center",
+        "sign_mart": "tile_gba_sign_mart",
+        "sign_gym": "tile_gba_sign_gym"
+      }
+    }
+  }
+}

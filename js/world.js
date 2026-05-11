@@ -2074,6 +2074,35 @@
           this.startMove(p.x, p.y, nx, ny, 0.16);
           return;
         }
+        // Walk-through after 2 consecutive bumps into the same NPC at
+        // the same target tile - lets the player past an NPC that may
+        // be blocking something. Special NPCs (shops, healers,
+        // trainers, starter offers, ball pickups, gates) still
+        // hard-block - you have to talk to them. Counter resets when
+        // the player successfully moves elsewhere or bumps a
+        // different tile.
+        const special = blocker.shop || blocker.healer || blocker.trainer ||
+                        blocker.starter || blocker.ballSlot !== undefined ||
+                        blocker.gate;
+        if (special) return;
+        const bumpKey = nx + ',' + ny;
+        if (this._npcBump && this._npcBump.key === bumpKey) {
+          this._npcBump.count++;
+        } else {
+          this._npcBump = { key: bumpKey, count: 1 };
+        }
+        if (this._npcBump.count >= 3) {
+          if (blocker.anim) blocker.anim.moving = false;
+          blocker.x = p.x;
+          blocker.y = p.y;
+          const opp = { up:'down', down:'up', left:'right', right:'left' };
+          blocker.dir = opp[dir] || blocker.dir;
+          this.startMove(p.x, p.y, nx, ny, 0.16);
+          this._npcBump = null;
+          return;
+        }
+        this.frameTimer = 0;
+        window.PR_SFX && window.PR_SFX.play('bump');
         return;
       }
     }
@@ -2096,6 +2125,7 @@
   };
 
   World.prototype.startMove = function(fx, fy, tx, ty, dur) {
+    this._npcBump = null;
     this._startFollowerMove(fx, fy, dur || this.anim.duration);
     this.anim.moving = true;
     this.anim.fromX = fx; this.anim.fromY = fy;

@@ -422,8 +422,12 @@ const MAPS = {
     npcs: [
       { x:11, y:10, dir:'down', sprite:'npc_oak', name:'PROF. ROD',
         dialog:["Welcome to the world of POKEROD!","I'm PROF. ROD, the local researcher.","Pick a partner from the lab to begin your journey!"] },
-      { x:14, y:6, dir:'down', sprite:'npc_girl', name:'LILA',
-        dialog:["The tall grass north of town is full of wild creatures.","Be careful out there!"] }
+      { x:14, y:6, dir:'down', sprite:'npc_girl', name:'MARKET LILA',
+        dialog:["The tall grass north of town is full of wild creatures.","Step right up to LILA's stall!"],
+        shop:{ greeting:["Welcome to LILA's stall!","Shore-pearl charms, fresh today."], extraItems:['wave_charm'] } }
+    ],
+    decorations:[
+      { x:14, y:5, key:'produce_stall' }
     ],
     ambient: [
       { species:'nibblet',  x:8,  y:6,  range:2 },
@@ -607,8 +611,12 @@ const MAPS = {
       'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
-      { x:14, y:7, dir:'down', sprite:'npc_girl', name:'TOWNSFOLK',
-        dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left heals your team for free.","The MART on the right sells useful items.","The slate-roofed building south is the BRINDALE GYM."] }
+      { x:14, y:7, dir:'down', sprite:'npc_girl', name:'GROCER',
+        dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left, MART on the right.","I run the produce stall - try a FARM LUNCH!"],
+        shop:{ greeting:["Welcome to the GROCER's stall!","Country lunches and trail snacks."], extraItems:['farm_lunch'] } }
+    ],
+    decorations:[
+      { x:14, y:6, key:'produce_stall' }
     ],
     ambient: [
       { species:'glimkit',    x:8,  y:7,  range:2 },
@@ -829,7 +837,13 @@ const MAPS = {
     ],
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'WOODFALL ELDER',
-        dialog:["Welcome to WOODFALL.","The slate-roofed building south is the WOODFALL GYM.","South of town, the trees thicken into PEBBLEWOOD."] }
+        dialog:["Welcome to WOODFALL.","The slate-roofed building south is the WOODFALL GYM.","South of town, the trees thicken into PEBBLEWOOD."] },
+      { x:10, y:9, dir:'down', sprite:'npc_old', name:'CARVER',
+        dialog:["I carve totems from the windfall wood.","Each totem brings travelers a little luck."],
+        shop:{ greeting:["The CARVER's stall.","Hand-shaped wooden charms."], extraItems:['wood_totem'] } }
+    ],
+    decorations:[
+      { x:10, y:8, key:'craft_stall' }
     ],
     ambient: [
       { species:'sproutling', x:7,  y:9,  range:2 },
@@ -1003,8 +1017,12 @@ const MAPS = {
       'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
-      { x:14, y:8, dir:'down', sprite:'npc_girl', name:'CRESTROCK GUIDE',
-        dialog:["Welcome to CRESTROCK.","The slate-roofed building south is the CRESTROCK GYM.","East of town, HIGHSPIRE climbs into the clouds."] }
+      { x:14, y:8, dir:'down', sprite:'npc_girl', name:'TRADER',
+        dialog:["CRESTROCK TOWN, gateway to HIGHSPIRE.","I trade alpine kits to climbers and trainers alike."],
+        shop:{ greeting:["Welcome to the TRADER's stall!","Climber's kits and travel gear."], extraItems:['mountain_kit'] } }
+    ],
+    decorations:[
+      { x:14, y:7, key:'craft_stall' }
     ],
     ambient: [
       { species:'pebra',     x:8,  y:9,  range:2 },
@@ -1223,8 +1241,12 @@ const MAPS = {
       'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
-      { x:14, y:8, dir:'down', sprite:'npc_old', name:'FROSTMERE SAGE',
-        dialog:["FROSTMERE is built around a frozen lake.","The slate-roofed building south is the FROSTMERE GYM.","Beyond town, the FROSTPEAK rises into white silence."] }
+      { x:14, y:8, dir:'down', sprite:'npc_old', name:'SNOW SAGE',
+        dialog:["FROSTMERE is built around a frozen lake.","Step inside my tent - the cold does not wait."],
+        shop:{ greeting:["The SNOW SAGE's tent.","Frost-cold charms, untouched by spring."], extraItems:['frost_charm'] } }
+    ],
+    decorations:[
+      { x:14, y:7, key:'winter_tent' }
     ],
     ambient: [
       { species:'frostpup', x:7,  y:8,  range:2 },
@@ -1395,8 +1417,12 @@ const MAPS = {
       'XXXXXXX,,XXXXXXXXXXX'
     ],
     npcs: [
-      { x:9, y:9, dir:'right', sprite:'npc_youth', name:'DOCKHAND TEO',
-        dialog:["HARBORSIDE - last stop before the SEAROUTE.","The slate-roofed building south is the HARBORSIDE GYM.","The beach path heads east from the dock road."] }
+      { x:9, y:9, dir:'right', sprite:'npc_youth', name:'FISHMONGER',
+        dialog:["HARBORSIDE - last stop before the SEAROUTE.","Pearls from the harbor today - want one?"],
+        shop:{ greeting:["Welcome to the FISHMONGER's stall!","Dockside pearls, fresh off the boat."], extraItems:['pearl_bauble'] } }
+    ],
+    decorations:[
+      { x:10, y:9, key:'fish_market_stall' }
     ],
     ambient: [
       { species:'aquapup',   x:8,  y:7,  range:2 },
@@ -1576,7 +1602,13 @@ const MAPS = {
         gymLocked:["Earn all seven other BADGES first.","Only then will I face you."],
         trainer:{ team:[['emberkit',38],['flarebound',40],['magmaron',42],['infernarok',46]],
                   reward:5000,
-                  defeat:["Magnificent! The CINDER BADGE — and the title of CHAMPION — are yours."] } }
+                  defeat:["Magnificent! The CINDER BADGE — and the title of CHAMPION — are yours."] } },
+      { x:5, y:13, dir:'down', sprite:'npc_old', name:'PEAK TRADER',
+        dialog:["I climb down once a season.","My brews are distilled from peak air itself."],
+        shop:{ greeting:["The PEAK TRADER's tent.","Summit brews for desperate trainers."], extraItems:['summit_brew'] } }
+    ],
+    decorations:[
+      { x:5, y:12, key:'winter_tent' }
     ],
     ambient: [
       { species:'emberkit', x:8,  y:7,  range:2 },

@@ -8,7 +8,6 @@
     if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
     const key = 'creature_' + species;
     window.PR_ATLAS.drawKeyScaled(ctx, key, sx, sy, sizePx, sizePx);
-    drawLevelTuft(ctx, species, sx, sy, sizePx, subject);
   }
 
   // Render a single-color silhouette of the creature sprite. Uses an

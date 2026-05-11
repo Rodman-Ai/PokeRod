@@ -107,8 +107,8 @@
     ctx.fillRect(x + 4, y + 14, w - 8, 1);
 
     const items = v.list;
-    const listX = x + 5, listY = y + 18, listW = 104;
-    const detailX = x + 114, detailY = y + 18, detailW = w - 119, detailH = h - 58;
+    const listX = x + 5, listY = y + 18, listW = 168;
+    const detailX = x + 178, detailY = y + 18, detailW = w - 183, detailH = h - 58;
     const rows = 7, rowH = 13;
     if (!items.length) {
       window.PR_UI.drawText(ctx, 'No items in stock.', x + 8, listY, '#806040');
@@ -124,7 +124,7 @@
       if (!def) continue;
       if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, listW, 12, true);
       if (window.PR_ITEMS.drawIcon) window.PR_ITEMS.drawIcon(ctx, id, listX + 2, cy, 10);
-      window.PR_UI.drawText(ctx, def.name.slice(0, 8), listX + 17, cy + 2, '#202020');
+      window.PR_UI.drawText(ctx, def.name.slice(0, 14), listX + 17, cy + 2, '#202020');
       const owned = (state.player.bag && state.player.bag[id]) || 0;
       if (owned > 0) {
         window.PR_UI.drawText(ctx, 'x' + owned, listX + listW - 55, cy + 2, '#806040');

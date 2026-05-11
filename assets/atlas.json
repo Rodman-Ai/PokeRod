@@ -2772,44 +2772,62 @@
       "w": 32,
       "h": 32
     },
-    "decor_champion_statue": {
+    "decor_produce_stall": {
       "x": 462,
       "y": 924,
       "w": 32,
       "h": 32
     },
-    "decor_wildlife_sparrow_perched": {
+    "decor_craft_stall": {
       "x": 495,
       "y": 924,
       "w": 32,
       "h": 32
     },
-    "decor_wildlife_sparrow_flying": {
+    "decor_winter_tent": {
       "x": 0,
       "y": 957,
       "w": 32,
       "h": 32
     },
-    "decor_wildlife_pigeon_perched": {
+    "decor_champion_statue": {
       "x": 33,
       "y": 957,
       "w": 32,
       "h": 32
     },
-    "decor_wildlife_pigeon_flying": {
+    "decor_wildlife_sparrow_perched": {
       "x": 66,
       "y": 957,
       "w": 32,
       "h": 32
     },
-    "decor_wildlife_crow_perched": {
+    "decor_wildlife_sparrow_flying": {
       "x": 99,
       "y": 957,
       "w": 32,
       "h": 32
     },
-    "decor_wildlife_crow_flying": {
+    "decor_wildlife_pigeon_perched": {
       "x": 132,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_pigeon_flying": {
+      "x": 165,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_crow_perched": {
+      "x": 198,
+      "y": 957,
+      "w": 32,
+      "h": 32
+    },
+    "decor_wildlife_crow_flying": {
+      "x": 231,
       "y": 957,
       "w": 32,
       "h": 32
