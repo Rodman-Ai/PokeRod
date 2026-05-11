@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.3';
-  const BUILD = '2026.05.11-145';
+  const VERSION = 'v0.55.4';
+  const BUILD = '2026.05.11-146';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -161,7 +161,7 @@
   function startNewGame() {
     // Pick the first empty slot for the new run; fall back to slot 0 if
     // all three are taken (the slot picker still lets the player switch
-    // afterward). Clear ONLY that slot — never wipe the other saves.
+    // afterward). Clear ONLY that slot - never wipe the other saves.
     // Older code called PR_SAVE.clear() with no argument, which nuked
     // every slot plus the legacy + last-slot pointers.
     const slotInfo = window.PR_SAVE.slotInfo();
@@ -560,7 +560,7 @@
       const opt = page.options[v.idx];
       let value = opt;
       if (page.field === 'name' && opt === 'OTHER') {
-        // Browser-native prompt — works on desktop + mobile keyboards.
+        // Browser-native prompt - works on desktop + mobile keyboards.
         let custom = null;
         try { custom = window.prompt('Your name?', 'YOU'); }
         catch (_) { custom = null; }
@@ -1027,7 +1027,7 @@
         const rewardName = ready.reward && window.PR_ITEMS && window.PR_ITEMS.ITEMS[ready.reward.item]
           ? window.PR_ITEMS.ITEMS[ready.reward.item].name : '';
         const lines = [
-          (npc.name || 'NPC') + ': ' + ready.name + ' — done! Thank you.',
+          (npc.name || 'NPC') + ': ' + ready.name + ' - done! Thank you.',
           'Take ' + (ready.reward.count || 1) + ' x ' + rewardName + '.'
         ];
         openDialog(lines, () => {
@@ -1048,7 +1048,7 @@
         // Keep the phase dialog short so the offer follows quickly.
         const lead = phaseLines.slice(0, 1);
         const offerLines = [
-          (npc.name || 'NPC') + ': One thing — ' + offer.name + '.',
+          (npc.name || 'NPC') + ': One thing - ' + offer.name + '.',
           offer.desc
         ];
         openDialog(lead.concat(offerLines), () => {
@@ -1057,7 +1057,7 @@
           state.dialog = {
             choice: {
               prompt: 'Accept?',
-              options: ['Yes — I\'m on it.', 'Not now.'],
+              options: ['Yes - I\'m on it.', 'Not now.'],
               cursor: 0,
               onPick: (idx) => {
                 state.dialog = null;
@@ -1117,7 +1117,7 @@
       }
       const lines = (npc.dialog || ['Battle!']).slice();
       if (npc.gym) {
-        // Gym leaders are mandatory — preserve auto-start.
+        // Gym leaders are mandatory - preserve auto-start.
         openDialog(lines, () => {
           startBattleAgainstTrainer(npc, trainerKey);
         });
@@ -1149,9 +1149,9 @@
     }
     // Rotating banter pool: archetype lines (from npc_chatter.js) plus
     // the NPC's own per-character lines (kept in maps.js for personality)
-    // — one random pick per interaction so pressing A always feels
+    // - one random pick per interaction so pressing A always feels
     // fresh. Sequential dialog is reserved for trainers / shops /
-    // healers / starter slots / gates / story homes — they all return
+    // healers / starter slots / gates / story homes - they all return
     // earlier in handleNpcInteract.
     if (window.PR_NPC_CHATTER && window.PR_NPC_CHATTER.pickLine) {
       openDialog([window.PR_NPC_CHATTER.pickLine(npc)]);
@@ -1659,7 +1659,7 @@
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
-  // GRAPHICS / era now lives on the START menu as a one-tap toggle —
+  // GRAPHICS / era now lives on the START menu as a one-tap toggle -
   // see the 'ERA' option below. Settings keeps audio + accessibility.
   const SETTINGS_ROWS = [
     { key:'mute',          label:'MUTE',           type:'bool' },
@@ -1889,7 +1889,7 @@
     const completed = window.PR_QUESTS.tick(state);
     for (const c of completed) {
       // tick() returns { def, status:'done'|'ready' }. For 'done', the
-      // quests module already added the reward to the bag — we just
+      // quests module already added the reward to the bag - we just
       // announce. For 'ready' the reward is held until the player turns
       // in to the giver, so we just flash a hint.
       const def = c.def || c; // tolerate older shape
@@ -2525,7 +2525,7 @@
       }
     }
 
-    // Moves: 4 levels visible. Show first 4 entries — these are the
+    // Moves: 4 levels visible. Show first 4 entries - these are the
     // earliest learns and the ones a wild encounter is most likely to
     // know. A "(+N)" hint indicates if there are more.
     const learn = sp.learnset || [];

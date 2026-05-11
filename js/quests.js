@@ -1,14 +1,14 @@
 // Quest registry + state machine.
 //
-// Each quest definition is a flat object — see SCHEMA below. Quests can
+// Each quest definition is a flat object - see SCHEMA below. Quests can
 // be auto-started (no giver) or NPC-given (giver:'storyId'). The status
 // enum is:
-//   'notstarted' — registered, hidden from the quest log, not yet picked
+//   'notstarted' - registered, hidden from the quest log, not yet picked
 //                  up. NPC-given quests start here.
-//   'active'     — picked up, in progress. Visible in the quest log.
-//   'ready'      — completion check passed and turnIn:true; player must
+//   'active'     - picked up, in progress. Visible in the quest log.
+//   'ready'      - completion check passed and turnIn:true; player must
 //                  return to the giver to collect the reward.
-//   'done'       — fully complete, reward delivered.
+//   'done'       - fully complete, reward delivered.
 //
 // Auto-started quests skip 'notstarted' (they begin 'active') and skip
 // 'ready' (they go straight to 'done' on completion).
@@ -226,7 +226,7 @@
     giver:null, category:'milestone', reward:{ item:'rodball', count:5 }, turnIn:false,
     check: (s) => dexSeenCount(s) >= 10,
     progressFn: (s) => ratio(dexSeenCount(s), 10) + ' seen',
-    hint:'Wander any route — encounters count even if they flee.'
+    hint:'Wander any route - encounters count even if they flee.'
   });
   ALL.push({
     id:'visit_brindale', name:'OUT OF TOWN', desc:'Reach Brindale Town.',
@@ -420,7 +420,7 @@
   });
   ALL.push({
     id:'meek_sparring', name:'SPARRING PARTNER',
-    desc:'Beat MEEK twice — he says it helps.',
+    desc:'Beat MEEK twice - he says it helps.',
     longDesc:['He\'s using your wins to recalibrate.','"Two more, please. I\'m close to something."'],
     giver:'meek', category:'battle', reward:{ item:'revive', count:2 }, turnIn:true,
     offerCondition: (s) => chain(s, 'meek') >= 3,
@@ -436,7 +436,7 @@
     giver:'oma', item:'oranberry', count:3,
     reward:{ item:'sitrusberry', count:3 },
     offerCondition: (s) => chain(s, 'oma') >= 1,
-    hint:'OMA also takes SITRUS — bring those too in your bag.'
+    hint:'OMA also takes SITRUS - bring those too in your bag.'
   }));
   // Variant: also requires sitrus, custom check.
   ALL[ALL.length - 1].check = (s) => bagCount(s, 'oranberry') >= 3 && bagCount(s, 'sitrusberry') >= 3;
@@ -460,7 +460,7 @@
   }));
   ALL.push({
     id:'oma_level_25', name:'GROWING UP',
-    desc:'Get a partner to level 25 — OMA wants to see.',
+    desc:'Get a partner to level 25 - OMA wants to see.',
     longDesc:['"They\'re not a baby anymore at twenty-five."','"Bring them by. I\'ll knit them something."'],
     giver:'oma', category:'milestone', reward:{ item:'lucky_charm', count:1 }, turnIn:true,
     offerCondition: (s) => chain(s, 'oma') >= 3,
@@ -715,7 +715,7 @@
   ALL.push(milestoneQuest({
     id:'auto_5k_money', name:'PURSE STRINGS',
     desc:'Reach $5000 in cash.',
-    longDesc:['Hoard or earn — either works.'],
+    longDesc:['Hoard or earn - either works.'],
     reward:{ item:'greatball', count:1 },
     category:'milestone',
     check: (s) => (s.player.money || 0) >= 5000,
@@ -830,7 +830,7 @@
   }
 
   // List quests for the menu. Hides 'notstarted' (the giver hasn't
-  // offered them yet — and even if they have, accepting moves to
+  // offered them yet - and even if they have, accepting moves to
   // 'active' so it'll show then).
   function list(state) {
     ensure(state);

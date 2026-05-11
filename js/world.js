@@ -189,13 +189,13 @@
         ctx.fillRect(x + rx * cell, y + ry * cell, cell, cell);
       }
     }
-    // Player pip blink. 2x2 square with a 1px highlight to stay visible
-    // against any background tile.
-    const blink = (Math.floor(performance.now() / 250) & 1);
-    if (blink) {
-      ctx.fillStyle = window.PR_UI.pf('#ffd060');
-      ctx.fillRect(x + px * cell - 1, y + py * cell - 1, cell + 2, cell + 2);
-    }
+    // Player pip pulse. 2x2 square with a 1px outline that alternates
+    // pink + blue every 250ms so it stays eye-catching against any
+    // background tile.
+    const phase = (Math.floor(performance.now() / 250) & 1);
+    const pipColor = phase ? '#ff5098' : '#3878f0';
+    ctx.fillStyle = window.PR_UI.pf(pipColor);
+    ctx.fillRect(x + px * cell - 1, y + py * cell - 1, cell + 2, cell + 2);
   }
   window.PR_TIME = { phaseForSteps, current: () => {
     const s = window.PR_GAME && window.PR_GAME.state && window.PR_GAME.state.player.steps || 0;
@@ -237,7 +237,7 @@
   // particle behaviour. Fog is its own kind with horizontal-band
   // rendering (see drawWeatherOverlay).
   //
-  // Tornado was retired as a weather kind in v0.49.0 — its funnel render
+  // Tornado was retired as a weather kind in v0.49.0 - its funnel render
   // is now a reusable battle-move effect (see js/move_effects.js
   // drawTornadoFunnel, wired to FLYING moves gust / airslash).
   const WEATHER_PRESETS = {
@@ -341,7 +341,7 @@
     ctx.translate(sx, sy);
     ctx.scale(1, ry / r);
     ctx.translate(-sx, -sy);
-    // Outer halo — wider, very soft. Goes first so the inner core
+    // Outer halo - wider, very soft. Goes first so the inner core
     // paints over it without lightening from the gradient overlap.
     const haloR = r * 1.32;
     const haloGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, haloR);
@@ -352,7 +352,7 @@
     ctx.beginPath();
     ctx.arc(sx, sy, haloR, 0, Math.PI * 2);
     ctx.fill();
-    // Inner core — tighter, darker.
+    // Inner core - tighter, darker.
     const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
     grad.addColorStop(0,    'rgba(' + colorBase + ',' + cAlpha + ')');
     grad.addColorStop(0.55, 'rgba(' + colorBase + ',' + (cAlpha * 0.55) + ')');
@@ -372,7 +372,7 @@
   // upper ~26 px (head + body + feet at y≈22-26, transparent below).
   // Smaller sprites (followers / creatures at 20x20) similarly have
   // their feet around y≈14-15 of their frame. Without compensation
-  // the shadow drops at the FRAME edge — visibly far below the feet.
+  // the shadow drops at the FRAME edge - visibly far below the feet.
   // The feet-up offset scales with sprite height (~22% of sh) so it
   // lands roughly where the character is standing.
   function withTilt(ctx, sx, sy, sw, sh, draw) {
@@ -415,13 +415,13 @@
   }
   // Per-phase shadow tint AND sun vector. The cycle starts at noon
   // (step 0) so:
-  //   t=0   noon       — sun overhead, short shadow, no x-offset
-  //   t=80  sunset     — sun west, long shadow, +x offset (eastward)
-  //   t=160 midnight   — no sun, alphaScale -> 0
-  //   t=240 sunrise    — sun east, long shadow, -x offset (westward)
+  //   t=0   noon       - sun overhead, short shadow, no x-offset
+  //   t=80  sunset     - sun west, long shadow, +x offset (eastward)
+  //   t=160 midnight   - no sun, alphaScale -> 0
+  //   t=240 sunrise    - sun east, long shadow, -x offset (westward)
   // offsetY is always positive (shadow projects toward bottom of
   // screen, matching the 2.5D top-down camera convention). lengthScale
-  // is the rx multiplier — short at noon, long at low sun.
+  // is the rx multiplier - short at noon, long at low sun.
   function phaseShadowOpts(steps) {
     const t = (((steps % CYCLE_STEPS) + CYCLE_STEPS) % CYCLE_STEPS);
     // sunHeight: 1 at noon, 0 at midnight, ~0.4 at dusk/dawn.
@@ -549,7 +549,7 @@
   function drawBuildingShadows(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
     if (!tiltActive()) return;
     const baseOpts = phaseShadowOpts(steps);
-    // Skip in deep night — no sun, no architectural shadow.
+    // Skip in deep night - no sun, no architectural shadow.
     if ((baseOpts.alphaScale || 0) < 0.25) return;
     const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS;
     if (!props) return;
@@ -647,10 +647,10 @@
   // Draws lamp halos and window-light squares for visible tiles.
   // Active only when tilt is active AND it's nighttime. Drawn AFTER
   // the day/night tint so glows can lift the darkened image.
-  // Window pane geometry — must match gbaWindow() in tools/atlas-art.js
+  // Window pane geometry - must match gbaWindow() in tools/atlas-art.js
   // so the glow halo and lit square line up with the actual glass.
-  // '[' (window_left) — pane on the right half of the tile.
-  // ']' (window_right) — pane on the left half of the tile.
+  // '[' (window_left) - pane on the right half of the tile.
+  // ']' (window_right) - pane on the left half of the tile.
   // For each: pane at (paneX, y+10) size 12x10, glass center at
   // (paneX+6, y+15).
   function drawNightLights(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS, steps) {
@@ -682,7 +682,7 @@
     }
     // Decoration-based lamps (post-content-drop). Many cities now place
     // lamps as decoration keys (lamp_ornate_gold, streetlamp_ornate_*,
-    // lamp_paper_lantern, etc.) instead of '|' tile codes — without this
+    // lamp_paper_lantern, etc.) instead of '|' tile codes - without this
     // pass they sit dark at night even though the visible sprite is a lit
     // lantern. Iterate the visible window of the decorations array and
     // cast a soft glow from each one.
@@ -913,9 +913,9 @@
     ctx.restore();
   }
   // Water animation. Three tiers of fanciness:
-  //   ds_diamond  — full reflections + scrolling ripple bands + sparkle
-  //   gba_firered — 2-frame palette toggle on water tiles
-  //   gbc_yellow / gb_red — static water (intentional, matches the era)
+  //   ds_diamond  - full reflections + scrolling ripple bands + sparkle
+  //   gba_firered - 2-frame palette toggle on water tiles
+  //   gbc_yellow / gb_red - static water (intentional, matches the era)
   // Reflections for tall tiles directly above water are still DS-only
   // because they require atlas reads.
   function drawWaterAnimation(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
@@ -1040,7 +1040,7 @@
   }
   // Weather particle factory. Returns a particle object suited to the
   // requested kind / intensity / wind. Hurricane spawns extreme-wind
-  // rain (with occasional debris flecks). Fog/overcast spawn nothing —
+  // rain (with occasional debris flecks). Fog/overcast spawn nothing -
   // their visuals come from drawWeatherOverlay sheets. Overcast
   // spawns nothing (the look is overlay-based, not particle-based).
   function spawnWeatherParticle(kind, intensity, viewW, wind) {
@@ -1138,7 +1138,7 @@
   // before the day/night tint so they read like ground particles, not
   // sparks.
   // Footstep-dust eligibility. The dust particle is tan/amber and looks
-  // out of place on cobble, red brick, snow, boardwalk, moss, etc. — so
+  // out of place on cobble, red brick, snow, boardwalk, moss, etc. - so
   // restrict to actually dirt-textured surfaces. Originally any tile
   // with 'path' in its name kicked dust, which painted dirty blobs on
   // frostmere's snowy paths and other paved town paths.
@@ -1240,7 +1240,7 @@
     return null;
   }
   function spawnBiomeParticle(biome, viewW, viewH, steps) {
-    // Forests at night swap leaves for fireflies — slow yellow-green
+    // Forests at night swap leaves for fireflies - slow yellow-green
     // sparkles that drift upward instead of drifting down.
     const n = steps != null ? nightness(steps) : 0;
     if (biome === 'forest' && n > 0.3) {
@@ -1469,7 +1469,7 @@
     } else if (weather.kind === 'fog') {
       // Slow-drifting horizontal sheets of translucent grey. Higher
       // intensity = denser layers (more sheets + higher alpha). Wind
-      // controls drift speed. No particles — fog is overlay-only.
+      // controls drift speed. No particles - fog is overlay-only.
       ctx.save();
       const sheets = fancy ? 6 : 3;
       const baseAlpha = 0.10 + 0.22 * weather.intensity;
@@ -1606,7 +1606,7 @@
     if (!m) return;
     // Auto-seed: every outdoor map gets at least one sparrow + one
     // crow at perch tiles in opposite quadrants. Honours the
-    // existing m.birds list — only fills in what's missing.
+    // existing m.birds list - only fills in what's missing.
     const wantList = (m.birds || []).slice();
     if (!m.interior && m.tiles && m.tiles.length) {
       const W = m.tiles[0].length;
@@ -1672,7 +1672,7 @@
         }
         continue;
       }
-      // Perched — countdown to next flight.
+      // Perched - countdown to next flight.
       b.perchTimer -= dt;
       if (b.perchTimer > 0) continue;
       // Try a few random perch tiles within range, fly to first that
@@ -1724,7 +1724,7 @@
     }
   };
 
-  // Attach wander-state to any NPC that has a `wander` flag. Idempotent —
+  // Attach wander-state to any NPC that has a `wander` flag. Idempotent -
   // safe to call on every transitionTo. NPCs keep their (possibly
   // wandered) position between visits.
   World.prototype._initNpcWander = function() {
@@ -1952,7 +1952,7 @@
   // Door-adjacency helper. Returns true if any door tile (or edge
   // transition) in the current map is within Manhattan distance 2
   // of (x, y). Used to let the player squeeze past chatter NPCs
-  // who happen to wander up to a doorway — without this, a baker
+  // who happen to wander up to a doorway - without this, a baker
   // wandering near the mart entrance can lock the player out.
   World.prototype._isNearDoor = function(x, y) {
     const m = this.currentMap();
@@ -2009,7 +2009,7 @@
       if (!props) continue;
       if (props.walk !== true && props.walk !== 'south') continue;
       if (this.npcBlockerAt(ax, ay)) continue;
-      return false; // there's another open neighbour — not trapped
+      return false; // there's another open neighbour - not trapped
     }
     return true;
   };
@@ -2059,7 +2059,7 @@
         // Trap escape: if the only direction the player can step from
         // their current tile is *into* this NPC (every other neighbour
         // is non-walkable or blocked by another NPC), let them push
-        // past — the NPC swaps to the player's tile so the player can
+        // past - the NPC swaps to the player's tile so the player can
         // get out of the pocket. Gates / trainers / shop NPCs above
         // already returned, so this only applies to ordinary villagers
         // and story home characters.
@@ -2676,7 +2676,7 @@
       }
     }
 
-    // Wildlife birds — perch on roofs/trees, occasionally fly.
+    // Wildlife birds - perch on roofs/trees, occasionally fly.
     // Drawn after decorations / before ambient creatures so the
     // player walks in front of low-perched birds.
     this._renderBirds(ctx, camX, camY);
@@ -2745,7 +2745,7 @@
       }
     }
 
-    // Cutscene NPC (story system) — drawn in the same pass so tilt and
+    // Cutscene NPC (story system) - drawn in the same pass so tilt and
     // outlines look identical to map-defined NPCs.
     const cs = this.state.cutscene;
     if (cs && cs.active && cs.npc) {

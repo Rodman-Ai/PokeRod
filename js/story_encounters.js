@@ -16,7 +16,7 @@
 (function(){
 
   // Build a rival team scaled to the player's lead level. The rival picks
-  // the starter that beats yours — pure flavour, since type advantage in
+  // the starter that beats yours - pure flavour, since type advantage in
   // PokeRod is loose.
   function rivalStarterChain(state) {
     const yours = state.party && state.party[0] && state.party[0].species;
@@ -57,7 +57,7 @@
   function staticTeamFn(team) { return () => team.map(([sp, l]) => [sp, l]); }
 
   // ------------------------------------------------------------------
-  // BLAINE — Deep arc #1 (rival). 8 encounters; 5 are battles.
+  // BLAINE - Deep arc #1 (rival). 8 encounters; 5 are battles.
   // ------------------------------------------------------------------
   const RIVAL_BLAINE = { name:'BLAINE', sprite:'npc_blaine' };
 
@@ -80,7 +80,7 @@
       character: RIVAL_BLAINE, priority:100,
       trigger:{ type:'firstVisit', map:'route1' },
       scene: [
-        { kind:'line', text:'You took your time. Battle me — let\'s see if you wasted it.' },
+        { kind:'line', text:'You took your time. Battle me - let\'s see if you wasted it.' },
         { kind:'battle', team:null,
           rivalTeamFn:(s) => rivalTeam(Math.max(5, partyAvg(s) + 1))(s),
           reward:120, defeat:['Hmph. Lucky.'] },
@@ -122,7 +122,7 @@
           { label:'Brought a scarf.', goto:'soft_branch' },
           { label:'Toughens you up.', goto:'rude_branch' }
         ]},
-        { kind:'line', label:'soft_branch', text:'Heh. Take this — I had a spare.' },
+        { kind:'line', label:'soft_branch', text:'Heh. Take this - I had a spare.' },
         { kind:'gift', item:'superpotion', count:1, text:'A SUPER POTION for the trail.' },
         { kind:'line', text:'Don\'t make me regret it.' },
         { kind:'line', label:'rude_branch', text:'Spoken like someone who hasn\'t frostbitten yet.' }
@@ -137,7 +137,7 @@
           rivalTeamFn:(s) => rivalTeam(Math.max(26, partyAvg(s) + 2),
             [['galewing', Math.max(24, partyAvg(s))],
              ['boltbeard', Math.max(24, partyAvg(s))]])(s),
-          reward:1100, defeat:['You — what?'] },
+          reward:1100, defeat:['You - what?'] },
         { kind:'line', text:'I\'m starting to think I should train more, not less.' }
       ]
     },
@@ -174,7 +174,7 @@
   ];
 
   // ------------------------------------------------------------------
-  // PEARL — Deep arc #2 (apprentice). 8 encounters; 2 friendly battles.
+  // PEARL - Deep arc #2 (apprentice). 8 encounters; 2 friendly battles.
   // ------------------------------------------------------------------
   const PEARL = { name:'PEARL', sprite:'npc_pearl' };
 
@@ -184,21 +184,21 @@
       trigger:{ type:'starter' },
       condition: (s) => s.flags && s.flags.starterChosen && (s.flags.chains.rival || 0) >= 1,
       scene: [
-        { kind:'line', text:'Hi {name}! I\'m PEARL — PROF. ROD\'s other apprentice.' },
+        { kind:'line', text:'Hi {name}! I\'m PEARL - PROF. ROD\'s other apprentice.' },
         { kind:'line', text:'I picked the third starter. We\'re a journey class of two!' },
         { kind:'choice', prompt:'?', options:[
           { label:'Nice to meet you.' },
           { label:'A rival, then?', set:{ pearlTone:'spark' } },
           { label:'Hands off my dex.' }
         ]},
-        { kind:'line', text:'Oh — {color}, right? Same! See you on the road, {name}.' }
+        { kind:'line', text:'Oh - {color}, right? Same! See you on the road, {name}.' }
       ]
     },
     { id:'pearl_01', chain:'apprentice', chainStep:1,
       character: PEARL, priority:90,
       trigger:{ type:'badge', count:1 },
       scene: [
-        { kind:'line', text:'You got a badge already? Take this — I have a few.' },
+        { kind:'line', text:'You got a badge already? Take this - I have a few.' },
         { kind:'gift', item:'rodball', count:5, text:'Five ROD BALLS for your travels.' }
       ]
     },
@@ -207,7 +207,7 @@
       trigger:{ type:'evolve', count:1 },
       scene: [
         { kind:'line', text:'It evolved! Look at it!' },
-        { kind:'gift', item:'antidote', count:2, text:'Take some antidotes — they grow up fast.' }
+        { kind:'gift', item:'antidote', count:2, text:'Take some antidotes - they grow up fast.' }
       ]
     },
     { id:'pearl_03', chain:'apprentice', chainStep:3,
@@ -220,7 +220,7 @@
             [rivalEvoFor('sproutling', Math.max(12, partyAvg(s))), Math.max(12, partyAvg(s))],
             ['budling', Math.max(11, partyAvg(s) - 1)]
           ],
-          reward:280, defeat:['Wow — you really worked at it!'] },
+          reward:280, defeat:['Wow - you really worked at it!'] },
         { kind:'line', text:'That was fun. See you out there!' }
       ]
     },
@@ -237,7 +237,7 @@
       trigger:{ type:'caughtSpecies', count:25 },
       scene: [
         { kind:'line', text:'Twenty-five! Your dex is bigger than mine.' },
-        { kind:'gift', item:'rodball', count:5, text:'More ROD BALLS — fill that thing up.' }
+        { kind:'gift', item:'rodball', count:5, text:'More ROD BALLS - fill that thing up.' }
       ]
     },
     { id:'pearl_06', chain:'apprentice', chainStep:6,
@@ -260,14 +260,14 @@
       trigger:{ type:'badge', count:7 },
       scene: [
         { kind:'line', text:'Seven badges. You\'re really at the gates.' },
-        { kind:'gift', item:'ultraball', count:1, text:'An ULTRA BALL — I saved it for you.' },
+        { kind:'gift', item:'ultraball', count:1, text:'An ULTRA BALL - I saved it for you.' },
         { kind:'line', text:'Go on. Don\'t look back.' }
       ]
     }
   ];
 
   // ------------------------------------------------------------------
-  // NICO — journalist. 6 encounters tied to caught-species milestones.
+  // NICO - journalist. 6 encounters tied to caught-species milestones.
   // ------------------------------------------------------------------
   const NICO = { name:'NICO', sprite:'npc_nico' };
 
@@ -319,7 +319,7 @@
       trigger:{ type:'caughtSpecies', count:50 },
       scene: [
         { kind:'line', text:'Fifty species. Front page. Want to see the headline?' },
-        { kind:'gift', item:'ultraball', count:1, text:'And an ULTRA BALL — newsroom budget.' }
+        { kind:'gift', item:'ultraball', count:1, text:'And an ULTRA BALL - newsroom budget.' }
       ]
     },
     { id:'nico_05', chain:'journalist', chainStep:5,
@@ -334,7 +334,7 @@
   ];
 
   // ------------------------------------------------------------------
-  // MEEK — perpetual loser. 6 encounters, all battles.
+  // MEEK - perpetual loser. 6 encounters, all battles.
   // ------------------------------------------------------------------
   const MEEK = { name:'MEEK', sprite:'npc_meek' };
 
@@ -362,7 +362,7 @@
       character: MEEK, priority:70,
       trigger:{ type:'badge', count:2 },
       scene: [
-        { kind:'line', text:'You got a second badge?? So did I — well, I tried.' },
+        { kind:'line', text:'You got a second badge?? So did I - well, I tried.' },
         { kind:'battle', team:[['flitwing', 14],['cinderpup', 13]], reward:340,
           defeat:['I keep getting closer!'] }
       ]
@@ -380,7 +380,7 @@
       character: MEEK, priority:70,
       trigger:{ type:'badge', count:6 },
       scene: [
-        { kind:'line', text:'Six badges?! I\'m at four. Battle me — I\'ll close the gap!' },
+        { kind:'line', text:'Six badges?! I\'m at four. Battle me - I\'ll close the gap!' },
         { kind:'battle', team:[['galewing', 36],['cinderpup', 35],['voltkit', 35],['venipip', 35]],
           reward:2400, defeat:['I FELT it. Next time. Next time!'] }
       ]
@@ -398,7 +398,7 @@
   ];
 
   // ------------------------------------------------------------------
-  // OMA — grandparent. 6 encounters, gifts.
+  // OMA - grandparent. 6 encounters, gifts.
   // ------------------------------------------------------------------
   const OMA = { name:'OMA', sprite:'npc_oma' };
 
@@ -424,7 +424,7 @@
       trigger:{ type:'evolve', count:1 },
       scene: [
         { kind:'line', text:'It evolved! I knew that one had heart.' },
-        { kind:'gift', item:'potion', count:3, text:'Some potions — and a knit scarf cosmetic.' },
+        { kind:'gift', item:'potion', count:3, text:'Some potions - and a knit scarf cosmetic.' },
         { kind:'set', flags:{ omaScarf:true } }
       ]
     },
@@ -433,7 +433,7 @@
       trigger:{ type:'level', level:25 },
       scene: [
         { kind:'line', text:'Level twenty-five. In my day we walked uphill...' },
-        { kind:'gift', item:'superpotion', count:3, text:'SUPER POTIONS — I overpacked.' }
+        { kind:'gift', item:'superpotion', count:3, text:'SUPER POTIONS - I overpacked.' }
       ]
     },
     { id:'oma_04', chain:'oma', chainStep:4,
@@ -457,7 +457,7 @@
   ];
 
   // ------------------------------------------------------------------
-  // DR. KEL — economist. 6 encounters tied to spending.
+  // DR. KEL - economist. 6 encounters tied to spending.
   // ------------------------------------------------------------------
   const KEL = { name:'DR. KEL', sprite:'npc_kel' };
 
@@ -488,7 +488,7 @@
       trigger:{ type:'spend', total:1000 },
       scene: [
         { kind:'line', text:'A thousand. You\'ve crossed into "regular customer" territory.' },
-        { kind:'gift', item:'rodball', count:3, text:'Take these — call it volume rebate.' },
+        { kind:'gift', item:'rodball', count:3, text:'Take these - call it volume rebate.' },
         { kind:'set', flags:{ kelDiscount:5 } }
       ]
     },
@@ -514,14 +514,14 @@
       trigger:{ type:'spend', total:40000 },
       scene: [
         { kind:'line', text:'Forty thousand. I\'ll write a paper about you.' },
-        { kind:'gift', item:'maxpotion', count:2, text:'Two MAX POTIONS — late-game bracket.' },
+        { kind:'gift', item:'maxpotion', count:2, text:'Two MAX POTIONS - late-game bracket.' },
         { kind:'line', text:'See me when you\'ve spent the next forty.' }
       ]
     }
   ];
 
   // ------------------------------------------------------------------
-  // TANK — short whiteout chain (3 encounters).
+  // TANK - short whiteout chain (3 encounters).
   // ------------------------------------------------------------------
   const TANK = { name:'TANK', sprite:'npc_tank' };
 
@@ -553,7 +553,7 @@
   ];
 
   // ------------------------------------------------------------------
-  // NIM — short caves chain (3 encounters).
+  // NIM - short caves chain (3 encounters).
   // ------------------------------------------------------------------
   const NIM = { name:'NIM', sprite:'npc_nim' };
 
@@ -563,7 +563,7 @@
       trigger:{ type:'firstVisit', map:'pebblewood_cavern' },
       scene: [
         { kind:'line', text:'Welcome to the dark, {name}. The bugs love it down here.' },
-        { kind:'gift', item:'cavernball', count:2, text:'Two CAVERN BALLS — they catch better in the dark.' }
+        { kind:'gift', item:'cavernball', count:2, text:'Two CAVERN BALLS - they catch better in the dark.' }
       ]
     },
     { id:'nim_01', chain:'nim', chainStep:1,
@@ -579,7 +579,7 @@
       trigger:{ type:'firstVisit', map:'frostpeak_ice_cave' },
       scene: [
         { kind:'line', text:'A cave inside a snowstorm. My favourite kind.' },
-        { kind:'gift', item:'ultraball', count:1, text:'An ULTRA BALL — for whatever lives at the bottom.' }
+        { kind:'gift', item:'ultraball', count:1, text:'An ULTRA BALL - for whatever lives at the bottom.' }
       ]
     }
   ];
@@ -613,7 +613,7 @@
       },
       scene: [
         { kind:'line', text:'A water companion, {name}! The tide takes care of trainers like you.' },
-        { kind:'gift', item:'rodball', count:2, text:'Surfer\'s gift — two ROD BALLS.' }
+        { kind:'gift', item:'rodball', count:2, text:'Surfer\'s gift - two ROD BALLS.' }
       ]
     },
     { id:'wryn_first_dragon', character: WRYN, priority:55,
@@ -655,7 +655,7 @@
     .concat(oneOffs);
 
   // ------------------------------------------------------------------
-  // STORY_CHARACTERS — home locations + phased dialog trees.
+  // STORY_CHARACTERS - home locations + phased dialog trees.
   //
   // Each character lives at a fixed (map, x, y) tile when not actively
   // running a cutscene. PR_STORY installs them as regular NPCs at world
@@ -713,7 +713,7 @@
 
   const STORY_CHARACTERS = [
     // ----------------------------------------------------------------
-    // BLAINE — the rival. Lives in his bedroom in the rival_house.
+    // BLAINE - the rival. Lives in his bedroom in the rival_house.
     // Replaces the existing static BLAINE NPC at (8, 5).
     // 4 phases keyed on chains.rival.
     // ----------------------------------------------------------------
@@ -805,7 +805,7 @@
     },
 
     // ----------------------------------------------------------------
-    // PEARL — apprentice. Lives in PROF. ROD's lab at a study desk.
+    // PEARL - apprentice. Lives in PROF. ROD's lab at a study desk.
     // 4 phases keyed on chains.apprentice. firstFn quotes current dex.
     // ----------------------------------------------------------------
     {
@@ -860,7 +860,7 @@
             const n = (state.dex && state.dex.caught && state.dex.caught.size) || 0;
             return [
               'Look at you. Dex of ' + n + '.',
-              'I caught up — barely. We\'re neck and neck.',
+              'I caught up - barely. We\'re neck and neck.',
               'Do me a favour: don\'t pull ahead too fast.'
             ];
           },
@@ -882,7 +882,7 @@
           first:[
             'CHAMPION! In my lab!',
             'I haven\'t cleaned. I\'m sorry.',
-            'Forget that — tell me everything.'
+            'Forget that - tell me everything.'
           ],
           second:[
             'I want to write a book.',
@@ -903,7 +903,7 @@
     },
 
     // ----------------------------------------------------------------
-    // NICO — journalist. At a press desk inside brindale_school.
+    // NICO - journalist. At a press desk inside brindale_school.
     // 4 phases by chains.journalist. firstFn names your last catch.
     // ----------------------------------------------------------------
     {
@@ -981,7 +981,7 @@
           first:[
             'CHAMPION column. Writing it now.',
             'The headline writes itself.',
-            'Stand still — I\'m taking your photo.'
+            'Stand still - I\'m taking your photo.'
           ],
           second:[
             'I quit the daily column.',
@@ -1002,7 +1002,7 @@
     },
 
     // ----------------------------------------------------------------
-    // MEEK — perpetual loser. Recovers in Brindale's Pokemon Center.
+    // MEEK - perpetual loser. Recovers in Brindale's Pokemon Center.
     // 4 phases by chains.meek.
     // ----------------------------------------------------------------
     {
@@ -1011,7 +1011,7 @@
       phases: [
         { upTo: 1,
           first:[
-            'I — I\'m here a lot.',
+            'I - I\'m here a lot.',
             'NURSE ROSY says I should pace myself.',
             'I will. Tomorrow.'
           ],
@@ -1098,7 +1098,7 @@
     },
 
     // ----------------------------------------------------------------
-    // OMA — grandparent. At her kitchen in Brindale's townhouse.
+    // OMA - grandparent. At her kitchen in Brindale's townhouse.
     // 4 phases by chains.oma. firstFn references party top level.
     // ----------------------------------------------------------------
     {
@@ -1107,7 +1107,7 @@
       phases: [
         { upTo: 1,
           first:[
-            'Look who came through the door — {name}!',
+            'Look who came through the door - {name}!',
             'Sit down, {name}. Eat something.',
             'I made too much {food}, on purpose.'
           ],
@@ -1130,7 +1130,7 @@
           firstFn:(state) => {
             let lv = 0; for (const p of state.party || []) if (p.level > lv) lv = p.level | 0;
             return [
-              'Level ' + lv + '! In my day we walked uphill—',
+              'Level ' + lv + '! In my day we walked uphill-',
               'Both ways. Through tall grass.',
               'Sit. Eat. I\'m kidding.'
             ];
@@ -1198,7 +1198,7 @@
     },
 
     // ----------------------------------------------------------------
-    // DR. KEL — economist. At his ledger desk in Crestrock workshop.
+    // DR. KEL - economist. At his ledger desk in Crestrock workshop.
     // 4 phases by chains.economist. Quotes live totalSpent.
     // ----------------------------------------------------------------
     {
@@ -1294,7 +1294,7 @@
     },
 
     // ----------------------------------------------------------------
-    // TANK — recovery veteran. Bench in Frostmere's Pokemon Center.
+    // TANK - recovery veteran. Bench in Frostmere's Pokemon Center.
     // 4 phases by chains.tank. firstFn references whiteout count.
     // ----------------------------------------------------------------
     {
@@ -1391,7 +1391,7 @@
     },
 
     // ----------------------------------------------------------------
-    // NIM — cave researcher. On the sand path inside glimcavern.
+    // NIM - cave researcher. On the sand path inside glimcavern.
     // 4 phases by chains.nim. References next unvisited cave.
     // ----------------------------------------------------------------
     {
@@ -1486,7 +1486,7 @@
     },
 
     // ----------------------------------------------------------------
-    // MARLA — explorer. On the moss path through Pebblewood.
+    // MARLA - explorer. On the moss path through Pebblewood.
     // 4 phases by hidden-item count.
     // ----------------------------------------------------------------
     {
@@ -1588,8 +1588,8 @@
     },
 
     // ----------------------------------------------------------------
-    // FAYE — surfer. On the beach boardwalk.
-    // 4 phases — by water catch + surf use.
+    // FAYE - surfer. On the beach boardwalk.
+    // 4 phases - by water catch + surf use.
     // ----------------------------------------------------------------
     {
       id:'faye', name:'FAYE', sprite:'npc_faye',
@@ -1683,8 +1683,8 @@
     },
 
     // ----------------------------------------------------------------
-    // WRYN — dragon sage. On a high rocky path of the mountain.
-    // 4 phases — by chains.rival progress + dragon catch.
+    // WRYN - dragon sage. On a high rocky path of the mountain.
+    // 4 phases - by chains.rival progress + dragon catch.
     // ----------------------------------------------------------------
     {
       id:'wryn', name:'WRYN', sprite:'npc_wryn',
@@ -1782,7 +1782,7 @@
     },
 
     // ----------------------------------------------------------------
-    // AKIRA — league recruiter. Outdoor in Summitvale.
+    // AKIRA - league recruiter. Outdoor in Summitvale.
     // 4 phases by badge count.
     // ----------------------------------------------------------------
     {

@@ -57,7 +57,7 @@
     ctx.fillStyle = g;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
   }
-  // Deterministic small RNG keyed on integer i — so particle positions
+  // Deterministic small RNG keyed on integer i - so particle positions
   // stay stable across frames at the same `i`.
   function rng(i) {
     const x = Math.sin(i * 999.123 + 7.91) * 43758.5453;
@@ -893,7 +893,7 @@
   // ---------- Tornado funnel (reused from the retired tornado weather)
   // Stacked thin ellipses growing narrower toward the bottom, with debris
   // motes orbiting the center. Used by FLYING signature moves (gust /
-  // airslash) — fits any "twister" / "cyclone" feel.
+  // airslash) - fits any "twister" / "cyclone" feel.
   function drawTornadoFunnel(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = tier !== 'gb_red';
     const t = p * dur * 8; // walltime-ish driver for shimmer
@@ -917,7 +917,7 @@
     }
     ctx.restore();
     if (!fancy) return;
-    // Orbiting debris motes — spiral inward as p grows.
+    // Orbiting debris motes - spiral inward as p grows.
     ctx.save();
     const motes = 7;
     for (let i = 0; i < motes; i++) {
@@ -936,7 +936,7 @@
   // version + basic GB/GBC/GBA fallback). All built on the shared
   // helpers (px, disc, ring, star, streak, gradientFill, rng, isFancy).
 
-  // 1. tackle — shoulder-charge streak inbound, impact star + dust.
+  // 1. tackle - shoulder-charge streak inbound, impact star + dust.
   function drawTackle(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const t = Math.min(1, p / 0.6);
@@ -966,7 +966,7 @@
     }
   }
 
-  // 2. scratch — three diagonal claw rakes appearing in sequence.
+  // 2. scratch - three diagonal claw rakes appearing in sequence.
   function drawScratch(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const stages = [0, 0.18, 0.36];
@@ -989,7 +989,7 @@
     }
   }
 
-  // 3. quickjab — three rapid jabs with afterimage trails.
+  // 3. quickjab - three rapid jabs with afterimage trails.
   function drawQuickJab(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const stages = [0.05, 0.30, 0.55];
@@ -1013,7 +1013,7 @@
     }
   }
 
-  // 4. growl — jagged red roar shape + concentric sound rings.
+  // 4. growl - jagged red roar shape + concentric sound rings.
   function drawGrowl(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     for (let i = 0; i < 3; i++) {
@@ -1038,9 +1038,9 @@
     }
   }
 
-  // 5. tailwhip — curved warm-peach tail sweeps across target with
+  // 5. tailwhip - curved warm-peach tail sweeps across target with
   // bright tip, wind swish lines, and an impact pulse at the end of
-  // the swing. (Reworked in v0.52.1 — the previous version used
+  // the swing. (Reworked in v0.52.1 - the previous version used
   // grey-on-grey particles that vanished against most battle
   // backgrounds.)
   function drawTailWhip(ctx, p, dur, tier, cx, cy, w, h) {
@@ -1101,7 +1101,7 @@
     }
   }
 
-  // 6. lullaby — floating musical notes + drifting Z.
+  // 6. lullaby - floating musical notes + drifting Z.
   function drawLullaby(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const notes = fancy ? 5 : 2;
@@ -1127,8 +1127,8 @@
     }
   }
 
-  // 7. harden — cyan-silver hex shell locks around target with a
-  // bright click-flash. (Reworked in v0.52.1 — old grey-blue palette
+  // 7. harden - cyan-silver hex shell locks around target with a
+  // bright click-flash. (Reworked in v0.52.1 - old grey-blue palette
   // was too close to typical battle backgrounds to read.)
   function drawHarden(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
@@ -1170,7 +1170,7 @@
     }
   }
 
-  // 8. screech — concentric jagged wave-fronts radiating outward.
+  // 8. screech - concentric jagged wave-fronts radiating outward.
   function drawScreech(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const waves = fancy ? 4 : 2;
@@ -1192,7 +1192,7 @@
     }
   }
 
-  // 9. ember — small puff of tumbling embers, low intensity.
+  // 9. ember - small puff of tumbling embers, low intensity.
   function drawEmber(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const motes = fancy ? 6 : 3;
@@ -1210,7 +1210,7 @@
     }
   }
 
-  // 10. vinelash — three curling vines whip around target with leaf flicks.
+  // 10. vinelash - three curling vines whip around target with leaf flicks.
   function drawVineLash(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const stages = [0, 0.22, 0.44];
@@ -1240,7 +1240,7 @@
     }
   }
 
-  // 11. bugbite — wing flutter trails + mandible bite-converge.
+  // 11. bugbite - wing flutter trails + mandible bite-converge.
   function drawBugBite(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.6) {
@@ -1268,7 +1268,7 @@
     }
   }
 
-  // 12. pinmissile — needle projectiles fanning inward, staggered.
+  // 12. pinmissile - needle projectiles fanning inward, staggered.
   function drawPinMissile(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 6 : 3;
@@ -1287,7 +1287,7 @@
     }
   }
 
-  // 13. poisonsting — sharp purple stinger thrust + droplet trail.
+  // 13. poisonsting - sharp purple stinger thrust + droplet trail.
   function drawPoisonSting(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -1307,7 +1307,7 @@
     }
   }
 
-  // 14. acidspray — bubbling green corrosive spray.
+  // 14. acidspray - bubbling green corrosive spray.
   function drawAcidSpray(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (fancy) {
@@ -1327,7 +1327,7 @@
     }
   }
 
-  // 15. toxicspike — caltrops slam from above + toxic mist.
+  // 15. toxicspike - caltrops slam from above + toxic mist.
   function drawToxicSpike(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 5 : 3;
@@ -1353,7 +1353,7 @@
     }
   }
 
-  // 16. rocktoss — rock chunks arcing in + cracks + dust on impact.
+  // 16. rocktoss - rock chunks arcing in + cracks + dust on impact.
   function drawRockToss(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 5 : 3;
@@ -1386,7 +1386,7 @@
     }
   }
 
-  // 17. earthbump — vertical earth pillar erupting from beneath.
+  // 17. earthbump - vertical earth pillar erupting from beneath.
   function drawEarthBump(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.6);
@@ -1412,7 +1412,7 @@
     }
   }
 
-  // 18. sandattack — horizontal sand cloud + tan motes.
+  // 18. sandattack - horizontal sand cloud + tan motes.
   function drawSandAttack(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (fancy) {
@@ -1428,7 +1428,7 @@
     }
   }
 
-  // 19. focusjab — concentration ring tightens, then impact starburst.
+  // 19. focusjab - concentration ring tightens, then impact starburst.
   function drawFocusJab(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.55) {
@@ -1454,7 +1454,7 @@
     }
   }
 
-  // 20. palmstrike — open palm + shockwave pulse + dust ring.
+  // 20. palmstrike - open palm + shockwave pulse + dust ring.
   function drawPalmStrike(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.45) {
@@ -1481,7 +1481,7 @@
     }
   }
 
-  // 21. shimmer — wavy refraction lines + pastel halo.
+  // 21. shimmer - wavy refraction lines + pastel halo.
   function drawShimmer(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (fancy) {
@@ -1499,7 +1499,7 @@
     }
   }
 
-  // 22. dazzle — twinkling stars rotating around target like a tiara.
+  // 22. dazzle - twinkling stars rotating around target like a tiara.
   function drawDazzle(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 7 : 4;
@@ -1518,7 +1518,7 @@
     }
   }
 
-  // 23. hypnoray — slow-rotating hypnotic spiral + concentric rings.
+  // 23. hypnoray - slow-rotating hypnotic spiral + concentric rings.
   function drawHypnoRay(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const arms = fancy ? 24 : 12;
@@ -1538,7 +1538,7 @@
     }
   }
 
-  // 24. agility — cyan speed-line trails radiating outward.
+  // 24. agility - cyan speed-line trails radiating outward.
   function drawAgility(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 12 : 6;
@@ -1556,7 +1556,7 @@
     }
   }
 
-  // 25. bite — two crescent fangs converge on target with dark pulse.
+  // 25. bite - two crescent fangs converge on target with dark pulse.
   function drawBite(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -1580,7 +1580,7 @@
     }
   }
 
-  // 26. freezewind — crystalline ice shards swirling cyclone-like.
+  // 26. freezewind - crystalline ice shards swirling cyclone-like.
   function drawFreezeWind(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const shards = fancy ? 10 : 4;
@@ -1605,7 +1605,7 @@
     }
   }
 
-  // 27. spectralhowl — ghostly face overlay + sound waves.
+  // 27. spectralhowl - ghostly face overlay + sound waves.
   function drawSpectralHowl(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     for (let i = 0; i < 3; i++) {
@@ -1624,7 +1624,7 @@
     }
   }
 
-  // 28. ghostgrip — spectral hand reaches up + grips target.
+  // 28. ghostgrip - spectral hand reaches up + grips target.
   function drawGhostGrip(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -1652,7 +1652,7 @@
     }
   }
 
-  // 29. dragonbreath — multi-colour flame jet (gold envelope, purple core).
+  // 29. dragonbreath - multi-colour flame jet (gold envelope, purple core).
   function drawDragonBreath(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.5);
@@ -1687,7 +1687,7 @@
     }
   }
 
-  // 30. fairykiss — heart bloom + lip-kiss outline + sparkle ring.
+  // 30. fairykiss - heart bloom + lip-kiss outline + sparkle ring.
   function drawFairyKiss(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.6);
@@ -1733,7 +1733,7 @@
   // New moves added in tandem to js/data.js MOVES. Each follows the same
   // tier-branched pattern: rich DS Diamond render + stripped GB/GBC/GBA.
 
-  // 31. megapunch — wind-up ring → giant glove punches in with screen flash.
+  // 31. megapunch - wind-up ring → giant glove punches in with screen flash.
   function drawMegaPunch(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.45) {
@@ -1762,7 +1762,7 @@
     }
   }
 
-  // 32. bodyslam — silhouette drops from top, dust-ring shockwave on contact.
+  // 32. bodyslam - silhouette drops from top, dust-ring shockwave on contact.
   function drawBodySlam(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.55) {
@@ -1797,7 +1797,7 @@
     }
   }
 
-  // 33. magmaburst — fire pillar erupts from the ground + lava splatter.
+  // 33. magmaburst - fire pillar erupts from the ground + lava splatter.
   function drawMagmaBurst(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -1834,7 +1834,7 @@
     }
   }
 
-  // 34. solarflare — focused ray descends from sky-disc, scorch ring at landing.
+  // 34. solarflare - focused ray descends from sky-disc, scorch ring at landing.
   function drawSolarFlare(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Sky-disc at top.
@@ -1872,7 +1872,7 @@
     }
   }
 
-  // 35. tidalwave — full-width blue wave sweeps with foam crest.
+  // 35. tidalwave - full-width blue wave sweeps with foam crest.
   function drawTidalWave(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Wave silhouette sweeping left → right.
@@ -1906,7 +1906,7 @@
     }
   }
 
-  // 36. icebeam — cyan beam converges to target, crystals form on impact.
+  // 36. icebeam - cyan beam converges to target, crystals form on impact.
   function drawIceBeam(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.55) {
@@ -1947,7 +1947,7 @@
     }
   }
 
-  // 37. avalanche — cascading ice chunks tumble in from above.
+  // 37. avalanche - cascading ice chunks tumble in from above.
   function drawAvalanche(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 10 : 4;
@@ -1980,7 +1980,7 @@
     }
   }
 
-  // 38. thunderclap — two angular forks crack from corners + screen flash.
+  // 38. thunderclap - two angular forks crack from corners + screen flash.
   function drawThunderclap(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p > 0.1 && p < 0.55) {
@@ -2014,7 +2014,7 @@
     }
   }
 
-  // 39. voltcage — vertical electric prison bars with zaps between.
+  // 39. voltcage - vertical electric prison bars with zaps between.
   function drawVoltCage(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const bars = fancy ? 5 : 3;
@@ -2041,7 +2041,7 @@
     }
   }
 
-  // 40. hurricaneblast — tight rotating cyclone with leaf debris.
+  // 40. hurricaneblast - tight rotating cyclone with leaf debris.
   function drawHurricaneBlast(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Cyclone: stacked ellipses with wobble.
@@ -2072,7 +2072,7 @@
     }
   }
 
-  // 41. skyrend — diving streak from top-right + feather trail + dust.
+  // 41. skyrend - diving streak from top-right + feather trail + dust.
   function drawSkyRend(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -2106,7 +2106,7 @@
     }
   }
 
-  // 42. earthquake — cracks split outward, screen tremor shake.
+  // 42. earthquake - cracks split outward, screen tremor shake.
   function drawEarthquake(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Tremor: small random offset.
@@ -2142,7 +2142,7 @@
     }
   }
 
-  // 43. sandstorm — diagonal sand sheets across screen + swirling motes.
+  // 43. sandstorm - diagonal sand sheets across screen + swirling motes.
   function drawSandstorm(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Diagonal sand sheets.
@@ -2172,7 +2172,7 @@
     }
   }
 
-  // 44. rockslide — 6-8 rocks raining diagonally with impact dust pings.
+  // 44. rockslide - 6-8 rocks raining diagonally with impact dust pings.
   function drawRockSlide(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 8 : 4;
@@ -2198,7 +2198,7 @@
     }
   }
 
-  // 45. stoneedge — stone spike thrusts up from the ground.
+  // 45. stoneedge - stone spike thrusts up from the ground.
   function drawStoneEdge(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.6);
@@ -2239,7 +2239,7 @@
     }
   }
 
-  // 46. petalstorm — pink/green petals spiral around target.
+  // 46. petalstorm - pink/green petals spiral around target.
   function drawPetalStorm(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 14 : 6;
@@ -2269,7 +2269,7 @@
     }
   }
 
-  // 47. rootbind — roots grow from below wrapping the target.
+  // 47. rootbind - roots grow from below wrapping the target.
   function drawRootBind(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.7);
@@ -2301,7 +2301,7 @@
     }
   }
 
-  // 48. toxicgas — expanding green-purple gas cloud with bubble pops.
+  // 48. toxicgas - expanding green-purple gas cloud with bubble pops.
   function drawToxicGas(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (fancy) {
@@ -2322,7 +2322,7 @@
     }
   }
 
-  // 49. venomtide — purple wave sweeping in with dripping toxic mist.
+  // 49. venomtide - purple wave sweeping in with dripping toxic mist.
   function drawVenomTide(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const xOff = -24 + p * 48;
@@ -2355,7 +2355,7 @@
     }
   }
 
-  // 50. mindcrush — eight psychic shards converge from outside toward centre.
+  // 50. mindcrush - eight psychic shards converge from outside toward centre.
   function drawMindCrush(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const shards = 8;
@@ -2387,7 +2387,7 @@
     }
   }
 
-  // 51. telekinesis — target framed by floating energy lift lines.
+  // 51. telekinesis - target framed by floating energy lift lines.
   function drawTelekinesis(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Lift lines: 4 angular lines pulling upward.
@@ -2415,7 +2415,7 @@
     }
   }
 
-  // 52. swarmstrike — bug silhouettes dart inward in flurries.
+  // 52. swarmstrike - bug silhouettes dart inward in flurries.
   function drawSwarmStrike(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 12 : 6;
@@ -2440,7 +2440,7 @@
     }
   }
 
-  // 53. karatechop — quick downward chop with sharp motion line.
+  // 53. karatechop - quick downward chop with sharp motion line.
   function drawKarateChop(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.5);
@@ -2472,7 +2472,7 @@
     }
   }
 
-  // 54. focusblast — charging orb → bursts outward in a ring.
+  // 54. focusblast - charging orb → bursts outward in a ring.
   function drawFocusBlast(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.6) {
@@ -2507,7 +2507,7 @@
     }
   }
 
-  // 55. shadowstrike — dark tendril stabs across screen with shadow wake.
+  // 55. shadowstrike - dark tendril stabs across screen with shadow wake.
   function drawShadowStrike(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.45);
@@ -2541,7 +2541,7 @@
     }
   }
 
-  // 56. nightveil — dark curtain falls from top, target dim under it.
+  // 56. nightveil - dark curtain falls from top, target dim under it.
   function drawNightVeil(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.7);
@@ -2570,7 +2570,7 @@
     }
   }
 
-  // 57. hauntcurse — purple runes circle target, eyes blink, then dim flash.
+  // 57. hauntcurse - purple runes circle target, eyes blink, then dim flash.
   function drawHauntCurse(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const runes = fancy ? 6 : 3;
@@ -2600,7 +2600,7 @@
     }
   }
 
-  // 58. phantompulse — translucent pulse wave with ghostly afterimage.
+  // 58. phantompulse - translucent pulse wave with ghostly afterimage.
   function drawPhantomPulse(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Three pulse waves staggered.
@@ -2621,7 +2621,7 @@
     }
   }
 
-  // 59. dragonpulse — concentric draconic energy rings, gold/purple core.
+  // 59. dragonpulse - concentric draconic energy rings, gold/purple core.
   function drawDragonPulse(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (fancy) {
@@ -2647,7 +2647,7 @@
     }
   }
 
-  // 60. stardust — twinkling cosmic dust falling around target.
+  // 60. stardust - twinkling cosmic dust falling around target.
   function drawStardust(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 18 : 7;
@@ -2673,7 +2673,7 @@
   // ---- 34 more signature move effects (v0.52.0) ------------------------
   // New moves added in tandem to js/data.js MOVES. Tier-branched as usual.
 
-  // 61. doublestrike — two staggered impact stars + connecting streak.
+  // 61. doublestrike - two staggered impact stars + connecting streak.
   function drawDoubleStrike(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const stages = [0.1, 0.45];
@@ -2695,7 +2695,7 @@
     }
   }
 
-  // 62. recklesscharge — full-width motion blur sweep + big dust + flinch lines.
+  // 62. recklesscharge - full-width motion blur sweep + big dust + flinch lines.
   function drawRecklessCharge(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -2729,7 +2729,7 @@
     }
   }
 
-  // 63. firefist — glowing red-orange fist with flame trail punching in.
+  // 63. firefist - glowing red-orange fist with flame trail punching in.
   function drawFireFist(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -2759,7 +2759,7 @@
     }
   }
 
-  // 64. searingbeam — sustained pillar of fire on target with shimmer haze.
+  // 64. searingbeam - sustained pillar of fire on target with shimmer haze.
   function drawSearingBeam(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Pillar height pulses.
@@ -2788,7 +2788,7 @@
     }
   }
 
-  // 65. willowisp — three flickering wisps orbit target before settling.
+  // 65. willowisp - three flickering wisps orbit target before settling.
   function drawWillOWisp(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 3 : 2;
@@ -2819,7 +2819,7 @@
     }
   }
 
-  // 66. dive — splash crown above, underwater shadow glides, spray on emergence.
+  // 66. dive - splash crown above, underwater shadow glides, spray on emergence.
   function drawDive(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.35) {
@@ -2863,7 +2863,7 @@
     }
   }
 
-  // 67. tideguard — curved water barrier swells up with ripple highlights.
+  // 67. tideguard - curved water barrier swells up with ripple highlights.
   function drawTideGuard(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -2901,7 +2901,7 @@
     }
   }
 
-  // 68. thunderfang — lightning-shaped fangs converge with crackle arc.
+  // 68. thunderfang - lightning-shaped fangs converge with crackle arc.
   function drawThunderFang(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -2940,7 +2940,7 @@
     }
   }
 
-  // 69. zaplance — spear-shaped lightning bolt thrusts forward.
+  // 69. zaplance - spear-shaped lightning bolt thrusts forward.
   function drawZapLance(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -2977,7 +2977,7 @@
     }
   }
 
-  // 70. forestburst — leaves erupt outward from target in a green ring.
+  // 70. forestburst - leaves erupt outward from target in a green ring.
   function drawForestBurst(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const n = fancy ? 12 : 6;
@@ -3006,7 +3006,7 @@
     }
   }
 
-  // 71. seedshot — 3 seeds arc inward, each sprouts on impact.
+  // 71. seedshot - 3 seeds arc inward, each sprouts on impact.
   function drawSeedShot(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const stages = [0, 0.18, 0.36];
@@ -3033,7 +3033,7 @@
     }
   }
 
-  // 72. icefang — crystalline fangs bite down, frost rings spread.
+  // 72. icefang - crystalline fangs bite down, frost rings spread.
   function drawIceFang(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -3064,7 +3064,7 @@
     }
   }
 
-  // 73. flashfreeze — sudden white flash → target encased in crystal lattice.
+  // 73. flashfreeze - sudden white flash → target encased in crystal lattice.
   function drawFlashFreeze(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Flash.
@@ -3103,10 +3103,10 @@
     }
   }
 
-  // 74. ironfist — metal aura forms two gauntlet outlines around user's fists.
+  // 74. ironfist - metal aura forms two gauntlet outlines around user's fists.
   function drawIronFist(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
-    // Two fists at user's sides (user is the target box here — we draw on user side).
+    // Two fists at user's sides (user is the target box here - we draw on user side).
     for (let s = -1; s <= 1; s += 2) {
       const fx = cx + s * 12;
       // Gauntlet outline (rounded rect).
@@ -3136,7 +3136,7 @@
     }
   }
 
-  // 75. tailspike — long thin barbed tail strikes from below with venom drips.
+  // 75. tailspike - long thin barbed tail strikes from below with venom drips.
   function drawTailSpike(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -3183,7 +3183,7 @@
     }
   }
 
-  // 76. terraquake — radial expanding wave with concentric crack rings.
+  // 76. terraquake - radial expanding wave with concentric crack rings.
   function drawTerraquake(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Three concentric rings rippling outward.
@@ -3213,7 +3213,7 @@
     }
   }
 
-  // 77. dustbomb — brown explosion plume with dust cloud expanding.
+  // 77. dustbomb - brown explosion plume with dust cloud expanding.
   function drawDustBomb(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.3) {
@@ -3248,7 +3248,7 @@
     }
   }
 
-  // 78. aerialace — two crisscrossing slashes (priority, near-instant feel).
+  // 78. aerialace - two crisscrossing slashes (priority, near-instant feel).
   function drawAerialAce(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Stage 1: slash from top-left to bottom-right.
@@ -3272,7 +3272,7 @@
     }
   }
 
-  // 79. roost — wings fold down, soft dust settles, user pulses warm light.
+  // 79. roost - wings fold down, soft dust settles, user pulses warm light.
   function drawRoost(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Wings curving down at user's sides.
@@ -3301,7 +3301,7 @@
     }
   }
 
-  // 80. mindflay — translucent psychic tendrils wrap target, sine-warp distortion.
+  // 80. mindflay - translucent psychic tendrils wrap target, sine-warp distortion.
   function drawMindFlay(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Tendrils: 4 wavy lines from each side spiraling around.
@@ -3333,7 +3333,7 @@
     }
   }
 
-  // 81. cosmicward — constellation of stars connect into hexagonal shield.
+  // 81. cosmicward - constellation of stars connect into hexagonal shield.
   function drawCosmicWard(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -3365,7 +3365,7 @@
     }
   }
 
-  // 82. gravitywell — concentric inward rings + 8 inward dust streaks.
+  // 82. gravitywell - concentric inward rings + 8 inward dust streaks.
   function drawGravityWell(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Inward-collapsing rings.
@@ -3390,7 +3390,7 @@
     }
   }
 
-  // 83. solarcharge — cyan orb charges → releases as focused beam.
+  // 83. solarcharge - cyan orb charges → releases as focused beam.
   function drawSolarCharge(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.5) {
@@ -3435,7 +3435,7 @@
     }
   }
 
-  // 84. siphonfang — long proboscis stab + glowing energy flows back.
+  // 84. siphonfang - long proboscis stab + glowing energy flows back.
   function drawSiphonFang(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.45);
@@ -3455,7 +3455,7 @@
     }
   }
 
-  // 85. crystalspear — translucent quartz spear thrusts in with prismatic light.
+  // 85. crystalspear - translucent quartz spear thrusts in with prismatic light.
   function drawCrystalSpear(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -3493,7 +3493,7 @@
     }
   }
 
-  // 86. lifedrain — purple tether between attacker and target.
+  // 86. lifedrain - purple tether between attacker and target.
   function drawLifeDrain(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Tether: wavy line from off-screen-left to target.
@@ -3522,7 +3522,7 @@
     }
   }
 
-  // 87. dragondance — dragon glyph spirals around user in gold flame.
+  // 87. dragondance - dragon glyph spirals around user in gold flame.
   function drawDragonDance(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Spiraling dragon trail: 3 segments tracing around user.
@@ -3554,7 +3554,7 @@
     }
   }
 
-  // 88. tripledagger — three diagonal blade-flash slashes in rapid succession.
+  // 88. tripledagger - three diagonal blade-flash slashes in rapid succession.
   function drawTripleDagger(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const stages = [0, 0.15, 0.3];
@@ -3578,9 +3578,9 @@
     }
   }
 
-  // 89. honehook — two bronze/gold crescent fangs rasp together with
+  // 89. honehook - two bronze/gold crescent fangs rasp together with
   // bright orange sparks + a "stat up" arrow indicator. (Reworked in
-  // v0.52.1 — old near-white-on-white was nearly invisible.)
+  // v0.52.1 - old near-white-on-white was nearly invisible.)
   function drawHoneHook(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const off = Math.sin(p * 18) * 4;
@@ -3643,7 +3643,7 @@
     }
   }
 
-  // 90. magnetburst — two magnetic poles arc lightning then explode.
+  // 90. magnetburst - two magnetic poles arc lightning then explode.
   function drawMagnetBurst(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     if (p < 0.55) {
@@ -3695,7 +3695,7 @@
     }
   }
 
-  // 91. mirrorshield — chrome mirror plate raises in front of user.
+  // 91. mirrorshield - chrome mirror plate raises in front of user.
   function drawMirrorShield(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.55);
@@ -3733,7 +3733,7 @@
     }
   }
 
-  // 92. metalsong — bell-strike rings + audible curve waveforms.
+  // 92. metalsong - bell-strike rings + audible curve waveforms.
   function drawMetalSong(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     // Bell silhouette at centre.
@@ -3785,7 +3785,7 @@
     }
   }
 
-  // 93. moonlight — crescent moon rises overhead with soft silver glow.
+  // 93. moonlight - crescent moon rises overhead with soft silver glow.
   function drawMoonlight(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const k = Math.min(1, p / 0.6);
@@ -3813,7 +3813,7 @@
     }
   }
 
-  // 94. mistygale — pastel gust sweeps over target with pink-white misty trails.
+  // 94. mistygale - pastel gust sweeps over target with pink-white misty trails.
   function drawMistyGale(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const xOff = -20 + p * 40;
@@ -3959,7 +3959,7 @@
 
   // Move-id overrides may want a longer / shorter timeline than the
   // type default. Defaults to 0.7s for type effects, 0.85s for signature
-  // overrides — long enough for the multi-stage anims to read.
+  // overrides - long enough for the multi-stage anims to read.
   const DURATIONS = {
     zapburst:    0.95,
     gust:        0.90,
@@ -3989,7 +3989,7 @@
     dazzle:      0.90,
     ghostgrip:   0.90,
     fairykiss:   0.85,
-    // v0.52.1 — visibility rework.
+    // v0.52.1 - visibility rework.
     tailwhip:    0.85,
     // v0.51.0 multi-stage signatures.
     avalanche:      1.00,

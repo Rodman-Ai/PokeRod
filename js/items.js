@@ -146,7 +146,7 @@
     old_rod: {
       id:'old_rod', name:'OLD ROD',
       desc:'A simple rod for fishing in any water.',
-      detail:'Weathered cane rod with a red bobber. Face water — A casts a line, B surfs (with a WATER ally).',
+      detail:'Weathered cane rod with a red bobber. Face water - A casts a line, B surfs (with a WATER ally).',
       kind:'key', icon:'rod', color:'#c08040', accent:'#e84848',
       key:true, price:0
     },

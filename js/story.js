@@ -3,7 +3,7 @@
 // Drives ~50 walk-up cutscenes that fire at progression milestones (catch
 // counts, level-ups, gym wins, hidden items, whiteouts, big spends, first /
 // repeat visits to specific maps). Hooks into existing event sites in
-// battle.js, world.js, game.js, shop.js — those callers fire
+// battle.js, world.js, game.js, shop.js - those callers fire
 //   PR_STORY.emit(state, event, payload)
 // after the canonical state mutation, and PR_STORY.tryEncounter scans the
 // encounter table for the highest-priority eligible entry. If anything
@@ -243,7 +243,7 @@
       // No walkable off-screen tile? Plant the NPC adjacent and skip
       // the walk-in. Common in cramped interiors like the lab right
       // after the starter pick. We jump straight to 'speak' here and
-      // open the first scene step at the end of this function — if we
+      // open the first scene step at the end of this function - if we
       // left phase as 'enter' (or 'walk_in' with an empty path), the
       // tick loop has nothing to advance and the cutscene mode locks
       // the game until refresh.
@@ -286,7 +286,7 @@
 
   // Walk a 4-direction BFS over walkable tiles toward a goal tile. Capped
   // for cost. Returns an array of [x,y] from start to (one tile before)
-  // goal — we stop one tile before the goal so the NPC ends adjacent.
+  // goal - we stop one tile before the goal so the NPC ends adjacent.
   function pathTo(world, sx, sy, gx, gy, maxNodes) {
     maxNodes = maxNodes || 80;
     const seen = new Set();
@@ -401,7 +401,7 @@
         cs.stepTimer = 0.16; // tile per ~160ms; matches player walk speed
         const next = cs.homePath[cs.pathIdx + 1];
         if (!next) {
-          // Arrived adjacent — face the player.
+          // Arrived adjacent - face the player.
           cs.npc.dir = facingTo(cs.npc.x, cs.npc.y, world.player.x, world.player.y);
           cs.phase = 'speak';
           openSceneStep(state);
@@ -452,7 +452,7 @@
     const cs = state.cutscene;
     if (!cs || cs.phase !== 'speak') return;
     if (cs.sceneIdx >= cs.steps.length) {
-      // Scene done — start walking out.
+      // Scene done - start walking out.
       cs.phase = 'walk_out';
       cs.outPath = null; cs.outIdx = 0; cs.stepTimer = 0.16;
       return;
@@ -573,7 +573,7 @@
     state.mode = 'overworld';
     if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
     // Try to drain another queued encounter (e.g. catch + level_up arriving
-    // in the same frame — the second one queues; this lets it fire next).
+    // in the same frame - the second one queues; this lets it fire next).
     setTimeout(() => drainQueue(state), 100);
   }
 
@@ -600,7 +600,7 @@
   }
 
   // Auto-prefix the speaker name unless a line already includes a colon
-  // or the speaker is empty. Cosmetic — keeps dialog consistent with
+  // or the speaker is empty. Cosmetic - keeps dialog consistent with
   // cutscenes which do the same prefix.
   function prefixWithName(name, lines) {
     if (!name || !Array.isArray(lines)) return lines || ['...'];
@@ -660,7 +660,7 @@
   }
 
   // Install all home characters as resident NPCs in their `home.map`.
-  // Mutates the static MAPS table (idempotent — won't add duplicates if
+  // Mutates the static MAPS table (idempotent - won't add duplicates if
   // called twice during hot reload).
   function installCharacterHomes(MAPS) {
     if (!MAPS) return;

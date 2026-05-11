@@ -245,8 +245,8 @@ function applyBorderRing(grid, kind, opts) {
     switch (kind) {
       // Tall blocking codes mixed with walkable ground-cover ('c'
       // flowerbush, '1' flowergrass, 'k' snowybush, 'b' bush) so
-      // the border has rhythm — tree, tree, BUSH, tree, GRASS,
-      // tree — instead of a solid wall.
+      // the border has rhythm - tree, tree, BUSH, tree, GRASS,
+      // tree - instead of a solid wall.
       case 'forest':     return ['Y','T','c','Y','b','T','1'];
       case 'darkforest': return ['G','U','V','c','G','j','b'];
       case 'pines':      return ['Q','k','Q','2','Q','c'];
@@ -286,7 +286,7 @@ function makeCityHubTiles(cfg) {
   }
   for (let y = 0; y < CITY_H; y++) {
     // Don't overwrite a corner tile that the previous pass already
-    // set to 'X' — this previously wiped (0,0) when only north was
+    // set to 'X' - this previously wiped (0,0) when only north was
     // an edge but west wasn't, leaving the north edge corner as
     // fill (tree) and isolating the row-0 X strip.
     if (grid[y][0] !== 'X') putTile(grid, 0, y, cfg.edges && cfg.edges.west ? 'X' : fill);
@@ -440,7 +440,7 @@ const MAPS = {
       { species:'swan',     x:38, y:26, range:2, swim:true }
     ],
     signs: {
-      '3,11': "RODPORT TOWN — Where every adventure begins.",
+      '3,11': "RODPORT TOWN - Where every adventure begins.",
       '1,15': "A late desert road loops back here. Come prepared.",
     },
     doors: {
@@ -562,7 +562,7 @@ const MAPS = {
                    defeat:["Aww, you got me!","I need more training."] } }
     ],
     signs: {
-      '16,6': "ROUTE 1 — Tall grass hides wild creatures. Walk carefully."
+      '16,6': "ROUTE 1 - Tall grass hides wild creatures. Walk carefully."
     },
     encounters: [
       { species:'nibblet',     minL:2, maxL:4, weight:5 },
@@ -1597,12 +1597,12 @@ const MAPS = {
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_oak', name:'CHAMPION ROWE',
         gym:true, badge:'CINDER',
-        dialog:["You climbed all the way to SUMMITVALE!","I am ROWE — the FIRE-typed CHAMPION.","If you've earned every other BADGE, I'll grant you the CINDER BADGE. If you can take it."],
+        dialog:["You climbed all the way to SUMMITVALE!","I am ROWE - the FIRE-typed CHAMPION.","If you've earned every other BADGE, I'll grant you the CINDER BADGE. If you can take it."],
         gymRequirement:{ minBadges:7 },
         gymLocked:["Earn all seven other BADGES first.","Only then will I face you."],
         trainer:{ team:[['emberkit',38],['flarebound',40],['magmaron',42],['infernarok',46]],
                   reward:5000,
-                  defeat:["Magnificent! The CINDER BADGE — and the title of CHAMPION — are yours."] } },
+                  defeat:["Magnificent! The CINDER BADGE - and the title of CHAMPION - are yours."] } },
       { x:5, y:13, dir:'down', sprite:'npc_old', name:'PEAK TRADER',
         dialog:["I climb down once a season.","My brews are distilled from peak air itself."],
         shop:{ greeting:["The PEAK TRADER's tent.","Summit brews for desperate trainers."], extraItems:['summit_brew'] } }
@@ -1803,9 +1803,9 @@ desert: {
     npcs: [
       { x:28, y:12, dir:'down', sprite:'npc_youth', name:'GYM LEADER VOLTA',
         gym:true, badge:'SPARK',
-        dialog:["I am VOLTA, leader of the HIGHSPIRE GYM.","The mountain crackles with electric storms — and so does my team!"],
+        dialog:["I am VOLTA, leader of the HIGHSPIRE GYM.","The mountain crackles with electric storms - and so does my team!"],
         gymRequirement:{ minBadges:3 },
-        gymLocked:["The path here is steep — earn at least three BADGES first.","Then we'll see if you can ride the lightning."],
+        gymLocked:["The path here is steep - earn at least three BADGES first.","Then we'll see if you can ride the lightning."],
         trainer:{ team:[['voltkit',24],['zapret',26],['voltlynx',28]],
                   reward:2000,
                   defeat:["A shocking win! The SPARK BADGE is yours."] } }
@@ -1979,7 +1979,7 @@ function applyWorldExpansion(MAPS) {
     if (cfg.weather) map.weather = cfg.weather;
   }
 
-  // RODPORT — coastal starter village. Linear east-west layout
+  // RODPORT - coastal starter village. Linear east-west layout
   // hugging a harbor, with a wooden pier and lighthouse landmark on
   // the east side. Forest border on the north + west.
   const rodportBuildings = [
@@ -2024,7 +2024,7 @@ function applyWorldExpansion(MAPS) {
       { x:12, y:10, w:7, h:1, code:'_' }
     ],
     features:[
-      // Harbor water — east half of the lower map (clear of column 22 spine).
+      // Harbor water - east half of the lower map (clear of column 22 spine).
       { x:25, y:25, w:17, h:7, code:'W' },
       // Western harbor pocket (leaves col 0..1 clear for west edge).
       { x:2,  y:28, w:14, h:4, code:'W' },
@@ -2086,7 +2086,7 @@ function applyWorldExpansion(MAPS) {
       { x:21, y:17, key:'bench_park_brown' },
       { x:28, y:17, key:'bench_park_brown' },
       { x:24, y:14, key:'water_fountain_round' },
-      // Cottage-front pots — placed in the gaps between cottages
+      // Cottage-front pots - placed in the gaps between cottages
       // (not directly under walls) so they read as garden bouquets
       // instead of items glued to the building.
       { x:10, y:11, key:'pot_terracotta_red' },
@@ -2124,7 +2124,7 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
-  // BRINDALE — concentric garden city. Buildings ring a central
+  // BRINDALE - concentric garden city. Buildings ring a central
   // fountain plaza. Cherry-arch landmarks frame the north/south
   // entrances. Hedge border for a formal-garden feel.
   const brindaleBuildings = [
@@ -2204,7 +2204,7 @@ function applyWorldExpansion(MAPS) {
         dialog:["BRUNO, drop the FLOWER. I said DROP."] }
     ],
     decorations:[
-      // CHERRY ARCH at the north entrance — the iconic landmark.
+      // CHERRY ARCH at the north entrance - the iconic landmark.
       { x:21, y:9, key:'cherry_arch' },
       // Central fountain in the plaza heart.
       { x:22, y:17, key:'water_fountain_round' },
@@ -2255,7 +2255,7 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
-  // WOODFALL — winding forest village. Curved mossy paths weave
+  // WOODFALL - winding forest village. Curved mossy paths weave
   // around a giant ancient oak landmark in the center. Torii gate
   // marks the north entrance. Dense ancient-tree border.
   const woodfallBuildings = [
@@ -2315,13 +2315,13 @@ function applyWorldExpansion(MAPS) {
         dialog:["I carve charm-totems from fallen wood.","Each design tells a story of the forest."] },
       { x:28, y:20, dir:'left',  sprite:'npc_dog_walker',  name:'WALKER OREN', wander:{ range:1 },
         dialog:["RUFUS sniffs out berry bushes for me."] },
-      // Moved off (22,25) — the gym building's central path runs straight
+      // Moved off (22,25) - the gym building's central path runs straight
       // through that tile (z `path_moss` carved across the roof footprint
       // for visual continuity), so Mae sat on the corridor leading down
       // to the gym door at (22,27). With wander she'd drift to (22,26),
       // visually obscuring the door entrance for any approaching player.
       // (10,22) puts her on the main east-west moss thoroughfare in the
-      // village square — a sensible spot for a jogger and clearly off
+      // village square - a sensible spot for a jogger and clearly off
       // the gym's entry path.
       { x:10, y:22, dir:'right', sprite:'npc_jogger',      name:'TRAILRUNNER MAE', wander:{ range:1 },
         dialog:["Cross-country, twenty kilometers a day!"],
@@ -2383,7 +2383,7 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
-  // CRESTROCK — terraced rocky town. Two-tier layout connected by a
+  // CRESTROCK - terraced rocky town. Two-tier layout connected by a
   // gravel staircase. Meteor pedestal landmark in the central plaza.
   // Mining cart on rails near the workshop. Rocks border on most sides.
   const crestrockBuildings = [
@@ -2400,7 +2400,7 @@ function applyWorldExpansion(MAPS) {
     borderRing:{ kind:'rocks', thickness:2, edges:{ west:true, east:true }, seed:10 },
     buildings:crestrockBuildings,
     paths:[
-      // Upper terrace — shop row east-west.
+      // Upper terrace - shop row east-west.
       { points:[[2,11],[42,11]], radius:1 },
       // Building door spurs (upper).
       { points:[[7,8],[7,11]], radius:0 },
@@ -2408,9 +2408,9 @@ function applyWorldExpansion(MAPS) {
       { points:[[34,8],[34,11]], radius:0 },
       // Staircase (gravel) connecting upper to lower terrace.
       { points:[[22,11],[22,21]], radius:1, code:';' },
-      // Lower terrace — gym row.
+      // Lower terrace - gym row.
       { points:[[2,21],[42,21]], radius:1 },
-      // Door spurs (lower) — extended down to building exits.
+      // Door spurs (lower) - extended down to building exits.
       { points:[[9,21],[9,26]], radius:0 },
       { points:[[28,21],[28,26]], radius:0 },
       // North entrance from pebblewood.
@@ -2514,7 +2514,7 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
-  // FROSTMERE — frozen lake town. Big lake fills the southwest;
+  // FROSTMERE - frozen lake town. Big lake fills the southwest;
   // walking paths wrap around it. Hot spring + ice sculpture
   // landmark behind the inn. Dense snowy-pine border.
   const frostmereBuildings = [
@@ -2555,7 +2555,7 @@ function applyWorldExpansion(MAPS) {
       { x:24, y:22, w:9, h:3, code:'_' }
     ],
     features:[
-      // FROZEN LAKE — fills the southwest quadrant.
+      // FROZEN LAKE - fills the southwest quadrant.
       { x:3,  y:18, w:14, h:9, code:'W' },
       // Snowy bushes around the lake.
       { x:3,  y:14, w:8, h:3, code:'k' },
@@ -2641,7 +2641,7 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
-  // HARBORSIDE — major commercial port. L-shaped: city occupies the
+  // HARBORSIDE - major commercial port. L-shaped: city occupies the
   // north + west, two piers extend east and south into the water.
   // LIGHTHOUSE on the eastern pier; FISH MARKET stall on the south
   // boardwalk. Palm-tree border on dry sides, water on east/south.
@@ -2785,7 +2785,7 @@ function applyWorldExpansion(MAPS) {
     }
   });
 
-  // SUMMITVALE — champion's plateau. Star-shaped plaza in the center
+  // SUMMITVALE - champion's plateau. Star-shaped plaza in the center
   // with an OBELISK landmark; eight paths radiate outward to the
   // ring road. Champion statues at the cardinal corners. Birch
   // border + scattered desert tiles bleeding in from the east edge.
@@ -3377,7 +3377,7 @@ function applyWorldExpansion(MAPS) {
     edges:{ west:{ x:0, to:'summitvale', tx:42, ty:17 }, east:{ x:47, to:'rodport', tx:1, ty:17 } }
   });
 
-  // Interior exits — coords match the new redesigned city layouts.
+  // Interior exits - coords match the new redesigned city layouts.
   // Each (x, y) is the city tile the player stands on after exiting.
   updateExit('player_house', '3,6', 'rodport', 6, 10);
   updateExit('rival_house', '3,6', 'rodport', 15, 10);
