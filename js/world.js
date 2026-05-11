@@ -367,9 +367,18 @@
   // because the canvas Y scale interpolated against the red level-tuft
   // pixels baked into atlas frames and produced pink artifacts at the
   // sprite base. The drop shadow alone keeps the 2.5D 'grounded' feel.
+  //
+  // Character sprites are 32x32 frames but the art only fills the
+  // upper ~26 px (head + body + feet at y≈22-26, transparent below).
+  // Smaller sprites (followers / creatures at 20x20) similarly have
+  // their feet around y≈14-15 of their frame. Without compensation
+  // the shadow drops at the FRAME edge — visibly far below the feet.
+  // The feet-up offset scales with sprite height (~22% of sh) so it
+  // lands roughly where the character is standing.
   function withTilt(ctx, sx, sy, sw, sh, draw) {
     if (!tiltActive()) { draw(); return; }
-    drawShadow(ctx, sx + sw / 2, sy + sh - 1, sw, spriteShadowOpts());
+    const feetUp = Math.max(3, Math.round(sh * 0.22));
+    drawShadow(ctx, sx + sw / 2, sy + sh - feetUp, sw, spriteShadowOpts());
     draw();
   }
   // Tall-tile shadow: drops a soft elliptical shadow at the base of
@@ -430,7 +439,7 @@
       centerAlpha: 0.36,
       color: '0,0,0',
       offsetX: -azim * 2.4,                 // -ve early, +ve late
-      offsetY: 1 + (1 - sunHeight) * 4,     // 1 at noon, 5 at low sun
+      offsetY: 0.5 + (1 - sunHeight) * 1.5,  // 0.5 at noon, 2.0 at low sun
       lengthScale: 0.85 + (1 - sunHeight) * 0.95,  // 0.85 noon, 1.8 dusk
       alphaScale: 0.25 + sunHeight * 0.85   // 0.25 night, 1.10 noon
     };
@@ -2803,11 +2812,12 @@
     // because the bottom screen already shows the same minimap.
     if (!cur.interior && !tiltActive()) drawMinimap(ctx, cur, this.player.x, this.player.y);
 
-    // In-game clock (top-right). The phase icon now sits inside the
-    // same top-right cluster (drawn by drawWorldClock) so the player
-    // reads them as a single time indicator. Always shown in the
-    // overworld so the time is visible even with the cycle disabled.
-    drawWorldClock(ctx, VIEW_W, this.player.steps || 0);
+    // In-game clock (top-right). The phase icon sits inside the same
+    // top-right cluster (drawn by drawWorldClock) so the player reads
+    // them as a single time indicator. In DS Diamond mode the bottom
+    // screen already displays the time + phase, so we skip the
+    // top-screen overlay to keep the world view clean.
+    if (!tiltActive()) drawWorldClock(ctx, VIEW_W, this.player.steps || 0);
 
     // Map name banner on entry.
     if (this.justEntered) {
