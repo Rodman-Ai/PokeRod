@@ -25,8 +25,6 @@
     };
     const draw = SPECIES[species] || drawFallback;
     draw(set, rect, d, sp);
-    drawRedTuft(set, rect, d);
-    if (d.beard) drawRedBeard(set, rect, d);
   }
 
   // ---- Common helpers -----------------------------------------------------

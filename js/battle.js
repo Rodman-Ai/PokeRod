@@ -962,7 +962,7 @@
   };
 
   Battle.prototype.drawMeBox = function(ctx) {
-    const x = 132, y = 92, w = 100, h = 38;
+    const x = 132, y = 72, w = 100, h = 38;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
     window.PR_UI.drawText(ctx, this.me.nickname, x + 4, y + 4, '#202020');
     window.PR_UI.drawText(ctx, 'L' + this.me.level, x + w - 22, y + 4, '#202020');

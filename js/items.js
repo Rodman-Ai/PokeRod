@@ -186,6 +186,56 @@
       detail:'Held gear with mysterious warmth. Holder gains 50% more XP.',
       kind:'held_gear', icon:'egg', color:'#f8f0d8', accent:'#f0c020',
       holdable:true, xpMult:1.50, price:4000
+    },
+    // ---- Outdoor-vendor exclusives (one per town, not stocked at Marts) ----
+    wave_charm: {
+      id:'wave_charm', name:'WAVE CHARM',
+      desc:'Shore-side trinket. Party XP +15%.',
+      detail:'Rodport vendor exclusive. A salt-polished charm that hums with shore luck.',
+      kind:'trainer_gear', icon:'charm', color:'#3878d8', accent:'#a8e0ff',
+      slot:'trinket', xpMult:1.15, price:800
+    },
+    farm_lunch: {
+      id:'farm_lunch', name:'FARM LUNCH',
+      desc:'A wrapped country lunch. Restores 80 HP.',
+      detail:'Brindale vendor exclusive. Warm bread and a hand-picked apple.',
+      kind:'heal', icon:'bottle', color:'#c8a050', accent:'#f0c890',
+      amount:80, target:'ally', price:350
+    },
+    wood_totem: {
+      id:'wood_totem', name:'WOOD TOTEM',
+      desc:'A held wooden totem. Holder XP +30%.',
+      detail:'Woodfall vendor exclusive. Carved from a single weathered branch.',
+      kind:'held_gear', icon:'bell', color:'#805030', accent:'#c89858',
+      holdable:true, xpMult:1.30, price:1200
+    },
+    mountain_kit: {
+      id:'mountain_kit', name:'MOUNTAIN KIT',
+      desc:'A climber’s kit. Party XP +20%.',
+      detail:'Crestrock vendor exclusive. Compass, flint and worn rope.',
+      kind:'trainer_gear', icon:'pendant', color:'#7a6048', accent:'#d0a878',
+      slot:'trinket', xpMult:1.20, price:1000
+    },
+    frost_charm: {
+      id:'frost_charm', name:'FROST CHARM',
+      desc:'A held frost charm. Holder XP +40%.',
+      detail:'Frostmere vendor exclusive. Always cold to the touch, never thaws.',
+      kind:'held_gear', icon:'egg', color:'#a8c8e8', accent:'#ffffff',
+      holdable:true, xpMult:1.40, price:1500
+    },
+    pearl_bauble: {
+      id:'pearl_bauble', name:'PEARL BAUBLE',
+      desc:'A sea-pearl draught. Restores 120 HP.',
+      detail:'Harborside vendor exclusive. Bottled with a single dockside pearl.',
+      kind:'heal', icon:'bottle', color:'#f0e8d0', accent:'#a8d0e0',
+      amount:120, target:'ally', price:600
+    },
+    summit_brew: {
+      id:'summit_brew', name:'SUMMIT BREW',
+      desc:'A peak-air revive. Full HP back.',
+      detail:'Summitvale vendor exclusive. Distilled from thin mountain air.',
+      kind:'revive', icon:'star', color:'#d8b860', accent:'#fff0a0',
+      ratio:1.0, target:'fainted', price:3500
     }
   };
 
