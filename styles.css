@@ -225,8 +225,11 @@ html, body {
 }
 
 #app::before {
+  /* Banner hidden in every era — the device shell starts at the bezel.
+     Kept the content var + padding/font properties below for an easy
+     revert if the marquee ever comes back. */
+  display: none;
   content: var(--shell-title);
-  display: block;
   width: 100%;
   padding: 14px 20px 10px;
   font-size: 11px;
@@ -244,7 +247,7 @@ html, body {
 
 #version {
   position: fixed;
-  top: 8px; right: 8px;
+  bottom: 8px; right: 8px;
   z-index: 100;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 8px;

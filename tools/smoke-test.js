@@ -115,13 +115,6 @@ async function main() {
 
     const styleChecks = await page.evaluate(async () => {
       const styles = ['gb_red', 'gb_pocket', 'gbc_yellow', 'gba_firered', 'ds_diamond'];
-      const expectedTitles = {
-        gb_red: 'Nintendo GAME BOY',
-        gb_pocket: 'GAME BOY pocket',
-        gbc_yellow: 'GAME BOY COLOR',
-        gba_firered: 'GAME BOY ADVANCE',
-        ds_diamond: 'pokerod ds'
-      };
       const out = [];
       for (const id of styles) {
         const ok = await window.PR_ATLAS.setPreset(id);
@@ -132,11 +125,13 @@ async function main() {
         const p = cx.getImageData(c.width / 2 | 0, c.height / 2 | 0, 1, 1).data;
         const app = document.getElementById('app');
         const version = document.getElementById('version');
-        const title = getComputedStyle(app, '::before').content.replace(/^["']|["']$/g, '');
+        // Banner is intentionally display:none in v0.55.1+. Confirm it
+        // stays hidden in every era instead of checking its content.
+        const bannerDisplay = getComputedStyle(app, '::before').display;
         const versionPointer = getComputedStyle(version).pointerEvents;
         out.push({
           id, ok, active:window.PR_ATLAS.getPreset(), center:[p[0], p[1], p[2], p[3]],
-          title, expectedTitle:expectedTitles[id], versionPointer
+          bannerDisplay, versionPointer
         });
       }
       return out;
@@ -145,7 +140,7 @@ async function main() {
     for (const check of styleChecks) {
       const sum = check.center[0] + check.center[1] + check.center[2];
       if (!check.ok || check.active !== check.id || sum === 0 ||
-          check.title !== check.expectedTitle || check.versionPointer !== 'none') {
+          check.bannerDisplay !== 'none' || check.versionPointer !== 'none') {
         console.error('graphics preset failed:', check);
         exitCode = 2;
       }
