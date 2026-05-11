@@ -184,7 +184,7 @@
       r(rx(26, 3), neckBase - 7 - step, 3, 2, p.white);
       // Eye.
       r(rx(27, 1), neckBase - 6 - step, 1, 1, p.eye);
-      // Bill — orange with black tip.
+      // Bill - orange with black tip.
       r(rx(28, 3), neckBase - 6 - step, 3, 2, p.out);
       r(rx(28, 2), neckBase - 6 - step, 2, 1, p.bill);
       r(rx(30, 1), neckBase - 6 - step, 1, 1, p.dark);
@@ -217,7 +217,7 @@
     // Eyes.
     r(14, 8 + step, 1, 1, p.eye);
     r(17, 8 + step, 1, 1, p.eye);
-    // Bill — orange with black tip.
+    // Bill - orange with black tip.
     r(14, 10 + step, 4, 2, p.out);
     r(15, 10 + step, 2, 1, p.bill);
     r(16, 11 + step, 1, 1, p.dark);

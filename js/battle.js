@@ -855,9 +855,9 @@
     ctx.fillRect(140, 78, 90, 2);
     // Player platform.
     ctx.fillStyle = '#3a8030';
-    ctx.fillRect(10, 110, 90, 8);
+    ctx.fillRect(10, 82, 90, 8);
     ctx.fillStyle = '#2a6020';
-    ctx.fillRect(10, 118, 90, 2);
+    ctx.fillRect(10, 90, 90, 2);
 
     // Foe sprite.
     const foeFloat = (Math.sin(this.timer * 2) * 1) | 0;
@@ -865,8 +865,9 @@
     if (this.faintAnim.foe < 1 || this.foe.hp > 0) {
       window.PR_MONS.drawCreature(ctx, this.foe.species, 160, foeY, 48, false, this.foe);
     }
-    // Player sprite (back-ish view).
-    const meY = 86 - (this.faintAnim.me * 30);
+    // Player sprite (back-ish view). y=58 keeps the sprite fully above
+    // the y=112 menu/dialog band and aligned with the y=82 platform.
+    const meY = 58 - (this.faintAnim.me * 30);
     if (this.faintAnim.me < 1 || this.me.hp > 0) {
       window.PR_MONS.drawCreature(ctx, this.me.species, 24 + shakeX, meY, 56, true, this.me);
     }
@@ -885,13 +886,13 @@
       if (!reduced) {
         const a = this.activeAnim;
         // Sprite bounding boxes match the layout in drawFoeBox / drawMeBox:
-        // foe sprite at (140, 22), 64×64; player sprite at (24, 78), 64×64.
+        // foe sprite at (140, 22), 64x64; player sprite at (24, 50), 64x64.
         const tx = a.target === 'foe' ? 140 : 24;
-        const ty = a.target === 'foe' ? 22  : 78;
+        const ty = a.target === 'foe' ? 22  : 50;
         const tier = (window.PR_SETTINGS && window.PR_SETTINGS.graphics) || 'ds_diamond';
         // Critical hit pulse: gives the target sprite a brief
         // bright flash + 1px scale-up before the effect lands.
-        // DS only — basic tiers get plain effects.
+        // DS only - basic tiers get plain effects.
         if (this.critPulse > 0 && this.critPulseTarget === a.target && tier === 'ds_diamond') {
           const k = Math.min(1, this.critPulse / 0.25);
           ctx.save();

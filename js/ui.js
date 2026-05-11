@@ -65,7 +65,7 @@
   // CSS colour string and maps it through the active era's 4-tone
   // palette so the UI matches the scene.
   //
-  // gb_red / gb_pocket only — every other era (gbc / gba / ds) gets
+  // gb_red / gb_pocket only - every other era (gbc / gba / ds) gets
   // the colour back unchanged.
   //
   // Same luminance buckets + palette tables as

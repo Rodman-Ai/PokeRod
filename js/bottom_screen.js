@@ -14,7 +14,7 @@
   const PILL_GAP = 4;
   const PILL_ROW_Y = H - PILL_H - 4;
 
-  // Battle layout — 2x2 move grid + cancel button.
+  // Battle layout - 2x2 move grid + cancel button.
   const MOVE_TILE_W = 110, MOVE_TILE_H = 36;
   const MOVE_GAP_X = 6, MOVE_GAP_Y = 4;
   const MOVE_GRID_X = (W - (MOVE_TILE_W * 2 + MOVE_GAP_X)) / 2 | 0;
@@ -23,7 +23,7 @@
   const CANCEL_X = (W - CANCEL_W) / 2 | 0;
   const CANCEL_Y = H - CANCEL_H - 4;
 
-  // Per-type chip palettes — match common gen-3 colors.
+  // Per-type chip palettes - match common gen-3 colors.
   const TYPE_COLORS = {
     NORMAL:   ['#a8a878','#7e7e58'],
     FIRE:     ['#f08030','#9c531f'],
@@ -126,7 +126,7 @@
       // Bottom-screen ITEMS button (replaces the old CANCEL button).
       // Opens the bag from the battle main menu so phone players can
       // get to potions / balls without diving through the battle menu.
-      // Keyboard X/B still cancels — this button is purely additive.
+      // Keyboard X/B still cancels - this button is purely additive.
       if (!window.PR_GAME || !window.PR_GAME.openBagFromBattle) return;
       window.PR_SFX && window.PR_SFX.play('confirm');
       window.PR_GAME.openBagFromBattle();
@@ -269,9 +269,13 @@
   }
 
   function drawTrainerLine(ctx, state) {
-    const name = (state.player && state.player.name) || 'TRAINER';
+    const name = (state.player && state.player.name) || '';
     const money = (state.player && state.player.money) || 0;
-    window.PR_UI.drawText(ctx, name.toUpperCase().slice(0, 8), 4, PILL_ROW_Y - 8, '#1a0820');
+    // Only draw the name when it's a custom one; the default 'YOU'
+    // adds visual noise without telling the player anything new.
+    if (name && name.toUpperCase() !== 'YOU') {
+      window.PR_UI.drawText(ctx, name.toUpperCase().slice(0, 8), 4, PILL_ROW_Y - 8, '#1a0820');
+    }
     const moneyText = '$' + money;
     const mw = window.PR_UI.textWidth(moneyText);
     window.PR_UI.drawText(ctx, moneyText, (W / 2 | 0) - (mw / 2 | 0), PILL_ROW_Y - 8, '#1a0820');
@@ -359,7 +363,7 @@
       }
     }
     // ITEMS button (replaces the old CANCEL button). Active only on
-    // the main battle menu — items from the fight/party sub-menus
+    // the main battle menu - items from the fight/party sub-menus
     // would be confusing. Keyboard X/B still cancels in those phases.
     const canItems = phase === 'menu';
     const itemsPressed = pressedTile === 'items';

@@ -1,14 +1,14 @@
 // Rotating chatter pools for static map NPCs.
 //
 // Plain villagers, kids, joggers, etc. used to say one or two scripted
-// lines on every press of A — the rotation felt empty. Each archetype
+// lines on every press of A - the rotation felt empty. Each archetype
 // below ships with 12 generic-but-mood-matching lines; at interaction
 // time game.js merges the archetype pool with the NPC's existing
 // per-character `dialog` array (kept in maps.js for personality) and
 // picks one at random. Result: 13-15 unique lines rotating per NPC.
 //
 // Trainers / shopkeepers / nurses-as-healers / starter slots / gates /
-// story home characters are unaffected — their interaction branches in
+// story home characters are unaffected - their interaction branches in
 // handleNpcInteract `return` before the rotation fallback runs.
 'use strict';
 
@@ -48,7 +48,7 @@
     ],
 
     // Catch-all small-talk neutral. Used for npc_youth + npc_girl
-    // (the most populous sprites — needs broad voice).
+    // (the most populous sprites - needs broad voice).
     townie: [
       'Heard the gym leader\'s been training overtime.',
       'Have you tried the ROD CENTER\'s new healing chime? It\'s nice.',
@@ -83,7 +83,7 @@
     // Food / kitchen / craft. Chef, baker, waiter.
     kitchen: [
       'I burned the bread. Twice. Don\'t tell BAKER OWEN.',
-      'Try the soup. We\'ve perfected the recipe — this week.',
+      'Try the soup. We\'ve perfected the recipe - this week.',
       'A pinch of SITRUS in the broth. Trust me.',
       'My oven hates me. It\'s a long story.',
       'I once cooked for a CHAMPION. They asked for ketchup.',
@@ -181,7 +181,7 @@
     ],
 
     // Caring, clinical, soft. Nurse archetype (only when nurse is not
-    // currently in the heal flow — handleNpcInteract\'s healer branch
+    // currently in the heal flow - handleNpcInteract\'s healer branch
     // returns before us).
     nurse: [
       'Your team looks tired. Mine too.',
@@ -247,7 +247,7 @@
 
   // Build the rotation pool for an NPC and pick one line at random.
   // The merged pool is `archetype lines + npc.dialog`, so the NPC's
-  // hand-written specific lines surface alongside generic banter — at
+  // hand-written specific lines surface alongside generic banter - at
   // 1/13 to 1/15 odds per press, which keeps personality readable.
   function pickLine(npc) {
     if (!npc) return '...';
