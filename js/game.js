@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.53.0';
-  const BUILD = '2026.05.10-139';
+  const VERSION = 'v0.54.0';
+  const BUILD = '2026.05.10-140';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1241,7 +1241,7 @@
   };
   // Short labels for the in-menu ERA toggle (full GRAPHICS_LABELS like
   // 'GBA FIRERED' don't fit in the 68px-wide menu cells).
-  const ERA_ABBREV = { gb_red:'GB', gbc_yellow:'GBC', gba_firered:'GBA', ds_diamond:'DS' };
+  const ERA_ABBREV = { gb_red:'GB', gb_pocket:'POCKET', gbc_yellow:'GBC', gba_firered:'GBA', ds_diamond:'DS' };
 
   function reducedMotion() {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1605,9 +1605,10 @@
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
   const TEXT_SPEED_STEPS = ['slow','normal','fast'];
-  const GRAPHICS_STEPS = ['gb_red','gbc_yellow','gba_firered','ds_diamond'];
+  const GRAPHICS_STEPS = ['gb_red','gb_pocket','gbc_yellow','gba_firered','ds_diamond'];
   const GRAPHICS_LABELS = {
     gb_red: 'GB RED',
+    gb_pocket: 'GB POCKET',
     gbc_yellow: 'GBC YELLOW',
     gba_firered: 'GBA FIRERED',
     ds_diamond: 'DS DIAMOND'

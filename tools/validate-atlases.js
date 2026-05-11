@@ -10,6 +10,7 @@ const zlib = require('zlib');
 const ROOT = path.resolve(__dirname, '..');
 const STYLES = [
   { id:'gb_red', label:'GB RED', image:'atlas-gb-red.png', json:'atlas-gb-red.json' },
+  { id:'gb_pocket', label:'GB POCKET', image:'atlas-gb-pocket.png', json:'atlas-gb-pocket.json' },
   { id:'gbc_yellow', label:'GBC YELLOW', image:'atlas-gbc-yellow.png', json:'atlas-gbc-yellow.json' },
   { id:'gba_firered', label:'GBA FIRERED', image:'atlas.png', json:'atlas.json' },
   { id:'ds_diamond', label:'DS DIAMOND', image:'atlas-ds-diamond.png', json:'atlas-ds-diamond.json' }

@@ -11,6 +11,7 @@
   const CREATURE = 64;    // creature native size
   const STYLE_PRESETS = [
     { id:'gb_red', label:'GB RED', image:'atlas-gb-red.png', json:'atlas-gb-red.json', spritesDir:'sprites-gb-red' },
+    { id:'gb_pocket', label:'GB POCKET', image:'atlas-gb-pocket.png', json:'atlas-gb-pocket.json', spritesDir:'sprites-gb-pocket' },
     { id:'gbc_yellow', label:'GBC YELLOW', image:'atlas-gbc-yellow.png', json:'atlas-gbc-yellow.json', spritesDir:'sprites-gbc-yellow' },
     { id:'gba_firered', label:'GBA FIRERED', image:'atlas.png', json:'atlas.json', spritesDir:'sprites' },
     { id:'ds_diamond', label:'DS DIAMOND', image:'atlas-ds-diamond.png', json:'atlas-ds-diamond.json', spritesDir:'sprites-ds-diamond' }
@@ -4217,6 +4218,25 @@
     }
   }
 
+  function applyGbPocket(data) {
+    // Game Boy Pocket's true 4-shade greyscale LCD — no green tint.
+    // Slightly cool-leaning so the lightest shade reads as the
+    // off-white LCD background.
+    const palette = [
+      [22, 22, 26],
+      [80, 80, 88],
+      [160, 160, 168],
+      [222, 222, 226]
+    ];
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 8) continue;
+      const lum = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+      const idx = lum < 66 ? 0 : lum < 128 ? 1 : lum < 190 ? 2 : 3;
+      const p = palette[idx];
+      data[i] = p[0]; data[i + 1] = p[1]; data[i + 2] = p[2];
+    }
+  }
+
   function applyGbcYellow(data) {
     const palette = [
       [24, 24, 32], [42, 42, 48], [62, 56, 54], [84, 74, 64],
@@ -4269,6 +4289,7 @@
     x = x || 0; y = y || 0; w = w || ctx.canvas.width; h = h || ctx.canvas.height;
     const img = ctx.getImageData(x, y, w, h);
     if (styleId === 'gb_red') applyGbRed(img.data);
+    else if (styleId === 'gb_pocket') applyGbPocket(img.data);
     else if (styleId === 'gbc_yellow') applyGbcYellow(img.data);
     else if (styleId === 'ds_diamond') applyDsDiamond(img.data);
     ctx.putImageData(img, x, y);
