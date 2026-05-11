@@ -428,7 +428,12 @@ const MAPS = {
     ambient: [
       { species:'nibblet',  x:8,  y:6,  range:2 },
       { species:'flitwing', x:15, y:11, range:2 },
-      { species:'glimkit',  x:6,  y:12, range:2 }
+      { species:'glimkit',  x:6,  y:12, range:2 },
+      // Swimmers on the south-side water (paddle within their 5x5
+      // water patch; the swim:true flag keeps them off ground tiles).
+      { species:'duck',     x:26, y:26, range:2, swim:true },
+      { species:'duck',     x:32, y:26, range:2, swim:true },
+      { species:'swan',     x:38, y:26, range:2, swim:true }
     ],
     signs: {
       '3,11': "RODPORT TOWN — Where every adventure begins.",

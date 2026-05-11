@@ -88,7 +88,7 @@
   // interior maps). Pure pixel-art via fillRect so it matches the
   // rest of the HUD and doesn't require atlas regen.
   function fillCirclePixel(ctx, cx, cy, r, color) {
-    ctx.fillStyle = color;
+    ctx.fillStyle = window.PR_UI.pf(color);
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fill();
@@ -96,9 +96,9 @@
   function drawPhaseIcon(ctx, x, y, phaseName) {
     const W = 18, H = 16;
     // Backdrop + gold border, matching the clock chip.
-    ctx.fillStyle = 'rgba(20,16,12,0.7)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(20,16,12,0.7)');
     ctx.fillRect(x, y, W, H);
-    ctx.fillStyle = '#f0c020';
+    ctx.fillStyle = window.PR_UI.pf('#f0c020');
     ctx.fillRect(x, y, W, 1);
     ctx.fillRect(x, y + H - 1, W, 1);
     ctx.fillRect(x, y, 1, H);
@@ -106,7 +106,7 @@
     const cx = x + 9, cy = y + 8;
     if (phaseName === 'day') {
       fillCirclePixel(ctx, cx, cy, 3, '#f8d030');
-      ctx.fillStyle = '#f8d030';
+      ctx.fillStyle = window.PR_UI.pf('#f8d030');
       ctx.fillRect(cx - 1, y + 2, 2, 1);     // top ray
       ctx.fillRect(cx - 1, y + H - 3, 2, 1); // bottom ray
       ctx.fillRect(x + 2, cy - 1, 1, 2);     // left ray
@@ -114,20 +114,20 @@
     } else if (phaseName === 'night') {
       fillCirclePixel(ctx, cx, cy, 4, '#e0e0f0');
       // bite the moon to make a crescent
-      ctx.fillStyle = 'rgba(20,16,12,0.95)';
+      ctx.fillStyle = window.PR_UI.pf('rgba(20,16,12,0.95)');
       ctx.beginPath();
       ctx.arc(cx + 2, cy - 1, 3, 0, Math.PI * 2);
       ctx.fill();
       // a couple of stars
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = window.PR_UI.pf('#fff');
       ctx.fillRect(x + 3, y + 4, 1, 1);
       ctx.fillRect(x + W - 4, y + H - 5, 1, 1);
     } else if (phaseName === 'dusk' || phaseName === 'dawn') {
       // Half-disc rising/setting over a dark horizon line.
       const sun = phaseName === 'dusk' ? '#f08030' : '#f8a8a8';
-      ctx.fillStyle = sun;
+      ctx.fillStyle = window.PR_UI.pf(sun);
       ctx.fillRect(cx - 3, cy - 1, 7, 4);
-      ctx.fillStyle = '#a04030';
+      ctx.fillStyle = window.PR_UI.pf('#a04030');
       ctx.fillRect(x + 2, cy + 3, W - 4, 1);
     }
   }
@@ -175,9 +175,9 @@
     const x = 4, y = 4;
     // Translucent backdrop + 1px border for legibility against the
     // world below.
-    ctx.fillStyle = 'rgba(20,16,12,0.55)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(20,16,12,0.55)');
     ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
-    ctx.fillStyle = '#f0c020';
+    ctx.fillStyle = window.PR_UI.pf('#f0c020');
     ctx.fillRect(x - 1, y - 1, w + 2, 1);
     ctx.fillRect(x - 1, y + h, w + 2, 1);
     ctx.fillRect(x - 1, y - 1, 1, h + 2);
@@ -185,7 +185,7 @@
     for (let ry = 0; ry < rows; ry++) {
       const row = m.tiles[ry];
       for (let rx = 0; rx < cols; rx++) {
-        ctx.fillStyle = miniColorFor(row[rx]);
+        ctx.fillStyle = window.PR_UI.pf(miniColorFor(row[rx]));
         ctx.fillRect(x + rx * cell, y + ry * cell, cell, cell);
       }
     }
@@ -193,7 +193,7 @@
     // against any background tile.
     const blink = (Math.floor(performance.now() / 250) & 1);
     if (blink) {
-      ctx.fillStyle = '#ffd060';
+      ctx.fillStyle = window.PR_UI.pf('#ffd060');
       ctx.fillRect(x + px * cell - 1, y + py * cell - 1, cell + 2, cell + 2);
     }
   }
@@ -348,7 +348,7 @@
     haloGrad.addColorStop(0,   'rgba(' + colorBase + ',' + (cAlpha * 0.30) + ')');
     haloGrad.addColorStop(0.6, 'rgba(' + colorBase + ',' + (cAlpha * 0.12) + ')');
     haloGrad.addColorStop(1,   'rgba(' + colorBase + ',0)');
-    ctx.fillStyle = haloGrad;
+    ctx.fillStyle = window.PR_UI.pf(haloGrad);
     ctx.beginPath();
     ctx.arc(sx, sy, haloR, 0, Math.PI * 2);
     ctx.fill();
@@ -357,7 +357,7 @@
     grad.addColorStop(0,    'rgba(' + colorBase + ',' + cAlpha + ')');
     grad.addColorStop(0.55, 'rgba(' + colorBase + ',' + (cAlpha * 0.55) + ')');
     grad.addColorStop(1,    'rgba(' + colorBase + ',0)');
-    ctx.fillStyle = grad;
+    ctx.fillStyle = window.PR_UI.pf(grad);
     ctx.beginPath();
     ctx.arc(sx, sy, r, 0, Math.PI * 2);
     ctx.fill();
@@ -579,7 +579,7 @@
         grad.addColorStop(0,    'rgba(' + colorBase + ',' + alpha.toFixed(3) + ')');
         grad.addColorStop(0.55, 'rgba(' + colorBase + ',' + (alpha * 0.55).toFixed(3) + ')');
         grad.addColorStop(1,    'rgba(' + colorBase + ',0)');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = window.PR_UI.pf(grad);
         ctx.fillRect(sx, baseY, TS - 2, stripH);
       }
     }
@@ -596,7 +596,7 @@
     );
     grad.addColorStop(0, 'rgba(0,0,0,0)');
     grad.addColorStop(1, 'rgba(8,4,16,0.38)');
-    ctx.fillStyle = grad;
+    ctx.fillStyle = window.PR_UI.pf(grad);
     ctx.fillRect(0, 0, viewW, viewH);
   }
 
@@ -631,7 +631,7 @@
     grad.addColorStop(1,    'rgba(0,0,0,0)');
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = grad;
+    ctx.fillStyle = window.PR_UI.pf(grad);
     ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
     ctx.restore();
   }
@@ -707,7 +707,7 @@
     // golden pane rather than a pure additive bloom.
     if (nFactor < 0.1) return;
     ctx.save();
-    ctx.fillStyle = 'rgba(255,232,144,' + (0.55 * nFactor).toFixed(3) + ')';
+    ctx.fillStyle = window.PR_UI.pf('rgba(255,232,144,' + (0.55 * nFactor).toFixed(3) + ')');
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -742,7 +742,7 @@
   function drawWaterShimmer(ctx, m, startTx, startTy, offX, offY, viewTx, viewTy, TS) {
     if (!tiltActive()) return;
     const phase = (performance.now() / 280) | 0;
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(255,255,255,0.55)');
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -784,7 +784,7 @@
       grad.addColorStop(0, 'rgba(255,160,90,'  + (0.20 * intensity).toFixed(3) + ')');
       grad.addColorStop(1, 'rgba(80,80,140,'   + (0.18 * intensity).toFixed(3) + ')');
     }
-    ctx.fillStyle = grad;
+    ctx.fillStyle = window.PR_UI.pf(grad);
     ctx.fillRect(0, 0, viewW, viewH);
   }
   // God-ray shafts: thin diagonal yellow stripes drifting down-left
@@ -807,7 +807,7 @@
     const alphaPulse = 0.85 + Math.sin(wallTime * 3) * 0.15;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255,228,160,' + (0.10 * peak * alphaPulse).toFixed(3) + ')';
+    ctx.fillStyle = window.PR_UI.pf('rgba(255,228,160,' + (0.10 * peak * alphaPulse).toFixed(3) + ')');
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -851,7 +851,7 @@
     if (!isDay) return;
     const phase = performance.now() / 1000;
     ctx.save();
-    ctx.fillStyle = 'rgba(255,240,200,0.14)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(255,240,200,0.14)');
     for (let i = 0; i < 5; i++) {
       const y = (viewH * 0.55) + i * 12 + Math.sin(phase * 1.5 + i * 0.7) * 2;
       ctx.fillRect(0, y | 0, viewW, 1);
@@ -864,7 +864,7 @@
     if (!tiltActive()) return;
     if (biomeFor(m) !== 'snow') return;
     ctx.save();
-    ctx.fillStyle = 'rgba(255,255,255,0.78)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(255,255,255,0.78)');
     for (let ty = 0; ty <= viewTy; ty++) {
       for (let tx = 0; tx <= viewTx; tx++) {
         const wx = startTx + tx, wy = startTy + ty;
@@ -905,7 +905,7 @@
       if (sx < -32 || sx > viewW + 32 || sy < -32 || sy > viewH + 32) continue;
       const r = phase * 12 + 2;
       const alpha = (1 - phase) * baseAlpha;
-      ctx.strokeStyle = 'rgba(248,224,144,' + alpha.toFixed(3) + ')';
+      ctx.strokeStyle = window.PR_UI.pf('rgba(248,224,144,' + alpha.toFixed(3) + ')');
       ctx.beginPath();
       ctx.arc(sx, sy, r, 0, Math.PI * 2);
       ctx.stroke();
@@ -930,7 +930,7 @@
       if (phase === 0) return;
       ctx.save();
       ctx.globalAlpha = 0.18;
-      ctx.fillStyle = '#a8d4f0';
+      ctx.fillStyle = window.PR_UI.pf('#a8d4f0');
       for (let ty = 0; ty <= viewTy; ty++) {
         for (let tx = 0; tx <= viewTx; tx++) {
           const wx = startTx + tx, wy = startTy + ty;
@@ -991,7 +991,7 @@
         // Two thin lighter bands scroll right across the tile. Their
         // y-positions are tied to (wy * 8 + scroll) so the bands appear
         // continuous between vertically-adjacent water tiles.
-        ctx.fillStyle = 'rgba(180,220,248,0.18)';
+        ctx.fillStyle = window.PR_UI.pf('rgba(180,220,248,0.18)');
         const band1y = ((wy * 11 + (scroll | 0)) % TS);
         const band2y = ((wy * 11 + (scroll | 0) + 14) % TS);
         ctx.fillRect(sx, sy + band1y, TS, 1);
@@ -1003,7 +1003,7 @@
         if (blink < 0.07) {
           const spx = sx + ((wx * 17) & 31);
           const spy = sy + ((wy * 23) & 31);
-          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.fillStyle = window.PR_UI.pf('rgba(255,255,255,0.85)');
           ctx.fillRect(spx, spy, 1, 1);
         }
       }
@@ -1165,7 +1165,7 @@
       const sx = p.x - camX, sy = p.y - camY;
       if (sx < -8 || sx > VIEW_W + 8 || sy < -8 || sy > VIEW_H + 8) continue;
       const k = p.life / p.maxLife;
-      ctx.fillStyle = 'rgba(216,184,120,' + (0.55 * k).toFixed(3) + ')';
+      ctx.fillStyle = window.PR_UI.pf('rgba(216,184,120,' + (0.55 * k).toFixed(3) + ')');
       ctx.fillRect((sx - 1) | 0, (sy - 1) | 0, 3, 2);
     }
   }
@@ -1179,7 +1179,7 @@
       const cy = s.y * TS - camY + TS - 10;
       if (cx < -TS || cx > VIEW_W + TS || cy < -TS || cy > VIEW_H + TS) continue;
       const k = Math.max(0, Math.min(1, s.t / 0.35));
-      ctx.fillStyle = 'rgba(168,232,128,' + (0.9 * k).toFixed(3) + ')';
+      ctx.fillStyle = window.PR_UI.pf('rgba(168,232,128,' + (0.9 * k).toFixed(3) + ')');
       // Two angled slashes flanking the centre, suggesting parted blades.
       ctx.fillRect((cx - 6) | 0, (cy - 1) | 0, 4, 1);
       ctx.fillRect((cx + 2) | 0, (cy - 1) | 0, 4, 1);
@@ -1197,7 +1197,7 @@
     const sy = ty * TS - camY;
     if (sx < -TS || sx > VIEW_W || sy < -TS || sy > VIEW_H) return;
     // Front row of darker blades (closer to camera).
-    ctx.fillStyle = 'rgba(36,86,40,0.95)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(36,86,40,0.95)');
     for (let i = 0; i < 8; i++) {
       const bx = sx + 1 + i * 4 + (i & 1);
       const by = sy + TS - 8;
@@ -1205,14 +1205,14 @@
       ctx.fillRect((bx + 1) | 0, (by + 1) | 0, 1, 4);
     }
     // Mid row of brighter blade tips peeking through.
-    ctx.fillStyle = 'rgba(108,196,72,0.92)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(108,196,72,0.92)');
     for (let i = 0; i < 6; i++) {
       const bx = sx + 4 + i * 5;
       const by = sy + TS - 6;
       ctx.fillRect(bx | 0, by | 0, 1, 3);
     }
     // Highlight pixels at the tips.
-    ctx.fillStyle = 'rgba(196,240,144,0.85)';
+    ctx.fillStyle = window.PR_UI.pf('rgba(196,240,144,0.85)');
     for (let i = 0; i < 4; i++) {
       const bx = sx + 6 + i * 7;
       const by = sy + TS - 7;
@@ -1362,10 +1362,10 @@
           const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
           grad.addColorStop(0, 'rgba(220,224,232,' + alpha.toFixed(3) + ')');
           grad.addColorStop(1, 'rgba(220,224,232,0)');
-          ctx.fillStyle = grad;
+          ctx.fillStyle = window.PR_UI.pf(grad);
           ctx.fillRect((p.x - rad) | 0, (p.y - rad) | 0, (rad * 2) | 0, (rad * 2) | 0);
         } else {
-          ctx.fillStyle = 'rgba(220,224,232,' + (alpha * 0.7).toFixed(3) + ')';
+          ctx.fillStyle = window.PR_UI.pf('rgba(220,224,232,' + (alpha * 0.7).toFixed(3) + ')');
           ctx.fillRect((p.x - rad * 0.5) | 0, (p.y - rad * 0.5) | 0, rad | 0, rad | 0);
         }
       } else if (p.kind === 'rain') {
@@ -1373,7 +1373,7 @@
         // tiers get a 1-pixel dot instead of a streak.
         ctx.globalAlpha = fade;
         if (fancy || tier === 'gba_firered') {
-          ctx.strokeStyle = p.color;
+          ctx.strokeStyle = window.PR_UI.pf(p.color);
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
@@ -1384,7 +1384,7 @@
           ctx.lineTo(p.x - p.vx / len * tailLen, p.y - p.vy / len * tailLen);
           ctx.stroke();
         } else {
-          ctx.fillStyle = p.color;
+          ctx.fillStyle = window.PR_UI.pf(p.color);
           ctx.fillRect((p.x) | 0, (p.y) | 0, 1, 2);
         }
       } else if (p.kind === 'snow') {
@@ -1392,22 +1392,22 @@
         if (fancy && p.size >= 2) {
           // Six-spoke flake: a bright centre + 6 thin radial spokes.
           const cx = p.x | 0, cy = p.y | 0;
-          ctx.fillStyle = p.color;
+          ctx.fillStyle = window.PR_UI.pf(p.color);
           ctx.fillRect(cx - 1, cy, 3, 1);
           ctx.fillRect(cx, cy - 1, 1, 3);
-          ctx.fillStyle = 'rgba(248,252,255,0.55)';
+          ctx.fillStyle = window.PR_UI.pf('rgba(248,252,255,0.55)');
           ctx.fillRect(cx - 2, cy - 1, 1, 1);
           ctx.fillRect(cx + 2, cy + 1, 1, 1);
           ctx.fillRect(cx + 2, cy - 1, 1, 1);
           ctx.fillRect(cx - 2, cy + 1, 1, 1);
           // Time-based twinkle dot.
           if (((wallMs * 0.01 + (p.seed || 0)) | 0) % 7 === 0) {
-            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            ctx.fillStyle = window.PR_UI.pf('rgba(255,255,255,0.95)');
             ctx.fillRect(cx, cy, 1, 1);
           }
         } else {
           // Basic flake: single white pixel (or 2x2 for higher intensity)
-          ctx.fillStyle = p.color;
+          ctx.fillStyle = window.PR_UI.pf(p.color);
           const s = p.size | 0 || 1;
           ctx.fillRect((p.x - s/2) | 0, (p.y - s/2) | 0, s, s);
         }
@@ -1416,25 +1416,25 @@
         const cx = p.x | 0, cy = p.y | 0;
         if (fancy) {
           // Round white pellet with a darker shadow underneath.
-          ctx.fillStyle = 'rgba(180,196,212,0.85)';
+          ctx.fillStyle = window.PR_UI.pf('rgba(180,196,212,0.85)');
           ctx.fillRect(cx - 1, cy + 1, 3, 1);
-          ctx.fillStyle = p.color;
+          ctx.fillStyle = window.PR_UI.pf(p.color);
           ctx.fillRect(cx - 1, cy, 3, 1);
           ctx.fillRect(cx, cy - 1, 1, 3);
-          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.fillStyle = window.PR_UI.pf('rgba(255,255,255,0.95)');
           ctx.fillRect(cx, cy - 1, 1, 1);
         } else {
-          ctx.fillStyle = p.color;
+          ctx.fillStyle = window.PR_UI.pf(p.color);
           ctx.fillRect(cx, cy, 2, 2);
         }
       } else if (p.kind === 'debris') {
         ctx.globalAlpha = fade;
-        ctx.fillStyle = p.color;
+        ctx.fillStyle = window.PR_UI.pf(p.color);
         const s = Math.max(1, Math.round(p.size));
         ctx.fillRect((p.x - s/2) | 0, (p.y - s/2) | 0, s, s);
       } else {
         ctx.globalAlpha = fade;
-        ctx.fillStyle = p.color;
+        ctx.fillStyle = window.PR_UI.pf(p.color);
         ctx.fillRect((p.x - p.size) | 0, (p.y - p.size) | 0, p.size * 2, p.size * 2);
       }
       ctx.restore();
@@ -1450,7 +1450,7 @@
     const wallTime = (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
     if (weather.kind === 'overcast') {
       const dim = 0.18 + 0.10 * weather.intensity;
-      ctx.fillStyle = 'rgba(60,68,84,' + dim.toFixed(3) + ')';
+      ctx.fillStyle = window.PR_UI.pf('rgba(60,68,84,' + dim.toFixed(3) + ')');
       ctx.fillRect(0, 0, viewW, viewH);
       if (fancy) {
         // Two big soft cloud blobs drifting L→R at different speeds.
@@ -1462,7 +1462,7 @@
           const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 90);
           grad.addColorStop(0, 'rgba(40,48,62,0.30)');
           grad.addColorStop(1, 'rgba(40,48,62,0)');
-          ctx.fillStyle = grad;
+          ctx.fillStyle = window.PR_UI.pf(grad);
           ctx.fillRect(cx - 90, cy - 60, 180, 120);
         }
       }
@@ -1483,7 +1483,7 @@
         grad.addColorStop(0,   'rgba(216,222,232,0)');
         grad.addColorStop(0.5, 'rgba(216,222,232,' + baseAlpha.toFixed(3) + ')');
         grad.addColorStop(1,   'rgba(216,222,232,0)');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = window.PR_UI.pf(grad);
         ctx.fillRect(-120 + drift, y, viewW + 240, sheetH);
       }
       ctx.restore();
@@ -1491,14 +1491,14 @@
       // Subtle cyclonic gradient: vignette darker on edges + a slow
       // sweeping band of brighter spray top-to-bottom.
       ctx.save();
-      ctx.fillStyle = 'rgba(36,44,56,0.20)';
+      ctx.fillStyle = window.PR_UI.pf('rgba(36,44,56,0.20)');
       ctx.fillRect(0, 0, viewW, viewH);
       const sweepY = ((wallTime * 60) % (viewH + 80)) - 40;
       const grad = ctx.createLinearGradient(0, sweepY - 30, 0, sweepY + 30);
       grad.addColorStop(0, 'rgba(180,196,220,0)');
       grad.addColorStop(0.5, 'rgba(180,196,220,0.18)');
       grad.addColorStop(1, 'rgba(180,196,220,0)');
-      ctx.fillStyle = grad;
+      ctx.fillStyle = window.PR_UI.pf(grad);
       ctx.fillRect(0, sweepY - 30, viewW, 60);
       ctx.restore();
     }
@@ -1508,7 +1508,7 @@
     // and overcast handle their own atmospheric look so they skip this.
     if (weather.kind !== 'overcast' && weather.kind !== 'fog') {
       const dim = Math.min(0.18, 0.05 + 0.10 * weather.intensity);
-      ctx.fillStyle = 'rgba(40,48,62,' + dim.toFixed(3) + ')';
+      ctx.fillStyle = window.PR_UI.pf('rgba(40,48,62,' + dim.toFixed(3) + ')');
       ctx.fillRect(0, 0, viewW, viewH);
     }
   }
@@ -1559,6 +1559,11 @@
         x: a.x, y: a.y,
         homeX: a.x, homeY: a.y,
         range: a.range || 2,
+        // Swimmers (ducks / swan) live on water tiles instead of
+        // walkable ground. _isAmbientWalkable honours this per-ambient
+        // flag so a duck can't wander onto a path and a chicken can't
+        // wander onto a pond.
+        swim: !!a.swim,
         dir: 'down',
         anim: { moving:false, t:0, duration:0.4, fromX:a.x, fromY:a.y, toX:a.x, toY:a.y },
         moveTimer: Math.random() * 2,
@@ -1581,11 +1586,45 @@
     const code = row[x];
     return PERCH_TILES.indexOf(code) >= 0;
   };
+  // Pick the first perch tile inside a given rectangular region of
+  // the current map. Returns [x, y] or null. Used by the auto-spawn
+  // path below so every outdoor map gets at least one crow + one
+  // sparrow without having to hand-edit each map's birds array.
+  World.prototype._findPerchInRegion = function(x0, y0, x1, y1) {
+    const m = this.currentMap();
+    if (!m || !m.tiles) return null;
+    for (let y = y0; y < y1; y++) {
+      for (let x = x0; x < x1; x++) {
+        if (this._isPerchable(x, y)) return [x, y];
+      }
+    }
+    return null;
+  };
   World.prototype._initBirds = function() {
     const m = this.currentMap();
     this._birds = [];
-    if (!m || !m.birds) return;
-    for (const b of m.birds) {
+    if (!m) return;
+    // Auto-seed: every outdoor map gets at least one sparrow + one
+    // crow at perch tiles in opposite quadrants. Honours the
+    // existing m.birds list — only fills in what's missing.
+    const wantList = (m.birds || []).slice();
+    if (!m.interior && m.tiles && m.tiles.length) {
+      const W = m.tiles[0].length;
+      const H = m.tiles.length;
+      const hasKind = k => wantList.some(b => b.kind === k);
+      if (!hasKind('sparrow')) {
+        const tl = this._findPerchInRegion(1, 1, Math.floor(W * 0.5), Math.floor(H * 0.5)) ||
+                   this._findPerchInRegion(1, 1, W - 1, H - 1);
+        if (tl) wantList.push({ kind:'sparrow', x:tl[0], y:tl[1], range:8 });
+      }
+      if (!hasKind('crow')) {
+        const br = this._findPerchInRegion(Math.floor(W * 0.5), Math.floor(H * 0.5), W - 1, H - 1) ||
+                   this._findPerchInRegion(1, 1, W - 1, H - 1);
+        if (br) wantList.push({ kind:'crow', x:br[0], y:br[1], range:8 });
+      }
+    }
+    if (!wantList.length) return;
+    for (const b of wantList) {
       // If the configured home tile isn't perchable, scan outward
       // (Manhattan radius) for the nearest perchable tile so the
       // bird doesn't spawn floating on a path or grass.
@@ -2266,7 +2305,15 @@
   World.prototype._isAmbientWalkable = function(x, y, a) {
     const code = this.tileAt(x, y);
     const props = window.PR_MAPS.TILE_PROPS[code];
-    if (!props || props.walk !== true) return false;
+    if (!props) return false;
+    if (a && a.swim) {
+      // Swimmers paddle only on water tiles, never on regular ground.
+      // Water is currently keyed by name (TILE_PROPS['W'].name === 'water')
+      // rather than a dedicated walk flag, so check the name string.
+      if (!/water/i.test(props.name || '')) return false;
+    } else {
+      if (props.walk !== true) return false;
+    }
     if (this.npcAt(x, y)) return false;
     if (this.player.x === x && this.player.y === y) return false;
     if (this.anim.moving && this.anim.toX === x && this.anim.toY === y) return false;
@@ -2505,7 +2552,7 @@
     // Clear to grass green rather than black so the 1-px gap that the
     // foliage sway leaves behind blends in instead of showing as a black
     // seam alongside trees and bushes.
-    ctx.fillStyle = '#5cae4c';
+    ctx.fillStyle = window.PR_UI.pf('#5cae4c');
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
 
     const startTx = Math.floor(camX / TS);
@@ -2592,7 +2639,7 @@
           const grd = ctx.createRadialGradient(sx + TS / 2, sy + TS / 2, 2, sx + TS / 2, sy + TS / 2, TS);
           grd.addColorStop(0, '#ffe8a0');
           grd.addColorStop(1, 'rgba(255,200,128,0)');
-          ctx.fillStyle = grd;
+          ctx.fillStyle = window.PR_UI.pf(grd);
           ctx.fillRect(sx - TS / 2, sy - TS / 2, TS * 2, TS * 2);
           ctx.restore();
         }
@@ -2619,12 +2666,24 @@
         ? -Math.round(Math.sin(Math.min(1, a.anim.t / a.anim.duration) * Math.PI))
         : (a.frame ? -1 : 0);
       // Chickens use the NPC character pipeline (4 dirs × 2 frames)
-      // instead of the creature renderer; everything else falls
-      // through to the existing PR_MONS.drawCreature path.
+      // instead of the creature renderer; ducks and swans are
+      // procedurally drawn via PR_CHARS so they work in every era
+      // without needing atlas frames; everything else falls through
+      // to the existing PR_MONS.drawCreature path.
       if (a.species === 'chicken') {
         const sxC = sx + bob, syC = sy + bob;
         withTilt(ctx, sxC, syC, TS, TS, () => {
           window.PR_CHARS.drawNpc(ctx, sxC, syC, 'chicken', a.dir || 'down', a.frame || 0);
+        });
+      } else if (a.species === 'duck') {
+        const sxC = sx + bob, syC = sy + bob;
+        withTilt(ctx, sxC, syC, TS, TS, () => {
+          window.PR_CHARS.drawDuck(ctx, sxC, syC, a.dir || 'down', a.frame || 0);
+        });
+      } else if (a.species === 'swan') {
+        const sxC = sx + bob, syC = sy + bob;
+        withTilt(ctx, sxC, syC, TS, TS, () => {
+          window.PR_CHARS.drawSwan(ctx, sxC, syC, a.dir || 'down', a.frame || 0);
         });
       } else {
         const cdx = sx - 2, cdy = sy - 4 + bob;
@@ -2737,7 +2796,7 @@
     if (cycleOn && (!cur || !cur.interior)) {
       const tint = currentTint(this.player.steps || 0);
       if (tint) {
-        ctx.fillStyle = tint;
+        ctx.fillStyle = window.PR_UI.pf(tint);
         ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       }
     }
@@ -2794,7 +2853,7 @@
     // Lightning flash: brief screen-wide white tint that fades over
     // ~0.25s. Only fires on rainy maps.
     if (this._lightningFlash > 0) {
-      ctx.fillStyle = 'rgba(255,255,240,' + (0.55 * this._lightningFlash).toFixed(3) + ')';
+      ctx.fillStyle = window.PR_UI.pf('rgba(255,255,240,' + (0.55 * this._lightningFlash).toFixed(3) + ')');
       ctx.fillRect(0, 0, VIEW_W, VIEW_H);
     }
 
@@ -2855,9 +2914,9 @@
       window.PR_UI.header(ctx, 'NOW ENTERING', x + 4, y + 4, w - 8, {
         fill:'#1a0204', line:'#f0c020', text:'#f0c020'
       });
-      ctx.fillStyle = '#e83838';
+      ctx.fillStyle = window.PR_UI.pf('#e83838');
       ctx.fillRect(x + 8, y + 19, 5, 5);
-      ctx.fillStyle = '#fff8e8';
+      ctx.fillStyle = window.PR_UI.pf('#fff8e8');
       ctx.fillRect(x + 10, y + 20, 1, 3);
       window.PR_UI.drawText(ctx, label.slice(0, Math.floor((w - 24) / 6)), x + 17, y + 19, '#202020');
     }

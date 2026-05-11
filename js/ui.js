@@ -59,9 +59,57 @@
     '>':[0x10,0x08,0x04,0x02,0x04,0x08,0x10]
   };
 
+  // Era-aware UI palette filter. In gb_red / gb_pocket modes the
+  // scene atlas is monochrome (green-tinted greys or true greys), so
+  // overlaying RGB UI panels on top looks out-of-place. pf() takes a
+  // CSS colour string and maps it through the active era's 4-tone
+  // palette so the UI matches the scene.
+  //
+  // gb_red / gb_pocket only — every other era (gbc / gba / ds) gets
+  // the colour back unchanged.
+  //
+  // Same luminance buckets + palette tables as
+  // tools/atlas-art.js applyGbRed / applyGbPocket, so UI and atlas
+  // tones stay in lockstep.
+  const ERA_PALETTES = {
+    gb_red:    [[15,56,15],[48,98,48],[139,172,15],[155,188,15]],
+    gb_pocket: [[22,22,26],[80,80,88],[160,160,168],[222,222,226]]
+  };
+  function parseColor(c) {
+    if (typeof c !== 'string') return null;
+    const s = c.trim();
+    if (s[0] === '#') {
+      if (s.length === 4) {
+        return [parseInt(s[1]+s[1],16), parseInt(s[2]+s[2],16), parseInt(s[3]+s[3],16), 1];
+      }
+      if (s.length === 7) {
+        return [parseInt(s.slice(1,3),16), parseInt(s.slice(3,5),16), parseInt(s.slice(5,7),16), 1];
+      }
+      if (s.length === 9) {
+        return [parseInt(s.slice(1,3),16), parseInt(s.slice(3,5),16), parseInt(s.slice(5,7),16), parseInt(s.slice(7,9),16)/255];
+      }
+    }
+    const m = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)$/i);
+    if (m) return [+m[1], +m[2], +m[3], m[4] != null ? +m[4] : 1];
+    return null;
+  }
+  function pf(color) {
+    if (!color || typeof color !== 'string') return color;
+    const era = window.PR_SETTINGS && window.PR_SETTINGS.graphics;
+    const pal = ERA_PALETTES[era];
+    if (!pal) return color;
+    const rgba = parseColor(color);
+    if (!rgba) return color;
+    const lum = rgba[0] * 0.2126 + rgba[1] * 0.7152 + rgba[2] * 0.0722;
+    const idx = lum < 66 ? 0 : lum < 128 ? 1 : lum < 190 ? 2 : 3;
+    const p = pal[idx];
+    const a = (rgba[3] == null ? 1 : rgba[3]).toFixed(3);
+    return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + a + ')';
+  }
+
   function drawChar(ctx, ch, x, y, color) {
     const g = FONT[ch] || FONT[ch.toUpperCase()] || FONT['?'];
-    ctx.fillStyle = color;
+    ctx.fillStyle = pf(color);
     for (let row = 0; row < 7; row++) {
       const bits = g[row];
       for (let col = 0; col < 5; col++) {
@@ -98,12 +146,12 @@
 
   // Draw a bordered box.
   function box(ctx, x, y, w, h, fill, border) {
-    ctx.fillStyle = border || '#202020';
+    ctx.fillStyle = pf(border || '#202020');
     ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = fill || '#f8f8f8';
+    ctx.fillStyle = pf(fill || '#f8f8f8');
     ctx.fillRect(x+2, y+2, w-4, h-4);
     // inner shadow line
-    ctx.fillStyle = border || '#202020';
+    ctx.fillStyle = pf(border || '#202020');
     ctx.fillRect(x+3, y+3, w-6, 1);
   }
 
@@ -119,38 +167,38 @@
     const hi = opts.highlight || '#ffffff';
     if (dsActive()) {
       // Soft shadow (offset).
-      ctx.fillStyle = 'rgba(8,8,24,0.55)';
+      ctx.fillStyle = pf('rgba(8,8,24,0.55)');
       ctx.fillRect(x + 2, y + 3, w, h);
       // Outer border.
-      ctx.fillStyle = '#1a1426';
+      ctx.fillStyle = pf('#1a1426');
       ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = '#3a2a4c';
+      ctx.fillStyle = pf('#3a2a4c');
       ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
       // Vertical gradient inner fill.
       const grd = ctx.createLinearGradient(x, y + 2, x, y + h - 2);
       grd.addColorStop(0, '#fffefa');
       grd.addColorStop(0.55, '#f1ecff');
       grd.addColorStop(1, '#d8d0ee');
-      ctx.fillStyle = grd;
+      ctx.fillStyle = pf(grd);
       ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
       // Top highlight stripe (1px) and bottom shadow stripe (1px).
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillStyle = pf('rgba(255,255,255,0.85)');
       ctx.fillRect(x + 3, y + 3, w - 6, 1);
-      ctx.fillStyle = 'rgba(80,60,120,0.30)';
+      ctx.fillStyle = pf('rgba(80,60,120,0.30)');
       ctx.fillRect(x + 3, y + h - 4, w - 6, 1);
       return;
     }
-    ctx.fillStyle = '#101018';
+    ctx.fillStyle = pf('#101018');
     ctx.fillRect(x + 2, y + 3, w, h);
-    ctx.fillStyle = border;
+    ctx.fillStyle = pf(border);
     ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = shadow;
+    ctx.fillStyle = pf(shadow);
     ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
-    ctx.fillStyle = fill;
+    ctx.fillStyle = pf(fill);
     ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
-    ctx.fillStyle = hi;
+    ctx.fillStyle = pf(hi);
     ctx.fillRect(x + 3, y + 3, w - 6, 1);
-    ctx.fillStyle = opts.lowlight || 'rgba(0,0,0,0.12)';
+    ctx.fillStyle = pf(opts.lowlight || 'rgba(0,0,0,0.12)');
     ctx.fillRect(x + 3, y + h - 4, w - 6, 1);
   }
 
@@ -160,23 +208,23 @@
       const grd = ctx.createLinearGradient(x, y, x, y + 12);
       grd.addColorStop(0, '#3c1840');
       grd.addColorStop(1, '#702848');
-      ctx.fillStyle = grd;
+      ctx.fillStyle = pf(grd);
       ctx.fillRect(x, y, w, 12);
       // Underline.
       const grd2 = ctx.createLinearGradient(x, y + 10, x + w, y + 10);
       grd2.addColorStop(0, '#f0c060');
       grd2.addColorStop(0.5, '#ffe080');
       grd2.addColorStop(1, '#f0c060');
-      ctx.fillStyle = grd2;
+      ctx.fillStyle = pf(grd2);
       ctx.fillRect(x, y + 10, w, 2);
       // Text shadow + body.
       drawText(ctx, text, x + 5, y + 4, '#1a0820');
       drawText(ctx, text, x + 5, y + 3, '#fff8e8');
       return;
     }
-    ctx.fillStyle = opts.fill || '#202020';
+    ctx.fillStyle = pf(opts.fill || '#202020');
     ctx.fillRect(x, y, w, 12);
-    ctx.fillStyle = opts.line || '#f0c020';
+    ctx.fillStyle = pf(opts.line || '#f0c020');
     ctx.fillRect(x, y + 10, w, 2);
     drawText(ctx, text, x + 5, y + 3, opts.text || '#fff');
   }
@@ -188,25 +236,25 @@
         grd.addColorStop(0, '#fff0a8');
         grd.addColorStop(0.5, '#f0c020');
         grd.addColorStop(1, '#a06010');
-        ctx.fillStyle = grd;
+        ctx.fillStyle = pf(grd);
         ctx.fillRect(x, y, w, h);
         // Top shine.
-        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fillStyle = pf('rgba(255,255,255,0.55)');
         ctx.fillRect(x + 1, y + 1, w - 2, 1);
         // Bottom shadow.
-        ctx.fillStyle = 'rgba(64,32,0,0.45)';
+        ctx.fillStyle = pf('rgba(64,32,0,0.45)');
         ctx.fillRect(x, y + h - 2, w, 2);
       } else {
-        ctx.fillStyle = 'rgba(80,60,120,0.18)';
+        ctx.fillStyle = pf('rgba(80,60,120,0.18)');
         ctx.fillRect(x, y, w, h);
-        ctx.fillStyle = 'rgba(40,24,64,0.18)';
+        ctx.fillStyle = pf('rgba(40,24,64,0.18)');
         ctx.fillRect(x, y + h - 1, w, 1);
       }
       return;
     }
-    ctx.fillStyle = active ? '#f0c020' : 'rgba(56,88,144,0.14)';
+    ctx.fillStyle = pf(active ? '#f0c020' : 'rgba(56,88,144,0.14)');
     ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = active ? '#b07010' : 'rgba(32,32,32,0.12)';
+    ctx.fillStyle = pf(active ? '#b07010' : 'rgba(32,32,32,0.12)');
     ctx.fillRect(x, y + h - 2, w, 2);
   }
 
@@ -218,22 +266,22 @@
     const hasExplicitColors = !!(opts.fill || opts.border);
     if (dsActive() && !hasExplicitColors) {
       // Notched-corner chip with a top highlight.
-      ctx.fillStyle = '#1a1426';
+      ctx.fillStyle = pf('#1a1426');
       ctx.fillRect(x + 1, y, w - 2, 11);
       ctx.fillRect(x, y + 1, w, 9);
       const grd = ctx.createLinearGradient(x, y + 1, x, y + 10);
       grd.addColorStop(0, '#f8f8ff');
       grd.addColorStop(1, '#bcc0e0');
-      ctx.fillStyle = grd;
+      ctx.fillStyle = pf(grd);
       ctx.fillRect(x + 1, y + 1, w - 2, 9);
-      ctx.fillStyle = 'rgba(255,255,255,0.80)';
+      ctx.fillStyle = pf('rgba(255,255,255,0.80)');
       ctx.fillRect(x + 2, y + 2, w - 4, 1);
       drawText(ctx, text, x + 4, y + 2, opts.text || '#1a0820');
       return w;
     }
-    ctx.fillStyle = border;
+    ctx.fillStyle = pf(border);
     ctx.fillRect(x, y, w, 11);
-    ctx.fillStyle = fill;
+    ctx.fillStyle = pf(fill);
     ctx.fillRect(x + 1, y + 1, w - 2, 9);
     drawText(ctx, text, x + 4, y + 2, opts.text || '#202020');
     return w;
@@ -241,10 +289,10 @@
 
   function icon(ctx, kind, x, y, color) {
     color = color || '#202020';
-    ctx.fillStyle = color;
+    ctx.fillStyle = pf(color);
     if (kind === 'map') {
       ctx.fillRect(x + 1, y + 1, 7, 5);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = pf('#fff');
       ctx.fillRect(x + 3, y + 2, 1, 3);
       ctx.fillRect(x + 6, y + 2, 1, 3);
     } else if (kind === 'bag') {
@@ -256,7 +304,7 @@
       ctx.fillRect(x + 3, y + 5, 3, 3);
     } else if (kind === 'save') {
       ctx.fillRect(x + 1, y + 1, 7, 7);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = pf('#fff');
       ctx.fillRect(x + 2, y + 2, 5, 2);
       ctx.fillRect(x + 3, y + 6, 3, 1);
     } else if (kind === 'gear') {
@@ -264,12 +312,12 @@
       ctx.fillRect(x + 1, y + 3, 7, 3);
     } else if (kind === 'dex') {
       ctx.fillRect(x + 1, y + 1, 6, 7);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = pf('#fff');
       ctx.fillRect(x + 3, y + 3, 2, 2);
     } else if (kind === 'profile') {
       ctx.fillRect(x + 3, y + 1, 3, 3);
       ctx.fillRect(x + 2, y + 5, 5, 3);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = pf('#fff');
       ctx.fillRect(x + 4, y + 2, 1, 1);
     } else {
       ctx.fillRect(x + 2, y + 2, 5, 5);
@@ -289,7 +337,7 @@
     if (advanceMark) {
       const t = (performance.now() / 250) | 0;
       if (t % 2 === 0) {
-        ctx.fillStyle = '#202020';
+        ctx.fillStyle = pf('#202020');
         ctx.fillRect(x + w - 10, y + h - 8, 4, 4);
       }
     }
@@ -302,19 +350,19 @@
     let color = '#48d860';
     if (ratio <= 0.5) color = '#f0c020';
     if (ratio <= 0.2) color = '#e83838';
-    ctx.fillStyle = '#202020';
+    ctx.fillStyle = pf('#202020');
     ctx.fillRect(x, y, w, 5);
-    ctx.fillStyle = '#f8f8f8';
+    ctx.fillStyle = pf('#f8f8f8');
     ctx.fillRect(x + 1, y + 1, w - 2, 3);
-    ctx.fillStyle = color;
+    ctx.fillStyle = pf(color);
     ctx.fillRect(x + 1, y + 1, fillW, 3);
   }
 
   // XP bar (skinny).
   function drawXpBar(ctx, x, y, w, ratio) {
-    ctx.fillStyle = '#202020';
+    ctx.fillStyle = pf('#202020');
     ctx.fillRect(x, y, w, 2);
-    ctx.fillStyle = '#5898d8';
+    ctx.fillStyle = pf('#5898d8');
     ctx.fillRect(x, y, Math.ceil(w * ratio), 2);
   }
 
@@ -339,7 +387,7 @@
     }
     for (let i = 0; i < opts.length; i++) {
       if (i === cursor) {
-        ctx.fillStyle = '#202020';
+        ctx.fillStyle = pf('#202020');
         ctx.fillRect(x + 4, cy + 1, 4, 6);
       }
       drawText(ctx, opts[i], x + padLeft, cy, '#202020');
@@ -349,6 +397,9 @@
 
   window.PR_UI = {
     drawText, drawChar, textWidth, wrap, box, panel, header, selectBar,
-    chip, icon, drawDialog, drawChoiceBox, drawHpBar, drawXpBar, FONT
+    chip, icon, drawDialog, drawChoiceBox, drawHpBar, drawXpBar, FONT,
+    // Era-aware palette filter (exported so world.js drawMinimap /
+    // drawWorldClock can route their fills through the same mapping).
+    pf
   };
 })();
