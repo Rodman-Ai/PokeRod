@@ -586,7 +586,17 @@ body[data-graphics="ds_diamond"] #game-bottom {
   font-size: 24px;
   color: #f0b03a;
 }
-.abtn[data-key="x"] { color: #e85a5a; }
+.abtn[data-key="x"] {
+  color: #e85a5a;
+  /* Lift B so the A/B pair sits on a Game-Boy-style diagonal, with A
+     unchanged. Scales with viewport — phones (~390 px) get ~14 px,
+     tablets get ~10 px. Applies to all four era modes. */
+  transform: translateY(clamp(-16px, -4vw, -10px));
+}
+/* Preserve the 3 px press-down feel for B by stacking it onto the
+   lift instead of resetting to the default +3 px (`.abtn:active`
+   below). */
+.abtn[data-key="x"]:active { transform: translateY(clamp(-13px, -3vw, -7px)); }
 .sbtn {
   width: 48px;
   height: 28px;
