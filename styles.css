@@ -18,50 +18,118 @@
   --abtn-a-shadow: #010104;
   --abtn-b-bg: radial-gradient(circle at 35% 30%, #4a4f5c 0%, #11141b 56%, #020306 100%);
   --abtn-b-shadow: #010104;
+  /* SELECT / START pill defaults (DS Diamond inherits these). */
+  --ss-bg: linear-gradient(180deg, #3a0a08 0%, #1a0204 100%);
+  --ss-text: #f0c020;
+  --ss-border: #5a1810;
+  --ss-shadow: #2a0604;
+  /* D-pad defaults (DS Diamond inherits these). */
+  --dpad-well-bg: #1a0204;
+  --dpad-well-edge: #2a0604;
+  --dpad-well-inset: #3a0a08;
+  --dpad-btn-bg: linear-gradient(180deg, #2a2a30 0%, #14141a 100%);
+  --dpad-btn-active-bg: linear-gradient(180deg, #14141a 0%, #2a2a30 100%);
+  --dpad-btn-text: #f0e0c0;
+  --dpad-btn-top: #4a4a55;
+  --dpad-btn-bot: #050508;
+  --dpad-hub-bg: #1a1a1f;
 }
 
 body[data-graphics="gb_red"] {
-  --shell-bg: linear-gradient(180deg, #c9c8bb 0%, #9f9d91 58%, #6f6d66 100%);
-  --shell-top: linear-gradient(180deg, #deddd1 0%, #9b9a8f 100%);
-  --shell-top-text: #313a37;
-  --shell-top-shadow: #5d5c55;
-  --shell-title: 'pokerod classic';
-  --bezel-bg: linear-gradient(180deg, #5c6461 0%, #303634 100%);
-  --bezel-line: #202624;
-  --bezel-label: #9bbc0f;
+  /* Original Game Boy: cream/off-white gray shell, blue Nintendo logo,
+     medium-gray bezel around the green DMG LCD, pink/magenta A & B,
+     light-gray SELECT/START with blue text, black plus on cream well. */
+  --shell-bg: linear-gradient(180deg, #d8d6c8 0%, #b5b2a4 58%, #84817a 100%);
+  --shell-top: linear-gradient(180deg, #e7e4d6 0%, #aeac9f 100%);
+  --shell-top-text: #2a3f8c;
+  --shell-top-shadow: #6a6862;
+  --shell-title: 'Nintendo GAME BOY';
+  --bezel-bg: linear-gradient(180deg, #807f74 0%, #58574e 100%);
+  --bezel-line: #2c2b25;
+  --bezel-label: #2a3f8c;
   --game-glow: rgba(139,172,15,0.25);
-  --abtn-a-bg: radial-gradient(circle at 35% 30%, #b979c8 0%, #7c3f96 54%, #3e205f 100%);
-  --abtn-a-shadow: #2a1640;
-  --abtn-b-bg: radial-gradient(circle at 35% 30%, #c98add 0%, #844aa4 54%, #432565 100%);
-  --abtn-b-shadow: #2a1640;
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #f06090 0%, #c0204a 56%, #76122c 100%);
+  --abtn-a-shadow: #4a0a1a;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #f47ba6 0%, #cc3360 56%, #7e1730 100%);
+  --abtn-b-shadow: #4a0a1a;
+  --ss-bg: linear-gradient(180deg, #c0bdb0 0%, #908d82 100%);
+  --ss-text: #2a3f8c;
+  --ss-border: #6c6a62;
+  --ss-shadow: #5e5b54;
+  --dpad-well-bg: #6b6960;
+  --dpad-well-edge: #4b4942;
+  --dpad-well-inset: #38362f;
+  --dpad-btn-bg: linear-gradient(180deg, #2a2a2e 0%, #0c0c10 100%);
+  --dpad-btn-active-bg: linear-gradient(180deg, #0c0c10 0%, #2a2a2e 100%);
+  --dpad-btn-text: #e8e6dc;
+  --dpad-btn-top: #4a4a55;
+  --dpad-btn-bot: #050508;
+  --dpad-hub-bg: #1a1a1c;
 }
 
 body[data-graphics="gbc_yellow"] {
-  --shell-bg: linear-gradient(180deg, #ffd83f 0%, #e0aa18 60%, #b87412 100%);
-  --shell-top: linear-gradient(180deg, #ffe869 0%, #dfa51a 100%);
-  --shell-top-text: #62401c;
-  --shell-top-shadow: #7a5310;
-  --shell-title: 'pokerod classic';
-  --bezel-bg: linear-gradient(180deg, #6a4b26 0%, #2a2018 100%);
-  --bezel-line: #9b6f1d;
-  --bezel-label: #ffe27e;
-  --game-glow: rgba(255,226,126,0.24);
-  --abtn-a-bg: radial-gradient(circle at 35% 30%, #c98add 0%, #8540aa 54%, #422060 100%);
-  --abtn-a-shadow: #2d1645;
-  --abtn-b-bg: radial-gradient(circle at 35% 30%, #b979d8 0%, #744098 54%, #382058 100%);
-  --abtn-b-shadow: #2d1645;
+  /* Game Boy Color (yellow edition): bright yellow shell, dark navy
+     bezel around the LCD, dark navy A & B, dark almost-black
+     SELECT/START strip with yellow letters, almost-black plus on a
+     mustard-yellow well. */
+  --shell-bg: linear-gradient(180deg, #ffd928 0%, #f0bc14 60%, #c08810 100%);
+  --shell-top: linear-gradient(180deg, #ffe65c 0%, #e0a814 100%);
+  --shell-top-text: #1a1820;
+  --shell-top-shadow: #6c4a0c;
+  --shell-title: 'GAME BOY COLOR';
+  --bezel-bg: linear-gradient(180deg, #14182a 0%, #050810 100%);
+  --bezel-line: #08091a;
+  --bezel-label: #cbd0e8;
+  --game-glow: rgba(200,220,255,0.18);
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #3a4060 0%, #1a1c2c 56%, #060710 100%);
+  --abtn-a-shadow: #02030a;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #3d4368 0%, #1c1f30 56%, #060812 100%);
+  --abtn-b-shadow: #02030a;
+  --ss-bg: linear-gradient(180deg, #2a2030 0%, #14101a 100%);
+  --ss-text: #f4e068;
+  --ss-border: #38303c;
+  --ss-shadow: #18121c;
+  --dpad-well-bg: #c08810;
+  --dpad-well-edge: #845c08;
+  --dpad-well-inset: #6c4c08;
+  --dpad-btn-bg: linear-gradient(180deg, #20242e 0%, #06080e 100%);
+  --dpad-btn-active-bg: linear-gradient(180deg, #06080e 0%, #20242e 100%);
+  --dpad-btn-text: #e8eaf0;
+  --dpad-btn-top: #3a4060;
+  --dpad-btn-bot: #050608;
+  --dpad-hub-bg: #0c0e16;
 }
 
 body[data-graphics="gba_firered"] {
-  --shell-bg: linear-gradient(180deg, #c01818 0%, #8a0808 60%, #5a0404 100%);
-  --shell-top: linear-gradient(180deg, #d83020 0%, #a01818 100%);
-  --shell-top-text: #ffd060;
-  --shell-top-shadow: #2a0604;
-  --shell-title: 'pokerod advance';
-  --bezel-bg: linear-gradient(180deg, #2a0604 0%, #1a0204 100%);
-  --bezel-line: #5a1810;
-  --bezel-label: #f0a020;
-  --game-glow: rgba(255,160,40,0.15);
+  /* Game Boy Advance SP: brushed-silver shell, dark gray-blue bezel
+     around the LCD, dark gray A & B, silver-gray SELECT/START pills,
+     dark gray plus on a darker silver well. */
+  --shell-bg: linear-gradient(180deg, #d8dadd 0%, #a8acb4 60%, #7a7e88 100%);
+  --shell-top: linear-gradient(180deg, #e2e4e8 0%, #a4a8b0 100%);
+  --shell-top-text: #2a2c34;
+  --shell-top-shadow: #58606c;
+  --shell-title: 'GAME BOY ADVANCE';
+  --bezel-bg: linear-gradient(180deg, #20222a 0%, #0c0d12 100%);
+  --bezel-line: #3a3d48;
+  --bezel-label: #d6dae2;
+  --game-glow: rgba(220,228,240,0.18);
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #6c7280 0%, #2c2f38 56%, #14161c 100%);
+  --abtn-a-shadow: #050608;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #6c7280 0%, #2c2f38 56%, #14161c 100%);
+  --abtn-b-shadow: #050608;
+  --ss-bg: linear-gradient(180deg, #c0c2c8 0%, #8c8f96 100%);
+  --ss-text: #2a2c34;
+  --ss-border: #6c6e74;
+  --ss-shadow: #5a5c64;
+  --dpad-well-bg: #7a7e88;
+  --dpad-well-edge: #56595f;
+  --dpad-well-inset: #44464c;
+  --dpad-btn-bg: linear-gradient(180deg, #2e3138 0%, #14161c 100%);
+  --dpad-btn-active-bg: linear-gradient(180deg, #14161c 0%, #2e3138 100%);
+  --dpad-btn-text: #d6dae2;
+  --dpad-btn-top: #4a4d54;
+  --dpad-btn-bot: #050608;
+  --dpad-hub-bg: #16181c;
 }
 
 body[data-graphics="ds_diamond"] {
@@ -82,9 +150,9 @@ body[data-graphics="ds_diamond"] {
 
 /* Per-mode bezel sub-labels (the small "PR-DOT MATRIX" line beneath the
    canvas). Each shell gets its own marketing phrase. */
-body[data-graphics="gb_red"]      #screen::after { content: 'GAME BOY'; letter-spacing: 4px; }
+body[data-graphics="gb_red"]      #screen::after { content: 'DOT MATRIX WITH STEREO SOUND'; letter-spacing: 1px; font-size: 6px; }
 body[data-graphics="gbc_yellow"]  #screen::after { content: 'GAME BOY COLOR'; letter-spacing: 3px; }
-body[data-graphics="gba_firered"] #screen::after { content: 'PR-DOT MATRIX'; }
+body[data-graphics="gba_firered"] #screen::after { content: 'GAME BOY ADVANCE SP'; letter-spacing: 2px; }
 body[data-graphics="ds_diamond"]  #screen::after { content: 'NINTENDO DS'; letter-spacing: 4px; }
 
 * { box-sizing: border-box; }
@@ -611,20 +679,20 @@ body[data-graphics="ds_diamond"] #game-bottom {
   grid-template-columns: repeat(3, clamp(48px, 15vw, 58px));
   grid-template-rows: repeat(3, clamp(48px, 15vw, 58px));
   gap: 0;
-  background: #1a0204;
+  background: var(--dpad-well-bg);
   border-radius: 12px;
   padding: 5px;
   box-shadow:
-    0 4px 0 #2a0604,
+    0 4px 0 var(--dpad-well-edge),
     inset 0 2px 4px rgba(0,0,0,0.6),
-    inset 0 0 0 2px #3a0a08;
+    inset 0 0 0 2px var(--dpad-well-inset);
 }
 #dpad .dbtn {
-  background: linear-gradient(180deg, #2a2a30 0%, #14141a 100%);
+  background: var(--dpad-btn-bg);
   border: 0;
   border-radius: 0;
-  box-shadow: inset 0 -2px 0 #050508, inset 0 2px 0 #4a4a55;
-  color: #f0e0c0;
+  box-shadow: inset 0 -2px 0 var(--dpad-btn-bot), inset 0 2px 0 var(--dpad-btn-top);
+  color: var(--dpad-btn-text);
   font-size: 20px;
   font-weight: bold;
 }
@@ -633,8 +701,8 @@ body[data-graphics="ds_diamond"] #game-bottom {
 #dpad .dbtn:nth-child(3) { grid-column: 3; grid-row: 2; border-radius: 0 6px 6px 0; }
 #dpad .dbtn:nth-child(4) { grid-column: 2; grid-row: 3; border-radius: 0 0 6px 6px; }
 #dpad .dbtn:active {
-  background: linear-gradient(180deg, #14141a 0%, #2a2a30 100%);
-  box-shadow: inset 0 0 0 #050508;
+  background: var(--dpad-btn-active-bg);
+  box-shadow: inset 0 0 0 var(--dpad-btn-bot);
   transform: none;
 }
 #dpad::before {
@@ -643,7 +711,7 @@ body[data-graphics="ds_diamond"] #game-bottom {
   width: 24px; height: 24px;
   align-self: center;
   justify-self: center;
-  background: #1a1a1f;
+  background: var(--dpad-hub-bg);
   border-radius: 50%;
   box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
 }
@@ -687,17 +755,17 @@ body[data-graphics="ds_diamond"] #game-bottom {
   position: relative;
   width: clamp(72px, 22vw, 84px); height: 18px;
   border-radius: 10px;
-  background: linear-gradient(180deg, #3a0a08 0%, #1a0204 100%);
-  color: #f0c020;
-  border: 2px solid #5a1810;
+  background: var(--ss-bg);
+  color: var(--ss-text);
+  border: 2px solid var(--ss-border);
   font-family: inherit;
   font-size: 9px;
   font-weight: bold;
   letter-spacing: 3px;
-  box-shadow: 0 3px 0 #2a0604, inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: 0 3px 0 var(--ss-shadow), inset 0 1px 0 rgba(255,255,255,0.05);
   cursor: pointer;
 }
-.ssbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #2a0604; }
+.ssbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ss-shadow); }
 
 @media (max-width: 340px) {
   #dpad {
