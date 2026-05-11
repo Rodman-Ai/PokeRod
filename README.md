@@ -35,8 +35,11 @@ On mobile, the on-screen D-pad and A/B buttons appear automatically.
 - Catch wild creatures with Rod, Great, Quick, Cavern, and Ultra Balls
 - Heal at the PokeRod Center, save/load to localStorage
 - Mobile touch controls and a handheld console skin (desktop and portrait)
-- Four switchable full-atlas graphics styles: GB Red, GBC Yellow,
-  GBA FireRed, and DS Diamond inspired original PokeRod art
+- Five switchable full-atlas graphics styles: GB Red, GB Pocket,
+  GBC Yellow, GBA FireRed, and DS Diamond inspired original
+  PokeRod art (with era-toned UI overlays on the monochrome eras)
+- Ambient wildlife - chickens, ducks, swans, sparrows and crows
+  pace, paddle, perch and fly on every outdoor map
 - 77 original creatures with procedural pixel-art sprites
 - Procedural Web Audio music and SFX, no audio files shipped
 

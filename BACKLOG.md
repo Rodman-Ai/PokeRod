@@ -60,7 +60,7 @@ codes / spectator mode**, **bestiary completion percentages with
 rewards**, **avatar customisation** (clothes, hat, hair, skin),
 **birthday creature variants**, **random daily encounter forecast**.
 
-## Already shipped (as of v0.49.1 / build #131)
+## Already shipped (as of v0.55.2 / build #144)
 
 - Tile-based overworld with follow camera, day/night cycle, animated
   water, ambient creatures, biome particles, **8 weather kinds** (rain
@@ -69,11 +69,14 @@ rewards**, **avatar customisation** (clothes, hat, hair, skin),
   sea-fog, smog, etc.). Tornado retired as a weather kind; its funnel
   render lives on as a battle move effect.
 - Turn-based battles, 18-type chart, status effects, stat stages,
-  priority, **per-type + per-move VFX (18 types + 13 signature
-  overrides, including a gust / airslash twister)**, critical-hit
-  pulse on DS.
-- 77 hand-pixeled creatures across **4 graphics tiers** (GB Red, GBC
-  Yellow, GBA FireRed, DS Diamond).
+  priority, **per-type + per-move VFX (18 types + 107 signature
+  overrides - every move except `splash` has a unique animation)**,
+  critical-hit pulse on DS.
+- 77 hand-pixeled creatures across **5 graphics eras** (GB Red, GB
+  Pocket, GBC Yellow, GBA FireRed, DS Diamond), with era-toned UI
+  overlays on the two monochrome eras.
+- Ambient wildlife - chickens, ducks, swans, sparrows and crows
+  pace, paddle, perch and fly on every outdoor map.
 - 5 ball types, hidden items, **fishing minigame** (A=fish, B=surf),
   trinket equipment, badges, **6-page profile** (trainer, battles,
   journey, dex, story, gear).
