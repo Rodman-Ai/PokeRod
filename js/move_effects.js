@@ -1038,26 +1038,65 @@
     }
   }
 
-  // 5. tailwhip — sweeping arc with swish trail + dust kick.
+  // 5. tailwhip — curved warm-peach tail sweeps across target with
+  // bright tip, wind swish lines, and an impact pulse at the end of
+  // the swing. (Reworked in v0.52.1 — the previous version used
+  // grey-on-grey particles that vanished against most battle
+  // backgrounds.)
   function drawTailWhip(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
-    const a = Math.PI * (p - 0.5) * 1.6;
-    const r = 18;
-    const tx = cx + Math.cos(a) * r;
-    const ty = cy + 6 + Math.sin(a) * 6;
-    const trail = fancy ? 8 : 3;
-    for (let i = 0; i < trail; i++) {
-      const ta = a - i * 0.18;
-      const dx = cx + Math.cos(ta) * r;
-      const dy = cy + 6 + Math.sin(ta) * 6;
-      const alpha = (1 - i / trail) * (fancy ? 0.7 : 0.6);
-      px(ctx, dx - 1, dy - 1, fancy ? 3 : 2, fancy ? 3 : 2, fancy ? 'rgba(220,220,220,' + alpha.toFixed(2) + ')' : '#ccc');
+    const startAng = -Math.PI * 0.7;
+    const endAng   =  Math.PI * 0.7;
+    const a = startAng + (endAng - startAng) * p;
+    // 11-segment trailing tail.
+    for (let i = 10; i >= 0; i--) {
+      const t = i / 10;
+      const segAng = a - t * 0.9;
+      const segR = 22 - t * 4;
+      const sx = cx + Math.cos(segAng) * segR;
+      const sy = cy + 4 + Math.sin(segAng) * segR * 0.6;
+      const thickness = fancy ? Math.max(1, 5 - i * 0.35) : 2;
+      const alpha = (1 - t * 0.6);
+      const col = fancy
+        ? 'rgba(255,184,120,' + alpha.toFixed(2) + ')'
+        : '#fb8';
+      if (fancy) disc(ctx, sx, sy, thickness, col);
+      else px(ctx, sx | 0, sy | 0, 2, 2, col);
     }
-    px(ctx, tx - 2, ty - 2, 4, 4, fancy ? 'rgba(255,255,255,0.95)' : '#fff');
+    // Bright white-yellow tip with halo.
+    const tx = cx + Math.cos(a) * 22;
+    const ty = cy + 4 + Math.sin(a) * 13;
+    if (fancy) {
+      gradientFill(ctx, tx, ty, 6, 'rgba(255,255,200,0.95)', 'rgba(248,200,80,0)');
+      disc(ctx, tx, ty, 3, 'rgba(255,255,255,0.95)');
+    } else {
+      px(ctx, tx - 2, ty - 2, 5, 5, '#fff');
+    }
+    // Wind swish lines on the leading edge during mid-swing.
+    if (fancy && p > 0.3 && p < 0.85) {
+      for (let i = 0; i < 3; i++) {
+        const sa = a + i * 0.15;
+        streak(ctx, cx + Math.cos(sa) * 24, cy + 4 + Math.sin(sa) * 15,
+                     cx + Math.cos(sa) * 28, cy + 4 + Math.sin(sa) * 17,
+                     'rgba(255,255,255,' + (0.6 - i * 0.15).toFixed(2) + ')', 1);
+      }
+    }
+    // Impact pulse at end of swing.
+    if (p > 0.65) {
+      const k = (p - 0.65) / 0.35;
+      if (fancy) gradientFill(ctx, cx, cy, 8 + k * 12,
+        'rgba(255,200,120,' + (0.5 * (1 - k)).toFixed(2) + ')',
+        'rgba(248,144,80,0)');
+      ring(ctx, cx, cy, 4 + k * 8,
+        fancy ? 'rgba(255,232,168,' + (1 - k).toFixed(2) + ')' : '#fea',
+        fancy ? 2 : 1);
+    }
+    // Dust kicks at ground.
     if (fancy && p > 0.45) {
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         const r2 = rng(i + 2);
-        px(ctx, cx + (r2 - 0.5) * 20 | 0, cy + 10 + r2 * 4 | 0, 2, 2, 'rgba(200,180,140,' + (0.7 * (1 - p)).toFixed(2) + ')');
+        px(ctx, cx + (r2 - 0.5) * 22 | 0, cy + 12 + r2 * 4 | 0, 2, 2,
+          'rgba(200,180,140,' + (0.85 * (1 - p)).toFixed(2) + ')');
       }
     }
   }
@@ -1088,7 +1127,9 @@
     }
   }
 
-  // 7. harden — hex segments lock-click around target with sparkle.
+  // 7. harden — cyan-silver hex shell locks around target with a
+  // bright click-flash. (Reworked in v0.52.1 — old grey-blue palette
+  // was too close to typical battle backgrounds to read.)
   function drawHarden(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
     const segs = 6;
@@ -1097,13 +1138,35 @@
       const a = (i / segs) * Math.PI * 2 + p * 0.4;
       const sx = cx + Math.cos(a) * r;
       const sy = cy + Math.sin(a) * r;
-      px(ctx, sx - 2, sy - 2, 5, 5, fancy ? 'rgba(168,180,200,0.95)' : '#bcc');
-      if (fancy) px(ctx, sx - 1, sy - 1, 2, 2, 'rgba(232,240,248,0.85)');
+      // Cyan-silver hex with bright white core for visibility.
+      px(ctx, sx - 3, sy - 3, 7, 7, fancy ? 'rgba(80,144,200,0.95)' : '#48a');
+      px(ctx, sx - 2, sy - 2, 5, 5, fancy ? 'rgba(168,232,255,0.95)' : '#aef');
+      if (fancy) {
+        px(ctx, sx - 1, sy - 1, 3, 3, 'rgba(232,248,255,0.95)');
+        px(ctx, sx, sy, 1, 1, 'rgba(255,255,255,1)');
+      }
     }
-    if (fancy && p > 0.5) {
+    if (fancy) {
+      // Outer halo that brightens with shell engagement.
+      gradientFill(ctx, cx, cy, r + 6,
+        'rgba(168,232,255,' + (0.35 + 0.25 * Math.sin(p * 8)).toFixed(2) + ')',
+        'rgba(80,144,200,0)');
+    }
+    if (p > 0.5) {
       const k = (p - 0.5) / 0.5;
-      ring(ctx, cx, cy, r + 2, 'rgba(232,240,248,' + (1 - k).toFixed(2) + ')', 2);
-      star(ctx, cx, cy, 4, 'rgba(255,255,255,' + (1 - k).toFixed(2) + ')');
+      if (fancy) {
+        // 6-spoke bright shine on lock-click.
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2;
+          streak(ctx, cx + Math.cos(a) * 4, cy + Math.sin(a) * 4,
+                       cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6),
+                       'rgba(232,255,255,' + (0.9 * (1 - k)).toFixed(2) + ')', 2);
+        }
+      }
+      ring(ctx, cx, cy, r + 2,
+        fancy ? 'rgba(232,255,255,' + (1 - k).toFixed(2) + ')' : '#cff',
+        fancy ? 2 : 1);
+      star(ctx, cx, cy, 5, fancy ? 'rgba(255,255,255,' + (1 - k).toFixed(2) + ')' : '#fff');
     }
   }
 
@@ -3515,28 +3578,68 @@
     }
   }
 
-  // 89. honehook — two fang silhouettes rasp together with sharpening sparks.
+  // 89. honehook — two bronze/gold crescent fangs rasp together with
+  // bright orange sparks + a "stat up" arrow indicator. (Reworked in
+  // v0.52.1 — old near-white-on-white was nearly invisible.)
   function drawHoneHook(ctx, p, dur, tier, cx, cy, w, h) {
     const fancy = isFancy(tier);
-    // Two crescent fangs scraping past each other (oscillating offset).
     const off = Math.sin(p * 18) * 4;
+    // Two crescent fangs scraping past each other.
     for (let s = -1; s <= 1; s += 2) {
-      ctx.fillStyle = fancy ? 'rgba(232,232,232,0.95)' : '#ddd';
+      // Dark outline first.
+      if (fancy) {
+        ctx.fillStyle = 'rgba(80,40,16,0.95)';
+        ctx.beginPath();
+        ctx.moveTo(cx - 9 + s * off, cy + s * 4);
+        ctx.quadraticCurveTo(cx + s * off, cy + s * -3, cx + 9 + s * off, cy + s * 4);
+        ctx.quadraticCurveTo(cx + s * off, cy + s * 1, cx - 9 + s * off, cy + s * 4);
+        ctx.closePath();
+        ctx.fill();
+      }
+      // Bronze/gold fill.
+      ctx.fillStyle = fancy ? 'rgba(232,168,72,0.98)' : '#ea6';
       ctx.beginPath();
       ctx.moveTo(cx - 8 + s * off, cy + s * 4);
       ctx.quadraticCurveTo(cx + s * off, cy + s * -2, cx + 8 + s * off, cy + s * 4);
       ctx.quadraticCurveTo(cx + s * off, cy + s * 1, cx - 8 + s * off, cy + s * 4);
       ctx.closePath();
       ctx.fill();
-    }
-    if (fancy) {
-      // Sharpening sparks (alternating sides).
-      const spark = (Math.sin(p * 24) > 0) ? 1 : -1;
-      for (let i = 0; i < 3; i++) {
-        const sx = cx + (i - 1) * 5;
-        const sy = cy + spark * 6;
-        px(ctx, sx, sy, 2, 1, 'rgba(255,232,168,' + (0.85 * Math.abs(Math.sin(p * 20 + i))).toFixed(2) + ')');
+      if (fancy) {
+        // Bright highlight along the fang edge.
+        ctx.strokeStyle = 'rgba(255,232,168,0.95)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - 6 + s * off, cy + s * 2);
+        ctx.quadraticCurveTo(cx + s * off, cy + s * -1, cx + 6 + s * off, cy + s * 2);
+        ctx.stroke();
       }
+    }
+    // Bright orange sharpening sparks streaming between fangs.
+    if (fancy) {
+      const spark = (Math.sin(p * 24) > 0) ? 1 : -1;
+      for (let i = 0; i < 5; i++) {
+        const sx = cx + (i - 2) * 4;
+        const sy = cy + spark * 5;
+        const intensity = Math.abs(Math.sin(p * 20 + i));
+        if (intensity > 0.35) {
+          px(ctx, sx, sy, 2, 2, 'rgba(255,144,32,' + (0.95 * intensity).toFixed(2) + ')');
+          px(ctx, sx, sy + spark, 1, 1, 'rgba(255,232,168,' + intensity.toFixed(2) + ')');
+        }
+      }
+      // Upward "stat up" arrow indicator pulsing.
+      const arrowY = cy - 12 - Math.sin(p * 6) * 2;
+      const arrowA = (0.65 + 0.25 * Math.sin(p * 8)).toFixed(2);
+      ctx.fillStyle = 'rgba(255,232,168,' + arrowA + ')';
+      ctx.beginPath();
+      ctx.moveTo(cx, arrowY - 3);
+      ctx.lineTo(cx + 3, arrowY);
+      ctx.lineTo(cx + 1, arrowY);
+      ctx.lineTo(cx + 1, arrowY + 3);
+      ctx.lineTo(cx - 1, arrowY + 3);
+      ctx.lineTo(cx - 1, arrowY);
+      ctx.lineTo(cx - 3, arrowY);
+      ctx.closePath();
+      ctx.fill();
     }
   }
 
@@ -3886,6 +3989,8 @@
     dazzle:      0.90,
     ghostgrip:   0.90,
     fairykiss:   0.85,
+    // v0.52.1 — visibility rework.
+    tailwhip:    0.85,
     // v0.51.0 multi-stage signatures.
     avalanche:      1.00,
     earthquake:     0.95,
