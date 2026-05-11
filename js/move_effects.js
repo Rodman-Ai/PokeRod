@@ -2607,6 +2607,1139 @@
     }
   }
 
+  // ---- 34 more signature move effects (v0.52.0) ------------------------
+  // New moves added in tandem to js/data.js MOVES. Tier-branched as usual.
+
+  // 61. doublestrike — two staggered impact stars + connecting streak.
+  function drawDoubleStrike(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const stages = [0.1, 0.45];
+    for (let i = 0; i < 2; i++) {
+      const local = (p - stages[i]) / 0.35;
+      if (local <= 0 || local > 1) continue;
+      const a = (1 - local).toFixed(2);
+      const dx = (i === 0 ? -6 : 6);
+      const dy = (i === 0 ? -4 : 4);
+      // Streak in.
+      streak(ctx, cx + dx - 10, cy + dy, cx + dx, cy + dy,
+        fancy ? 'rgba(255,232,168,' + a + ')' : '#fea', fancy ? 3 : 2);
+      // Impact star.
+      star(ctx, cx + dx, cy + dy, 4, fancy ? 'rgba(255,255,255,' + a + ')' : '#fff');
+      if (fancy) {
+        gradientFill(ctx, cx + dx, cy + dy, 6,
+          'rgba(255,232,168,' + (0.7 * (1 - local)).toFixed(2) + ')', 'rgba(255,232,168,0)');
+      }
+    }
+  }
+
+  // 62. recklesscharge — full-width motion blur sweep + big dust + flinch lines.
+  function drawRecklessCharge(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const sx = cx - 50 + k * 50;
+    // Multi-line blur (8 stacked streaks).
+    if (fancy) {
+      for (let i = 0; i < 8; i++) {
+        const oy = (i - 3.5) * 3;
+        const a = 0.85 - i * 0.08;
+        streak(ctx, sx - 30, cy + oy, sx + 4, cy + oy,
+          'rgba(255,255,255,' + a.toFixed(2) + ')', 2);
+      }
+    } else {
+      streak(ctx, sx - 14, cy, sx, cy, '#fff', 3);
+    }
+    // Impact.
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 8 + ik * 18, 'rgba(255,232,168,' + (0.85 * (1 - ik)).toFixed(2) + ')', 'rgba(255,232,168,0)');
+      }
+      // Big dust ring at ground.
+      ring(ctx, cx, cy + 6, 6 + ik * 18, fancy ? 'rgba(200,180,140,' + (0.95 * (1 - ik)).toFixed(2) + ')' : '#dca', fancy ? 2 : 1);
+      // Recoil flinch lines from user side.
+      if (fancy && ik > 0.5) {
+        for (let i = 0; i < 4; i++) {
+          const fy = cy - 6 + i * 4;
+          streak(ctx, cx - 26, fy, cx - 18, fy, 'rgba(255,200,144,' + (1 - ik).toFixed(2) + ')', 2);
+        }
+      }
+    }
+  }
+
+  // 63. firefist — glowing red-orange fist with flame trail punching in.
+  function drawFireFist(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const fx = cx - 24 + k * 22;
+    // Flame trail (3 ember puffs behind fist).
+    if (fancy) {
+      for (let i = 0; i < 4; i++) {
+        const tx = fx - 8 - i * 5;
+        const sz = 4 - i;
+        const col = i < 2 ? 'rgba(248,80,8,' + (0.85 - i * 0.2).toFixed(2) + ')' : 'rgba(248,176,32,' + (0.7 - i * 0.15).toFixed(2) + ')';
+        disc(ctx, tx, cy + Math.sin(p * 14 + i) * 2, sz, col);
+      }
+    }
+    // Glove silhouette.
+    ctx.fillStyle = fancy ? 'rgba(232,80,40,0.95)' : '#e44';
+    ctx.fillRect(fx - 7, cy - 6, 9, 12);
+    if (fancy) {
+      ctx.fillStyle = 'rgba(255,168,72,0.9)';
+      ctx.fillRect(fx - 5, cy - 4, 5, 8);
+      // Flame halo at fist front.
+      gradientFill(ctx, fx + 2, cy, 6, 'rgba(255,232,168,0.85)', 'rgba(248,80,8,0)');
+    }
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      if (fancy) gradientFill(ctx, cx, cy, 6 + ik * 14, 'rgba(248,200,80,' + (0.7 * (1 - ik)).toFixed(2) + ')', 'rgba(248,80,8,0)');
+      star(ctx, cx, cy, 4, fancy ? 'rgba(255,232,168,' + (1 - ik).toFixed(2) + ')' : '#fea');
+    }
+  }
+
+  // 64. searingbeam — sustained pillar of fire on target with shimmer haze.
+  function drawSearingBeam(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Pillar height pulses.
+    const pillarH = 24 + Math.sin(p * 18) * 2;
+    if (fancy) {
+      const grad = ctx.createLinearGradient(0, cy - pillarH, 0, cy + 8);
+      grad.addColorStop(0, 'rgba(248,200,80,0.7)');
+      grad.addColorStop(0.5, 'rgba(248,80,8,0.92)');
+      grad.addColorStop(1, 'rgba(255,232,168,0.8)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, cy + 8);
+      ctx.quadraticCurveTo(cx - 4, cy - pillarH * 0.5, cx, cy - pillarH);
+      ctx.quadraticCurveTo(cx + 4, cy - pillarH * 0.5, cx + 8, cy + 8);
+      ctx.closePath();
+      ctx.fill();
+      // Shimmer haze rising.
+      for (let i = 0; i < 5; i++) {
+        const r = rng(i + 71);
+        const hy = cy - pillarH - r * 14 - (p * 12) % 14;
+        px(ctx, cx + (r - 0.5) * 10 | 0, hy | 0, 2, 1, 'rgba(248,200,80,' + (0.5 + 0.3 * Math.sin(p * 8 + i)).toFixed(2) + ')');
+      }
+    } else {
+      ctx.fillStyle = '#f80';
+      ctx.fillRect(cx - 4, cy - 20, 8, 28);
+    }
+  }
+
+  // 65. willowisp — three flickering wisps orbit target before settling.
+  function drawWillOWisp(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 3 : 2;
+    for (let i = 0; i < n; i++) {
+      const baseAng = (i / n) * Math.PI * 2;
+      const ang = baseAng + p * Math.PI * 3;
+      const rad = 16 - p * 8;
+      const wx = cx + Math.cos(ang) * rad;
+      const wy = cy + Math.sin(ang) * rad * 0.65;
+      const flicker = (Math.sin(p * 30 + i * 2) > 0) ? 1 : 0;
+      if (fancy) {
+        const sz = 3 + flicker;
+        gradientFill(ctx, wx, wy, sz + 2, 'rgba(168,144,232,0.85)', 'rgba(80,56,120,0)');
+        disc(ctx, wx, wy, sz, 'rgba(232,200,255,0.95)');
+        // Trail.
+        const tang = ang - 0.3;
+        const tx = cx + Math.cos(tang) * rad;
+        const ty = cy + Math.sin(tang) * rad * 0.65;
+        px(ctx, tx | 0, ty | 0, 2, 2, 'rgba(168,144,232,0.6)');
+      } else if (flicker) {
+        px(ctx, wx - 1, wy - 1, 3, 3, '#cae');
+      }
+    }
+    if (fancy && p > 0.6) {
+      // Burn settles on target.
+      const ik = (p - 0.6) / 0.4;
+      ring(ctx, cx, cy, 8 - ik * 2, 'rgba(168,80,40,' + (0.7 * (1 - ik)).toFixed(2) + ')', 2);
+    }
+  }
+
+  // 66. dive — splash crown above, underwater shadow glides, spray on emergence.
+  function drawDive(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.35) {
+      // Splash crown above.
+      const k = p / 0.35;
+      const splashY = cy - 18 + k * 8;
+      if (fancy) {
+        for (let i = 0; i < 6; i++) {
+          const ang = (i / 6) * Math.PI - Math.PI;
+          const r = 8 + k * 4;
+          const dx = Math.cos(ang) * r;
+          const dy = Math.sin(ang) * r * 0.4;
+          px(ctx, cx + dx | 0, splashY + dy | 0, 2, 2, 'rgba(168,216,248,' + (0.9 - k * 0.3).toFixed(2) + ')');
+        }
+      } else {
+        ring(ctx, cx, splashY, 8 + k * 4, '#aef', 1);
+      }
+    } else if (p < 0.7) {
+      // Underwater shadow gliding (faint ellipse moving up).
+      if (fancy) {
+        const k = (p - 0.35) / 0.35;
+        const sy = cy + 8 - k * 16;
+        ctx.fillStyle = 'rgba(56,136,200,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(cx, sy, 10, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else {
+      // Emergence + spray.
+      const k = (p - 0.7) / 0.3;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 6 + k * 14, 'rgba(168,216,248,' + (0.85 * (1 - k)).toFixed(2) + ')', 'rgba(56,136,200,0)');
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          const r = 4 + k * 14;
+          px(ctx, cx + Math.cos(a) * r | 0, cy + Math.sin(a) * r * 0.6 | 0, 2, 2, 'rgba(232,248,255,' + (1 - k).toFixed(2) + ')');
+        }
+      } else {
+        ring(ctx, cx, cy, 4 + k * 10, '#aef', 1);
+      }
+    }
+  }
+
+  // 67. tideguard — curved water barrier swells up with ripple highlights.
+  function drawTideGuard(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    if (fancy) {
+      // Curved barrier (half-ellipse) around user.
+      ctx.fillStyle = 'rgba(56,136,232,0.55)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 4, 16, 16 * k, 0, Math.PI, 0);
+      ctx.fill();
+      // Highlight curve.
+      ctx.strokeStyle = 'rgba(232,248,255,0.85)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 4, 14, 14 * k, 0, Math.PI, 0);
+      ctx.stroke();
+      // Ripples flowing along the dome.
+      for (let i = 0; i < 4; i++) {
+        const ang = (i / 4) * Math.PI - Math.PI;
+        const rx = Math.cos(ang) * 12;
+        const ry = Math.sin(ang) * 12 * k;
+        const wob = Math.sin(p * 12 + i) * 2;
+        px(ctx, cx + rx + wob | 0, cy + 4 + ry | 0, 2, 2, 'rgba(232,248,255,0.85)');
+      }
+    } else {
+      ring(ctx, cx, cy + 2, 14 * k, '#48c', 1);
+    }
+    if (fancy && p > 0.6) {
+      // Sparkles atop the barrier.
+      const ik = (p - 0.6) / 0.4;
+      for (let i = 0; i < 3; i++) {
+        const sx = cx + (i - 1) * 6;
+        const sy = cy + 4 - 14 + Math.sin(p * 10 + i) * 2;
+        star(ctx, sx, sy, 2, 'rgba(232,248,255,' + (1 - ik).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 68. thunderfang — lightning-shaped fangs converge with crackle arc.
+  function drawThunderFang(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const gap = (1 - k) * 14 + 2;
+    // Two zigzag fangs from top + bottom.
+    for (let s = -1; s <= 1; s += 2) {
+      const fy = cy + s * gap;
+      ctx.strokeStyle = fancy ? 'rgba(255,232,80,0.95)' : '#fe4';
+      ctx.lineWidth = fancy ? 3 : 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, fy);
+      ctx.lineTo(cx - 3, fy + s * 3);
+      ctx.lineTo(cx + 2, fy + s * -2);
+      ctx.lineTo(cx + 6, fy + s * 3);
+      ctx.stroke();
+    }
+    if (fancy && k > 0.6) {
+      // Arc crackling between.
+      const arcK = (k - 0.6) / 0.4;
+      ctx.strokeStyle = 'rgba(255,255,232,' + (0.85 * arcK).toFixed(2) + ')';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy - gap + 2);
+      const seg = 4;
+      for (let i = 1; i <= seg; i++) {
+        const t = i / seg;
+        const wy = cy - gap + 2 + t * (gap * 2 - 4);
+        const wx = cx - 4 + t * 8 + (i & 1 ? 3 : -3);
+        ctx.lineTo(wx, wy);
+      }
+      ctx.stroke();
+    }
+    if (p > 0.55) {
+      const ik = (p - 0.55) / 0.45;
+      if (fancy) gradientFill(ctx, cx, cy, 6 + ik * 10, 'rgba(255,232,80,' + (0.6 * (1 - ik)).toFixed(2) + ')', 'rgba(255,232,80,0)');
+    }
+  }
+
+  // 69. zaplance — spear-shaped lightning bolt thrusts forward.
+  function drawZapLance(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const sx = cx - 28 + k * 28;
+    // Shaft (zigzag bolt).
+    ctx.strokeStyle = fancy ? 'rgba(255,232,80,0.95)' : '#fe4';
+    ctx.lineWidth = fancy ? 4 : 2;
+    ctx.beginPath();
+    ctx.moveTo(sx - 16, cy);
+    ctx.lineTo(sx - 11, cy - 3);
+    ctx.lineTo(sx - 6, cy + 2);
+    ctx.lineTo(sx, cy);
+    ctx.stroke();
+    // Spear tip.
+    if (fancy) {
+      ctx.fillStyle = 'rgba(255,255,232,0.95)';
+      ctx.beginPath();
+      ctx.moveTo(sx, cy);
+      ctx.lineTo(sx - 4, cy - 4);
+      ctx.lineTo(sx - 4, cy + 4);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      px(ctx, sx - 3, cy - 1, 3, 3, '#ffd');
+    }
+    if (fancy && p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      // Sparks fanning at tip.
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2;
+        const r = 4 + ik * 8;
+        px(ctx, cx + Math.cos(ang) * r | 0, cy + Math.sin(ang) * r | 0, 2, 2, 'rgba(255,232,80,' + (1 - ik).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 70. forestburst — leaves erupt outward from target in a green ring.
+  function drawForestBurst(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const n = fancy ? 12 : 6;
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2;
+      const r = p * 22;
+      const lx = cx + Math.cos(ang) * r;
+      const ly = cy + Math.sin(ang) * r * 0.7;
+      const col = fancy ? (i & 1 ? 'rgba(72,168,72,0.95)' : 'rgba(120,200,96,0.95)') : '#4a8';
+      // Leaf shape.
+      if (fancy) {
+        ctx.save();
+        ctx.translate(lx, ly);
+        ctx.rotate(ang + p * 4);
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 4, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        px(ctx, lx | 0, ly | 0, 3, 2, col);
+      }
+    }
+    if (fancy) {
+      ring(ctx, cx, cy, p * 22, 'rgba(120,200,96,' + (0.7 * (1 - p)).toFixed(2) + ')', 2);
+    }
+  }
+
+  // 71. seedshot — 3 seeds arc inward, each sprouts on impact.
+  function drawSeedShot(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const stages = [0, 0.18, 0.36];
+    for (let i = 0; i < 3; i++) {
+      const local = (p - stages[i]) / 0.4;
+      if (local <= 0 || local > 1) continue;
+      const sx0 = cx + (i - 1) * 14 - 18;
+      const sy0 = cy - 18;
+      const rx = sx0 + (cx - sx0) * local;
+      const ry = sy0 + (cy - sy0) * local + Math.sin(local * Math.PI) * -6;
+      const col = fancy ? 'rgba(168,120,72,0.95)' : '#864';
+      // Seed (small oval).
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(rx, ry, 2, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (fancy && local > 0.88) {
+        // Sprout: two tiny leaves at impact.
+        const sp = (local - 0.88) / 0.12;
+        ctx.fillStyle = 'rgba(96,200,96,0.95)';
+        px(ctx, rx - 2, ry - 2 - sp * 3, 2, 2, 'rgba(96,200,96,0.95)');
+        px(ctx, rx + 1, ry - 2 - sp * 3, 2, 2, 'rgba(96,200,96,0.95)');
+      }
+    }
+  }
+
+  // 72. icefang — crystalline fangs bite down, frost rings spread.
+  function drawIceFang(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const gap = (1 - k) * 14 + 2;
+    for (let s = -1; s <= 1; s += 2) {
+      const fy = cy + s * gap;
+      // Crystal fang (triangle).
+      ctx.fillStyle = fancy ? 'rgba(200,232,248,0.95)' : '#aef';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, fy);
+      ctx.lineTo(cx + 6, fy);
+      ctx.lineTo(cx, fy + s * -5);
+      ctx.closePath();
+      ctx.fill();
+      if (fancy) {
+        // Highlight edge.
+        ctx.fillStyle = 'rgba(248,255,255,0.85)';
+        ctx.fillRect(cx - 1, fy + s * -4, 2, 4);
+      }
+    }
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      // Frost rings spreading.
+      for (let i = 0; i < 2; i++) {
+        const r = 4 + (ik + i * 0.3) * 12;
+        ring(ctx, cx, cy, r, fancy ? 'rgba(200,232,248,' + (0.7 * (1 - ik)).toFixed(2) + ')' : '#aef', fancy ? 2 : 1);
+      }
+    }
+  }
+
+  // 73. flashfreeze — sudden white flash → target encased in crystal lattice.
+  function drawFlashFreeze(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Flash.
+    if (p < 0.25) {
+      const k = p / 0.25;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, 24, 'rgba(255,255,255,' + (0.95 * (1 - k)).toFixed(2) + ')', 'rgba(200,232,248,0)');
+      } else {
+        disc(ctx, cx, cy, 14 * (1 - k), '#fff');
+      }
+    } else {
+      // Crystal lattice forming around target.
+      const k = (p - 0.25) / 0.75;
+      const nodes = fancy ? 8 : 4;
+      for (let i = 0; i < nodes; i++) {
+        const ang = (i / nodes) * Math.PI * 2;
+        const r = 12 + Math.sin(p * 6 + i) * 1;
+        const x = cx + Math.cos(ang) * r;
+        const y = cy + Math.sin(ang) * r * 0.7;
+        ctx.fillStyle = fancy ? 'rgba(200,232,248,0.95)' : '#aef';
+        ctx.beginPath();
+        ctx.moveTo(x, y - 3);
+        ctx.lineTo(x + 2, y);
+        ctx.lineTo(x, y + 3);
+        ctx.lineTo(x - 2, y);
+        ctx.closePath();
+        ctx.fill();
+        // Lattice line to next.
+        if (fancy) {
+          const nang = ((i + 1) / nodes) * Math.PI * 2;
+          const nx = cx + Math.cos(nang) * r;
+          const ny = cy + Math.sin(nang) * r * 0.7;
+          streak(ctx, x, y, nx, ny, 'rgba(168,216,248,' + (0.85 * k).toFixed(2) + ')', 1);
+        }
+      }
+    }
+  }
+
+  // 74. ironfist — metal aura forms two gauntlet outlines around user's fists.
+  function drawIronFist(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Two fists at user's sides (user is the target box here — we draw on user side).
+    for (let s = -1; s <= 1; s += 2) {
+      const fx = cx + s * 12;
+      // Gauntlet outline (rounded rect).
+      const col = fancy ? 'rgba(168,180,200,0.95)' : '#abc';
+      ctx.strokeStyle = col;
+      ctx.lineWidth = fancy ? 2 : 1;
+      ctx.strokeRect(fx - 5, cy - 5, 10, 10);
+      if (fancy) {
+        // Inner shading.
+        ctx.fillStyle = 'rgba(120,144,168,0.5)';
+        ctx.fillRect(fx - 4, cy - 4, 8, 8);
+        // Sparkle highlights pulsing.
+        if (Math.sin(p * 14) > 0) star(ctx, fx, cy, 2, 'rgba(255,255,255,0.95)');
+      }
+    }
+    if (fancy) {
+      // Power-up aura at user centre.
+      const pulse = 0.5 + 0.5 * Math.sin(p * 10);
+      gradientFill(ctx, cx, cy, 12, 'rgba(232,200,144,' + (0.35 * pulse).toFixed(2) + ')', 'rgba(168,144,72,0)');
+      // Rising sparks.
+      for (let i = 0; i < 4; i++) {
+        const r = rng(i + 75);
+        const phase = (p + r * 0.3) % 1;
+        const sy = cy + 4 - phase * 16;
+        px(ctx, cx + (r - 0.5) * 22 | 0, sy | 0, 2, 2, 'rgba(255,232,168,' + (1 - phase).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 75. tailspike — long thin barbed tail strikes from below with venom drips.
+  function drawTailSpike(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const ty = cy + 16 - k * 22;
+    // Tail (vertical shaft).
+    ctx.fillStyle = fancy ? 'rgba(120,72,168,0.95)' : '#74a';
+    ctx.fillRect(cx - 1, ty, 3, k * 22);
+    // Barbs.
+    if (fancy) {
+      for (let i = 0; i < 3; i++) {
+        const by = ty + 2 + i * 6;
+        if (by > cy + 14) continue;
+        ctx.fillStyle = 'rgba(120,72,168,0.95)';
+        ctx.beginPath();
+        ctx.moveTo(cx - 1, by);
+        ctx.lineTo(cx - 4, by - 2);
+        ctx.lineTo(cx - 1, by + 1);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(cx + 2, by);
+        ctx.lineTo(cx + 5, by - 2);
+        ctx.lineTo(cx + 2, by + 1);
+        ctx.fill();
+      }
+    }
+    // Tip stinger.
+    ctx.fillStyle = fancy ? 'rgba(232,184,248,0.95)' : '#caf';
+    ctx.beginPath();
+    ctx.moveTo(cx, ty - 4);
+    ctx.lineTo(cx - 3, ty);
+    ctx.lineTo(cx + 3, ty);
+    ctx.closePath();
+    ctx.fill();
+    if (fancy && p > 0.5) {
+      // Venom drips.
+      for (let i = 0; i < 3; i++) {
+        const r = rng(i + 77);
+        const phase = (p - 0.5) * 2 + r * 0.3;
+        if (phase < 0 || phase > 1) continue;
+        const dx = (r - 0.5) * 8;
+        const dy = phase * 8;
+        px(ctx, cx + dx | 0, ty - 2 + dy | 0, 2, 2, 'rgba(168,80,184,' + (1 - phase).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 76. terraquake — radial expanding wave with concentric crack rings.
+  function drawTerraquake(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Three concentric rings rippling outward.
+    for (let i = 0; i < 3; i++) {
+      const r = ((p + i * 0.22) % 1) * 26;
+      const a = Math.max(0, 0.85 - r * 0.025);
+      if (fancy) {
+        // Jagged ring (12 segments with offset).
+        ctx.strokeStyle = 'rgba(120,88,56,' + a.toFixed(2) + ')';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const n = 12;
+        for (let k = 0; k <= n; k++) {
+          const ang = k / n * Math.PI * 2;
+          const jag = (k & 1) ? 1 : 0.85;
+          const x = cx + Math.cos(ang) * r * jag;
+          const y = cy + 4 + Math.sin(ang) * r * jag * 0.5;
+          if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      } else {
+        ring(ctx, cx, cy + 4, r, '#864', 1);
+      }
+    }
+    if (fancy) {
+      gradientFill(ctx, cx, cy + 6, 12, 'rgba(168,120,72,' + (0.35 + 0.15 * Math.sin(p * 8)).toFixed(2) + ')', 'rgba(120,88,56,0)');
+    }
+  }
+
+  // 77. dustbomb — brown explosion plume with dust cloud expanding.
+  function drawDustBomb(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.3) {
+      // Small ball arcing in.
+      const k = p / 0.3;
+      const bx = cx - 16 + k * 16;
+      const by = cy - 8 + k * 8 + Math.sin(k * Math.PI) * -6;
+      disc(ctx, bx, by, 3, fancy ? 'rgba(168,120,72,0.95)' : '#864');
+    } else {
+      // Plume.
+      const k = (p - 0.3) / 0.7;
+      if (fancy) {
+        // Layered plume clouds.
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * Math.PI * 2;
+          const r = 6 + k * 14;
+          const cx2 = cx + Math.cos(a) * r * 0.5;
+          const cy2 = cy + Math.sin(a) * r * 0.4;
+          gradientFill(ctx, cx2, cy2, 6 + k * 6, 'rgba(168,120,72,' + (0.7 * (1 - k)).toFixed(2) + ')', 'rgba(120,88,56,0)');
+        }
+      }
+      // Dust motes.
+      const motes = fancy ? 12 : 5;
+      for (let i = 0; i < motes; i++) {
+        const r = rng(i + 79);
+        const a = (i / motes) * Math.PI * 2;
+        const rad = 8 + k * 16 + r * 4;
+        const dx = Math.cos(a) * rad;
+        const dy = Math.sin(a) * rad * 0.5;
+        px(ctx, cx + dx | 0, cy + dy | 0, 2, 2, fancy ? 'rgba(200,180,140,' + (0.85 * (1 - k)).toFixed(2) + ')' : '#dca');
+      }
+    }
+  }
+
+  // 78. aerialace — two crisscrossing slashes (priority, near-instant feel).
+  function drawAerialAce(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Stage 1: slash from top-left to bottom-right.
+    const local1 = Math.min(1, p / 0.35);
+    if (local1 > 0) {
+      const sx = cx - 14 + local1 * 28;
+      const sy = cy - 14 + local1 * 28;
+      streak(ctx, sx - 8, sy - 8, sx, sy, fancy ? 'rgba(255,255,255,' + (1 - local1).toFixed(2) + ')' : '#fff', fancy ? 3 : 2);
+    }
+    // Stage 2: slash from top-right to bottom-left (overlapping).
+    const local2 = (p - 0.25) / 0.4;
+    if (local2 > 0 && local2 <= 1) {
+      const sx = cx + 14 - local2 * 28;
+      const sy = cy - 14 + local2 * 28;
+      streak(ctx, sx + 8, sy - 8, sx, sy, fancy ? 'rgba(232,248,255,' + (1 - local2).toFixed(2) + ')' : '#fff', fancy ? 3 : 2);
+    }
+    if (p > 0.55) {
+      const ik = (p - 0.55) / 0.45;
+      star(ctx, cx, cy, 5, fancy ? 'rgba(255,255,255,' + (1 - ik).toFixed(2) + ')' : '#fff');
+      if (fancy) gradientFill(ctx, cx, cy, 6 + ik * 10, 'rgba(232,248,255,' + (0.6 * (1 - ik)).toFixed(2) + ')', 'rgba(168,216,248,0)');
+    }
+  }
+
+  // 79. roost — wings fold down, soft dust settles, user pulses warm light.
+  function drawRoost(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Wings curving down at user's sides.
+    for (let s = -1; s <= 1; s += 2) {
+      const fold = p * 0.6;
+      const wx = cx + s * 14;
+      ctx.strokeStyle = fancy ? 'rgba(200,180,140,0.95)' : '#ca8';
+      ctx.lineWidth = fancy ? 3 : 2;
+      ctx.beginPath();
+      ctx.moveTo(wx, cy - 8 + fold * 12);
+      ctx.quadraticCurveTo(wx + s * 4, cy, wx + s * 6, cy + 8);
+      ctx.stroke();
+    }
+    if (fancy) {
+      // Pulsing warm light at centre.
+      const pulse = 0.5 + 0.5 * Math.sin(p * 8);
+      gradientFill(ctx, cx, cy, 14, 'rgba(248,232,168,' + (0.3 * pulse).toFixed(2) + ')', 'rgba(248,200,80,0)');
+      // Settling dust motes.
+      for (let i = 0; i < 5; i++) {
+        const r = rng(i + 81);
+        const phase = (p + r * 0.3) % 1;
+        const sx = cx + (r - 0.5) * 22;
+        const sy = cy - 6 + phase * 14;
+        px(ctx, sx | 0, sy | 0, 1, 1, 'rgba(200,180,140,' + (1 - phase).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 80. mindflay — translucent psychic tendrils wrap target, sine-warp distortion.
+  function drawMindFlay(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Tendrils: 4 wavy lines from each side spiraling around.
+    const tendrils = fancy ? 4 : 2;
+    for (let i = 0; i < tendrils; i++) {
+      const baseAng = (i / tendrils) * Math.PI * 2 + p * Math.PI;
+      ctx.strokeStyle = fancy ? 'rgba(168,144,232,0.85)' : '#a8e';
+      ctx.lineWidth = fancy ? 2 : 1;
+      ctx.beginPath();
+      const segs = 12;
+      for (let k = 0; k <= segs; k++) {
+        const t = k / segs;
+        const r = 18 - t * 14;
+        const ang = baseAng + t * Math.PI * 1.5;
+        const wob = Math.sin(p * 8 + k * 0.5 + i) * 2;
+        const x = cx + Math.cos(ang) * r + wob;
+        const y = cy + Math.sin(ang) * r * 0.7;
+        if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    if (fancy) {
+      // Sine warp distortion lines through target.
+      for (let i = 0; i < 4; i++) {
+        const ly = cy - 8 + i * 5;
+        const off = Math.sin(p * 14 + i * 0.6) * 4;
+        streak(ctx, cx - 8 + off, ly, cx + 8 + off, ly, 'rgba(232,200,255,0.6)', 1);
+      }
+    }
+  }
+
+  // 81. cosmicward — constellation of stars connect into hexagonal shield.
+  function drawCosmicWard(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const nodes = 6;
+    const verts = [];
+    for (let i = 0; i < nodes; i++) {
+      const ang = (i / nodes) * Math.PI * 2;
+      const r = 16;
+      verts.push([cx + Math.cos(ang) * r, cy + Math.sin(ang) * r * 0.7]);
+    }
+    // Draw stars at each vertex (twinkling).
+    for (let i = 0; i < nodes; i++) {
+      const twink = Math.sin(p * 12 + i) * 0.5 + 0.5;
+      star(ctx, verts[i][0], verts[i][1], 2 + Math.floor(twink * 2),
+        fancy ? (i & 1 ? 'rgba(232,200,168,0.95)' : 'rgba(184,200,248,0.95)') : '#fef');
+    }
+    // Connecting lines (fade in by k).
+    if (fancy) {
+      ctx.strokeStyle = 'rgba(232,232,200,' + (0.85 * k).toFixed(2) + ')';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(verts[0][0], verts[0][1]);
+      for (let i = 1; i <= nodes; i++) {
+        ctx.lineTo(verts[i % nodes][0], verts[i % nodes][1]);
+      }
+      ctx.stroke();
+      // Inner shield glow.
+      gradientFill(ctx, cx, cy, 14, 'rgba(184,200,248,' + (0.4 * k).toFixed(2) + ')', 'rgba(168,144,232,0)');
+    }
+  }
+
+  // 82. gravitywell — concentric inward rings + 8 inward dust streaks.
+  function drawGravityWell(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Inward-collapsing rings.
+    for (let i = 0; i < 3; i++) {
+      const phase = (p + i * 0.22) % 1;
+      const r = 22 * (1 - phase);
+      ring(ctx, cx, cy, r, fancy ? 'rgba(120,72,168,' + (0.85 * (1 - phase * 0.3)).toFixed(2) + ')' : '#74a', fancy ? 2 : 1);
+    }
+    // Inward streaks pulling toward centre.
+    const n = fancy ? 8 : 4;
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2;
+      const r0 = 22 - p * 14;
+      const r1 = 26 - p * 14;
+      const col = fancy ? 'rgba(168,144,232,' + (0.85 - p * 0.4).toFixed(2) + ')' : '#a8e';
+      streak(ctx, cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1 * 0.7,
+                  cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0 * 0.7, col, fancy ? 2 : 1);
+    }
+    if (fancy && p > 0.7) {
+      const k = (p - 0.7) / 0.3;
+      gradientFill(ctx, cx, cy, 10, 'rgba(80,40,120,' + (0.7 * (1 - k)).toFixed(2) + ')', 'rgba(40,16,40,0)');
+    }
+  }
+
+  // 83. solarcharge — cyan orb charges → releases as focused beam.
+  function drawSolarCharge(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.5) {
+      // Charge phase.
+      const k = p / 0.5;
+      const r = 2 + k * 8;
+      if (fancy) {
+        gradientFill(ctx, cx - 22, cy, r + 4, 'rgba(168,232,255,' + (0.85 * k).toFixed(2) + ')', 'rgba(96,168,248,0)');
+        disc(ctx, cx - 22, cy, r, 'rgba(232,255,255,0.95)');
+      } else {
+        disc(ctx, cx - 22, cy, r, '#cef');
+      }
+      // Energy lines feeding in.
+      if (fancy) {
+        for (let i = 0; i < 4; i++) {
+          const ang = (i / 4) * Math.PI * 2;
+          const dx = Math.cos(ang) * (10 - k * 8);
+          const dy = Math.sin(ang) * (10 - k * 8);
+          streak(ctx, cx - 22 + dx, cy + dy, cx - 22 + dx * 0.4, cy + dy * 0.4, 'rgba(168,232,255,' + k.toFixed(2) + ')', 2);
+        }
+      }
+    } else {
+      // Beam release.
+      const k = (p - 0.5) / 0.5;
+      const bx1 = cx - 22;
+      const bx2 = cx - 22 + k * 24;
+      if (fancy) {
+        const grad = ctx.createLinearGradient(bx1, cy, bx2, cy);
+        grad.addColorStop(0, 'rgba(96,168,248,0.5)');
+        grad.addColorStop(0.5, 'rgba(168,232,255,0.95)');
+        grad.addColorStop(1, 'rgba(255,255,255,0.95)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(bx1, cy - 3, bx2 - bx1, 6);
+      } else {
+        ctx.fillStyle = '#cef';
+        ctx.fillRect(bx1, cy - 2, bx2 - bx1, 4);
+      }
+      if (k > 0.8) {
+        const ik = (k - 0.8) / 0.2;
+        star(ctx, cx, cy, 5, fancy ? 'rgba(255,255,255,' + (1 - ik).toFixed(2) + ')' : '#fff');
+      }
+    }
+  }
+
+  // 84. siphonfang — long proboscis stab + glowing energy flows back.
+  function drawSiphonFang(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.45);
+    const sx = cx - 22 + k * 22;
+    // Proboscis (long thin needle).
+    streak(ctx, sx - 14, cy, sx, cy, fancy ? 'rgba(168,200,72,0.95)' : '#9b3', fancy ? 3 : 2);
+    px(ctx, sx, cy - 1, 3, 3, fancy ? 'rgba(232,255,200,0.95)' : '#cf6');
+    if (p > 0.45 && fancy) {
+      // Energy motes flowing back toward attacker.
+      for (let i = 0; i < 5; i++) {
+        const r = rng(i + 83);
+        const phase = ((p - 0.45) * 2 + r * 0.3) % 1;
+        const fx = cx - phase * 22;
+        const fy = cy + Math.sin(phase * Math.PI * 2 + i) * 3;
+        disc(ctx, fx, fy, 2 - phase * 1.5, 'rgba(168,232,72,' + (0.85 * (1 - phase)).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 85. crystalspear — translucent quartz spear thrusts in with prismatic light.
+  function drawCrystalSpear(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const sx = cx - 26 + k * 26;
+    // Spear shaft.
+    ctx.strokeStyle = fancy ? 'rgba(232,232,255,0.85)' : '#eef';
+    ctx.lineWidth = fancy ? 4 : 2;
+    ctx.beginPath();
+    ctx.moveTo(sx - 18, cy);
+    ctx.lineTo(sx, cy);
+    ctx.stroke();
+    // Diamond tip.
+    ctx.fillStyle = fancy ? 'rgba(200,232,255,0.95)' : '#aef';
+    ctx.beginPath();
+    ctx.moveTo(sx + 4, cy);
+    ctx.lineTo(sx, cy - 4);
+    ctx.lineTo(sx - 2, cy);
+    ctx.lineTo(sx, cy + 4);
+    ctx.closePath();
+    ctx.fill();
+    if (fancy) {
+      // Prismatic light fragments at tip.
+      for (let i = 0; i < 4; i++) {
+        const ang = (i / 4) * Math.PI * 2 + p * 4;
+        const rad = 4 + Math.sin(p * 10 + i) * 1;
+        const fx = sx + Math.cos(ang) * rad;
+        const fy = cy + Math.sin(ang) * rad;
+        const colors = ['rgba(248,168,232,0.8)','rgba(168,232,248,0.8)','rgba(232,248,168,0.8)','rgba(248,232,168,0.8)'];
+        px(ctx, fx | 0, fy | 0, 1, 1, colors[i]);
+      }
+    }
+    if (p > 0.5) {
+      const ik = (p - 0.5) / 0.5;
+      if (fancy) gradientFill(ctx, cx, cy, 6 + ik * 10, 'rgba(232,232,255,' + (0.6 * (1 - ik)).toFixed(2) + ')', 'rgba(168,216,248,0)');
+    }
+  }
+
+  // 86. lifedrain — purple tether between attacker and target.
+  function drawLifeDrain(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Tether: wavy line from off-screen-left to target.
+    ctx.strokeStyle = fancy ? 'rgba(168,80,184,0.85)' : '#a4a';
+    ctx.lineWidth = fancy ? 3 : 2;
+    ctx.beginPath();
+    const segs = 10;
+    for (let k = 0; k <= segs; k++) {
+      const t = k / segs;
+      const x = cx - 24 + t * 24;
+      const y = cy + Math.sin(p * 14 + t * Math.PI * 2) * 3;
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    if (fancy) {
+      // Energy motes flowing back toward attacker.
+      for (let i = 0; i < 6; i++) {
+        const r = rng(i + 85);
+        const phase = (p * 2 + r * 0.5) % 1;
+        const fx = cx - phase * 24;
+        const fy = cy + Math.sin(phase * Math.PI * 4 + i) * 3;
+        disc(ctx, fx, fy, 2, 'rgba(232,168,255,' + (0.85 * (1 - phase * 0.5)).toFixed(2) + ')');
+      }
+      // Drain glow at target.
+      gradientFill(ctx, cx, cy, 8, 'rgba(120,72,168,' + (0.5 - p * 0.2).toFixed(2) + ')', 'rgba(80,40,120,0)');
+    }
+  }
+
+  // 87. dragondance — dragon glyph spirals around user in gold flame.
+  function drawDragonDance(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Spiraling dragon trail: 3 segments tracing around user.
+    const trail = fancy ? 18 : 8;
+    for (let i = 0; i < trail; i++) {
+      const t = i / trail;
+      const ang = p * Math.PI * 4 - t * Math.PI * 2;
+      const r = 14 - t * 4;
+      const fx = cx + Math.cos(ang) * r;
+      const fy = cy + Math.sin(ang) * r * 0.7;
+      const a = (1 - t) * 0.9;
+      const col = fancy ? (i & 1 ? 'rgba(248,200,80,' + a.toFixed(2) + ')' : 'rgba(255,144,32,' + a.toFixed(2) + ')') : '#fa4';
+      px(ctx, fx - 1, fy - 1, fancy ? 3 : 2, fancy ? 3 : 2, col);
+    }
+    if (fancy) {
+      // Dragon head shape at the spiral end.
+      const ang = p * Math.PI * 4;
+      const hx = cx + Math.cos(ang) * 14;
+      const hy = cy + Math.sin(ang) * 14 * 0.7;
+      ctx.fillStyle = 'rgba(248,200,80,0.95)';
+      ctx.beginPath();
+      ctx.moveTo(hx + 3, hy);
+      ctx.lineTo(hx - 3, hy - 2);
+      ctx.lineTo(hx - 3, hy + 2);
+      ctx.closePath();
+      ctx.fill();
+      // Power-up aura at user.
+      gradientFill(ctx, cx, cy, 16, 'rgba(255,144,32,' + (0.3 + 0.15 * Math.sin(p * 8)).toFixed(2) + ')', 'rgba(168,72,32,0)');
+    }
+  }
+
+  // 88. tripledagger — three diagonal blade-flash slashes in rapid succession.
+  function drawTripleDagger(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const stages = [0, 0.15, 0.3];
+    for (let i = 0; i < 3; i++) {
+      const local = (p - stages[i]) / 0.3;
+      if (local <= 0 || local > 1) continue;
+      const a = (1 - local).toFixed(2);
+      // Diagonal blade flash.
+      const off = -10 + i * 4;
+      const x1 = cx - 12 + off + local * 8;
+      const y1 = cy - 10 + i * 4;
+      const x2 = x1 + 18;
+      const y2 = y1 + 18;
+      streak(ctx, x1, y1, x2, y2, fancy ? 'rgba(232,200,232,' + a + ')' : '#dcd', fancy ? 3 : 2);
+      // Bright tip.
+      if (fancy) px(ctx, x2 - 1, y2 - 1, 3, 3, 'rgba(255,255,255,' + a + ')');
+    }
+    if (fancy && p > 0.55) {
+      const ik = (p - 0.55) / 0.45;
+      gradientFill(ctx, cx, cy, 8 + ik * 10, 'rgba(80,40,80,' + (0.55 * (1 - ik)).toFixed(2) + ')', 'rgba(40,16,40,0)');
+    }
+  }
+
+  // 89. honehook — two fang silhouettes rasp together with sharpening sparks.
+  function drawHoneHook(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Two crescent fangs scraping past each other (oscillating offset).
+    const off = Math.sin(p * 18) * 4;
+    for (let s = -1; s <= 1; s += 2) {
+      ctx.fillStyle = fancy ? 'rgba(232,232,232,0.95)' : '#ddd';
+      ctx.beginPath();
+      ctx.moveTo(cx - 8 + s * off, cy + s * 4);
+      ctx.quadraticCurveTo(cx + s * off, cy + s * -2, cx + 8 + s * off, cy + s * 4);
+      ctx.quadraticCurveTo(cx + s * off, cy + s * 1, cx - 8 + s * off, cy + s * 4);
+      ctx.closePath();
+      ctx.fill();
+    }
+    if (fancy) {
+      // Sharpening sparks (alternating sides).
+      const spark = (Math.sin(p * 24) > 0) ? 1 : -1;
+      for (let i = 0; i < 3; i++) {
+        const sx = cx + (i - 1) * 5;
+        const sy = cy + spark * 6;
+        px(ctx, sx, sy, 2, 1, 'rgba(255,232,168,' + (0.85 * Math.abs(Math.sin(p * 20 + i))).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 90. magnetburst — two magnetic poles arc lightning then explode.
+  function drawMagnetBurst(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    if (p < 0.55) {
+      // N and S pole shapes (red and blue blocks).
+      const k = p / 0.55;
+      const gap = (1 - k) * 18 + 6;
+      for (let s = -1; s <= 1; s += 2) {
+        const px2 = cx + s * gap;
+        ctx.fillStyle = s < 0 ? (fancy ? 'rgba(232,80,80,0.95)' : '#e44') : (fancy ? 'rgba(80,144,232,0.95)' : '#48d');
+        ctx.fillRect(px2 - 3, cy - 4, 6, 8);
+        // Pole letter.
+        if (fancy) {
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.fillRect(px2 - 1, cy - 2, 2, 4);
+        }
+      }
+      // Arc between (zigzag).
+      if (fancy && k > 0.3) {
+        ctx.strokeStyle = 'rgba(255,232,168,0.85)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - gap + 3, cy);
+        const segs = 5;
+        for (let i = 1; i <= segs; i++) {
+          const t = i / segs;
+          const x = cx - gap + 3 + t * (gap * 2 - 6);
+          const y = cy + ((i & 1) ? 3 : -3);
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    } else {
+      // Explosion at centre.
+      const k = (p - 0.55) / 0.45;
+      const r = 4 + k * 18;
+      if (fancy) {
+        gradientFill(ctx, cx, cy, r, 'rgba(255,232,168,' + (0.85 * (1 - k)).toFixed(2) + ')', 'rgba(168,144,232,0)');
+        ring(ctx, cx, cy, r, 'rgba(255,255,232,' + (1 - k).toFixed(2) + ')', 2);
+      } else {
+        ring(ctx, cx, cy, r, '#ffd', 1);
+      }
+      // Outward sparks.
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const dx = Math.cos(a) * r;
+        const dy = Math.sin(a) * r;
+        px(ctx, cx + dx | 0, cy + dy | 0, 2, 2, i & 1 ? 'rgba(232,80,80,' + (1 - k).toFixed(2) + ')' : 'rgba(80,144,232,' + (1 - k).toFixed(2) + ')');
+      }
+    }
+  }
+
+  // 91. mirrorshield — chrome mirror plate raises in front of user.
+  function drawMirrorShield(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.55);
+    const plateH = k * 22;
+    // Plate body.
+    if (fancy) {
+      const grad = ctx.createLinearGradient(cx - 10, 0, cx + 10, 0);
+      grad.addColorStop(0, 'rgba(168,180,200,0.95)');
+      grad.addColorStop(0.5, 'rgba(232,240,248,0.95)');
+      grad.addColorStop(1, 'rgba(168,180,200,0.95)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(cx - 10, cy - plateH / 2, 20, plateH);
+      // Diagonal glints.
+      for (let i = 0; i < 3; i++) {
+        const gy = cy - plateH / 2 + i * (plateH / 3) + (p * 8) % (plateH / 3);
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - 8, gy);
+        ctx.lineTo(cx + 8, gy - 4);
+        ctx.stroke();
+      }
+      // Border.
+      ctx.strokeStyle = 'rgba(120,144,168,0.95)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx - 10, cy - plateH / 2, 20, plateH);
+    } else {
+      ctx.fillStyle = '#cdc';
+      ctx.fillRect(cx - 8, cy - plateH / 2, 16, plateH);
+    }
+    if (fancy && p > 0.6) {
+      // Reflection sparkle.
+      const sx = cx - 4 + Math.sin(p * 8) * 4;
+      star(ctx, sx, cy - 4, 2, 'rgba(255,255,255,' + (0.85 * (1 - p * 0.5)).toFixed(2) + ')');
+    }
+  }
+
+  // 92. metalsong — bell-strike rings + audible curve waveforms.
+  function drawMetalSong(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    // Bell silhouette at centre.
+    if (fancy) {
+      ctx.fillStyle = 'rgba(200,180,140,0.95)';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy + 4);
+      ctx.quadraticCurveTo(cx - 8, cy - 4, cx, cy - 6);
+      ctx.quadraticCurveTo(cx + 8, cy - 4, cx + 6, cy + 4);
+      ctx.lineTo(cx + 6, cy + 6);
+      ctx.lineTo(cx - 6, cy + 6);
+      ctx.closePath();
+      ctx.fill();
+      // Bell shimmer.
+      px(ctx, cx - 2, cy - 2, 2, 2, 'rgba(255,232,168,0.95)');
+      // Audio curve waveforms (oscillating horizontal lines).
+      for (let i = 0; i < 4; i++) {
+        const wx = cx + 10 + i * 4;
+        ctx.strokeStyle = 'rgba(232,200,144,' + (0.85 - i * 0.15).toFixed(2) + ')';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(wx, cy - 6);
+        for (let k = 1; k <= 6; k++) {
+          const y = cy - 6 + k * 2;
+          const wob = Math.sin(p * 12 + k + i) * 2;
+          ctx.lineTo(wx + wob, y);
+        }
+        ctx.stroke();
+      }
+      // Mirror on other side.
+      for (let i = 0; i < 4; i++) {
+        const wx = cx - 10 - i * 4;
+        ctx.strokeStyle = 'rgba(232,200,144,' + (0.85 - i * 0.15).toFixed(2) + ')';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(wx, cy - 6);
+        for (let k = 1; k <= 6; k++) {
+          const y = cy - 6 + k * 2;
+          const wob = Math.sin(p * 12 + k - i) * 2;
+          ctx.lineTo(wx + wob, y);
+        }
+        ctx.stroke();
+      }
+    }
+    // Outward rings.
+    for (let i = 0; i < 3; i++) {
+      const r = 4 + ((p + i * 0.22) % 1) * 24;
+      ring(ctx, cx, cy, r, fancy ? 'rgba(232,200,144,' + Math.max(0, 0.85 - r * 0.02).toFixed(2) + ')' : '#dca', fancy ? 2 : 1);
+    }
+  }
+
+  // 93. moonlight — crescent moon rises overhead with soft silver glow.
+  function drawMoonlight(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const k = Math.min(1, p / 0.6);
+    // Moon rises from below.
+    const my = cy - 6 - k * 12;
+    if (fancy) {
+      // Crescent: white disc + offset shadow disc.
+      gradientFill(ctx, cx + 2, my, 10, 'rgba(232,232,255,0.95)', 'rgba(184,200,248,0)');
+      disc(ctx, cx + 2, my, 6, 'rgba(248,248,255,0.95)');
+      ctx.fillStyle = 'rgba(40,16,40,1)';
+      disc(ctx, cx + 4, my - 1, 5, 'rgba(80,72,120,0.95)');
+      // Silver glow over user.
+      gradientFill(ctx, cx, cy, 16, 'rgba(232,232,255,' + (0.3 + 0.15 * Math.sin(p * 6)).toFixed(2) + ')', 'rgba(184,200,248,0)');
+    } else {
+      disc(ctx, cx, my, 5, '#eef');
+    }
+    if (fancy) {
+      // Twinkling stars around.
+      for (let i = 0; i < 4; i++) {
+        const r = rng(i + 87);
+        if (Math.sin(p * 8 + i) > 0) {
+          star(ctx, cx - 16 + r * 32, my - 8 + r * 4, 1, 'rgba(255,255,232,0.95)');
+        }
+      }
+    }
+  }
+
+  // 94. mistygale — pastel gust sweeps over target with pink-white misty trails.
+  function drawMistyGale(ctx, p, dur, tier, cx, cy, w, h) {
+    const fancy = isFancy(tier);
+    const xOff = -20 + p * 40;
+    // Misty horizontal sheets.
+    if (fancy) {
+      for (let i = 0; i < 4; i++) {
+        const ly = cy - 8 + i * 5;
+        const grad = ctx.createLinearGradient(cx - 24 + xOff, ly, cx + 12 + xOff, ly);
+        grad.addColorStop(0, 'rgba(248,200,232,0)');
+        grad.addColorStop(0.5, 'rgba(248,216,248,' + (0.55 - i * 0.1).toFixed(2) + ')');
+        grad.addColorStop(1, 'rgba(248,200,232,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(cx - 24 + xOff, ly - 1, 36, 3);
+      }
+      // Sparkle motes drifting with the gust.
+      for (let i = 0; i < 8; i++) {
+        const r = rng(i + 89);
+        const phase = (p + r * 0.4) % 1;
+        const sx = cx - 24 + xOff + phase * 36 - 6;
+        const sy = cy - 8 + r * 16;
+        const twink = Math.sin(p * 18 + i);
+        if (twink > 0.3) star(ctx, sx, sy, 1, 'rgba(248,216,248,0.95)');
+      }
+    } else {
+      ctx.fillStyle = '#fcf';
+      ctx.fillRect(cx - 16 + xOff, cy - 6, 30, 12);
+    }
+  }
+
   const MOVE_EFFECTS = {
     spark:        drawShockwave,    // tier-1 electric uses simpler ring
     gust:         drawTornadoFunnel,
@@ -2683,7 +3816,42 @@
     hauntcurse:     drawHauntCurse,
     phantompulse:   drawPhantomPulse,
     dragonpulse:    drawDragonPulse,
-    stardust:       drawStardust
+    stardust:       drawStardust,
+    // 34 more signatures added in v0.52.0:
+    doublestrike:   drawDoubleStrike,
+    recklesscharge: drawRecklessCharge,
+    firefist:       drawFireFist,
+    searingbeam:    drawSearingBeam,
+    willowisp:      drawWillOWisp,
+    dive:           drawDive,
+    tideguard:      drawTideGuard,
+    thunderfang:    drawThunderFang,
+    zaplance:       drawZapLance,
+    forestburst:    drawForestBurst,
+    seedshot:       drawSeedShot,
+    icefang:        drawIceFang,
+    flashfreeze:    drawFlashFreeze,
+    ironfist:       drawIronFist,
+    tailspike:      drawTailSpike,
+    terraquake:     drawTerraquake,
+    dustbomb:       drawDustBomb,
+    aerialace:      drawAerialAce,
+    roost:          drawRoost,
+    mindflay:       drawMindFlay,
+    cosmicward:     drawCosmicWard,
+    gravitywell:    drawGravityWell,
+    solarcharge:    drawSolarCharge,
+    siphonfang:     drawSiphonFang,
+    crystalspear:   drawCrystalSpear,
+    lifedrain:      drawLifeDrain,
+    dragondance:    drawDragonDance,
+    tripledagger:   drawTripleDagger,
+    honehook:       drawHoneHook,
+    magnetburst:    drawMagnetBurst,
+    mirrorshield:   drawMirrorShield,
+    metalsong:      drawMetalSong,
+    moonlight:      drawMoonlight,
+    mistygale:      drawMistyGale
   };
 
   // Move-id overrides may want a longer / shorter timeline than the
@@ -2733,7 +3901,32 @@
     dragonpulse:    0.95,
     tidalwave:      0.95,
     sandstorm:      0.90,
-    stardust:       0.95
+    stardust:       0.95,
+    // v0.52.0 multi-stage signatures.
+    doublestrike:   0.80,
+    recklesscharge: 0.95,
+    searingbeam:    1.00,
+    willowisp:      1.00,
+    dive:           1.05,
+    tideguard:      0.95,
+    thunderfang:    0.85,
+    forestburst:    0.90,
+    seedshot:       0.95,
+    flashfreeze:    1.00,
+    ironfist:       0.95,
+    tailspike:      0.95,
+    terraquake:     0.95,
+    dustbomb:       0.95,
+    mindflay:       1.00,
+    cosmicward:     0.95,
+    gravitywell:    1.00,
+    solarcharge:    1.00,
+    dragondance:    1.00,
+    tripledagger:   0.85,
+    magnetburst:    1.05,
+    metalsong:      1.00,
+    moonlight:      1.00,
+    mistygale:      0.95
   };
 
   function drawFor(ctx, anim, tier, tx, ty, tw, th) {
