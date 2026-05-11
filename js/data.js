@@ -91,7 +91,38 @@ const MOVES = {
   dragonclaw:{ name:'Dragon Claw',type:'DRAGON',  power:70, accuracy:95,  kind:'physical', pp:15 },
   fairykiss: { name:'Fairy Kiss', type:'FAIRY',   power:45, accuracy:100, kind:'special',  pp:25 },
   moonbeam:  { name:'Moon Beam',  type:'FAIRY',   power:65, accuracy:95,  kind:'special',  pp:15 },
-  splash:    { name:'Splash',    type:'NORMAL',   power:0,  accuracy:100, kind:'status',   pp:40, dud:true }
+  splash:    { name:'Splash',    type:'NORMAL',   power:0,  accuracy:100, kind:'status',   pp:40, dud:true },
+  // ---- 30 new moves added in v0.51.0 (each has a signature animation in move_effects.js) ----
+  megapunch:      { name:'Mega Punch',     type:'NORMAL',   power:80, accuracy:85,  kind:'physical', pp:20 },
+  bodyslam:       { name:'Body Slam',      type:'NORMAL',   power:85, accuracy:100, kind:'physical', pp:15, paralyzeChance:0.3 },
+  magmaburst:     { name:'Magma Burst',    type:'FIRE',     power:80, accuracy:95,  kind:'special',  pp:10, burnChance:0.2 },
+  solarflare:     { name:'Solar Flare',    type:'FIRE',     power:95, accuracy:90,  kind:'special',  pp:5,  burnChance:0.15 },
+  tidalwave:      { name:'Tidal Wave',     type:'WATER',    power:85, accuracy:90,  kind:'special',  pp:10 },
+  icebeam:        { name:'Ice Beam',       type:'ICE',      power:85, accuracy:95,  kind:'special',  pp:10, freezeChance:0.2 },
+  avalanche:      { name:'Avalanche',      type:'ICE',      power:75, accuracy:90,  kind:'physical', pp:10 },
+  thunderclap:    { name:'Thunderclap',    type:'ELECTRIC', power:90, accuracy:85,  kind:'special',  pp:10, paralyzeChance:0.3 },
+  voltcage:       { name:'Volt Cage',      type:'ELECTRIC', power:0,  accuracy:95,  kind:'status',   pp:15, paralyzeChance:1.0 },
+  hurricaneblast: { name:'Hurricane Blast',type:'FLYING',   power:90, accuracy:80,  kind:'special',  pp:10, confuseChance:0.2 },
+  skyrend:        { name:'Sky Rend',       type:'FLYING',   power:75, accuracy:95,  kind:'physical', pp:15 },
+  earthquake:     { name:'Earthquake',     type:'GROUND',   power:90, accuracy:100, kind:'physical', pp:10 },
+  sandstorm:      { name:'Sandstorm',      type:'GROUND',   power:0,  accuracy:100, kind:'status',   pp:10, statChange:{target:'foe',stat:'acc',stages:-1} },
+  rockslide:      { name:'Rock Slide',     type:'ROCK',     power:75, accuracy:90,  kind:'physical', pp:10, confuseChance:0.3 },
+  stoneedge:      { name:'Stone Edge',     type:'ROCK',     power:85, accuracy:80,  kind:'physical', pp:5 },
+  petalstorm:     { name:'Petal Storm',    type:'GRASS',    power:80, accuracy:100, kind:'special',  pp:10 },
+  rootbind:       { name:'Root Bind',      type:'GRASS',    power:0,  accuracy:90,  kind:'status',   pp:15, statChange:{target:'foe',stat:'spe',stages:-2} },
+  toxicgas:       { name:'Toxic Gas',      type:'POISON',   power:60, accuracy:95,  kind:'special',  pp:15, poisonChance:0.4 },
+  venomtide:      { name:'Venom Tide',     type:'POISON',   power:80, accuracy:90,  kind:'physical', pp:10, poisonChance:0.3 },
+  mindcrush:      { name:'Mind Crush',     type:'PSYCHIC',  power:80, accuracy:95,  kind:'special',  pp:10, statChange:{target:'foe',stat:'spd',stages:-1} },
+  telekinesis:    { name:'Telekinesis',    type:'PSYCHIC',  power:0,  accuracy:100, kind:'status',   pp:15, statChange:{target:'self',stat:'spa',stages:1} },
+  swarmstrike:    { name:'Swarm Strike',   type:'BUG',      power:25, accuracy:100, kind:'physical', pp:15, multi:[2,5] },
+  karatechop:     { name:'Karate Chop',    type:'FIGHTING', power:50, accuracy:100, kind:'physical', pp:25 },
+  focusblast:     { name:'Focus Blast',    type:'FIGHTING', power:90, accuracy:70,  kind:'special',  pp:5,  statChange:{target:'foe',stat:'spd',stages:-1} },
+  shadowstrike:   { name:'Shadow Strike',  type:'DARK',     power:70, accuracy:100, kind:'physical', pp:15, priority:1 },
+  nightveil:      { name:'Night Veil',     type:'DARK',     power:0,  accuracy:100, kind:'status',   pp:10, statChange:{target:'foe',stat:'acc',stages:-2} },
+  hauntcurse:     { name:'Haunt Curse',    type:'GHOST',    power:0,  accuracy:100, kind:'status',   pp:10, statChange:{target:'foe',stat:'atk',stages:-1} },
+  phantompulse:   { name:'Phantom Pulse',  type:'GHOST',    power:80, accuracy:100, kind:'special',  pp:10 },
+  dragonpulse:    { name:'Dragon Pulse',   type:'DRAGON',   power:85, accuracy:100, kind:'special',  pp:10 },
+  stardust:       { name:'Stardust',       type:'FAIRY',    power:70, accuracy:100, kind:'special',  pp:15, sleepChance:0.1 }
 };
 
 // Creatures (original designs). Stats are baseStats. Sprite is drawn procedurally from "design".
@@ -111,7 +142,7 @@ const CREATURES = {
     id:'flarebound', name:'Flarebound', dex:2,
     types:['FIRE'],
     baseStats:{hp:58, atk:64, def:58, spa:80, spd:65, spe:80},
-    learnset:[ [1,'scratch'],[1,'growl'],[5,'ember'],[10,'sandattack'],[15,'quickjab'],[20,'bite'],[27,'flamejet'],[33,'screech'],[40,'agility'] ],
+    learnset:[ [1,'growl'],[1,'scratch'],[5,'ember'],[10,'sandattack'],[15,'quickjab'],[20,'bite'],[27,'flamejet'],[30,'magmaburst'],[33,'screech'],[40,'agility'] ],
     evolves:{ to:'infernarok', level:36 }, catchRate:25,
     design:{ palette:['#d63f1a','#ffb84a','#3a0e02'], shape:'fox', accent:'flame', big:true },
     description:'Embers ride its flank like a banner. It races ahead of forest fires and laughs at the heat.'
@@ -120,7 +151,7 @@ const CREATURES = {
     id:'infernarok', name:'Infernarok', dex:35,
     types:['FIRE','ROCK'],
     baseStats:{hp:78, atk:84, def:78, spa:109, spd:85, spe:100},
-    learnset:[ [1,'scratch'],[1,'growl'],[5,'ember'],[15,'quickjab'],[20,'bite'],[27,'flamejet'],[33,'screech'],[40,'agility'],[45,'rocktoss'],[50,'shockwave'] ],
+    learnset:[ [1,'growl'],[1,'scratch'],[5,'ember'],[15,'quickjab'],[20,'bite'],[26,'magmaburst'],[27,'flamejet'],[33,'screech'],[38,'solarflare'],[40,'agility'],[45,'rocktoss'],[50,'shockwave'] ],
     catchRate:15,
     design:{ palette:['#a8200a','#f08020','#1a0000'], shape:'fox', accent:'flame', big:true, beard:true },
     description:'Veins of magma run beneath its scales. Old maps warn travelers of the cliffs where it sleeps.'
@@ -139,7 +170,7 @@ const CREATURES = {
     id:'tideturtle', name:'Tideturtle', dex:4,
     types:['WATER'],
     baseStats:{hp:59, atk:63, def:80, spa:65, spd:80, spe:58},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'bubble'],[11,'harden'],[15,'bite'],[19,'watergun'],[27,'freezewind'],[33,'screech'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'bubble'],[11,'harden'],[15,'bite'],[19,'watergun'],[27,'freezewind'],[28,'bodyslam'],[33,'screech'],[34,'tidalwave'] ],
     evolves:{ to:'maelstroth', level:36 }, catchRate:25,
     design:{ palette:['#2853bf','#7ec0ff','#0d1c3a'], shape:'turtle', accent:'shell', big:true },
     description:'It rides storm fronts inland to hunt. Sailors leave pebbles on its shell for luck.'
@@ -148,7 +179,7 @@ const CREATURES = {
     id:'maelstroth', name:'Maelstroth', dex:36,
     types:['WATER','ROCK'],
     baseStats:{hp:79, atk:83, def:100, spa:85, spd:105, spe:78},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'bubble'],[11,'harden'],[19,'watergun'],[27,'freezewind'],[33,'screech'],[40,'rocktoss'],[46,'agility'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'bubble'],[11,'harden'],[19,'watergun'],[27,'freezewind'],[32,'tidalwave'],[33,'screech'],[40,'rocktoss'],[46,'agility'] ],
     catchRate:15,
     design:{ palette:['#103080','#5898d8','#000a20'], shape:'turtle', accent:'shell', big:true, beard:true },
     description:'Its shell hosts a small, perpetual storm. Approaching boats lose their compasses.'
@@ -157,7 +188,7 @@ const CREATURES = {
     id:'sproutling', name:'Sproutling', dex:5,
     types:['GRASS','POISON'],
     baseStats:{hp:45, atk:49, def:49, spa:65, spd:65, spe:45},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'vinelash'],[10,'poisonsting'],[15,'leafcut'],[20,'acidspray'],[26,'sandattack'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'vinelash'],[10,'poisonsting'],[15,'leafcut'],[20,'acidspray'],[20,'rootbind'],[26,'sandattack'] ],
     evolves:{ to:'leafurge', level:16 },
     catchRate:45,
     design:{ palette:['#5cb84a','#f08bb8','#2b5e22'], shape:'plant', accent:'bud' },
@@ -167,7 +198,7 @@ const CREATURES = {
     id:'leafurge', name:'Leafurge', dex:6,
     types:['GRASS','POISON'],
     baseStats:{hp:60, atk:62, def:63, spa:80, spd:80, spe:60},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'vinelash'],[10,'poisonsting'],[15,'leafcut'],[20,'acidspray'],[27,'sandattack'],[33,'toxicspike'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'vinelash'],[10,'poisonsting'],[15,'leafcut'],[20,'acidspray'],[27,'sandattack'],[28,'petalstorm'],[33,'toxicspike'] ],
     evolves:{ to:'verdantsage', level:36 }, catchRate:25,
     design:{ palette:['#3f9a30','#ff7ab0','#1a4012'], shape:'plant', accent:'bud', big:true },
     description:'Its leaves taste rain hours before it falls. Old gardens follow it for advice.'
@@ -176,7 +207,7 @@ const CREATURES = {
     id:'verdantsage', name:'Verdantsage', dex:37,
     types:['GRASS','POISON'],
     baseStats:{hp:80, atk:82, def:83, spa:100, spd:100, spe:80},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'vinelash'],[15,'leafcut'],[20,'acidspray'],[27,'sandattack'],[33,'toxicspike'],[38,'shimmer'],[44,'lullaby'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'vinelash'],[15,'leafcut'],[20,'acidspray'],[27,'sandattack'],[32,'petalstorm'],[33,'toxicspike'],[38,'shimmer'],[44,'lullaby'] ],
     catchRate:15,
     design:{ palette:['#1c6818','#f04898','#082008'], shape:'plant', accent:'bud', big:true, beard:true },
     description:'Centuries of pollen cling to its shoulders. It is said to remember every garden it has seen.'
@@ -193,7 +224,7 @@ const CREATURES = {
   boltbeard: {
     id:'boltbeard', name:'Boltbeard', dex:42, types:['ELECTRIC'],
     baseStats:{hp:60, atk:90, def:55, spa:90, spd:80, spe:110},
-    learnset:[ [1,'quickjab'],[1,'growl'],[5,'spark'],[10,'tailwhip'],[15,'bite'],[21,'zapburst'],[28,'agility'],[34,'shockwave'],[40,'shimmer'] ],
+    learnset:[ [1,'growl'],[1,'quickjab'],[5,'spark'],[10,'tailwhip'],[15,'bite'],[21,'zapburst'],[28,'agility'],[32,'thunderclap'],[34,'shockwave'],[38,'voltcage'],[40,'shimmer'] ],
     catchRate:60,
     design:{ palette:['#e8c008','#1a1208','#f08840'], shape:'mouse', accent:'bolt', beard:true },
     description:'Its whiskers double as lightning rods. It enjoys storms more than meals.'
@@ -211,7 +242,7 @@ const CREATURES = {
     id:'boulderon', name:'Boulderon', dex:43,
     types:['ROCK','GROUND'],
     baseStats:{hp:80, atk:110, def:130, spa:55, spd:65, spe:45},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'rocktoss'],[10,'harden'],[14,'earthbump'],[20,'bite'],[26,'screech'],[33,'sandattack'],[40,'flamejet'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'rocktoss'],[10,'harden'],[14,'earthbump'],[20,'bite'],[24,'bodyslam'],[26,'screech'],[28,'rockslide'],[33,'sandattack'],[40,'flamejet'] ],
     catchRate:60,
     design:{ palette:['#6a5a40','#382c1a','#a89870'], shape:'rock', accent:'pebble', beard:true },
     description:'Mountains shed boulders and they walk away. So claims a very old children’s tale.'
@@ -228,7 +259,7 @@ const CREATURES = {
   skylordan: {
     id:'skylordan', name:'Skylordan', dex:47, types:['NORMAL','FLYING'],
     baseStats:{hp:75, atk:85, def:75, spa:65, spd:70, spe:96},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'gust'],[10,'sandattack'],[14,'quickjab'],[18,'airslash'],[24,'shimmer'],[30,'agility'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'gust'],[10,'sandattack'],[14,'quickjab'],[18,'airslash'],[24,'shimmer'],[26,'skyrend'],[30,'agility'],[34,'hurricaneblast'] ],
     catchRate:60,
     design:{ palette:['#785030','#d8b878','#1a0a04'], shape:'bird', accent:'wings', beard:true },
     description:'Hunters call its silhouette the courier of dawn. It rarely lands twice in the same field.'
@@ -245,7 +276,7 @@ const CREATURES = {
   whiskaroth: {
     id:'whiskaroth', name:'Whiskaroth', dex:52, types:['NORMAL','DARK'],
     baseStats:{hp:55, atk:81, def:60, spa:50, spd:70, spe:97},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[4,'quickjab'],[8,'sandattack'],[12,'bite'],[18,'screech'],[22,'shimmer'],[28,'agility'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[4,'quickjab'],[8,'sandattack'],[12,'bite'],[18,'screech'],[20,'megapunch'],[22,'shimmer'],[28,'agility'] ],
     catchRate:127,
     design:{ palette:['#704020','#a07040','#0a0402'], shape:'mouse', accent:'tail', beard:true },
     description:'Older nibblets that learned to keep secrets. Their whiskers map the shadows.'
@@ -262,7 +293,7 @@ const CREATURES = {
   mothmane: {
     id:'mothmane', name:'Mothmane', dex:44, types:['BUG','FLYING'],
     baseStats:{hp:65, atk:60, def:55, spa:80, spd:80, spe:80},
-    learnset:[ [1,'tackle'],[1,'growl'],[3,'bugbite'],[7,'harden'],[11,'pinmissile'],[16,'poisonsting'],[19,'gust'],[24,'shimmer'],[30,'lullaby'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[3,'bugbite'],[7,'harden'],[11,'pinmissile'],[16,'poisonsting'],[19,'gust'],[24,'shimmer'],[24,'swarmstrike'],[30,'lullaby'] ],
     catchRate:90,
     design:{ palette:['#a8c060','#283010','#e8d860'], shape:'bat', accent:'wings', beard:true },
     description:'Its mane scatters dreams when stirred. Sleepless travelers seek its company.'
@@ -279,7 +310,7 @@ const CREATURES = {
   vampirothy: {
     id:'vampirothy', name:'Vampirothy', dex:50, types:['POISON','FLYING'],
     baseStats:{hp:75, atk:80, def:70, spa:75, spd:75, spe:90},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'gust'],[10,'screech'],[14,'bite'],[18,'poisonsting'],[24,'airslash'],[30,'shimmer'],[36,'toxicspike'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'gust'],[10,'screech'],[14,'bite'],[18,'poisonsting'],[24,'airslash'],[26,'toxicgas'],[30,'shimmer'],[30,'venomtide'],[36,'toxicspike'] ],
     catchRate:90,
     design:{ palette:['#3a2068','#100828','#e83878'], shape:'bat', accent:'wings', beard:true },
     description:'It drinks moonlight off pond surfaces. Forest stories confuse it with the moon itself.'
@@ -369,7 +400,7 @@ const CREATURES = {
   fernsprout: {
     id:'fernsprout', name:'Fernsprout', dex:19, types:['GRASS'],
     baseStats:{hp:50, atk:45, def:55, spa:60, spd:55, spe:50},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'vinelash'],[10,'harden'],[14,'leafcut'],[20,'acidspray'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'vinelash'],[10,'harden'],[14,'leafcut'],[18,'rootbind'],[20,'acidspray'] ],
     evolves:{ to:'bramblewood', level:18 }, catchRate:120,
     design:{ palette:['#68c050','#f0c020','#244818'], shape:'plant', accent:'bud' },
     description:'A sprout that hums in the morning. It tilts its frond toward kind voices.'
@@ -401,7 +432,7 @@ const CREATURES = {
   voltlynx: {
     id:'voltlynx', name:'Voltlynx', dex:22, types:['ELECTRIC'],
     baseStats:{hp:60, atk:75, def:55, spa:90, spd:70, spe:115},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'spark'],[10,'sandattack'],[14,'quickjab'],[22,'zapburst'],[28,'shockwave'],[34,'agility'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'spark'],[10,'sandattack'],[14,'quickjab'],[22,'zapburst'],[28,'shockwave'],[30,'thunderclap'],[34,'agility'] ],
     evolves:{ to:'stormfangis', level:34 }, catchRate:45,
     design:{ palette:['#e8b818','#181810','#f08020'], shape:'fox', accent:'tail', big:true },
     description:'Quick as a thunderclap, twice as loud. It travels in pairs along power lines.'
@@ -425,7 +456,7 @@ const CREATURES = {
   quakeworm: {
     id:'quakeworm', name:'Quakeworm', dex:24, types:['GROUND','ROCK'],
     baseStats:{hp:85, atk:90, def:110, spa:35, spd:50, spe:40},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'rocktoss'],[10,'harden'],[15,'earthbump'],[20,'sandattack'],[26,'bite'],[32,'screech'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'rocktoss'],[10,'harden'],[15,'earthbump'],[20,'sandattack'],[22,'sandstorm'],[26,'bite'],[30,'earthquake'],[32,'screech'] ],
     evolves:{ to:'tectonarch', level:36 }, catchRate:45,
     design:{ palette:['#80684a','#403020','#a89070'], shape:'caterpillar', accent:'segments' },
     description:'Soil settles after it moves. Farmers welcome it before the planting season.'
@@ -433,7 +464,7 @@ const CREATURES = {
   tectonarch: {
     id:'tectonarch', name:'Tectonarch', dex:45, types:['GROUND','ROCK'],
     baseStats:{hp:110, atk:120, def:140, spa:55, spd:75, spe:50},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'rocktoss'],[15,'earthbump'],[20,'sandattack'],[26,'bite'],[32,'screech'],[38,'flamejet'],[44,'agility'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'rocktoss'],[15,'earthbump'],[20,'sandattack'],[26,'bite'],[32,'screech'],[34,'earthquake'],[38,'flamejet'],[44,'agility'] ],
     catchRate:25,
     design:{ palette:['#604830','#201810','#988050'], shape:'caterpillar', accent:'segments', beard:true },
     description:'It sleeps beneath foundations and counsels with old stones. Earthquakes are its sighs.'
@@ -449,7 +480,7 @@ const CREATURES = {
   hivequeen: {
     id:'hivequeen', name:'Hivequeen', dex:26, types:['BUG','POISON'],
     baseStats:{hp:65, atk:80, def:60, spa:65, spd:65, spe:95},
-    learnset:[ [1,'tackle'],[1,'poisonsting'],[5,'bugbite'],[10,'harden'],[14,'pinmissile'],[22,'acidspray'],[28,'toxicspike'] ],
+    learnset:[ [1,'poisonsting'],[1,'tackle'],[5,'bugbite'],[10,'harden'],[14,'pinmissile'],[22,'acidspray'],[26,'swarmstrike'],[28,'toxicspike'] ],
     evolves:{ to:'royalwasp', level:34 }, catchRate:60,
     design:{ palette:['#d8a818','#181818','#e84030'], shape:'bat', accent:'wings' },
     description:'Hive royalty by sting and patience. Workers hush when she enters the comb.'
@@ -505,7 +536,7 @@ const CREATURES = {
   snowox: {
     id:'snowox', name:'Snowox', dex:30, types:['ICE','NORMAL'],
     baseStats:{hp:80, atk:85, def:80, spa:75, spd:75, spe:50},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[10,'harden'],[14,'freezewind'],[22,'earthbump'],[28,'sandattack'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'bite'],[10,'harden'],[14,'freezewind'],[22,'earthbump'],[28,'avalanche'],[28,'sandattack'] ],
     evolves:{ to:'glacioxen', level:36 }, catchRate:60,
     design:{ palette:['#c8e0f0','#5898d0','#101830'], shape:'rock', accent:'pebble' },
     description:'It plows roads open without a road in mind. Mountain villages set out treats.'
@@ -513,7 +544,7 @@ const CREATURES = {
   glacioxen: {
     id:'glacioxen', name:'Glacioxen', dex:54, types:['ICE','NORMAL'],
     baseStats:{hp:110, atk:115, def:105, spa:90, spd:100, spe:65},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[14,'freezewind'],[22,'earthbump'],[28,'sandattack'],[34,'rocktoss'],[40,'screech'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'bite'],[14,'freezewind'],[22,'earthbump'],[28,'sandattack'],[32,'icebeam'],[34,'rocktoss'],[40,'screech'] ],
     catchRate:25,
     design:{ palette:['#a8c8e0','#3878b8','#000810'], shape:'rock', accent:'pebble', beard:true },
     description:'Glaciers take its shape, not the other way around. It will outwait any spring.'
@@ -521,7 +552,7 @@ const CREATURES = {
   crysthorn: {
     id:'crysthorn', name:'Crysthorn', dex:31, types:['ROCK','PSYCHIC'],
     baseStats:{hp:60, atk:60, def:90, spa:80, spd:75, spe:55},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'rocktoss'],[10,'harden'],[14,'shimmer'],[20,'sandattack'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'rocktoss'],[10,'harden'],[14,'shimmer'],[20,'sandattack'],[26,'rockslide'] ],
     evolves:{ to:'prismage', level:32 }, catchRate:60,
     design:{ palette:['#9870c8','#d8b8f0','#382048'], shape:'rock', accent:'pebble' },
     description:'A geode that paid attention. Its facets bend nearby thoughts.'
@@ -529,7 +560,7 @@ const CREATURES = {
   prismage: {
     id:'prismage', name:'Prismage', dex:56, types:['ROCK','PSYCHIC'],
     baseStats:{hp:90, atk:80, def:120, spa:115, spd:105, spe:75},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'rocktoss'],[14,'shimmer'],[20,'sandattack'],[26,'freezewind'],[32,'earthbump'],[38,'agility'],[44,'dazzle'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'rocktoss'],[14,'shimmer'],[20,'sandattack'],[26,'freezewind'],[32,'earthbump'],[34,'stoneedge'],[38,'agility'],[44,'dazzle'] ],
     catchRate:25,
     design:{ palette:['#7048a0','#d0a8f8','#180830'], shape:'rock', accent:'pebble', beard:true },
     description:'Light through it reveals memory. Sages keep it for unanswered questions.'
@@ -537,7 +568,7 @@ const CREATURES = {
   geistmite: {
     id:'geistmite', name:'Geistmite', dex:32, types:['DARK'],
     baseStats:{hp:45, atk:50, def:40, spa:65, spd:50, spe:80},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[10,'screech'],[14,'shimmer'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'bite'],[10,'screech'],[14,'shimmer'],[28,'phantompulse'] ],
     evolves:{ to:'shadefox', level:22 }, catchRate:120,
     design:{ palette:['#383848','#181820','#e85a5a'], shape:'bat', accent:'wings' },
     description:'A shadow that learned to hover. It startles, then apologizes in dreams.'
@@ -545,7 +576,7 @@ const CREATURES = {
   shadefox: {
     id:'shadefox', name:'Shadefox', dex:33, types:['DARK'],
     baseStats:{hp:65, atk:80, def:60, spa:85, spd:70, spe:105},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[10,'screech'],[14,'shimmer'],[22,'quickjab'],[28,'sandattack'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'bite'],[10,'screech'],[14,'shimmer'],[22,'quickjab'],[24,'shadowstrike'],[28,'sandattack'] ],
     evolves:{ to:'umbrasire', level:36 }, catchRate:45,
     design:{ palette:['#202028','#0a0a10','#e84838'], shape:'fox', accent:'tail', big:true },
     description:'It moves between two shadows like a cat between rooms. You see it last, never first.'
@@ -553,7 +584,7 @@ const CREATURES = {
   umbrasire: {
     id:'umbrasire', name:'Umbrasire', dex:55, types:['DARK','PSYCHIC'],
     baseStats:{hp:85, atk:100, def:80, spa:105, spd:90, spe:125},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[14,'shimmer'],[22,'quickjab'],[28,'sandattack'],[34,'airslash'],[40,'agility'],[46,'dazzle'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'bite'],[14,'shimmer'],[22,'quickjab'],[26,'shadowstrike'],[28,'sandattack'],[32,'nightveil'],[34,'airslash'],[40,'agility'],[46,'dazzle'] ],
     catchRate:15,
     design:{ palette:['#101018','#000004','#e83020'], shape:'fox', accent:'tail', big:true, beard:true },
     description:'It is the question your light asks. Towns leave one lamp lit, just in case.'
@@ -561,7 +592,7 @@ const CREATURES = {
   dreamilly: {
     id:'dreamilly', name:'Dreamilly', dex:34, types:['PSYCHIC','GRASS'],
     baseStats:{hp:60, atk:35, def:50, spa:90, spd:90, spe:60},
-    learnset:[ [1,'growl'],[1,'tailwhip'],[5,'shimmer'],[10,'vinelash'],[14,'dazzle'],[20,'leafcut'] ],
+    learnset:[ [1,'growl'],[1,'tailwhip'],[5,'shimmer'],[10,'vinelash'],[14,'dazzle'],[20,'leafcut'],[28,'mindcrush'] ],
     evolves:{ to:'reverieus', level:32 }, catchRate:75,
     design:{ palette:['#e8a8d8','#fff0f8','#a04878'], shape:'plant', accent:'bud' },
     description:'Petals soft as a half-remembered nap. It blooms where someone almost wept.'
@@ -569,7 +600,7 @@ const CREATURES = {
   reverieus: {
     id:'reverieus', name:'Reverieus', dex:57, types:['PSYCHIC','GRASS'],
     baseStats:{hp:80, atk:55, def:70, spa:130, spd:130, spe:80},
-    learnset:[ [1,'growl'],[1,'tailwhip'],[5,'shimmer'],[14,'dazzle'],[20,'leafcut'],[26,'lullaby'],[32,'hypnoray'],[38,'freezewind'],[44,'agility'] ],
+    learnset:[ [1,'growl'],[1,'tailwhip'],[5,'shimmer'],[14,'dazzle'],[20,'leafcut'],[26,'lullaby'],[30,'mindcrush'],[32,'hypnoray'],[38,'freezewind'],[44,'agility'] ],
     catchRate:30,
     design:{ palette:['#d878b8','#fff8ff','#702848'], shape:'plant', accent:'bud', beard:true },
     description:'It lives in a long, tender afternoon. Most who meet it call it home.'
@@ -585,7 +616,7 @@ const CREATURES = {
   mindrop: {
     id:'mindrop', name:'Mindrop', dex:59, types:['PSYCHIC'],
     baseStats:{hp:42, atk:30, def:40, spa:72, spd:60, spe:56},
-    learnset:[ [1,'growl'],[1,'tailwhip'],[5,'shimmer'],[10,'dazzle'],[15,'hypnoray'],[20,'lullaby'],[26,'freezewind'] ],
+    learnset:[ [1,'growl'],[1,'tailwhip'],[5,'shimmer'],[10,'dazzle'],[15,'hypnoray'],[20,'lullaby'],[20,'telekinesis'],[26,'freezewind'] ],
     catchRate:170,
     design:{ palette:['#d898e8','#fff0ff','#704088'], shape:'blob', accent:'glow', tuftX:16, tuftY:10 },
     description:'A bead of dreaming made flesh. Its hum makes onlookers misplace their car keys.'
@@ -593,7 +624,7 @@ const CREATURES = {
   pugpaw: {
     id:'pugpaw', name:'Pugpaw', dex:60, types:['FIGHTING'],
     baseStats:{hp:50, atk:68, def:45, spa:30, spd:42, spe:65},
-    learnset:[ [1,'tackle'],[1,'focusjab'],[5,'quickjab'],[10,'tailwhip'],[14,'palmstrike'],[20,'screech'],[26,'agility'] ],
+    learnset:[ [1,'focusjab'],[1,'tackle'],[5,'quickjab'],[10,'tailwhip'],[12,'karatechop'],[14,'palmstrike'],[20,'screech'],[24,'megapunch'],[26,'agility'] ],
     catchRate:180,
     design:{ palette:['#c07848','#f0c090','#502818'], shape:'mouse', accent:'tail', tuftX:16, tuftY:8 },
     description:'A polite brawler with sturdy paws. It bows before each match and after.'
@@ -609,7 +640,7 @@ const CREATURES = {
   breezlet: {
     id:'breezlet', name:'Breezlet', dex:62, types:['FLYING'],
     baseStats:{hp:44, atk:50, def:42, spa:58, spd:48, spe:76},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'gust'],[10,'sandattack'],[14,'quickjab'],[20,'airslash'],[26,'agility'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'gust'],[10,'sandattack'],[14,'quickjab'],[20,'airslash'],[24,'skyrend'],[26,'agility'] ],
     catchRate:190,
     design:{ palette:['#88b8e8','#f8f8ff','#304870'], shape:'bird', accent:'wings', tuftX:16, tuftY:6 },
     description:'It lifts in any breeze, including imaginary ones. Children clap to keep it aloft.'
@@ -633,7 +664,7 @@ const CREATURES = {
   mudmote: {
     id:'mudmote', name:'Mudmote', dex:65, types:['GROUND'],
     baseStats:{hp:56, atk:60, def:72, spa:25, spd:38, spe:30},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'earthbump'],[10,'harden'],[14,'rocktoss'],[20,'bite'],[26,'sandattack'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'earthbump'],[10,'harden'],[14,'rocktoss'],[20,'bite'],[24,'sandstorm'],[26,'sandattack'] ],
     catchRate:190,
     design:{ palette:['#a87848','#604020','#d8b878'], shape:'caterpillar', accent:'segments', tuftX:12, tuftY:15 },
     description:'A clump of rich soil with hopes. It is welcome in any garden.'
@@ -641,7 +672,7 @@ const CREATURES = {
   frostnip: {
     id:'frostnip', name:'Frostnip', dex:66, types:['ICE'],
     baseStats:{hp:44, atk:48, def:46, spa:66, spd:58, spe:58},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'freezewind'],[10,'harden'],[14,'bite'],[20,'shimmer'],[26,'agility'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'freezewind'],[10,'harden'],[14,'bite'],[20,'shimmer'],[26,'agility'],[28,'icebeam'] ],
     catchRate:180,
     design:{ palette:['#d8f0ff','#80c8f0','#284860'], shape:'fox', accent:'tail', tuftX:16, tuftY:8 },
     description:'A nip of cold packed in fluff. It tags travelers’ boots with little snowflakes.'
@@ -657,7 +688,7 @@ const CREATURES = {
   wraithlet: {
     id:'wraithlet', name:'Wraithlet', dex:68, types:['GHOST'],
     baseStats:{hp:42, atk:55, def:38, spa:75, spd:62, spe:90},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[10,'shimmer'],[14,'screech'],[20,'spectralhowl'],[26,'ghostgrip'],[32,'dazzle'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'bite'],[10,'shimmer'],[14,'screech'],[20,'spectralhowl'],[22,'hauntcurse'],[26,'ghostgrip'],[30,'phantompulse'],[32,'dazzle'] ],
     catchRate:90,
     design:{ palette:['#9080a8','#3a304a','#e8c8ff'], shape:'bat', accent:'wings', tuftX:16, tuftY:9 },
     description:'A whisper given form. It glides through walls and apologizes by the next room.'
@@ -665,7 +696,7 @@ const CREATURES = {
   draekit: {
     id:'draekit', name:'Draekit', dex:69, types:['DRAGON'],
     baseStats:{hp:50, atk:75, def:55, spa:65, spd:55, spe:60},
-    learnset:[ [1,'tackle'],[1,'growl'],[5,'bite'],[10,'harden'],[14,'dragonbreath'],[20,'screech'],[26,'dragonclaw'],[32,'agility'] ],
+    learnset:[ [1,'growl'],[1,'tackle'],[5,'bite'],[10,'harden'],[14,'dragonbreath'],[20,'screech'],[26,'dragonclaw'],[32,'agility'],[34,'dragonpulse'] ],
     catchRate:60,
     design:{ palette:['#605898','#a8a8e8','#180828'], shape:'fox', accent:'tail', big:true, tuftX:16, tuftY:8 },
     description:'A small wyrm with old eyes. Its breath leaves the air smelling like rain.'
@@ -673,7 +704,7 @@ const CREATURES = {
   dewfae: {
     id:'dewfae', name:'Dewfae', dex:70, types:['FAIRY'],
     baseStats:{hp:50, atk:35, def:45, spa:80, spd:80, spe:65},
-    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'shimmer'],[10,'dazzle'],[14,'fairykiss'],[20,'agility'],[26,'moonbeam'],[32,'lullaby'] ],
+    learnset:[ [1,'tackle'],[1,'tailwhip'],[5,'shimmer'],[10,'dazzle'],[14,'fairykiss'],[20,'agility'],[24,'stardust'],[26,'moonbeam'],[32,'lullaby'] ],
     catchRate:90,
     design:{ palette:['#f8c8e8','#fff8ff','#a07898'], shape:'blob', accent:'glow', tuftX:16, tuftY:10 },
     description:'Mist with a heartbeat. It heals small bruises just by being nearby.'
@@ -681,7 +712,7 @@ const CREATURES = {
   clawmonk: {
     id:'clawmonk', name:'Clawmonk', dex:71, types:['FIGHTING'],
     baseStats:{hp:55, atk:80, def:50, spa:35, spd:50, spe:75},
-    learnset:[ [1,'tackle'],[1,'focusjab'],[5,'quickjab'],[10,'sandattack'],[14,'palmstrike'],[20,'screech'],[26,'agility'] ],
+    learnset:[ [1,'focusjab'],[1,'tackle'],[5,'quickjab'],[10,'sandattack'],[14,'karatechop'],[14,'palmstrike'],[20,'screech'],[26,'agility'],[34,'focusblast'] ],
     catchRate:90,
     design:{ palette:['#a86040','#e8c0a0','#382010'], shape:'mouse', accent:'tail', tuftX:16, tuftY:8 },
     description:'A martial student of the foothills. Bows precede every kick.'
@@ -729,7 +760,7 @@ const CREATURES = {
   miasmite: {
     id:'miasmite', name:'Miasmite', dex:77, types:['POISON'],
     baseStats:{hp:50, atk:50, def:48, spa:65, spd:55, spe:60},
-    learnset:[ [1,'tackle'],[1,'poisonsting'],[5,'bubble'],[10,'acidspray'],[14,'screech'],[20,'toxicspike'],[26,'bite'] ],
+    learnset:[ [1,'poisonsting'],[1,'tackle'],[5,'bubble'],[10,'acidspray'],[14,'screech'],[20,'toxicspike'],[24,'toxicgas'],[26,'bite'] ],
     catchRate:120,
     design:{ palette:['#9050a8','#502878','#e8b8e8'], shape:'fish', accent:'fins' },
     description:'It nests in stagnant pools. Its fin tips weep a bright, wary smoke.'
