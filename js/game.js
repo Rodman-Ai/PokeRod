@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.52.2';
-  const BUILD = '2026.05.10-136';
+  const VERSION = 'v0.52.3';
+  const BUILD = '2026.05.10-137';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -496,7 +496,7 @@
     const safe = Math.max(0, Math.min(state.party.length - 1, idx | 0));
     if (state.mode === 'battle' || state.mode === 'intro' || state.mode === 'title') return false;
     if (!state.menu) {
-      state.menu = { idx: 3, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','SETTINGS','SAVE','EXIT'] };
+      state.menu = { idx: 3, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','SETTINGS','SAVE','LOAD'] };
     }
     state.menu.viewing = 'party';
     state.menu.partyView = { idx: safe, page: 0 };
@@ -1236,8 +1236,8 @@
   // ---------- Pause menu ----------
   const MENU_ICONS = {
     MAP:'map', DEX:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
-    PROFILE:'profile', QUEST:'map', PVP:'party', ERA:'gear',
-    SETTINGS:'gear', SAVE:'save', EXIT:'x'
+    PROFILE:'profile', QUEST:'map', ERA:'gear',
+    SETTINGS:'gear', SAVE:'save', LOAD:'save'
   };
   // Short labels for the in-menu ERA toggle (full GRAPHICS_LABELS like
   // 'GBA FIRERED' don't fit in the 68px-wide menu cells).
@@ -1254,7 +1254,7 @@
     }
   }
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','PVP','ERA','SETTINGS','SAVE','EXIT'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','ERA','SETTINGS','SAVE','LOAD'] };
     state.mode = 'menu';
     startMenuAnim();
   }
@@ -1285,9 +1285,8 @@
       const opt = m.options[m.idx];
       if (opt === 'SAVE') {
         openSlotPicker('save');
-      } else if (opt === 'EXIT') {
-        state.menu = null;
-        state.mode = 'overworld';
+      } else if (opt === 'LOAD') {
+        openSlotPicker('load');
       } else if (opt === 'PARTY') {
         m.viewing = 'party';
         m.partyView = { idx:0, page:0 };
@@ -1305,8 +1304,6 @@
         openBox();
       } else if (opt === 'QUEST') {
         openQuests();
-      } else if (opt === 'PVP') {
-        startRivalDuel();
       } else if (opt === 'ERA') {
         // Single-tap toggle: cycle to the next era and apply
         // immediately. No submenu; the player sees the new label
@@ -1345,7 +1342,7 @@
     window.PR_UI.panel(ctx, x, y, w, h, {
       fill:'#f8f0d8', border:'#202020', shadow:'#c89048', highlight:'#fff8e8'
     });
-    window.PR_UI.header(ctx, 'START', x + 4, y + 4, w - 8, {
+    window.PR_UI.header(ctx, 'PAUSE MENU', x + 4, y + 4, w - 8, {
       fill:'#1a0204', line:'#f0c020', text:'#f0c020'
     });
     const badges = (state.player.badges || []).length;
