@@ -147,10 +147,10 @@ body[data-graphics="gba_firered"] {
   --bezel-line: #3a3d48;
   --bezel-label: #d6dae2;
   --game-glow: rgba(220,228,240,0.18);
-  --abtn-a-bg: radial-gradient(circle at 35% 30%, #6c7280 0%, #2c2f38 56%, #14161c 100%);
-  --abtn-a-shadow: #050608;
-  --abtn-b-bg: radial-gradient(circle at 35% 30%, #6c7280 0%, #2c2f38 56%, #14161c 100%);
-  --abtn-b-shadow: #050608;
+  --abtn-a-bg: radial-gradient(circle at 35% 30%, #f0f2f6 0%, #b8bcc4 55%, #6c707a 100%);
+  --abtn-a-shadow: #4a4d54;
+  --abtn-b-bg: radial-gradient(circle at 35% 30%, #f0f2f6 0%, #b8bcc4 55%, #6c707a 100%);
+  --abtn-b-shadow: #4a4d54;
   --ss-bg: linear-gradient(180deg, #c0c2c8 0%, #8c8f96 100%);
   --ss-text: #2a2c34;
   --ss-border: #6c6e74;
@@ -224,6 +224,64 @@ body[data-graphics="gb_pocket"] #screen::before {
 body[data-graphics="gbc_yellow"] #screen::before {
   background:
     radial-gradient(circle, rgba(20,20,30,0.75) 1.3px, transparent 2.1px) 0 0 / 6px 6px;
+}
+
+/* ---- GBA SP shell detailing -------------------------------------------- */
+/* Four screws in the corners of the screen bezel, layered onto the
+   existing --bezel-bg gradient via background-image stack. */
+body[data-graphics="gba_firered"] #screen {
+  background:
+    radial-gradient(circle at 6px 6px, #1a1c22 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 6px) 6px, #1a1c22 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at 6px calc(100% - 6px), #1a1c22 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 6px) calc(100% - 6px), #1a1c22 0 1.6px, transparent 2.2px),
+    var(--bezel-bg);
+}
+/* Hinge bar: horizontal silver pivot just below the screen. Uses
+   #screen::before (free on this era - the speaker-grill rule above
+   only targets gb_red/gb_pocket/gbc_yellow). */
+body[data-graphics="gba_firered"] #screen::before {
+  content: '';
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: clamp(-32px, -6vw, -20px);
+  height: clamp(10px, 2.4vw, 16px);
+  background: linear-gradient(180deg, #e0e2e6 0%, #b0b4bc 50%, #7c8088 100%);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    0 1px 2px rgba(0,0,0,0.45);
+  pointer-events: none;
+}
+/* Power pip + speaker grill anchor against #startsel (centered in the
+   controls row, so they line up with the device's vertical centerline). */
+body[data-graphics="gba_firered"] #startsel { position: relative; }
+body[data-graphics="gba_firered"] #startsel::after {
+  content: '';
+  position: absolute;
+  top: clamp(-22px, -4vw, -14px);
+  left: 50%;
+  width:  clamp(8px, 2vw, 12px);
+  height: clamp(8px, 2vw, 12px);
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 35% 30%, #d8dade 0%, #8a8e96 60%, #4a4d54 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 -1px 1px rgba(0,0,0,0.45), 0 1px 1px rgba(0,0,0,0.4);
+  pointer-events: none;
+}
+body[data-graphics="gba_firered"] #startsel::before {
+  content: '';
+  position: absolute;
+  top: clamp(-44px, -8vw, -28px);
+  left: 50%;
+  transform: translateX(-50%);
+  width:  clamp(36px, 10vw, 56px);
+  height: clamp(14px, 3.5vw, 22px);
+  background: radial-gradient(circle, rgba(20,20,30,0.6) 1px, transparent 1.6px) 0 0 / 5px 5px;
+  pointer-events: none;
+  opacity: 0.85;
 }
 
 * { box-sizing: border-box; }
