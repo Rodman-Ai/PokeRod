@@ -787,7 +787,21 @@
         this.queue('Sent to PC STORAGE.');
       }
       this.phase = 'message';
-      this.afterMessages = () => { this.phase = 'caught'; };
+      this.afterMessages = () => {
+        // Opt-in nickname prompt. window.prompt is synchronous - browsers
+        // will block input until the user answers - so we run it after
+        // the post-catch messages have been read, not inline. Cancel /
+        // blank input keeps the default species-name nickname.
+        try {
+          const speciesName = (window.PR_DATA.CREATURES[this.foe.species] || {}).name || this.foe.species;
+          const def = String(this.foe.nickname || speciesName).slice(0, 10);
+          if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+            const entered = window.prompt('Nickname ' + speciesName + '? (Cancel to skip)', def);
+            if (entered && entered.trim()) this.foe.nickname = entered.trim().slice(0, 10);
+          }
+        } catch (_) { /* fall through with default nickname */ }
+        this.phase = 'caught';
+      };
     } else {
       const text = ['Oh no! It broke free!','Aww! It nearly had it!','Gah! So close!','Drat! Almost!'][shakes];
       this.queue(text);
@@ -1057,12 +1071,30 @@
     // long move names ("TAIL WHIP") don't run into the "PP 29/30" suffix.
     const detailW = 64;
     const cellW = (w - 16 - detailW) / 2;
+    const foeTypes = (window.PR_DATA.CREATURES[this.foe.species] || {}).types || [];
     for (let i = 0; i < moves.length; i++) {
       const cx = x + 8 + (i % 2) * cellW;
       const cy = y + 6 + Math.floor(i / 2) * 18;
       if (i === this.subSelection) window.PR_UI.drawText(ctx, '>', cx - 6, cy, '#e83838');
       const def = window.PR_DATA.MOVES[moves[i].id];
-      window.PR_UI.drawText(ctx, def.name, cx, cy, '#202020');
+      // Effectiveness preview against the current foe. Status / 0-power
+      // moves get no tag (they don't deal type damage). Color carries
+      // the signal; the suffix tag is the colorblind-safe channel.
+      let nameColor = '#202020';
+      let tag = '';
+      if (def.kind !== 'status' && (def.power | 0) > 0) {
+        const eff = window.PR_DATA.effectiveness(def.type, foeTypes);
+        if (eff === 0)         { nameColor = '#888888'; tag = ' X'; }
+        else if (eff >= 4)     { nameColor = '#208830'; tag = '++'; }
+        else if (eff > 1)      { nameColor = '#388838'; tag = ' +'; }
+        else if (eff < 0.5)    { nameColor = '#a06030'; tag = ' --'; }
+        else if (eff < 1)      { nameColor = '#a08040'; tag = ' -'; }
+      }
+      window.PR_UI.drawText(ctx, def.name, cx, cy, nameColor);
+      if (tag) {
+        const tagX = cx + Math.min(def.name.length, 9) * 6 + 2;
+        window.PR_UI.drawText(ctx, tag, tagX, cy, nameColor);
+      }
     }
     // Detail.
     const sel = moves[this.subSelection];
