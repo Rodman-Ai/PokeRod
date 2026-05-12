@@ -2568,6 +2568,9 @@
         this.player.y = this.anim.toY;
         this.anim.moving = false;
         this.player.steps = (this.player.steps || 0) + 1;
+        if (window.PR_ACHV && this.state && this.player.steps >= 5000) {
+          window.PR_ACHV.unlock(this.state, 'big_walker');
+        }
         this.frame ^= 1;
         // Check for door / encounter / edge after step.
         const code = this.tileAt(this.player.x, this.player.y);

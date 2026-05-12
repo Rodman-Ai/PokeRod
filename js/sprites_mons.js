@@ -6,8 +6,14 @@
 (function () {
   function drawCreature(ctx, species, sx, sy, sizePx, isBack, subject) {
     if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
+    const shiny = !!(subject && subject.shiny);
+    if (shiny) {
+      ctx.save();
+      ctx.filter = 'hue-rotate(140deg) saturate(1.35) brightness(1.05)';
+    }
     const key = 'creature_' + species;
     window.PR_ATLAS.drawKeyScaled(ctx, key, sx, sy, sizePx, sizePx);
+    if (shiny) ctx.restore();
   }
 
   // Render a single-color silhouette of the creature sprite. Uses an

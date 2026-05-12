@@ -4,6 +4,17 @@
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
 
+  // Battle dialog "speed" - scales the HP-bar drain rate, which gates
+  // the press-to-advance check on every message. slow ~ half rate,
+  // fast ~ 2x rate. Reads the live setting so the slider takes effect
+  // without restarting a battle.
+  function textSpeedMult() {
+    const s = window.PR_SETTINGS && window.PR_SETTINGS.textSpeed;
+    if (s === 'slow') return 0.55;
+    if (s === 'fast') return 2.0;
+    return 1.0;
+  }
+
   function Battle(state, opts) {
     this.state = state;
     this.opts = opts || {};
@@ -55,6 +66,7 @@
       this.queue('Sent out ' + this.foe.nickname + '!');
     } else {
       this.queue('A wild ' + this.foe.nickname + ' appeared!');
+      if (this.foe.shiny) this.queue('It is shiny! What a rare find!');
     }
     this.queue('Go, ' + this.me.nickname + '!');
     this.phase = 'message';
@@ -78,10 +90,15 @@
       if (this.activeAnim.t >= this.activeAnim.duration) this.activeAnim = null;
     }
 
-    // Animate hp bars toward target.
+    // Animate hp bars toward target. The rate scales with the
+    // textSpeed setting so the player isn't forced to wait through a
+    // long drain on "fast" - the message gate at line 94 won't release
+    // until hpAnim catches up, so this also makes battle dialog
+    // perceptibly snappier overall.
+    const mult = textSpeedMult();
     const tickHp = (cur, target) => {
-      if (cur < target) return Math.min(target, cur + 60*dt);
-      if (cur > target) return Math.max(target, cur - 60*dt);
+      if (cur < target) return Math.min(target, cur + 60*dt*mult);
+      if (cur > target) return Math.max(target, cur - 60*dt*mult);
       return cur;
     };
     this.hpAnim.foe = tickHp(this.hpAnim.foe, this.foe.hp);
@@ -747,6 +764,21 @@
         if (!this.state.player.stats) this.state.player.stats = {};
         this.state.player.stats.catches = (this.state.player.stats.catches || 0) + 1;
       }
+      // Achievement triggers - first/ten/fifty catch, first shiny, dex
+      // milestones, first fish if this was an A-on-water fishing battle.
+      if (window.PR_ACHV) {
+        const A = window.PR_ACHV;
+        const catches = (this.state.player.stats.catches || 0);
+        A.unlock(this.state, 'first_catch');
+        if (catches >= 10) A.unlock(this.state, 'ten_catches');
+        if (catches >= 50) A.unlock(this.state, 'fifty_catches');
+        if (this.foe.shiny) A.unlock(this.state, 'first_shiny');
+        if (this.opts && this.opts.fishing) A.unlock(this.state, 'first_fish');
+        const caught = (this.state.dex && this.state.dex.caught && this.state.dex.caught.size) || 0;
+        if (caught >= 20) A.unlock(this.state, 'dex_quarter');
+        if (caught >= 40) A.unlock(this.state, 'dex_half');
+        if (caught >= 77) A.unlock(this.state, 'dex_full');
+      }
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) {
         this.state.party.push(this.foe);
@@ -824,9 +856,11 @@
         this.queue('What? ' + sp.name + ' is evolving!');
         this.queue('It evolved into ' + evoSp.name + '!');
         if (window.PR_STORY) window.PR_STORY.emit(this.state, 'evolve', { from: fromSpecies, to: evo });
+        if (window.PR_ACHV) window.PR_ACHV.unlock(this.state, 'first_evolve');
         sp = evoSp; // continue learning checks against new species in next iter
       }
       lv = window.PR_DATA.levelFromXp(mon.xp);
+      if (window.PR_ACHV && lv >= 50) window.PR_ACHV.unlock(this.state, 'level_50');
     }
   };
 
