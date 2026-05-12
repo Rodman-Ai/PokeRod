@@ -85,6 +85,18 @@
     if (window.PR_STORY) {
       window.PR_STORY.emit(state, 'buy', { item:itemId, count:qty, total:price });
     }
+    // Tourist trophy - buy from each of the 7 town outdoor vendors
+    // (their NPCs are the only `shop` entries that carry extraItems).
+    if (window.PR_ACHV && v.npc && v.npc.shop && v.npc.shop.extraItems && v.npc.name) {
+      if (!state.flags) state.flags = {};
+      if (!Array.isArray(state.flags.vendorsBoughtFrom)) state.flags.vendorsBoughtFrom = [];
+      if (state.flags.vendorsBoughtFrom.indexOf(v.npc.name) === -1) {
+        state.flags.vendorsBoughtFrom.push(v.npc.name);
+      }
+      if (state.flags.vendorsBoughtFrom.length >= 7) {
+        window.PR_ACHV.unlock(state, 'all_vendors');
+      }
+    }
   }
 
   function flash(v, msg) {

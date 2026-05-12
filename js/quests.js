@@ -785,6 +785,7 @@
     if (!def || !s) return null;
     if (s.status !== 'ready') return null;
     s.status = 'done';
+    if (window.PR_ACHV) window.PR_ACHV.unlock(state, 'first_quest');
     if (def.consumeOnTurnIn && def.target && def.target.item && window.PR_ITEMS && window.PR_ITEMS.take) {
       window.PR_ITEMS.take(state, def.target.item, def.target.count || 1);
     }
@@ -813,6 +814,7 @@
             completed.push({ def, status:'ready' });
           } else {
             s.status = 'done';
+            if (window.PR_ACHV) window.PR_ACHV.unlock(state, 'first_quest');
             if (def.reward && def.reward.item && window.PR_ITEMS && window.PR_ITEMS.add) {
               window.PR_ITEMS.add(state, def.reward.item, def.reward.count || 1);
             }

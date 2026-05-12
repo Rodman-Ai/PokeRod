@@ -832,7 +832,11 @@ function makeMon(speciesId, level, opts) {
     status: null,
     sleepTurns: 0,
     confusionTurns: 0,
-    statStages: { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 }
+    statStages: { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 },
+    // Classic genre flex - 1/4096 chance to roll shiny. opts.shiny
+    // can force it (story / debug). Render path applies a hue-rotate
+    // filter on top of the regular atlas sprite.
+    shiny: !!(opts && opts.shiny) || (Math.random() < 1/4096)
   };
 }
 
