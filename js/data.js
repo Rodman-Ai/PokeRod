@@ -879,6 +879,26 @@ function xpMultiplier(state, mon) {
 }
 
 // Damage calc (simplified Gen 5+ style).
+// Per-weather damage modifiers, keyed by move type. The 8 weather
+// kinds match the existing PR_WEATHER catalogue; no sun/sandstorm
+// because PokeRod doesn't ship those presets yet.
+const WEATHER_DMG = {
+  rain:      { WATER: 1.5, FIRE: 0.5 },
+  hurricane: { WATER: 1.5, FIRE: 0.5, FLYING: 1.25 },
+  thunder:   { ELECTRIC: 1.5 },
+  snow:      { ICE: 1.3, FIRE: 0.7 },
+  sleet:     { ICE: 1.3, FIRE: 0.8 },
+  hail:      { ICE: 1.5, FIRE: 0.7 },
+  fog:       { GHOST: 1.25, DARK: 1.25 },
+  overcast:  { FIRE: 0.85 }
+};
+function weatherMult(moveType) {
+  const W = typeof window !== 'undefined' && window.PR_WEATHER;
+  const k = W && W.currentKind && W.currentKind();
+  const t = k && WEATHER_DMG[k];
+  return (t && t[moveType]) || 1;
+}
+
 function calcDamage(attacker, defender, move, isCrit) {
   if (move.kind === 'status' || (move.power|0) === 0) return 0;
   const A = move.kind === 'physical' ? attacker.stats.atk : attacker.stats.spa;
@@ -889,8 +909,9 @@ function calcDamage(attacker, defender, move, isCrit) {
   if (eff === 0) return { dmg: 0, eff: 0, stab, crit: isCrit };
   const crit = isCrit ? 1.5 : 1;
   const rand = 0.85 + Math.random() * 0.15;
+  const weather = weatherMult(move.type);
   const base = (((2*attacker.level/5 + 2) * move.power * (A/Math.max(1,D))) / 50) + 2;
-  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand)), eff, stab, crit:isCrit };
+  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather)), eff, stab, crit:isCrit };
 }
 
 window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };

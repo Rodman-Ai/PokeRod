@@ -372,7 +372,17 @@
     if (tier === 'gba_firered') return 0.70;
     return 1.0;
   }
-  window.PR_WEATHER = { parseWeather, WEATHER_PRESETS };
+  // Resolve the live weather kind for the player's current map -
+  // exposed so battle damage + encounter weight bias can route off it.
+  // Returns null for interiors / unweathered maps (no bias applies).
+  function currentWeatherKind() {
+    const G = window.PR_GAME && window.PR_GAME.state;
+    const m = G && G.world && G.world.currentMap && G.world.currentMap();
+    if (!m || m.interior) return null;
+    const w = parseWeather(m.weather);
+    return w ? w.kind : null;
+  }
+  window.PR_WEATHER = { parseWeather, WEATHER_PRESETS, currentKind: currentWeatherKind };
   // Soft elliptical drop shadow with a radial-gradient falloff. Two
   // layers (tight inner core + softer outer halo) give an
   // atmospheric-looking shadow without doubling cost. opts.offsetX /
