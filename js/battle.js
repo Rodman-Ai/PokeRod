@@ -843,20 +843,22 @@
     let shakeX = 0;
     if (this.shakeTimer > 0) shakeX = (Math.sin(this.timer * 80) * 2) | 0;
 
-    // Background sky/ground.
-    ctx.fillStyle = '#a8c0e8';
+    // Background sky/ground. Routed through pf() so monochrome eras
+    // (gb_red, gb_pocket) era-tone the field instead of rendering raw
+    // sky-blue + grass-green.
+    ctx.fillStyle = window.PR_UI.pf('#a8c0e8');
     ctx.fillRect(0, 0, VIEW_W, 90);
-    ctx.fillStyle = '#5cae4c';
+    ctx.fillStyle = window.PR_UI.pf('#5cae4c');
     ctx.fillRect(0, 90, VIEW_W, VIEW_H - 90);
     // Foe platform.
-    ctx.fillStyle = '#3a8030';
+    ctx.fillStyle = window.PR_UI.pf('#3a8030');
     ctx.fillRect(140, 70, 90, 8);
-    ctx.fillStyle = '#2a6020';
+    ctx.fillStyle = window.PR_UI.pf('#2a6020');
     ctx.fillRect(140, 78, 90, 2);
     // Player platform.
-    ctx.fillStyle = '#3a8030';
+    ctx.fillStyle = window.PR_UI.pf('#3a8030');
     ctx.fillRect(10, 82, 90, 8);
-    ctx.fillStyle = '#2a6020';
+    ctx.fillStyle = window.PR_UI.pf('#2a6020');
     ctx.fillRect(10, 90, 90, 2);
 
     // Foe sprite.
@@ -957,7 +959,7 @@
     window.PR_UI.drawHpBar(ctx, x + 18, y + 16, w - 24, this.hpAnim.foe, this.foe.stats.hp);
     if (this.foe.status) {
       const tag = this.foe.status.slice(0,3).toUpperCase();
-      ctx.fillStyle = '#e83838'; ctx.fillRect(x + 4, y + 22, 16, 6);
+      ctx.fillStyle = window.PR_UI.pf('#e83838'); ctx.fillRect(x + 4, y + 22, 16, 6);
       window.PR_UI.drawText(ctx, tag, x + 5, y + 22, '#fff');
     }
   };
@@ -977,7 +979,7 @@
     window.PR_UI.drawXpBar(ctx, x + 4, y + h - 4, w - 8, Math.min(1, cur / Math.max(1, need)));
     if (this.me.status) {
       const tag = this.me.status.slice(0,3).toUpperCase();
-      ctx.fillStyle = '#e83838'; ctx.fillRect(x + 4, y + 22, 16, 6);
+      ctx.fillStyle = window.PR_UI.pf('#e83838'); ctx.fillRect(x + 4, y + 22, 16, 6);
       window.PR_UI.drawText(ctx, tag, x + 5, y + 22, '#fff');
     }
   };
@@ -1000,8 +1002,12 @@
     const x = 6, y = VIEW_H - 48, w = VIEW_W - 12, h = 44;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
     const moves = this.me.moves;
+    // Reserve the rightmost ~64 px for the PP / type detail column so
+    // long move names ("TAIL WHIP") don't run into the "PP 29/30" suffix.
+    const detailW = 64;
+    const cellW = (w - 16 - detailW) / 2;
     for (let i = 0; i < moves.length; i++) {
-      const cx = x + 8 + (i % 2) * ((w - 16) / 2);
+      const cx = x + 8 + (i % 2) * cellW;
       const cy = y + 6 + Math.floor(i / 2) * 18;
       if (i === this.subSelection) window.PR_UI.drawText(ctx, '>', cx - 6, cy, '#e83838');
       const def = window.PR_DATA.MOVES[moves[i].id];
@@ -1014,7 +1020,7 @@
       const tx = x + w - 60;
       window.PR_UI.drawText(ctx, 'PP ' + sel.pp + '/' + sel.ppMax, tx, y + 6, '#202020');
       const color = window.PR_DATA.TYPE_COLOR[def.type] || '#202020';
-      ctx.fillStyle = color; ctx.fillRect(tx, y + 18, 50, 8);
+      ctx.fillStyle = window.PR_UI.pf(color); ctx.fillRect(tx, y + 18, 50, 8);
       window.PR_UI.drawText(ctx, def.type.slice(0,4), tx + 2, y + 19, '#fff');
     }
   };
@@ -1028,7 +1034,7 @@
       const m = party[i];
       const cy = y + 22 + i * 20;
       if (i === this.subSelection) {
-        ctx.fillStyle = '#f0c020';
+        ctx.fillStyle = window.PR_UI.pf('#f0c020');
         ctx.fillRect(x + 4, cy - 2, w - 8, 18);
       }
       window.PR_MONS.drawCreature(ctx, m.species, x + 6, cy - 2, 18, false, m);
