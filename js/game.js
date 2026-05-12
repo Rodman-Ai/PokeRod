@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.12';
-  const BUILD = '2026.05.11-154';
+  const VERSION = 'v0.55.13';
+  const BUILD = '2026.05.11-155';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -102,6 +102,15 @@
       versionEl.setAttribute('aria-hidden', 'true');
     }
     ensureSettings();
+    // The inline bootstrap script in index.html already read the last
+    // save's settings.graphics and set body[data-graphics] before any
+    // JS ran. Mirror that into state.settings here so the immediately-
+    // following applySettings() keeps the title screen in the last-
+    // played era instead of stomping it back to the static default.
+    if (document.body && document.body.dataset.graphics) {
+      const seed = document.body.dataset.graphics;
+      if (GRAPHICS_STEPS.indexOf(seed) !== -1) state.settings.graphics = seed;
+    }
     applySettings();
     const has = window.PR_SAVE.exists();
     if (has) document.getElementById('btn-continue').hidden = false;
