@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.4';
-  const BUILD = '2026.05.11-146';
+  const VERSION = 'v0.55.5';
+  const BUILD = '2026.05.11-147';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1241,7 +1241,7 @@
   };
   // Short labels for the in-menu ERA toggle (full GRAPHICS_LABELS like
   // 'GBA FIRERED' don't fit in the 68px-wide menu cells).
-  const ERA_ABBREV = { gb_red:'GB', gb_pocket:'POCKET', gbc_yellow:'GBC', gba_firered:'GBA', ds_diamond:'DS' };
+  const ERA_ABBREV = { gb_red:'GB', gb_pocket:'GBP', gbc_yellow:'GBC', gba_firered:'GBA', ds_diamond:'DS' };
 
   function reducedMotion() {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1371,7 +1371,7 @@
     const eq = state.player.equipment;
     const trinket = eq && eq.trinket;
     const tDef = trinket && window.PR_ITEMS && window.PR_ITEMS.byId(trinket);
-    const gearText = 'GEAR ' + (tDef ? tDef.name.slice(0, 9).toUpperCase() : 'NONE');
+    const gearText = 'GEAR ' + (tDef ? tDef.name.slice(0, 14).toUpperCase() : 'NONE');
     window.PR_UI.drawText(ctx, gearText, x + 8, y + h - 11, '#806040');
     if (m.flashTimer > 0) {
       m.flashTimer -= 1/60;
