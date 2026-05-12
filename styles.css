@@ -202,10 +202,14 @@ body[data-graphics="gb_pocket"]  #touch::before,
 body[data-graphics="gbc_yellow"] #touch::before {
   content: '';
   position: absolute;
-  right:  clamp(12px, 4vw, 32px);
-  top:    clamp(-90px, -14vw, -50px);
-  width:  clamp(56px, 18vw, 96px);
-  height: clamp(18px, 5vw, 28px);
+  /* Anchored to the bottom-right corner of #touch so it sits below
+     the B button, vertically aligned with the SELECT/START row but
+     in the empty right band (SELECT/START is centered). Square-ish
+     aspect matches the photo references. */
+  right:  clamp(12px, 4vw, 28px);
+  bottom: clamp(28px, 7vw, 56px);
+  width:  clamp(36px, 10vw, 52px);
+  height: clamp(36px, 10vw, 52px);
   border-radius: 3px;
   pointer-events: none;
   opacity: 0.85;
