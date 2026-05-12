@@ -267,12 +267,12 @@ body[data-graphics="gba_firered"] #startsel { position: relative; }
 body[data-graphics="gba_firered"] #startsel::before {
   content: '';
   position: absolute;
-  top: clamp(-44px, -8vw, -28px);
+  top: clamp(-56px, -10vw, -36px);
   left: 50%;
   transform: translateX(-50%);
-  width:  clamp(18px, 5vw, 28px);
-  height: clamp(22px, 6vw, 32px);
-  background: radial-gradient(circle, rgba(20,20,30,0.7) 1px, transparent 1.5px) 0 0 / 4.5px 4.5px;
+  width:  clamp(28px, 8vw, 44px);
+  height: clamp(34px, 9vw, 52px);
+  background: radial-gradient(circle, rgba(20,20,30,0.72) 1.1px, transparent 1.7px) 0 0 / 7px 7px;
   pointer-events: none;
   opacity: 0.85;
 }
