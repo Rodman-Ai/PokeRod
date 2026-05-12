@@ -138,6 +138,16 @@
   // dark gray, which made most maps look like noise).
   const MINI_FALLBACK_WALK = '#9cd078';
   const MINI_FALLBACK_BLOCK = '#605040';
+  // Monochrome-era minimap palettes. The luminance bucketing that pf()
+  // applies elsewhere collapses most natural-world tile colors into the
+  // same middle bucket on gb_red / gb_pocket - so paths and grass land
+  // on the same shade as walls. Bypass pf() in those eras and pick the
+  // bucket per tile category directly. Bucket layout: 0 = darkest
+  // (impassable terrain), 3 = lightest (paths / floor).
+  const MINI_MONO_PAL = {
+    gb_red:    ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'],
+    gb_pocket: ['#161618', '#505058', '#a0a0a8', '#dededf']
+  };
   function miniColorFor(code) {
     const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
     if (!props) return code === 'X' ? '#000000' : MINI_FALLBACK_BLOCK;
@@ -163,6 +173,39 @@
     if (n === 'floor' || n === 'rug') return '#e8d8b8';
     return props.walk ? MINI_FALLBACK_WALK : MINI_FALLBACK_BLOCK;
   }
+  // Discrete 0-3 bucket per tile category for the monochrome eras.
+  // Mirrors miniColorFor's dispatch but emphasises navigation: paths
+  // and floor read brightest, walls/structures read mid, water and
+  // trees read darkest so the player can tell at a glance where they
+  // can walk and where the map blocks them.
+  function miniBucketFor(code) {
+    const props = window.PR_MAPS && window.PR_MAPS.TILE_PROPS && window.PR_MAPS.TILE_PROPS[code];
+    if (!props) return code === 'X' ? 3 : 1;
+    const n = props.name || '';
+    if (n === 'water')              return 0;
+    if (n.indexOf('tree') >= 0 || n === 'oak' || n === 'palm' || n === 'cherry' ||
+        n === 'birch' || n === 'willow' || n === 'mushroomtree' || n === 'deadtree' ||
+        n === 'snowypine' || n === 'autumntree' || n === 'ancienttree')
+                                    return 0;
+    if (n === 'thornbush' || n === 'hedge')
+                                    return 0;
+    if (n.indexOf('roof') >= 0 || n === 'roof') return 1;
+    if (n.indexOf('wall') >= 0 || n === 'mart' || n === 'center' ||
+        n === 'healer' || n === 'counter')
+                                    return 1;
+    if (n.indexOf('fence') >= 0)    return 1;
+    if (n.indexOf('rock') >= 0)     return 1;
+    if (n === 'sign')               return 1;
+    if (n === 'tallgrass')          return 2;
+    if (n.indexOf('grass') >= 0)    return 2;
+    if (n.indexOf('bush') >= 0 || n === 'thorncluster') return 2;
+    if (n === 'ledge')              return 2;
+    if (n.indexOf('path') >= 0)     return 3;
+    if (n === 'sand' || n.indexOf('sand') >= 0) return 3;
+    if (props.door)                 return 3;
+    if (n === 'floor' || n === 'rug') return 3;
+    return props.walk ? 2 : 1;
+  }
   function drawMinimap(ctx, m, px, py) {
     if (!m.tiles || !m.tiles.length) return;
     const cols = m.tiles[0].length, rows = m.tiles.length;
@@ -182,19 +225,30 @@
     ctx.fillRect(x - 1, y + h, w + 2, 1);
     ctx.fillRect(x - 1, y - 1, 1, h + 2);
     ctx.fillRect(x + w, y - 1, 1, h + 2);
+    // In monochrome eras, bypass pf() and pick the era palette bucket
+    // per tile category directly - otherwise paths, grass, walls and
+    // water all collapse into the same middle bucket and the minimap
+    // reads as noise.
+    const era  = window.PR_SETTINGS && window.PR_SETTINGS.graphics;
+    const mono = MINI_MONO_PAL[era] || null;
     for (let ry = 0; ry < rows; ry++) {
       const row = m.tiles[ry];
       for (let rx = 0; rx < cols; rx++) {
-        ctx.fillStyle = window.PR_UI.pf(miniColorFor(row[rx]));
+        ctx.fillStyle = mono
+          ? mono[miniBucketFor(row[rx])]
+          : window.PR_UI.pf(miniColorFor(row[rx]));
         ctx.fillRect(x + rx * cell, y + ry * cell, cell, cell);
       }
     }
     // Player pip pulse. 2x2 square with a 1px outline that alternates
-    // pink + blue every 250ms so it stays eye-catching against any
-    // background tile.
+    // every 250ms so it stays eye-catching. In color eras the alternation
+    // is pink/blue; in monochrome it flips between the darkest and
+    // lightest bucket so the marker has guaranteed contrast against
+    // any tile underneath it (pink/blue both bucket to mid-grey).
     const phase = (Math.floor(performance.now() / 250) & 1);
-    const pipColor = phase ? '#ff5098' : '#3878f0';
-    ctx.fillStyle = window.PR_UI.pf(pipColor);
+    ctx.fillStyle = mono
+      ? (phase ? mono[3] : mono[0])
+      : window.PR_UI.pf(phase ? '#ff5098' : '#3878f0');
     ctx.fillRect(x + px * cell - 1, y + py * cell - 1, cell + 2, cell + 2);
   }
   window.PR_TIME = { phaseForSteps, current: () => {
