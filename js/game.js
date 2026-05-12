@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.14';
-  const BUILD = '2026.05.11-156';
+  const VERSION = 'v0.55.15';
+  const BUILD = '2026.05.11-157';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -796,6 +796,42 @@
   }
 
   // ---------- Encounters ----------
+  // Weather + time-of-day bias multipliers applied on top of the
+  // map's flat per-entry `weight`. Both tables are multiplicative,
+  // both check every type of the species (so a WATER/FLYING in a
+  // hurricane gets both 2.5x and 1.8x). Entries with an explicit
+  // `time` field were already hard-filtered upstream by
+  // encounterPoolForMap; this bias just nudges the others.
+  const WEATHER_TYPE_BIAS = {
+    rain:      { WATER: 2.5, FIRE: 0.4, GRASS: 1.5 },
+    hurricane: { WATER: 2.5, FLYING: 1.8, FIRE: 0.3 },
+    thunder:   { ELECTRIC: 2.5, FLYING: 1.5 },
+    snow:      { ICE: 2.5, FIRE: 0.5 },
+    sleet:     { ICE: 2.0, WATER: 1.3 },
+    hail:      { ICE: 2.5 },
+    fog:       { GHOST: 2.0, DARK: 1.8, PSYCHIC: 1.4 },
+    overcast:  { GHOST: 1.3, DARK: 1.3 }
+  };
+  const TIME_TYPE_BIAS = {
+    day:   { FIRE: 1.3, NORMAL: 1.2, GROUND: 1.2 },
+    dusk:  { GHOST: 1.3, DARK: 1.3, FLYING: 1.2 },
+    night: { DARK: 1.8, GHOST: 1.8, PSYCHIC: 1.4, BUG: 1.2 },
+    dawn:  { FLYING: 1.4, NORMAL: 1.2, FAIRY: 1.2 }
+  };
+  function biasedWeight(entry) {
+    const sp = window.PR_DATA.CREATURES[entry.species];
+    const types = (sp && sp.types) || [];
+    let mult = 1;
+    const w = window.PR_WEATHER && window.PR_WEATHER.currentKind && window.PR_WEATHER.currentKind();
+    const wt = w && WEATHER_TYPE_BIAS[w];
+    const tt = TIME_TYPE_BIAS[currentPhaseName()];
+    for (const ty of types) {
+      if (wt && wt[ty]) mult *= wt[ty];
+      if (tt && tt[ty]) mult *= tt[ty];
+    }
+    return entry.weight * mult;
+  }
+
   function startWildEncounter() {
     if (!state.party.length) return;
     const alive = state.party.some(p => p.hp > 0);
@@ -803,10 +839,14 @@
     const m = state.world.currentMap();
     const encounters = encounterPoolForMap(m);
     if (!encounters || !encounters.length) return;
-    const total = encounters.reduce((a,e) => a + e.weight, 0);
+    const weights = encounters.map(biasedWeight);
+    const total = weights.reduce((a, w) => a + w, 0);
     let r = Math.random() * total;
     let pick = encounters[0];
-    for (const e of encounters) { r -= e.weight; if (r <= 0) { pick = e; break; } }
+    for (let i = 0; i < encounters.length; i++) {
+      r -= weights[i];
+      if (r <= 0) { pick = encounters[i]; break; }
+    }
     const lvl = pick.minL + Math.floor(Math.random() * (pick.maxL - pick.minL + 1));
     startBattleAgainstWild(pick.species, lvl);
   }

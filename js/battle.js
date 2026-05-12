@@ -513,6 +513,23 @@
     tickStatus(this.me);
     tickStatus(this.foe);
 
+    // Weather chip - hail buffets every non-ICE creature for 1/16 of
+    // its max HP each turn. Other weather kinds don't chip (rain /
+    // snow / thunder etc. are damage-modifiers only).
+    const wKind = window.PR_WEATHER && window.PR_WEATHER.currentKind && window.PR_WEATHER.currentKind();
+    if (wKind === 'hail') {
+      const tickHail = (mon) => {
+        if (!mon || mon.hp <= 0) return;
+        const types = (window.PR_DATA.CREATURES[mon.species] || {}).types || [];
+        if (types.indexOf('ICE') !== -1) return;
+        const dmg = Math.max(1, Math.floor(mon.stats.hp / 16));
+        mon.hp = Math.max(0, mon.hp - dmg);
+        this.queue(mon.nickname + ' is buffeted by hail!');
+      };
+      tickHail(this.me);
+      tickHail(this.foe);
+    }
+
     // Held berry triggers.
     const tickBerry = (mon) => {
       if (!mon || mon.hp <= 0 || !mon.held) return;
