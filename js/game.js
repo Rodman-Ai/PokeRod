@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.18';
-  const BUILD = '2026.05.11-160';
+  const VERSION = 'v0.55.19';
+  const BUILD = '2026.05.11-161';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -2076,6 +2076,7 @@
   function updateBox() {
     const I = window.PR_INPUT;
     const v = state.boxView;
+    if (!v.releaseSelected) v.releaseSelected = {};
     const list = v.side === 'box' ? state.box : state.party;
     if (I.consumePressed('ArrowDown')) { if (list.length) v.idx = (v.idx + 1) % list.length; }
     if (I.consumePressed('ArrowUp'))   { if (list.length) v.idx = (v.idx + list.length - 1) % list.length; }
@@ -2084,7 +2085,58 @@
       v.idx = 0;
       window.PR_SFX && window.PR_SFX.play('select');
     }
-    if (I.consumePressed('x')) { state.boxView = null; state.mode = 'menu'; return; }
+    // SELECT toggles release mode. Only meaningful on the BOX side;
+    // forces side='box' so the marks the player makes are unambiguous.
+    if (I.consumePressed('Shift')) {
+      v.releaseMode = !v.releaseMode;
+      v.releaseSelected = {};
+      if (v.releaseMode) { v.side = 'box'; v.idx = 0; }
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('x')) {
+      if (v.releaseMode) {
+        v.releaseMode = false;
+        v.releaseSelected = {};
+        return;
+      }
+      state.boxView = null;
+      state.mode = 'menu';
+      return;
+    }
+    if (v.releaseMode) {
+      // A toggles the selected box mon. START confirms + commits the
+      // release. Party side is ignored.
+      if (v.side === 'box' && I.consumePressed('z')) {
+        if (state.box[v.idx]) {
+          v.releaseSelected[v.idx] = !v.releaseSelected[v.idx];
+          window.PR_SFX && window.PR_SFX.play('select');
+        }
+      }
+      if (I.consumePressed('Enter')) {
+        const idxs = Object.keys(v.releaseSelected)
+          .map(k => +k)
+          .filter(k => v.releaseSelected[k] && state.box[k])
+          .sort((a, b) => b - a);
+        if (!idxs.length) { showFlash('NOTHING SELECTED'); return; }
+        let ok = true;
+        try {
+          if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+            ok = window.confirm('Release ' + idxs.length + ' creature' + (idxs.length === 1 ? '' : 's') + '? This cannot be undone.');
+          }
+        } catch (_) { /* default ok stays true */ }
+        if (!ok) return;
+        const names = [];
+        for (const i of idxs) {
+          const mon = state.box.splice(i, 1)[0];
+          if (mon) names.push(mon.nickname);
+        }
+        showFlash('Released ' + names.length);
+        v.releaseSelected = {};
+        v.idx = Math.max(0, Math.min(v.idx, state.box.length - 1));
+        window.PR_SAVE.save && window.PR_SAVE.save(state);
+      }
+      return;
+    }
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
       // Swap selected with the first available slot on the other side.
       if (v.side === 'box') {
@@ -2107,14 +2159,17 @@
 
   function drawBox() {
     ensureBox();
+    const v = state.boxView;
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
-    window.PR_UI.header(ctx, 'PC STORAGE', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    const headerText = v && v.releaseMode ? 'PC STORAGE - RELEASE MODE' : 'PC STORAGE';
+    window.PR_UI.header(ctx, headerText, x + 4, y + 4, w - 8,
+      { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK  <>SIDE', x + w - 86, y + 4, '#806040');
 
     // Two columns: BOX | PARTY
     const colW = (w - 16) / 2;
-    const drawList = (label, list, sx, isActive) => {
+    const drawList = (label, list, sx, isActive, isBox) => {
       window.PR_UI.drawText(ctx, label + ' (' + list.length + ')', sx + 4, y + 16, isActive ? '#e83838' : '#385890');
       const rows = 6;
       const start = isActive ? Math.max(0, Math.min(Math.max(0, list.length - rows), state.boxView.idx - 2)) : 0;
@@ -2128,15 +2183,29 @@
         if (mon) {
           window.PR_MONS.drawCreature(ctx, mon.species, sx + 2, cy - 2, 14, false, mon);
           window.PR_UI.drawText(ctx, mon.nickname.slice(0, 10), sx + 18, cy, '#202020');
-          window.PR_UI.drawText(ctx, 'L' + mon.level, sx + colW - 18, cy, '#202020');
+          // Release-mode mark: a red [X] tag next to the level for any
+          // box mon the player has flagged for release.
+          if (isBox && v.releaseMode && v.releaseSelected && v.releaseSelected[i]) {
+            window.PR_UI.drawText(ctx, '[X]', sx + colW - 38, cy, '#c83020');
+            window.PR_UI.drawText(ctx, 'L' + mon.level, sx + colW - 18, cy, '#c83020');
+          } else {
+            window.PR_UI.drawText(ctx, 'L' + mon.level, sx + colW - 18, cy, '#202020');
+          }
         }
       }
       if (!list.length) window.PR_UI.drawText(ctx, '(empty)', sx + 4, y + 32, '#806040');
       else if (list.length > rows) window.PR_UI.drawText(ctx, (start + 1) + '-' + Math.min(start + rows, list.length), sx + colW - 28, y + 16, '#806040');
     };
-    drawList('BOX',   state.box,   x + 6,           state.boxView.side === 'box');
-    drawList('PARTY', state.party, x + 12 + colW,   state.boxView.side === 'party');
-    window.PR_UI.drawText(ctx, 'A: MOVE', x + 8, y + h - 12, '#806040');
+    drawList('BOX',   state.box,   x + 6,           v && v.side === 'box',  true);
+    drawList('PARTY', state.party, x + 12 + colW,   v && v.side === 'party', false);
+    if (v && v.releaseMode) {
+      const n = Object.keys(v.releaseSelected || {}).filter(k => v.releaseSelected[k]).length;
+      window.PR_UI.drawText(ctx,
+        'A: MARK  START: RELEASE (' + n + ')  SEL: EXIT',
+        x + 8, y + h - 12, n > 0 ? '#c83020' : '#806040');
+    } else {
+      window.PR_UI.drawText(ctx, 'A: MOVE   SEL: RELEASE MODE', x + 8, y + h - 12, '#806040');
+    }
   }
 
   // ---------- Bag ----------

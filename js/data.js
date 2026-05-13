@@ -905,6 +905,18 @@ function weatherMult(moveType) {
   return (t && t[moveType]) || 1;
 }
 
+// Per-creature held type-boost item (Charcoal +20% FIRE, Mystic Water
+// +20% WATER, etc.). Reads attacker.held -> ITEMS table -> boostType
+// match against the outgoing move's type.
+function heldTypeBoostMult(attacker, moveType) {
+  const id = attacker && attacker.held;
+  if (!id) return 1;
+  const I = typeof window !== 'undefined' && window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+  const it = I && I[id];
+  if (!it || it.boostType !== moveType || !it.boostMult) return 1;
+  return it.boostMult;
+}
+
 function calcDamage(attacker, defender, move, isCrit) {
   if (move.kind === 'status' || (move.power|0) === 0) return 0;
   const A = move.kind === 'physical' ? attacker.stats.atk : attacker.stats.spa;
@@ -916,8 +928,9 @@ function calcDamage(attacker, defender, move, isCrit) {
   const crit = isCrit ? 1.5 : 1;
   const rand = 0.85 + Math.random() * 0.15;
   const weather = weatherMult(move.type);
+  const held = heldTypeBoostMult(attacker, move.type);
   const base = (((2*attacker.level/5 + 2) * move.power * (A/Math.max(1,D))) / 50) + 2;
-  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather)), eff, stab, crit:isCrit };
+  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather * held)), eff, stab, crit:isCrit };
 }
 
 window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };

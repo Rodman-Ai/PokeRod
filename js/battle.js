@@ -380,6 +380,16 @@
       totalDmg = result.dmg * hits;
       this.queue('It hit ' + hits + ' times!');
     }
+    // Focus Sash - if the defender was at full HP and this hit would
+    // faint them, hold them at 1 HP and consume the held sash.
+    if (defender.held && totalDmg >= defender.hp && defender.hp === defender.stats.hp) {
+      const it = window.PR_ITEMS && window.PR_ITEMS.ITEMS && window.PR_ITEMS.ITEMS[defender.held];
+      if (it && it.focusSash) {
+        totalDmg = defender.hp - 1;
+        defender.held = null;
+        this.queue(defender.nickname + ' held on with its ' + it.name + '!');
+      }
+    }
     defender.hp = Math.max(0, defender.hp - totalDmg);
     // Trigger move animation on the defender's side. Per-move VFX is
     // delegated to PR_MOVE_FX (js/move_effects.js); duration depends on
@@ -546,6 +556,21 @@
       tickHail(this.me);
       tickHail(this.foe);
     }
+
+    // Leftovers - non-berry held food that heals 1/16 max HP at the
+    // end of every turn until the holder is at full HP. Doesn't
+    // consume; persists across battles like the rest of mon.held.
+    const tickLeftovers = (mon) => {
+      if (!mon || mon.hp <= 0 || mon.hp >= mon.stats.hp || !mon.held) return;
+      const I = window.PR_ITEMS && window.PR_ITEMS.ITEMS && window.PR_ITEMS.ITEMS[mon.held];
+      if (!I || !I.leftovers) return;
+      const heal = Math.max(1, Math.floor(mon.stats.hp / 16));
+      const before = mon.hp;
+      mon.hp = Math.min(mon.stats.hp, mon.hp + heal);
+      if (mon.hp > before) this.queue(mon.nickname + ' munched its ' + I.name + '.');
+    };
+    tickLeftovers(this.me);
+    tickLeftovers(this.foe);
 
     // Held berry triggers.
     const tickBerry = (mon) => {
