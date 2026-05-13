@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.34';
-  const BUILD = '2026.05.11-176';
+  const VERSION = 'v0.55.35';
+  const BUILD = '2026.05.11-177';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -2306,7 +2306,13 @@
     reducedMotion: false,
     colorblind: false,
     dayNightCycle: true,
-    mute: false
+    mute: false,
+    // DS-only visual toggles. tilt3d controls the billboard-tilt and
+    // drop-shadow perspective on movable sprites; tiltShift controls
+    // the top/bottom blur strips that fake depth-of-field. Both
+    // default on and have no effect outside the ds_diamond era.
+    tilt3d: true,
+    tiltShift: true
   };
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
@@ -2386,7 +2392,9 @@
     { key:'difficulty',    label:'DIFFICULTY',     type:'enum', steps:DIFFICULTY_STEPS },
     { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
     { key:'colorblind',    label:'COLOR-BLIND',    type:'bool' },
-    { key:'dayNightCycle', label:'DAY/NIGHT',      type:'bool' }
+    { key:'dayNightCycle', label:'DAY/NIGHT',      type:'bool' },
+    { key:'tilt3d',        label:'DS 3D EFFECT',   type:'bool' },
+    { key:'tiltShift',     label:'DS TILT-SHIFT',  type:'bool' }
   ];
 
   function updateSettings() {
