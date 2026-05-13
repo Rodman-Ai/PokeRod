@@ -70,6 +70,17 @@
   // Small chip showing how many steps the current Repel still has
   // before it wears off. Anchored top-center so it doesn't fight the
   // top-left minimap or the top-right clock.
+  // Small "BIKE" chip top-center while the player is riding. Sits just
+  // below the repel timer's slot so they don't overlap.
+  function drawBikeChip(ctx, viewW) {
+    const text = 'BIKE';
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 18, text, {
+      fill:'#1a0204', border:'#e84848', text:'#f0d8a0'
+    });
+  }
   function drawRepelTimer(ctx, viewW, stepsRemaining) {
     const text = 'REPEL ' + stepsRemaining;
     const textW = window.PR_UI.textWidth(text);
@@ -2197,7 +2208,8 @@
       }
     }
 
-    this.startMove(p.x, p.y, nx, ny, this.anim.duration);
+    const stepDur = this.state.player.onBike ? this.anim.duration * 0.5 : this.anim.duration;
+    this.startMove(p.x, p.y, nx, ny, stepDur);
   };
 
   World.prototype.startMove = function(fx, fy, tx, ty, dur) {
@@ -2265,6 +2277,12 @@
     this.player.y = y;
     this.anim.moving = false;
     this.justEntered = true;
+    // Auto-stow the bike when entering an interior; it stays stowed
+    // even when the player exits, matching mainline behaviour.
+    if (this.player.onBike) {
+      const m = window.PR_MAPS && window.PR_MAPS.MAPS && window.PR_MAPS.MAPS[mapId];
+      if (m && m.interior) this.player.onBike = false;
+    }
     this._initAmbient();
     this._initNpcWander();
     this._initBirds();
@@ -2392,6 +2410,7 @@
       return true;
     }
     p.surfing = true;
+    p.onBike = false;
     if (this.state.showFlash) this.state.showFlash('Hopped onto the water!');
     if (window.PR_SFX) window.PR_SFX.play('confirm');
     return true;
@@ -3007,6 +3026,7 @@
     // a Repel is active. Hidden when expired so it doesn't add
     // permanent clutter. Drawn after the clock so it appears below.
     if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, this.player.repelSteps);
+    if (this.player.onBike) drawBikeChip(ctx, VIEW_W);
 
     // Map name banner on entry.
     if (this.justEntered) {

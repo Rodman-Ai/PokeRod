@@ -301,6 +301,13 @@
       detail:'Twice the mist, twice the calm.',
       kind:'repel', icon:'spray', color:'#a08060', accent:'#f0d870',
       steps:200, price:700
+    },
+    bicycle: {
+      id:'bicycle', name:'BICYCLE',
+      desc:'A folding bicycle. Use to ride/walk.',
+      detail:'A red folding bike. While riding, every step takes half the time. Auto-stows when surfing or indoors.',
+      kind:'key', icon:'rod', color:'#e84848', accent:'#f0e0a0',
+      key:true, price:0
     }
   };
 
@@ -494,7 +501,7 @@
       out.push({ id, count: state.player.bag[id], def: it });
     }
     // Stable order roughly by category.
-    const order = ['rodball','greatball','quickball','cavernball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','old_rod','pokeflute'];
+    const order = ['rodball','greatball','quickball','cavernball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','old_rod','pokeflute','bicycle','repel','super_repel'];
     out.sort((a,b) => {
       const ai = order.indexOf(a.id), bi = order.indexOf(b.id);
       return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
