@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.32';
-  const BUILD = '2026.05.11-174';
+  const VERSION = 'v0.55.33';
+  const BUILD = '2026.05.11-175';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -409,6 +409,17 @@
       window.PR_SFX && window.PR_SFX.play('confirm');
       const idx = c.cursor;
       if (typeof c.onPick === 'function') c.onPick(idx);
+    }
+    // B (x): pick the last option iff its label looks like a cancel
+    // ("Cancel" / "No" / "Not now." etc). Lets players back out of
+    // modals without scrolling to Cancel and pressing A. Wardrobe's
+    // last option is "NEXT..." so it won't match - unchanged.
+    if (I.consumePressed('x')) {
+      const last = (c.options && c.options[c.options.length - 1]) || '';
+      if (/^(cancel|no|not now\.?|not yet\.?)$/i.test(last)) {
+        window.PR_SFX && window.PR_SFX.play('select');
+        if (typeof c.onPick === 'function') c.onPick(c.options.length - 1);
+      }
     }
   }
 
@@ -1814,7 +1825,8 @@
         a.click();
         showFlash('PHOTO SAVED!');
         window.PR_SFX && window.PR_SFX.play('confirm');
-      } catch (_) {
+      } catch (err) {
+        console.warn('[PokeRod] photo failed:', err);
         showFlash('PHOTO FAILED');
       }
     });
@@ -3970,8 +3982,12 @@
           else showFlash('NOTHING TO HEAL');
           return;
         }
+        const before = mon.hp;
         const r = window.PR_ITEMS.apply(id, mon);
         if (!r || !r.ok) break;
+        // Safety: an item that reports ok but doesn't raise HP would
+        // loop forever. No current item does this, but guard anyway.
+        if (mon.hp === before) break;
         window.PR_ITEMS.take(state, id, 1);
         used++;
       }
