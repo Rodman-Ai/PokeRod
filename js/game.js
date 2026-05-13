@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.35';
-  const BUILD = '2026.05.11-177';
+  const VERSION = 'v0.55.36';
+  const BUILD = '2026.05.11-178';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -2310,9 +2310,13 @@
     // DS-only visual toggles. tilt3d controls the billboard-tilt and
     // drop-shadow perspective on movable sprites; tiltShift controls
     // the top/bottom blur strips that fake depth-of-field. Both
-    // default on and have no effect outside the ds_diamond era.
-    tilt3d: true,
-    tiltShift: true
+    // default off; player opts in for the perspective look.
+    tilt3d: false,
+    tiltShift: false,
+    // Foliage horizontal-sway animation (trees / bushes / grass).
+    // Off by default - some players find the constant 1-px wobble
+    // distracting on long sessions.
+    treeSway: false
   };
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
@@ -2394,7 +2398,8 @@
     { key:'colorblind',    label:'COLOR-BLIND',    type:'bool' },
     { key:'dayNightCycle', label:'DAY/NIGHT',      type:'bool' },
     { key:'tilt3d',        label:'DS 3D EFFECT',   type:'bool' },
-    { key:'tiltShift',     label:'DS TILT-SHIFT',  type:'bool' }
+    { key:'tiltShift',     label:'DS TILT-SHIFT',  type:'bool' },
+    { key:'treeSway',      label:'TREE SWAY',      type:'bool' }
   ];
 
   function updateSettings() {
@@ -3291,11 +3296,13 @@
     const selId = ids[v.idx];
     const sp = window.PR_DATA.CREATURES[selId];
     const caught = state.dex.caught.has(selId);
+    const seen = state.dex.seen.has(selId);
 
     // Sprite + header strip. Sprite is 24px so name/dex/types fit beside it.
+    // Seen reveals the full image; only unseen species stay silhouettes.
     const spriteSize = 24;
     const spriteX = dx + 4, spriteY = dy + 4;
-    if (caught) {
+    if (seen) {
       window.PR_MONS.drawCreature(ctx, selId, spriteX, spriteY, spriteSize, false);
     } else {
       window.PR_MONS.drawCreatureSilhouette(ctx, selId, spriteX, spriteY, spriteSize);
@@ -3328,31 +3335,12 @@
     ctx.fillStyle = '#385890';
     ctx.fillRect(dx + 3, divY, dw - 6, 1);
 
-    if (!caught) {
-      window.PR_UI.drawText(ctx, 'Catch to reveal more.', dx + 4, divY + 4, '#806040');
-      return;
-    }
-
-    // Stats: 2 rows of 3. Compact spacing.
-    const stY = divY + 4;
-    const colW = (dw - 8) / 3;
-    const stat = (label, val, col, row) => {
-      window.PR_UI.drawText(ctx,
-        label + ' ' + val,
-        dx + 4 + col * colW,
-        stY + row * 9,
-        '#202020');
-    };
-    stat('HP', sp.baseStats.hp,  0, 0);
-    stat('AT', sp.baseStats.atk, 1, 0);
-    stat('DF', sp.baseStats.def, 2, 0);
-    stat('SP', sp.baseStats.spe, 0, 1);
-    stat('SA', sp.baseStats.spa, 1, 1);
-    stat('SD', sp.baseStats.spd, 2, 1);
-
-    // Evolution chain. Mini sprites with arrow + level above.
+    // Evolution chain renders above the caught gate so SEEN species
+    // already reveal their evolution requirements. Mini sprites use
+    // the seen gate (a creature can only show in the chain as a real
+    // sprite if it itself has been seen).
     const chain = dexEvolutionChain(selId);
-    const evoY = stY + 19;
+    const evoY = divY + 10;
     window.PR_UI.drawText(ctx, 'EVO', dx + 4, evoY, '#385890');
     const evoSize = 14;
     let ex = dx + 22;
@@ -3362,8 +3350,8 @@
     } else {
       for (let i = 0; i < chain.length; i++) {
         const id = chain[i];
-        const isCaughtStage = state.dex.caught.has(id);
-        if (isCaughtStage) {
+        const isSeenStage = state.dex.seen.has(id);
+        if (isSeenStage) {
           window.PR_MONS.drawCreature(ctx, id, ex, ey, evoSize, false);
         } else {
           window.PR_MONS.drawCreatureSilhouette(ctx, id, ex, ey, evoSize);
@@ -3380,12 +3368,35 @@
       }
     }
 
+    if (!caught) {
+      window.PR_UI.drawText(ctx, 'Catch for stats + moves.', dx + 4, evoY + 16, '#806040');
+      return;
+    }
+
+    // Stats: 2 rows of 3. Compact spacing. Pushed below the EVO row.
+    const stY = evoY + 18;
+    const colW = (dw - 8) / 3;
+    const stat = (label, val, col, row) => {
+      window.PR_UI.drawText(ctx,
+        label + ' ' + val,
+        dx + 4 + col * colW,
+        stY + row * 9,
+        '#202020');
+    };
+    stat('HP', sp.baseStats.hp,  0, 0);
+    stat('AT', sp.baseStats.atk, 1, 0);
+    stat('DF', sp.baseStats.def, 2, 0);
+    stat('SP', sp.baseStats.spe, 0, 1);
+    stat('SA', sp.baseStats.spa, 1, 1);
+    stat('SD', sp.baseStats.spd, 2, 1);
+
     // Moves: 4 levels visible. Show first 4 entries - these are the
     // earliest learns and the ones a wild encounter is most likely to
     // know. A "(+N)" hint indicates if there are more.
     const learn = sp.learnset || [];
     const visible = learn.slice(0, 4);
-    const moveY = evoY + evoSize + 2;
+    // Stats take 2 rows of 9 px; MOVES sits below them.
+    const moveY = stY + 2 * 9 + 4;
     window.PR_UI.drawText(ctx, 'MOVES', dx + 4, moveY, '#385890');
     for (let i = 0; i < visible.length; i++) {
       const [lv, mvId] = visible[i];

@@ -44,7 +44,11 @@ function fixtureUnderlay(code, context) {
 function drawTile(ctx, code, sx, sy, context) {
   const x = sx | 0, y = sy | 0;
   let drawX = x;
-  if (FOLIAGE_CODES.indexOf(code) !== -1) {
+  // Foliage sway is opt-in via the TREE SWAY setting (default off).
+  // Legacy saves have treeSway === undefined, which falls through this
+  // gate cleanly.
+  if (FOLIAGE_CODES.indexOf(code) !== -1 &&
+      window.PR_SETTINGS && window.PR_SETTINGS.treeSway === true) {
     drawX += Math.round(Math.sin((performance.now() + sx * 7 + sy * 11) / 700));
   }
   if (window.PR_ATLAS && window.PR_ATLAS.isReady()) {
