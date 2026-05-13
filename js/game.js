@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.20';
-  const BUILD = '2026.05.11-162';
+  const VERSION = 'v0.55.21';
+  const BUILD = '2026.05.11-163';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -183,7 +183,7 @@
     // door tile in the post-redesign rodport (player_house is at
     // x:3,y:6,w:7 with door at (6,9) → walkable spur at (6,11)).
     state.player = { name:'YOU', map:'rodport', x:6, y:11, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1 },
+                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1, bicycle:1 },
                      equipment: { trinket: null },
                      stats: { battlesWon:0, catches:0 } };
     state.party = [];
@@ -1516,7 +1516,7 @@
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
 
-  const PROFILE_PAGES = ['TRAINER PROFILE','BATTLES','JOURNEY','POKEDEX','STORY','TRAINER GEAR','TROPHIES'];
+  const PROFILE_PAGES = ['TRAINER PROFILE','BATTLES','JOURNEY','POKEDEX','STORY','TRAINER GEAR','TROPHIES','COVERAGE'];
 
   function updateProfile() {
     const I = window.PR_INPUT;
@@ -1704,7 +1704,7 @@
         ['ULTRA', String((state.player.bag && state.player.bag.ultraball) || 0)]
       ];
       footer = 'Equip trainer gear from BAG.';
-    } else {
+    } else if (v.page === 6) {
       // TROPHIES - achievement gallery. 18 entries in two columns; the
       // `rows` array is left empty so the standard label/value render
       // skips this page and we draw the grid inline below.
@@ -1728,6 +1728,57 @@
         window.PR_UI.drawText(ctx, mark + ' ' + name.slice(0, 16), cx, cy, color);
       }
       footer = 'A on a trophy you have for details.';
+    } else {
+      // COVERAGE - 18-type effectiveness grid for the current party.
+      // For each defending type, find the max effectiveness any
+      // damaging move in any party member's slot achieves. Sets
+      // `rows = []` so the standard label/value render skips this
+      // page; the grid is drawn inline. Helps the player spot
+      // missing coverage at a glance.
+      const types = window.PR_DATA.TYPES;
+      const cov = {};
+      for (const t of types) cov[t] = 0;
+      for (const mon of (state.party || [])) {
+        if (!mon || mon.hp === 0) continue;
+        const moves = mon.moves || [];
+        for (const m of moves) {
+          const def = window.PR_DATA.MOVES[m.id];
+          if (!def || def.kind === 'status' || (def.power | 0) === 0) continue;
+          for (const dt of types) {
+            const e = window.PR_DATA.effectiveness(def.type, [dt]);
+            if (e > cov[dt]) cov[dt] = e;
+          }
+        }
+      }
+      const counts = { strong:0, weak:0, none:0 };
+      for (const t of types) {
+        if (cov[t] >= 2) counts.strong++;
+        else if (cov[t] === 0) counts.none++;
+        else if (cov[t] < 1) counts.weak++;
+      }
+      window.PR_UI.drawText(ctx,
+        counts.strong + ' STRONG  ' + counts.weak + ' WEAK  ' + counts.none + ' NONE',
+        x + 12, y + 42, '#385890');
+      // 6 columns x 3 rows. Cell label = first 4 chars of type name +
+      // a coverage tag.
+      const COLS = 6, ROWS = 3;
+      const cellW = ((w - 16) / COLS) | 0;
+      for (let i = 0; i < types.length; i++) {
+        const col = i % COLS;
+        const row = (i / COLS) | 0;
+        const cx = x + 8 + col * cellW;
+        const cy = y + 58 + row * 14;
+        const e = cov[types[i]];
+        let color, tag;
+        if (e >= 4)       { color = '#208830'; tag = '++'; }
+        else if (e >= 2)  { color = '#388838'; tag = '+';  }
+        else if (e === 0) { color = '#a06030'; tag = 'X';  }
+        else if (e < 1)   { color = '#a08040'; tag = '-';  }
+        else              { color = '#606060'; tag = '.';  }
+        window.PR_UI.drawText(ctx, types[i].slice(0, 4), cx, cy, color);
+        window.PR_UI.drawText(ctx, tag, cx + 26, cy, color);
+      }
+      footer = '++ x4  + x2  . x1  - resist  X immune';
     }
     for (let i = 0; i < rows.length; i++) {
       const cy = y + 42 + i * 13;
@@ -2301,6 +2352,20 @@
         state.bagView = null;
         state.mode = 'overworld';
         if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+        return;
+      }
+      // Bicycle: toggle riding state. Each step on bike takes half
+      // the time. Auto-stows when surfing or indoors (handled in
+      // world.js). Doesn't consume the item.
+      if (def.id === 'bicycle') {
+        const m = state.world && state.world.currentMap && state.world.currentMap();
+        if (m && m.interior) { showFlash("Can't ride inside."); return; }
+        if (state.player.surfing) { showFlash("Can't ride while surfing."); return; }
+        state.player.onBike = !state.player.onBike;
+        window.PR_SFX && window.PR_SFX.play('confirm');
+        showFlash(state.player.onBike ? 'Hopped on the BIKE.' : 'Stowed the BIKE.');
+        state.bagView = null;
+        state.mode = 'overworld';
         return;
       }
       // Trainer equipment: equip directly into the slot, swap any
