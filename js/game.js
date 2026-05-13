@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.23';
-  const BUILD = '2026.05.11-165';
+  const VERSION = 'v0.55.24';
+  const BUILD = '2026.05.11-166';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -1071,7 +1071,9 @@
       step = 'check-trainer';
       if (!npc || !npc.trainer || !Array.isArray(npc.trainer.team)) throw new Error('trainer team missing');
       step = 'build-team';
-      const team = npc.trainer.team.map(([sp, lv]) => window.PR_DATA.makeMon(sp, lv));
+      const diff = (state.settings && DIFFICULTY[state.settings.difficulty]) || DIFFICULTY.normal;
+      const team = npc.trainer.team.map(([sp, lv]) =>
+        window.PR_DATA.makeMon(sp, Math.max(1, (lv | 0) + (diff.trainerLvDelta || 0))));
       step = 'construct-battle';
       state.battle = new window.PR_BATTLE.Battle(state, {
         trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat },
@@ -1381,6 +1383,11 @@
       for (const m of state.party) {
         m.hp = m.stats.hp;
         m.status = null;
+        // Visiting a PokeRod Center is a friendship bump - small but
+        // it adds up over the course of a run.
+        if (typeof m.friendship === 'number') {
+          m.friendship = Math.min(255, (m.friendship | 0) + 2);
+        }
         for (const mv of m.moves) mv.pp = mv.ppMax;
       }
       window.PR_SAVE.save(state);
@@ -1909,6 +1916,7 @@
     sfxVol: 'med',     // off | low | med | high
     musicVol: 'med',
     textSpeed: 'normal', // slow | normal | fast
+    difficulty: 'normal', // easy | normal | hard
     reducedMotion: false,
     colorblind: false,
     dayNightCycle: true,
@@ -1917,6 +1925,16 @@
   const VOL_STEPS = ['off','low','med','high'];
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
   const TEXT_SPEED_STEPS = ['slow','normal','fast'];
+  const DIFFICULTY_STEPS = ['easy','normal','hard'];
+  // Per-difficulty knobs: XP gain, money gain (battle reward), trainer
+  // team level offset, wild trainer level offset. easy is the "this is
+  // for kids / I'm here for the story" mode; hard is the "I want a
+  // little crunch" mode. nuzlocke deferred to a follow-up PR.
+  const DIFFICULTY = {
+    easy:   { xpMult: 1.25, moneyMult: 1.0,  trainerLvDelta: -2 },
+    normal: { xpMult: 1.0,  moneyMult: 1.0,  trainerLvDelta: 0  },
+    hard:   { xpMult: 0.85, moneyMult: 1.0,  trainerLvDelta: +3 }
+  };
   const GRAPHICS_STEPS = ['gb_red','gb_pocket','gbc_yellow','gba_firered','ds_diamond'];
   const GRAPHICS_LABELS = {
     gb_red: 'GB RED',
@@ -1935,6 +1953,7 @@
     if (VOL_STEPS.indexOf(state.settings.sfxVol) === -1) state.settings.sfxVol = SETTINGS_DEFAULTS.sfxVol;
     if (VOL_STEPS.indexOf(state.settings.musicVol) === -1) state.settings.musicVol = SETTINGS_DEFAULTS.musicVol;
     if (TEXT_SPEED_STEPS.indexOf(state.settings.textSpeed) === -1) state.settings.textSpeed = SETTINGS_DEFAULTS.textSpeed;
+    if (DIFFICULTY_STEPS.indexOf(state.settings.difficulty) === -1) state.settings.difficulty = SETTINGS_DEFAULTS.difficulty;
     // First-boot reconciliation: if state.settings.mute hasn't been
     // explicitly set yet, mirror the live audio state so a player who
     // muted before this setting existed isn't surprised on reload.
@@ -1978,6 +1997,7 @@
     { key:'sfxVol',        label:'SFX VOLUME',     type:'enum', steps:VOL_STEPS },
     { key:'musicVol',      label:'MUSIC VOLUME',   type:'enum', steps:VOL_STEPS },
     { key:'textSpeed',     label:'TEXT SPEED',     type:'enum', steps:TEXT_SPEED_STEPS },
+    { key:'difficulty',    label:'DIFFICULTY',     type:'enum', steps:DIFFICULTY_STEPS },
     { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
     { key:'colorblind',    label:'COLOR-BLIND',    type:'bool' },
     { key:'dayNightCycle', label:'DAY/NIGHT',      type:'bool' }
@@ -3494,6 +3514,12 @@
       window.PR_UI.drawText(ctx, 'HELD ' + heldName(mon).slice(0, 16), x + 6, y + 76, '#202020');
       const mult = window.PR_DATA.xpMultiplier(state, mon);
       window.PR_UI.drawText(ctx, 'XP BONUS x' + mult.toFixed(2), x + 6, y + 88, '#806040');
+      // Friendship - 0-255 with a small heart marker once the
+      // creature crosses the bonus threshold at 200.
+      const fr = (mon.friendship | 0);
+      const heart = fr >= 200 ? '* ' : '';
+      window.PR_UI.drawText(ctx, 'FRIEND ' + heart + fr + '/255', x + 6, y + 100,
+        fr >= 200 ? '#c8407a' : '#806040');
     } else if (page === 1) {
       const rows = [
         ['HP', mon.stats.hp, mon.ivs && mon.ivs.hp],
