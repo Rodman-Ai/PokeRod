@@ -1608,7 +1608,11 @@ const MAPS = {
                   defeat:["Magnificent! The CINDER BADGE - and the title of CHAMPION - are yours."] } },
       { x:5, y:13, dir:'down', sprite:'npc_old', name:'PEAK TRADER',
         dialog:["I climb down once a season.","My brews are distilled from peak air itself."],
-        shop:{ greeting:["The PEAK TRADER's tent.","Summit brews for desperate trainers."], extraItems:['summit_brew'] } }
+        shop:{ greeting:["The PEAK TRADER's tent.","Summit brews for desperate trainers."], extraItems:['summit_brew'] } },
+      { x:16, y:13, dir:'down', sprite:'npc_oak', name:'TOWER LEADER',
+        dialog:["The summit hides a tower of trainers.","Best the CHAMPION first; then come back for a streak."],
+        tower:{ baseLevel:40, requireChampion:true,
+                greeting:["The TOWER LEADER beckons.","Choose your streak. No items between fights."] } }
     ],
     decorations:[
       { x:5, y:12, key:'winter_tent' }
