@@ -468,7 +468,9 @@ const MAPS = {
     ],
     npcs: [
       { x:5, y:2, dir:'down', sprite:'npc_mom', name:'MOM',
-        dialog:["Don't forget to save before bed, dear!","Adventures are tiring - rest when you can."] },
+        dialog:["Don't forget to save before bed, dear!","Adventures are tiring - rest when you can."],
+        chef:{ recipe:'oranberry', cost:3, output:'stew',
+               greeting:["MOM is at the stove.","Bring 3 ORAN BERRIES and I'll make you STEW."] } },
       { x:1, y:5, dir:'right', sprite:'npc_kid_girl', name:'NIECE LIA', wander:{ range:1 },
         dialog:["You have so many shoes! Are they all for hiking?"] },
       { x:5, y:5, dir:'left', sprite:'npc_old_woman', name:'AUNT LU', wander:{ range:1 },

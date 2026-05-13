@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.29';
-  const BUILD = '2026.05.11-171';
+  const VERSION = 'v0.55.30';
+  const BUILD = '2026.05.11-172';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -841,6 +841,53 @@
     state.mode = 'overworld';
   }
 
+  // ---------- Chef (cooking from berries) -------------------------
+  // Talking to a chef NPC swaps a fixed count of one ingredient for
+  // one output item. Currently used by MOM to turn 3 ORAN BERRIES
+  // into a STEW. Extensible via npc.chef = { recipe, cost, output,
+  // greeting }.
+  function openChefFlow(npc) {
+    const c = npc.chef || {};
+    const recipe = c.recipe || 'oranberry';
+    const cost = (c.cost | 0) || 3;
+    const output = c.output || 'stew';
+    const greet = c.greeting ||
+      (npc.dialog && npc.dialog.length ? [npc.dialog[0]] : ['Bring me ingredients.']);
+    const recipeDef = (window.PR_ITEMS && window.PR_ITEMS.ITEMS[recipe]) || null;
+    const outDef = (window.PR_ITEMS && window.PR_ITEMS.ITEMS[output]) || null;
+    const recipeName = recipeDef ? recipeDef.name : recipe.toUpperCase();
+    const outName = outDef ? outDef.name : output.toUpperCase();
+    openDialog(greet, () => {
+      const have = (state.player.bag && state.player.bag[recipe]) || 0;
+      if (have < cost) {
+        openDialog([
+          "You don't have " + cost + ' ' + recipeName + 's.',
+          'Come back when you do.'
+        ]);
+        return;
+      }
+      state.dialog = {
+        choice: {
+          prompt: 'Trade ' + cost + ' ' + recipeName + ' for 1 ' + outName + '?',
+          options: ['Yes, please.', 'Not now.'],
+          cursor: 0,
+          onPick: (idx) => {
+            state.dialog = null;
+            if (idx === 0) {
+              window.PR_ITEMS.take(state, recipe, cost);
+              window.PR_ITEMS.add(state, output, 1);
+              window.PR_SFX && window.PR_SFX.play('confirm');
+              showFlash('Got 1 ' + outName + '!');
+              if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+            }
+            state.mode = 'overworld';
+          }
+        }
+      };
+      state.mode = 'choice';
+    });
+  }
+
   // Branching choice render: prompt + 2-4 options. The dialog box itself
   // is reused (flat panel under the choice list) so the speaker stays
   // visible.
@@ -1468,6 +1515,10 @@
       openWardrobeFlow(npc);
       return;
     }
+    if (npc.chef) {
+      openChefFlow(npc);
+      return;
+    }
     if (npc.shop) {
       const greet = (npc.shop.greeting && npc.shop.greeting.length)
         ? npc.shop.greeting
@@ -1715,8 +1766,28 @@
   const MENU_ICONS = {
     MAP:'map', DEX:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
     PROFILE:'profile', QUEST:'map', ERA:'gear',
-    SETTINGS:'gear', SAVE:'save', LOAD:'save'
+    SETTINGS:'gear', SAVE:'save', LOAD:'save', PHOTO:'dex'
   };
+  // Photo mode: snap the top-screen canvas to a downloadable PNG.
+  // The menu is closed first so the world (not the pause panel)
+  // renders into the canvas, then we capture on the next frame.
+  function takePhoto() {
+    state.menu = null;
+    state.mode = 'overworld';
+    requestAnimationFrame(() => {
+      try {
+        const url = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pokerod-' + Date.now() + '.png';
+        a.click();
+        showFlash('PHOTO SAVED!');
+        window.PR_SFX && window.PR_SFX.play('confirm');
+      } catch (_) {
+        showFlash('PHOTO FAILED');
+      }
+    });
+  }
   // Short labels for the in-menu ERA toggle (full GRAPHICS_LABELS like
   // 'GBA FIRERED' don't fit in the 68px-wide menu cells).
   const ERA_ABBREV = { gb_red:'GB', gb_pocket:'GBP', gbc_yellow:'GBC', gba_firered:'GBA', ds_diamond:'DS' };
@@ -1732,7 +1803,7 @@
     }
   }
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','ERA','SETTINGS','SAVE','LOAD'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','ERA','SETTINGS','PHOTO','SAVE','LOAD'] };
     state.mode = 'menu';
     startMenuAnim();
   }
@@ -1782,6 +1853,8 @@
         openBox();
       } else if (opt === 'QUEST') {
         openQuests();
+      } else if (opt === 'PHOTO') {
+        takePhoto();
       } else if (opt === 'ERA') {
         // Single-tap toggle: cycle to the next era and apply
         // immediately. No submenu; the player sees the new label
