@@ -288,7 +288,19 @@
   // painted and any squash would show the ground-clear color through
   // the gap at the top of the cell.
   function tiltActive() {
-    return window.PR_SETTINGS && window.PR_SETTINGS.graphics === 'ds_diamond';
+    // DS 3D billboard + drop-shadow perspective. Gated on the
+    // ds_diamond era AND the settings toggle (defaults on; the
+    // explicit `=== false` check keeps legacy saves without the field
+    // looking 3D).
+    if (!window.PR_SETTINGS || window.PR_SETTINGS.graphics !== 'ds_diamond') return false;
+    return window.PR_SETTINGS.tilt3d !== false;
+  }
+  function tiltShiftActive() {
+    // DS top/bottom DOF blur. Independent of tilt3d so the player can
+    // mix-and-match (e.g. flat sprites + DOF or full perspective with
+    // no blur).
+    if (!window.PR_SETTINGS || window.PR_SETTINGS.graphics !== 'ds_diamond') return false;
+    return window.PR_SETTINGS.tiltShift !== false;
   }
   // Resolves the active graphics preset to one of the four tier ids:
   //   'gb_red' | 'gbc_yellow' | 'gba_firered' | 'ds_diamond'
@@ -1106,7 +1118,7 @@
   // alloc cost bounded; ctx.filter does the actual blur.
   let _tiltShiftCache = null;
   function drawTiltShift(ctx, viewW, viewH) {
-    if (!tiltActive()) return;
+    if (!tiltShiftActive()) return;
     if (typeof ctx.filter !== 'string') return; // unsupported browser
     if (!_tiltShiftCache) _tiltShiftCache = document.createElement('canvas');
     if (_tiltShiftCache.width !== viewW || _tiltShiftCache.height !== viewH) {
