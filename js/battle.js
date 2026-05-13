@@ -890,10 +890,18 @@
   Battle.prototype.applyXpToMon = function(mon, gain) {
     if (!mon || mon.level >= 100 || gain <= 0) return;
     mon.xp += gain;
+    // Friendship ticks up +1 per battle the mon participates in
+    // (gain > 0 from this side already), capped at 255.
+    if (typeof mon.friendship === 'number') {
+      mon.friendship = Math.min(255, (mon.friendship | 0) + 1);
+    }
     this.queue(mon.nickname + ' gained ' + gain + ' XP!');
     let lv = window.PR_DATA.levelFromXp(mon.xp);
     while (lv > mon.level && mon.level < 100) {
       mon.level++;
+      if (typeof mon.friendship === 'number') {
+        mon.friendship = Math.min(255, (mon.friendship | 0) + 5);
+      }
       window.PR_SFX && window.PR_SFX.play('levelup');
       let sp = window.PR_DATA.CREATURES[mon.species];
       const oldStats = mon.stats;
@@ -959,7 +967,11 @@
       if (isActive && mon.hp <= 0) continue;
       const ratio = window.PR_DATA.xpShareRatio(isActive);
       const mult = window.PR_DATA.xpMultiplier(this.state, mon);
-      const gain = Math.max(1, Math.floor(base * ratio * mult));
+      // Difficulty: easy boosts XP, hard reduces it. Reads live setting
+      // so toggling mid-run takes effect on the next battle.
+      const diff = (this.state.settings && this.state.settings.difficulty) || 'normal';
+      const diffMult = diff === 'easy' ? 1.25 : diff === 'hard' ? 0.85 : 1.0;
+      const gain = Math.max(1, Math.floor(base * ratio * mult * diffMult));
       this.applyXpToMon(mon, gain);
     }
   };

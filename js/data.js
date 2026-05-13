@@ -838,7 +838,12 @@ function makeMon(speciesId, level, opts) {
     // in a normal playthrough). opts.shiny can force it (story/debug).
     // Render path applies a hue-rotate filter on top of the regular
     // atlas sprite.
-    shiny: !!(opts && opts.shiny) || (Math.random() < 1/512)
+    shiny: !!(opts && opts.shiny) || (Math.random() < 1/512),
+    // Friendship / affection (0-255). Starts at 70 to match the
+    // mainline neutral baseline. Climbs on battle wins, level-ups,
+    // and via PokeRod Center heals. High friendship grants a small
+    // damage bonus at full HP (see calcDamage).
+    friendship: (opts && typeof opts.friendship === 'number') ? opts.friendship : 70
   };
 }
 
@@ -929,8 +934,13 @@ function calcDamage(attacker, defender, move, isCrit) {
   const rand = 0.85 + Math.random() * 0.15;
   const weather = weatherMult(move.type);
   const held = heldTypeBoostMult(attacker, move.type);
+  // Friendship bonus: when a high-friendship creature attacks from
+  // full HP, deals +10% damage. Encourages bringing the partner you
+  // bonded with into tough fights rather than swapping in unread
+  // benchmons.
+  const friend = (attacker.friendship | 0) >= 200 && attacker.hp === attacker.stats.hp ? 1.10 : 1.0;
   const base = (((2*attacker.level/5 + 2) * move.power * (A/Math.max(1,D))) / 50) + 2;
-  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather * held)), eff, stab, crit:isCrit };
+  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather * held * friend)), eff, stab, crit:isCrit };
 }
 
 window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };
