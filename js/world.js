@@ -2018,6 +2018,19 @@
     return false;
   };
 
+  // True when the NPC's schedule allows it to be visible right now.
+  // n.dayOnly = visible during day / dawn / dusk; n.nightOnly =
+  // visible only at night. Missing both = always-on. Reading the
+  // live phase keeps the schedule reactive when the player camps
+  // out at a PokeRod Center waiting for night.
+  function npcVisibleNow(n) {
+    if (!n) return false;
+    if (!n.dayOnly && !n.nightOnly) return true;
+    const phase = (window.PR_TIME && window.PR_TIME.current && window.PR_TIME.current()) || 'day';
+    if (n.dayOnly)   return phase !== 'night';
+    if (n.nightOnly) return phase === 'night';
+    return true;
+  }
   World.prototype.npcAt = function(x, y) {
     const m = this.currentMap();
     if (!m.npcs) return null;
@@ -2031,6 +2044,8 @@
       // Gate NPC vanishes once its conditions are met.
       if (n.gate && this.state.gateConditionsMet
           && this.state.gateConditionsMet(n.gate)) continue;
+      // Scheduled NPC: skip when its phase window is closed.
+      if (!npcVisibleNow(n)) continue;
       return n;
     }
     return null;
@@ -2840,6 +2855,9 @@
     // NPCs
     if (m.npcs) {
       for (const n of m.npcs) {
+        // Scheduled NPCs (dayOnly / nightOnly) disappear from the
+        // overworld outside their phase window.
+        if (!npcVisibleNow(n)) continue;
         let nx = n.x, ny = n.y;
         if (n.anim && n.anim.moving) {
           const k = Math.min(1, n.anim.t / n.anim.duration);

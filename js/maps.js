@@ -613,6 +613,7 @@ const MAPS = {
     npcs: [
       { x:14, y:7, dir:'down', sprite:'npc_girl', name:'GROCER',
         dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left, MART on the right.","I run the produce stall - try a FARM LUNCH!"],
+        dayOnly:true,
         shop:{ greeting:["Welcome to the GROCER's stall!","Country lunches and trail snacks."], extraItems:['farm_lunch'] } },
       { x:13, y:11, dir:'down', sprite:'npc_old', name:'COACH ELI',
         dialog:["Forgotten a move? Bring 'em to me.","I can refresh anything they ever knew."],
@@ -843,6 +844,7 @@ const MAPS = {
         dialog:["Welcome to WOODFALL.","The slate-roofed building south is the WOODFALL GYM.","South of town, the trees thicken into PEBBLEWOOD."] },
       { x:10, y:9, dir:'down', sprite:'npc_old', name:'CARVER',
         dialog:["I carve totems from the windfall wood.","Each totem brings travelers a little luck."],
+        dayOnly:true,
         shop:{ greeting:["The CARVER's stall.","Hand-shaped wooden charms."], extraItems:['wood_totem'] } }
     ],
     decorations:[
@@ -991,6 +993,14 @@ const MAPS = {
       { species:'clodlet',     minL:6, maxL:9,  weight:2 },
       { species:'glimkit',     minL:8, maxL:11, weight:1 }
     ],
+    // Hidden grotto entrance: a normal-looking path tile at (13, 6)
+    // along the main route through column 13 secretly warps to a
+    // tiny treasure room with rare mid-level encounters. The player
+    // who walks the full path finds it; it doesn't show up on the
+    // minimap any different from the surrounding path.
+    doors: {
+      '13,6': { to:'hidden_grotto', x:3, y:6 }
+    },
     edges: {
       north: { y:0,  to:'woodfall',  tx:7, ty:16 },
       south: { y:27, to:'crestrock', tx:7, ty:1 }
@@ -1022,6 +1032,7 @@ const MAPS = {
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_girl', name:'TRADER',
         dialog:["CRESTROCK TOWN, gateway to HIGHSPIRE.","I trade alpine kits to climbers and trainers alike."],
+        dayOnly:true,
         shop:{ greeting:["Welcome to the TRADER's stall!","Climber's kits and travel gear."], extraItems:['mountain_kit'] } }
     ],
     decorations:[
@@ -1246,6 +1257,7 @@ const MAPS = {
     npcs: [
       { x:14, y:8, dir:'down', sprite:'npc_old', name:'SNOW SAGE',
         dialog:["FROSTMERE is built around a frozen lake.","Step inside my tent - the cold does not wait."],
+        nightOnly:true,
         shop:{ greeting:["The SNOW SAGE's tent.","Frost-cold charms, untouched by spring."], extraItems:['frost_charm'] } }
     ],
     decorations:[
@@ -1422,6 +1434,7 @@ const MAPS = {
     npcs: [
       { x:9, y:9, dir:'right', sprite:'npc_youth', name:'FISHMONGER',
         dialog:["HARBORSIDE - last stop before the SEAROUTE.","Pearls from the harbor today - want one?"],
+        dayOnly:true,
         shop:{ greeting:["Welcome to the FISHMONGER's stall!","Dockside pearls, fresh off the boat."], extraItems:['pearl_bauble'] } }
     ],
     decorations:[
@@ -1923,6 +1936,34 @@ desert: {
     edges: {
       west: { x:0, to:'mountain', tx:46, ty:18 }
     }
+  },
+
+  // Tiny cave room tucked behind a hidden door on a route. Encounters
+  // are rarer / higher-leveled than the surrounding area so finding it
+  // feels like a reward for the player who explores corners.
+  hidden_grotto: {
+    id:'hidden_grotto', name:'Hidden Grotto', interior:true,
+    tiles: [
+      'XXXXXXXX',
+      'X......X',
+      'X.,,,,.X',
+      'X.,::,.X',
+      'X.,::,.X',
+      'X.,,,,.X',
+      'X..D...X',
+      'XXXXXXXX'
+    ],
+    npcs: [],
+    encounters: [
+      { species:'umbrasire',  minL:30, maxL:34, weight:2 },
+      { species:'levifin',    minL:30, maxL:34, weight:3 },
+      { species:'reverieus',  minL:30, maxL:34, weight:2 },
+      { species:'prismage',   minL:30, maxL:34, weight:2 }
+    ],
+    doors: {
+      '3,6': { to:'pebblewood', x:13, y:7 }
+    },
+    tags: ['cave','grotto']
   }
 };
 
