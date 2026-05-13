@@ -236,6 +236,56 @@
       detail:'Summitvale vendor exclusive. Distilled from thin mountain air.',
       kind:'revive', icon:'star', color:'#d8b860', accent:'#fff0a0',
       ratio:1.0, target:'fainted', price:3500
+    },
+    // ---- Battle-active held items (one per creature; shares mon.held slot) ----
+    charcoal: {
+      id:'charcoal', name:'CHARCOAL',
+      desc:'Held charcoal lump. FIRE moves +20%.',
+      detail:'Dry black chunk that smoulders during battle.',
+      kind:'held_gear', icon:'bell', color:'#383028', accent:'#e84020',
+      holdable:true, boostType:'FIRE', boostMult:1.2, price:1000
+    },
+    mystic_water: {
+      id:'mystic_water', name:'MYSTIC WATER',
+      desc:'Held vial of pure water. WATER moves +20%.',
+      detail:'A teardrop bottle full of strangely cold dew.',
+      kind:'held_gear', icon:'bottle', color:'#4878d8', accent:'#a8e0ff',
+      holdable:true, boostType:'WATER', boostMult:1.2, price:1000
+    },
+    miracle_seed: {
+      id:'miracle_seed', name:'MIRACLE SEED',
+      desc:'Held seed of legend. GRASS moves +20%.',
+      detail:'A sun-warm seed that rattles softly.',
+      kind:'held_gear', icon:'berry', color:'#58a850', accent:'#d0f0a0',
+      holdable:true, boostType:'GRASS', boostMult:1.2, price:1000
+    },
+    magnet: {
+      id:'magnet', name:'MAGNET',
+      desc:'Held magnetic stone. ELECTRIC moves +20%.',
+      detail:'A heavy red-and-blue magnet that hums.',
+      kind:'held_gear', icon:'pendant', color:'#d0d0d8', accent:'#e83838',
+      holdable:true, boostType:'ELECTRIC', boostMult:1.2, price:1000
+    },
+    soft_sand: {
+      id:'soft_sand', name:'SOFT SAND',
+      desc:'Held pouch of soft sand. GROUND moves +20%.',
+      detail:'A warm cloth pouch full of golden dune sand.',
+      kind:'held_gear', icon:'charm', color:'#d8b870', accent:'#f0e0a0',
+      holdable:true, boostType:'GROUND', boostMult:1.2, price:1000
+    },
+    leftovers: {
+      id:'leftovers', name:'LEFTOVERS',
+      desc:'Holder recovers 1/16 max HP each turn.',
+      detail:'A small foil-wrapped snack the holder nibbles between turns.',
+      kind:'held_gear', icon:'bottle', color:'#c89858', accent:'#fff0c8',
+      holdable:true, leftovers:true, price:2500
+    },
+    focus_sash: {
+      id:'focus_sash', name:'FOCUS SASH',
+      desc:'Survive a one-shot from full HP. Single use.',
+      detail:'A woven sash that takes the hit so the holder doesn\'t. Consumed when it saves you.',
+      kind:'held_gear', icon:'charm', color:'#a05030', accent:'#f0c020',
+      holdable:true, focusSash:true, price:2000
     }
   };
 
@@ -469,9 +519,9 @@
     { tier:0, items:['rodball','potion','antidote'] },
     { tier:1, items:['greatball','superpotion','paralyzeheal','awakening'] },
     { tier:2, items:['quickball','cavernball','burnheal','oranberry','lucky_charm','soothe_bell'] },
-    { tier:3, items:['sitrusberry'] },
-    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg'] },
-    { tier:5, items:['ultraball','fullheal'] },
+    { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand'] },
+    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash'] },
+    { tier:5, items:['ultraball','fullheal','leftovers'] },
     { tier:6, items:['maxpotion','masters_pendant'] },
     { tier:7, items:['maxrevive'] }
   ];
