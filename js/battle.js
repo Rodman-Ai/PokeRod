@@ -828,6 +828,18 @@
       if (window.PR_DEX) window.PR_DEX.markCaught(this.foe.species);
       if (window.PR_GAME && window.PR_GAME.tickQuests) window.PR_GAME.tickQuests('catch');
       if (window.PR_STORY) window.PR_STORY.emit(this.state, 'catch', { species: this.foe.species });
+      // Friend Ball: caught creature starts at the friendship-bonus
+      // threshold. Other balls leave the default (70) in place.
+      if (def && def.friendshipOnCatch && typeof this.foe.friendship === 'number') {
+        this.foe.friendship = Math.max(this.foe.friendship, def.friendshipOnCatch | 0);
+      }
+      // Roaming legendary: if this was the active roamer, mark it
+      // caught so it stops respawning on outdoor maps.
+      if (this.state.flags && this.state.flags.roamerActive &&
+          this.foe.species === this.state.flags.roamerSpecies) {
+        this.state.flags.roamerCaught = true;
+        this.state.flags.roamerActive = false;
+      }
       if (this.state.player) {
         if (!this.state.player.stats) this.state.player.stats = {};
         this.state.player.stats.catches = (this.state.player.stats.catches || 0) + 1;

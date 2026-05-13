@@ -38,6 +38,27 @@
       kind:'ball', icon:'ball', color:'#807070', accent:'#58c878',
       battleOnly:true, price:800, catchBonus:1.0, tagBonus:2.2, tagAny:['cave','ruins']
     },
+    heavy_ball: {
+      id:'heavy_ball', name:'HEAVY BALL',
+      desc:'Better against high-HP foes.',
+      detail:'Iron-cored ball that bites onto a tough opponent. 2x bonus when the foe is above 80% HP.',
+      kind:'ball', icon:'ball', color:'#404040', accent:'#a0a0a0',
+      battleOnly:true, price:1000, catchBonus:1.0, hpThresholdBonus:2.0, hpThreshold:0.8
+    },
+    friend_ball: {
+      id:'friend_ball', name:'FRIEND BALL',
+      desc:'Caught creature starts at 200 friendship.',
+      detail:'A warm green ball that bonds instantly. Anything caught with it starts at 200/255 friendship - already at the damage-bonus threshold.',
+      kind:'ball', icon:'ball', color:'#58a850', accent:'#f0c020',
+      battleOnly:true, price:1500, catchBonus:1.0, friendshipOnCatch:200
+    },
+    dusk_ball: {
+      id:'dusk_ball', name:'DUSK BALL',
+      desc:'Better at night.',
+      detail:'A deep-violet ball with a moonglow finish. 2x bonus during the night and dusk phases.',
+      kind:'ball', icon:'ball', color:'#403868', accent:'#a888d0',
+      battleOnly:true, price:1000, catchBonus:1.0, nightBonus:2.0
+    },
     potion: {
       id:'potion', name:'POTION',
       desc:'Fizzy red medicine. Restores 20 HP.',
@@ -501,7 +522,7 @@
       out.push({ id, count: state.player.bag[id], def: it });
     }
     // Stable order roughly by category.
-    const order = ['rodball','greatball','quickball','cavernball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','old_rod','pokeflute','bicycle','repel','super_repel'];
+    const order = ['rodball','greatball','quickball','cavernball','heavy_ball','friend_ball','dusk_ball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','old_rod','pokeflute','bicycle','repel','super_repel'];
     out.sort((a,b) => {
       const ai = order.indexOf(a.id), bi = order.indexOf(b.id);
       return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
@@ -533,6 +554,20 @@
         }
       }
     }
+    // Heavy Ball: bonus while the foe is above the HP threshold.
+    if (it.hpThresholdBonus && battle && battle.foe && battle.foe.stats) {
+      const ratio = battle.foe.hp / Math.max(1, battle.foe.stats.hp);
+      if (ratio >= (it.hpThreshold || 0.8)) {
+        bonus = Math.max(bonus, it.hpThresholdBonus);
+      }
+    }
+    // Dusk Ball: bonus during night / dusk phases.
+    if (it.nightBonus && window.PR_TIME && window.PR_TIME.current) {
+      const phase = window.PR_TIME.current();
+      if (phase === 'night' || phase === 'dusk') {
+        bonus = Math.max(bonus, it.nightBonus);
+      }
+    }
     return bonus;
   }
 
@@ -542,8 +577,8 @@
     { tier:0, items:['rodball','potion','antidote','repel'] },
     { tier:1, items:['greatball','superpotion','paralyzeheal','awakening','super_repel'] },
     { tier:2, items:['quickball','cavernball','burnheal','oranberry','lucky_charm','soothe_bell'] },
-    { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand'] },
-    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash'] },
+    { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand','heavy_ball','dusk_ball'] },
+    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash','friend_ball'] },
     { tier:5, items:['ultraball','fullheal','leftovers'] },
     { tier:6, items:['maxpotion','masters_pendant'] },
     { tier:7, items:['maxrevive'] }
