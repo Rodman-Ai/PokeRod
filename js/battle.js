@@ -1234,6 +1234,12 @@
       }
       window.PR_MONS.drawCreature(ctx, m.species, x + 6, cy - 2, 18, false, m);
       window.PR_UI.drawText(ctx, m.nickname, x + 28, cy, '#202020');
+      if (m.favorite) {
+        ctx.fillStyle = '#f0c020';
+        ctx.fillRect(x + 24 + m.nickname.length * 6 + 4, cy + 2, 1, 5);
+        ctx.fillRect(x + 24 + m.nickname.length * 6 + 2, cy + 4, 5, 1);
+        ctx.fillRect(x + 24 + m.nickname.length * 6 + 3, cy + 3, 3, 3);
+      }
       window.PR_UI.drawText(ctx, 'L' + m.level, x + 110, cy, '#202020');
       window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, m.hp, m.stats.hp);
       window.PR_UI.drawText(ctx, m.hp + '/' + m.stats.hp, x + w - 60, cy + 8, '#202020');

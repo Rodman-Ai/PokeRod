@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.31';
-  const BUILD = '2026.05.11-173';
+  const VERSION = 'v0.55.32';
+  const BUILD = '2026.05.11-174';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -3801,11 +3801,252 @@
 
   const PARTY_PAGES = ['SUMMARY','STATS','MOVES'];
 
+  // Items that make sense as held items (filtered into the GIVE
+  // picker). Held gear is always included; consumable heals/cures and
+  // a hand-picked berry list cover the rest. Keys + balls excluded.
+  const HELDABLE_KINDS = new Set(['held_gear','heal','cure']);
+  const HELDABLE_EXTRA = new Set(['oranberry','sitrusberry','pechaberry']);
+  // Heal-all priority: biggest restore first. Berries are last so the
+  // player keeps consumables for emergencies. Status cures are not
+  // applied here (HP-only for v0).
+  const HEAL_PRIORITY = ['maxpotion','hyperpotion','superpotion','potion','stew','sitrusberry','oranberry'];
+
+  function heldableBagItems() {
+    const out = [];
+    const bag = state.player && state.player.bag;
+    if (!bag || !window.PR_ITEMS) return out;
+    for (const id of Object.keys(bag)) {
+      const count = bag[id] | 0;
+      if (count <= 0) continue;
+      const def = window.PR_ITEMS.byId(id);
+      if (!def) continue;
+      if (HELDABLE_KINDS.has(def.kind) || HELDABLE_EXTRA.has(id)) {
+        out.push({ id, count, def });
+      }
+    }
+    out.sort((a, b) => a.def.name.localeCompare(b.def.name));
+    return out;
+  }
+
+  function partySaveFlash(msg) {
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    if (msg) showFlash(msg);
+    window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+  }
+
+  // Build the action menu when the player presses A on a party member.
+  // SWAP is preserved as a menu option (sets swapSrc and falls through
+  // to the existing two-press swap flow).
+  function openPartyActionMenu(idx) {
+    const mon = state.party[idx];
+    if (!mon) return;
+    const labels = [];
+    const fns = [];
+    labels.push('MOVES');
+    fns.push(() => {
+      state.menu.partyView.moveReorder = { idx, slot: 0, swapSrc: null };
+    });
+    labels.push(mon.held ? 'TAKE ITEM' : 'GIVE ITEM');
+    fns.push(() => {
+      if (mon.held) takeHeldItem(idx);
+      else openHeldItemPicker(idx);
+    });
+    labels.push('SWAP');
+    fns.push(() => {
+      state.menu.partyView.swapSrc = idx;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      showFlash('PICK PARTNER TO SWAP');
+    });
+    labels.push('DEPOSIT');
+    fns.push(() => confirmDeposit(idx));
+    labels.push('NICKNAME');
+    fns.push(() => renameMon(idx));
+    labels.push(mon.favorite ? 'UNMARK' : 'MARK');
+    fns.push(() => {
+      mon.favorite = !mon.favorite;
+      partySaveFlash(mon.favorite ? 'MARKED.' : 'UNMARKED.');
+    });
+    labels.push('CANCEL');
+    fns.push(() => {});
+    state.dialog = {
+      choice: {
+        prompt: mon.nickname.slice(0, 12).toUpperCase(),
+        options: labels,
+        cursor: 0,
+        onPick: (i) => {
+          state.dialog = null;
+          state.mode = 'menu';
+          const fn = fns[i] || (() => {});
+          try { fn(); } catch (e) { console.error('[PokeRod] party action error', e); }
+        }
+      }
+    };
+    state.mode = 'choice';
+  }
+
+  function takeHeldItem(idx) {
+    const mon = state.party[idx];
+    if (!mon || !mon.held) return;
+    const def = window.PR_ITEMS && window.PR_ITEMS.byId(mon.held);
+    const name = def ? def.name : mon.held.toUpperCase();
+    state.dialog = {
+      choice: {
+        prompt: 'Take ' + name + ' back?',
+        options: ['Yes', 'No'],
+        cursor: 0,
+        onPick: (i) => {
+          state.dialog = null;
+          state.mode = 'menu';
+          if (i !== 0) return;
+          window.PR_ITEMS.add(state, mon.held, 1);
+          mon.held = null;
+          partySaveFlash('Took ' + name + '.');
+        }
+      }
+    };
+    state.mode = 'choice';
+  }
+
+  function openHeldItemPicker(idx) {
+    const items = heldableBagItems();
+    if (!items.length) { showFlash('NOTHING TO GIVE'); return; }
+    state.menu.partyView.itemPicker = { idx, items, cursor: 0 };
+  }
+
+  function confirmDeposit(idx) {
+    if (state.party.length <= 1) {
+      showFlash('Need at least 1 partner.');
+      return;
+    }
+    const mon = state.party[idx];
+    const name = mon.nickname.toUpperCase();
+    state.dialog = {
+      choice: {
+        prompt: 'Deposit ' + name.slice(0, 10) + ' to BOX?',
+        options: ['Yes', 'No'],
+        cursor: 0,
+        onPick: (i) => {
+          state.dialog = null;
+          state.mode = 'menu';
+          if (i !== 0) return;
+          if (!Array.isArray(state.box)) state.box = [];
+          state.box.push(mon);
+          state.party.splice(idx, 1);
+          const v = state.menu && state.menu.partyView;
+          if (v) {
+            v.idx = Math.min(v.idx, state.party.length - 1);
+            v.swapSrc = null;
+          }
+          partySaveFlash('Deposited.');
+        }
+      }
+    };
+    state.mode = 'choice';
+  }
+
+  function renameMon(idx) {
+    const mon = state.party[idx];
+    if (!mon) return;
+    let next = '';
+    try {
+      next = (window.prompt('Nickname?', mon.nickname) || '').trim();
+    } catch (_) { /* prompt unavailable */ }
+    if (!next) return;
+    mon.nickname = next.slice(0, 10).toUpperCase();
+    partySaveFlash('Renamed.');
+  }
+
+  function healAllFromBag() {
+    if (!window.PR_ITEMS) return;
+    let used = 0;
+    const bag = state.player && state.player.bag;
+    if (!bag) return;
+    for (const mon of state.party) {
+      if (!mon || !mon.stats) continue;
+      while (mon.hp < mon.stats.hp) {
+        const id = HEAL_PRIORITY.find(p => (bag[p] | 0) > 0);
+        if (!id) {
+          if (used) { window.PR_SFX && window.PR_SFX.play('heal'); partySaveFlash('USED ' + used + (used === 1 ? ' ITEM.' : ' ITEMS.')); }
+          else showFlash('NOTHING TO HEAL');
+          return;
+        }
+        const r = window.PR_ITEMS.apply(id, mon);
+        if (!r || !r.ok) break;
+        window.PR_ITEMS.take(state, id, 1);
+        used++;
+      }
+    }
+    if (used) { window.PR_SFX && window.PR_SFX.play('heal'); partySaveFlash('USED ' + used + (used === 1 ? ' ITEM.' : ' ITEMS.')); }
+    else showFlash('NOTHING TO HEAL');
+  }
+
+  function updateMoveReorder(v) {
+    const I = window.PR_INPUT;
+    const r = v.moveReorder;
+    const mon = state.party[r.idx];
+    if (!mon || !mon.moves || !mon.moves.length) { v.moveReorder = null; return; }
+    const max = mon.moves.length;
+    if (I.consumePressed('ArrowDown')) { r.slot = (r.slot + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowUp'))   { r.slot = (r.slot + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('z')) {
+      if (r.swapSrc === null) {
+        r.swapSrc = r.slot;
+        window.PR_SFX && window.PR_SFX.play('confirm');
+        showFlash('PICK MOVE TO SWAP');
+      } else if (r.swapSrc === r.slot) {
+        r.swapSrc = null;
+        window.PR_SFX && window.PR_SFX.play('select');
+      } else {
+        const a = r.swapSrc, b = r.slot;
+        const tmp = mon.moves[a];
+        mon.moves[a] = mon.moves[b];
+        mon.moves[b] = tmp;
+        r.swapSrc = null;
+        partySaveFlash('SWAPPED.');
+      }
+    }
+    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+      if (r.swapSrc !== null) { r.swapSrc = null; window.PR_SFX && window.PR_SFX.play('select'); }
+      else v.moveReorder = null;
+    }
+  }
+
+  function updateItemPicker(v) {
+    const I = window.PR_INPUT;
+    const p = v.itemPicker;
+    const items = p.items;
+    if (!items.length) { v.itemPicker = null; return; }
+    if (I.consumePressed('ArrowDown')) { p.cursor = (p.cursor + 1) % items.length; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowUp'))   { p.cursor = (p.cursor + items.length - 1) % items.length; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+      v.itemPicker = null;
+      return;
+    }
+    if (I.consumePressed('z')) {
+      const it = items[p.cursor];
+      const mon = state.party[p.idx];
+      if (!it || !mon) { v.itemPicker = null; return; }
+      if (mon.held === it.id) {
+        showFlash(mon.nickname + ' already holds it.');
+        return;
+      }
+      if (mon.held) window.PR_ITEMS.add(state, mon.held, 1);
+      mon.held = it.id;
+      window.PR_ITEMS.take(state, it.id, 1);
+      v.itemPicker = null;
+      partySaveFlash(mon.nickname + ' holds ' + it.def.name + '.');
+    }
+  }
+
   function updatePartyView() {
     const I = window.PR_INPUT;
     const m = state.menu;
     const v = m.partyView || (m.partyView = { idx:0, page:0, swapSrc:null });
     if (v.swapSrc === undefined) v.swapSrc = null;
+    // Sub-mode dispatch: move-reorder and item-picker fully consume
+    // input. Their B-out clears the sub-mode and returns here.
+    if (v.moveReorder) { updateMoveReorder(v); return; }
+    if (v.itemPicker)  { updateItemPicker(v); return; }
     const max = state.party.length;
     if (max) {
       if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
@@ -3818,14 +4059,12 @@
         v.page = (v.page + PARTY_PAGES.length - 1) % PARTY_PAGES.length;
         window.PR_SFX && window.PR_SFX.play('select');
       }
-      // A (z): two-step swap. First press marks the source; second press
-      // on a different slot swaps positions in state.party. Pressing A
-      // on the same slot cancels.
+      // A (z): if a swap is in progress, complete it. Otherwise open
+      // the action menu (which has its own SWAP entry to start a
+      // swap).
       if (I.consumePressed('z')) {
         if (v.swapSrc === null) {
-          v.swapSrc = v.idx;
-          window.PR_SFX && window.PR_SFX.play('confirm');
-          showFlash('PICK PARTNER TO SWAP');
+          openPartyActionMenu(v.idx);
         } else if (v.swapSrc === v.idx) {
           v.swapSrc = null;
           window.PR_SFX && window.PR_SFX.play('select');
@@ -3836,10 +4075,12 @@
           state.party[b] = tmp;
           v.swapSrc = null;
           v.idx = b;
-          window.PR_SFX && window.PR_SFX.play('confirm');
-          showFlash('SWAPPED');
-          window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+          partySaveFlash('SWAPPED.');
         }
+      }
+      // SELECT (Shift): one-tap heal everyone from bag.
+      if (I.consumePressed('Shift')) {
+        healAllFromBag();
       }
     }
     if (I.consumePressed('x')) {
@@ -3927,16 +4168,83 @@
     }
   }
 
+  function drawFavoriteStar(x, y) {
+    // Tiny 5-pixel yellow star cluster used to mark favorites in the
+    // party list and the battle party-select.
+    ctx.fillStyle = '#f0c020';
+    ctx.fillRect(x + 2, y, 1, 5);
+    ctx.fillRect(x, y + 2, 5, 1);
+    ctx.fillRect(x + 1, y + 1, 3, 3);
+  }
+
+  function drawMoveReorderPanel(v) {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const r = v.moveReorder;
+    const mon = state.party[r.idx];
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'REORDER MOVES', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    const hint = r.swapSrc !== null ? 'B:CANCEL A:SWAP HERE' : 'B:BACK A:PICK';
+    window.PR_UI.drawText(ctx, hint, x + w - 110, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, mon.nickname.slice(0, 12), x + 8, y + 22, '#202020');
+    const rowH = 22;
+    const listY = y + 36;
+    for (let i = 0; i < 4; i++) {
+      const cy = listY + i * rowH;
+      const mv = mon.moves[i];
+      window.PR_UI.selectBar(ctx, x + 6, cy - 2, w - 12, rowH - 2, i === r.slot);
+      if (!mv) {
+        window.PR_UI.drawText(ctx, '(empty slot)', x + 12, cy + 5, '#806040');
+        continue;
+      }
+      const def = window.PR_DATA.MOVES[mv.id];
+      window.PR_UI.drawText(ctx, (i + 1) + '. ' + def.name.slice(0, 14), x + 12, cy + 2, i === r.slot ? '#1a0204' : '#202020');
+      window.PR_UI.drawText(ctx, def.type + ' ' + def.kind.toUpperCase().slice(0, 3), x + 12, cy + 11, '#385890');
+      const pow = def.power ? ('PW ' + def.power) : 'STATUS';
+      window.PR_UI.drawText(ctx, pow, x + 110, cy + 11, '#806040');
+      window.PR_UI.drawText(ctx, (mv.pp || 0) + '/' + (mv.ppMax || def.pp), x + w - 34, cy + 2, '#202020');
+      if (i === r.swapSrc) {
+        ctx.fillStyle = '#f0c020';
+        ctx.fillRect(x + w - 14, cy + 2, 3, 3);
+        ctx.fillRect(x + w - 14, cy + 8, 3, 3);
+        ctx.fillRect(x + w - 14, cy + 14, 3, 3);
+      }
+    }
+  }
+
+  function drawItemPickerPanel(v) {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    const p = v.itemPicker;
+    const mon = state.party[p.idx];
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#fff8e8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'GIVE ITEM', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK A:PICK', x + w - 80, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, 'TO ' + mon.nickname.slice(0, 10).toUpperCase(), x + 8, y + 22, '#202020');
+    const rows = 8, rowH = 13;
+    const listY = y + 36;
+    const start = Math.max(0, Math.min(p.items.length - rows, p.cursor - 3));
+    for (let r = 0; r < rows; r++) {
+      const i = start + r;
+      if (i >= p.items.length) break;
+      const it = p.items[i];
+      const cy = listY + r * rowH;
+      if (i === p.cursor) window.PR_UI.selectBar(ctx, x + 6, cy - 1, w - 12, 12, true);
+      if (window.PR_ITEMS && window.PR_ITEMS.drawIcon) window.PR_ITEMS.drawIcon(ctx, it.id, x + 8, cy, 10);
+      window.PR_UI.drawText(ctx, it.def.name.slice(0, 18), x + 22, cy + 2, '#202020');
+      window.PR_UI.drawText(ctx, 'x' + it.count, x + w - 32, cy + 2, '#385890');
+    }
+  }
+
   function drawPartyView() {
     const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
     const v = (state.menu && state.menu.partyView) || { idx:0, page:0, swapSrc:null };
+    if (v.moveReorder) { drawMoveReorderPanel(v); return; }
+    if (v.itemPicker)  { drawItemPickerPanel(v); return; }
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
     window.PR_UI.header(ctx, 'PARTY', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    // Header hint changes when a swap is mid-flight.
     const hint = (v.swapSrc !== null && v.swapSrc !== undefined)
       ? 'B:CANCEL A:SWAP HERE'
-      : 'B:BACK A:SWAP <>:PAGE';
-    window.PR_UI.drawText(ctx, hint, x + w - 110, y + 4, '#806040');
+      : 'B:BACK A:ACT SEL:HEAL';
+    window.PR_UI.drawText(ctx, hint, x + w - 120, y + 4, '#806040');
     if (!state.party.length) {
       window.PR_UI.drawText(ctx, 'No partners yet.', x + 8, y + 30, '#202020');
       return;
@@ -3949,6 +4257,7 @@
       window.PR_MONS.drawCreature(ctx, mon.species, listX + 2, cy - 2, 16, false, mon);
       window.PR_UI.drawText(ctx, mon.nickname.slice(0, 7), listX + 20, cy, i === v.idx ? '#1a0204' : '#202020');
       window.PR_UI.drawText(ctx, 'L' + mon.level, listX + 20, cy + 9, '#385890');
+      if (mon.favorite) drawFavoriteStar(listX + listW - 16, cy + 3);
       if (mon.held) {
         ctx.fillStyle = '#f0c020';
         ctx.fillRect(listX + listW - 8, cy + 4, 4, 4);
