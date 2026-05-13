@@ -119,8 +119,14 @@
     ctx.fillRect(x + 4, y + 14, w - 8, 1);
 
     const items = v.list;
-    const listX = x + 5, listY = y + 18, listW = 168;
-    const detailX = x + 178, detailY = y + 18, detailW = w - 183, detailH = h - 58;
+    // Layout: items list on the left, item detail card on the right.
+    // listW was 168 to fit names up to 14 chars, which left the
+    // detail card at just 49 px - too narrow, so the icon + name +
+    // description ran off the right edge of the screen. Rebalanced
+    // so both are functional: 130 px list (10-char name slice) +
+    // 90 px detail card.
+    const listX = x + 5, listY = y + 18, listW = 130;
+    const detailX = x + 138, detailY = y + 18, detailW = w - 142, detailH = h - 58;
     const rows = 7, rowH = 13;
     if (!items.length) {
       window.PR_UI.drawText(ctx, 'No items in stock.', x + 8, listY, '#806040');
@@ -136,12 +142,12 @@
       if (!def) continue;
       if (i === v.idx) window.PR_UI.selectBar(ctx, listX, cy - 1, listW, 12, true);
       if (window.PR_ITEMS.drawIcon) window.PR_ITEMS.drawIcon(ctx, id, listX + 2, cy, 10);
-      window.PR_UI.drawText(ctx, def.name.slice(0, 14), listX + 17, cy + 2, '#202020');
+      window.PR_UI.drawText(ctx, def.name.slice(0, 10), listX + 17, cy + 2, '#202020');
       const owned = (state.player.bag && state.player.bag[id]) || 0;
       if (owned > 0) {
-        window.PR_UI.drawText(ctx, 'x' + owned, listX + listW - 55, cy + 2, '#806040');
+        window.PR_UI.drawText(ctx, 'x' + owned, listX + listW - 50, cy + 2, '#806040');
       }
-      window.PR_UI.drawText(ctx, '$' + (def.price | 0), listX + listW - 34, cy + 2, '#385890');
+      window.PR_UI.drawText(ctx, '$' + (def.price | 0), listX + listW - 26, cy + 2, '#385890');
     }
     // Detail card + qty prompt or hint
     const sel = items[v.idx];
