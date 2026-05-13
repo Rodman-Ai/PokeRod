@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.24';
-  const BUILD = '2026.05.11-166';
+  const VERSION = 'v0.55.25';
+  const BUILD = '2026.05.11-167';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -982,6 +982,32 @@
     return ids[h % ids.length];
   }
 
+  // Roaming legendary - low-rate override that spawns a single
+  // designated species at high level on outdoor routes. Available
+  // after the first badge; despawns once caught. Wired here so it
+  // composes with every existing encounter precondition (repel,
+  // empty party, faint check, no pool).
+  const ROAMER_SPECIES = 'solarcrest';
+  const ROAMER_LEVEL_MIN = 38;
+  const ROAMER_LEVEL_MAX = 44;
+  const ROAMER_RATE = 1 / 50;
+  function maybeSpawnRoamer(m) {
+    if (!state.flags) state.flags = {};
+    if (state.flags.roamerCaught) return false;
+    const badges = (state.player.badges || []).length;
+    if (badges < 1) return false;
+    if (!m || m.interior) return false;
+    if (!Array.isArray(m.encounters) && !Array.isArray(m.encounterZones)) return false;
+    if (Math.random() >= ROAMER_RATE) return false;
+    if (!window.PR_DATA.CREATURES[ROAMER_SPECIES]) return false;
+    state.flags.roamerActive = true;
+    state.flags.roamerSpecies = ROAMER_SPECIES;
+    const lvl = ROAMER_LEVEL_MIN + Math.floor(Math.random() * (ROAMER_LEVEL_MAX - ROAMER_LEVEL_MIN + 1));
+    if (state.showFlash) state.showFlash('A legendary creature appeared!');
+    startBattleAgainstWild(ROAMER_SPECIES, lvl);
+    return true;
+  }
+
   function startWildEncounter() {
     if (!state.party.length) return;
     // Repel suppresses every wild encounter while its step counter is
@@ -990,6 +1016,9 @@
     const alive = state.party.some(p => p.hp > 0);
     if (!alive) return;
     const m = state.world.currentMap();
+    // Roamer takes priority over the normal pool - 1/50 of outdoor
+    // wild encounters become the legendary while it's still loose.
+    if (maybeSpawnRoamer(m)) return;
     const encounters = encounterPoolForMap(m);
     if (!encounters || !encounters.length) return;
     const weights = encounters.map(biasedWeight);
