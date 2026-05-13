@@ -67,6 +67,18 @@
     return { h, m };
   }
   const PHASE_LABEL = { day:'DAY', dusk:'DSK', night:'NIT', dawn:'DWN' };
+  // Small chip showing how many steps the current Repel still has
+  // before it wears off. Anchored top-center so it doesn't fight the
+  // top-left minimap or the top-right clock.
+  function drawRepelTimer(ctx, viewW, stepsRemaining) {
+    const text = 'REPEL ' + stepsRemaining;
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 4, text, {
+      fill:'#1a0204', border:'#d8b870', text:'#d8b870'
+    });
+  }
   function drawWorldClock(ctx, viewW, steps) {
     const hm = clockHM(steps);
     const phase = phaseForSteps(steps);
@@ -2571,6 +2583,15 @@
         if (window.PR_ACHV && this.state && this.player.steps >= 5000) {
           window.PR_ACHV.unlock(this.state, 'big_walker');
         }
+        // Decrement the active repel counter and flash a wore-off
+        // notice the instant it expires.
+        if ((this.player.repelSteps | 0) > 0) {
+          this.player.repelSteps = (this.player.repelSteps | 0) - 1;
+          if (this.player.repelSteps === 0 && this.state.showFlash) {
+            this.state.showFlash('Repel wore off.');
+            this.player.repelKind = null;
+          }
+        }
         this.frame ^= 1;
         // Check for door / encounter / edge after step.
         const code = this.tileAt(this.player.x, this.player.y);
@@ -2981,6 +3002,11 @@
     // screen already displays the time + phase, so we skip the
     // top-screen overlay to keep the world view clean.
     if (!tiltActive()) drawWorldClock(ctx, VIEW_W, this.player.steps || 0);
+
+    // Repel HUD timer (top-center). Shows step count remaining while
+    // a Repel is active. Hidden when expired so it doesn't add
+    // permanent clutter. Drawn after the clock so it appears below.
+    if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, this.player.repelSteps);
 
     // Map name banner on entry.
     if (this.justEntered) {

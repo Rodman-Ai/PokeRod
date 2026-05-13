@@ -286,6 +286,21 @@
       detail:'A woven sash that takes the hit so the holder doesn\'t. Consumed when it saves you.',
       kind:'held_gear', icon:'charm', color:'#a05030', accent:'#f0c020',
       holdable:true, focusSash:true, price:2000
+    },
+    // ---- Overworld utility ----
+    repel: {
+      id:'repel', name:'REPEL',
+      desc:'Drives off wild creatures for 100 steps.',
+      detail:'A sharp herbal mist that wild creatures dislike. Suppresses encounters until the counter runs out.',
+      kind:'repel', icon:'spray', color:'#d8b870', accent:'#f0e0a0',
+      steps:100, price:350
+    },
+    super_repel: {
+      id:'super_repel', name:'SUPER REPEL',
+      desc:'A stronger Repel - 200 steps.',
+      detail:'Twice the mist, twice the calm.',
+      kind:'repel', icon:'spray', color:'#a08060', accent:'#f0d870',
+      steps:200, price:700
     }
   };
 
@@ -299,6 +314,7 @@
     if (it.kind === 'trainer_gear') return 'GEAR';
     if (it.kind === 'held_gear') return 'HELD';
     if (it.kind === 'key') return 'KEY';
+    if (it.kind === 'repel') return 'REPEL';
     return 'ITEM';
   }
 
@@ -516,8 +532,8 @@
   // Shop inventory tiered by player badge count. tier:N rows unlock
   // once the player has N badges (so tier:0 is available from the start).
   const SHOP_TIERS = [
-    { tier:0, items:['rodball','potion','antidote'] },
-    { tier:1, items:['greatball','superpotion','paralyzeheal','awakening'] },
+    { tier:0, items:['rodball','potion','antidote','repel'] },
+    { tier:1, items:['greatball','superpotion','paralyzeheal','awakening','super_repel'] },
     { tier:2, items:['quickball','cavernball','burnheal','oranberry','lucky_charm','soothe_bell'] },
     { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand'] },
     { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash'] },

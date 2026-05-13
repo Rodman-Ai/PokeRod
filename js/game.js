@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.19';
-  const BUILD = '2026.05.11-161';
+  const VERSION = 'v0.55.20';
+  const BUILD = '2026.05.11-162';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -847,11 +847,35 @@
       if (wt && wt[ty]) mult *= wt[ty];
       if (tt && tt[ty]) mult *= tt[ty];
     }
+    // Daily featured creature - the player's encounter rate for the
+    // featured species triples for the current calendar day.
+    if (entry.species === dailyFeaturedSpecies()) mult *= 3;
     return entry.weight * mult;
+  }
+
+  // Pick one species deterministically per calendar day. Same date ->
+  // same species on every device, so the "featured creature today"
+  // line on the Dex page is consistent if a player checks across
+  // sessions. Falls back to a constant if PR_DATA isn't ready yet.
+  function dailyFeaturedSpecies() {
+    const C = window.PR_DATA && window.PR_DATA.CREATURES;
+    if (!C) return null;
+    const ids = Object.keys(C);
+    if (!ids.length) return null;
+    const today = new Date();
+    const key = today.getUTCFullYear() * 10000 + (today.getUTCMonth() + 1) * 100 + today.getUTCDate();
+    // FNV-1a-ish 32-bit hash for stable index.
+    let h = 2166136261;
+    let n = key;
+    while (n > 0) { h ^= (n & 0xff); h = (h * 16777619) >>> 0; n = n >>> 8; }
+    return ids[h % ids.length];
   }
 
   function startWildEncounter() {
     if (!state.party.length) return;
+    // Repel suppresses every wild encounter while its step counter is
+    // > 0 (the counter ticks down per step in world.js, not here).
+    if ((state.player.repelSteps | 0) > 0) return;
     const alive = state.party.some(p => p.hp > 0);
     if (!alive) return;
     const m = state.world.currentMap();
@@ -1630,12 +1654,22 @@
         }
         return set.size;
       })();
+      // Today's featured creature - its encounter rate triples in all
+      // wild pools for the current calendar day. Hidden from the dex
+      // detail until the player has at least seen the species.
+      const featuredId = dailyFeaturedSpecies();
+      const featuredSeen = featuredId && state.dex.seen && state.dex.seen.has(featuredId);
+      const featuredSp = featuredId && window.PR_DATA.CREATURES[featuredId];
+      const featuredLabel = featuredSeen && featuredSp
+        ? featuredSp.name.toUpperCase()
+        : '???';
       rows = [
         ['SEEN', String(seen) + '/' + total],
         ['CAUGHT', String(caught) + '/' + total],
         ['COMPLETION', String(pct) + '%'],
         ['SHINIES', String(shinySpecies)],
         ['TYPES', String(typesCollectedCount(state)) + '/18'],
+        ['TODAY x3', featuredLabel],
         ['STARTERS EVO', String(flags.evolutions || 0)],
         ['LAST CAUGHT', (function(){
           if (!state.dex.caught || !state.dex.caught.size) return '-';
@@ -2254,6 +2288,21 @@
       }
       // Overworld: only target items make sense (not balls).
       if (def.battleOnly) { showFlash('Use in battle.'); return; }
+      // Repel: no target, no party prompt. Activates immediately and
+      // adds to the active step counter (stacks if used while already
+      // active). Returns to the overworld so the player can see the
+      // HUD timer start.
+      if (def.kind === 'repel') {
+        state.player.repelSteps = (state.player.repelSteps || 0) + (def.steps || 100);
+        state.player.repelKind = def.id;
+        window.PR_ITEMS.take(state, it.id, 1);
+        window.PR_SFX && window.PR_SFX.play('confirm');
+        showFlash(def.name + ' active!');
+        state.bagView = null;
+        state.mode = 'overworld';
+        if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+        return;
+      }
       // Trainer equipment: equip directly into the slot, swap any
       // currently-equipped item back into the bag.
       if (def.kind === 'trainer_gear') {
