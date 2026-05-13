@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.33';
-  const BUILD = '2026.05.11-175';
+  const VERSION = 'v0.55.34';
+  const BUILD = '2026.05.11-176';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -3551,7 +3551,11 @@
     else if (I.consumePressed('ArrowUp')) moveWorldSelection(m, 'up');
     if (I.consumePressed('x')) {
       state.map = null;
-      state.mode = 'menu';
+      // SELECT in the overworld opens the world map directly without
+      // setting state.menu. Returning to 'menu' in that case would
+      // crash drawMenu on a null state.menu. Pick the right mode by
+      // whether the pause menu was the entry point.
+      state.mode = state.menu ? 'menu' : 'overworld';
       return;
     }
     if (I.consumePressed('z') || I.consumePressed('Enter')) {
