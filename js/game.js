@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.22';
-  const BUILD = '2026.05.11-164';
+  const VERSION = 'v0.55.23';
+  const BUILD = '2026.05.11-165';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -501,6 +501,117 @@
     const d = state.dialog;
     const page = d.lines[d.index] || [''];
     window.PR_UI.drawDialog(ctx, page, VIEW_W, VIEW_H, true);
+  }
+
+  // ---------- Move tutor / re-learner -----------------------------
+  // Talking to an NPC with a `tutor` block opens a 3-step chain:
+  //   1. Pick a party creature
+  //   2. Pick a relearnable move (from its learnset[lv<=level] minus
+  //      moves it currently knows)
+  //   3. If the creature already has 4 moves, pick a slot to forget
+  // Cost is paid on the final confirm. Cancel at any step returns to
+  // the overworld without charging.
+  function openTutorFlow(npc) {
+    const intro = (npc.tutor && npc.tutor.greeting) ||
+      (npc.dialog && npc.dialog.length ? [npc.dialog[0]] : ['I can refresh a forgotten move.']);
+    const cost = (npc.tutor && npc.tutor.cost) || 500;
+    openDialog(intro.concat(['Service costs $' + cost + '.']), () => {
+      if (!state.party || !state.party.length) {
+        openDialog(['No creatures with you yet.']);
+        return;
+      }
+      state.dialog = {
+        choice: {
+          prompt: 'Whose memory?',
+          options: state.party.map((m, i) =>
+            (i + 1) + '. ' + m.nickname + ' L' + m.level).concat(['Cancel']),
+          cursor: 0,
+          onPick: (idx) => _tutorPickMon(idx, npc, cost)
+        }
+      };
+      state.mode = 'choice';
+    });
+  }
+  function _tutorPickMon(slotIdx, npc, cost) {
+    state.dialog = null;
+    if (slotIdx >= state.party.length) { state.mode = 'overworld'; return; }
+    const mon = state.party[slotIdx];
+    const sp = window.PR_DATA.CREATURES[mon.species] || {};
+    const known = new Set((mon.moves || []).map(m => m.id));
+    const seenInList = new Set();
+    const candidates = [];
+    for (const entry of (sp.learnset || [])) {
+      const lv = entry[0], mvId = entry[1];
+      if (lv > mon.level) continue;
+      if (known.has(mvId)) continue;
+      if (seenInList.has(mvId)) continue;
+      seenInList.add(mvId);
+      candidates.push({ lv, mvId });
+    }
+    if (!candidates.length) {
+      openDialog([mon.nickname + ' has nothing left to relearn.']);
+      return;
+    }
+    // Trim to 7 entries so the choice box stays readable; add Cancel.
+    const slice = candidates.slice(0, 7);
+    state.dialog = {
+      choice: {
+        prompt: 'Which move?',
+        options: slice.map(c => {
+          const def = window.PR_DATA.MOVES[c.mvId];
+          return (def ? def.name : c.mvId) + ' (L' + c.lv + ')';
+        }).concat(['Cancel']),
+        cursor: 0,
+        onPick: (idx) => _tutorPickMove(idx, mon, slice, npc, cost)
+      }
+    };
+    state.mode = 'choice';
+  }
+  function _tutorPickMove(idx, mon, candidates, npc, cost) {
+    state.dialog = null;
+    if (idx >= candidates.length) { state.mode = 'overworld'; return; }
+    if ((state.player.money | 0) < cost) {
+      openDialog(['Need $' + cost + '. Come back when you can pay.']);
+      return;
+    }
+    const mvId = candidates[idx].mvId;
+    const mvDef = window.PR_DATA.MOVES[mvId];
+    if (!mvDef) { state.mode = 'overworld'; return; }
+    // Open slot - just append.
+    if (mon.moves.length < 4) {
+      mon.moves.push({ id: mvId, pp: mvDef.pp, ppMax: mvDef.pp });
+      state.player.money -= cost;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+      openDialog([mon.nickname + ' learned ' + mvDef.name + '!']);
+      return;
+    }
+    // Full - prompt to forget.
+    state.dialog = {
+      choice: {
+        prompt: 'Forget which?',
+        options: mon.moves.map((m, i) => {
+          const d = window.PR_DATA.MOVES[m.id];
+          return (i + 1) + '. ' + (d ? d.name : m.id);
+        }).concat(['Cancel']),
+        cursor: 0,
+        onPick: (slotIdx) => {
+          state.dialog = null;
+          if (slotIdx >= mon.moves.length) { state.mode = 'overworld'; return; }
+          const oldId = mon.moves[slotIdx].id;
+          const oldDef = window.PR_DATA.MOVES[oldId];
+          mon.moves[slotIdx] = { id: mvId, pp: mvDef.pp, ppMax: mvDef.pp };
+          state.player.money -= cost;
+          window.PR_SFX && window.PR_SFX.play('confirm');
+          if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+          openDialog([
+            mon.nickname + ' forgot ' + (oldDef ? oldDef.name : oldId) + '.',
+            'And learned ' + mvDef.name + '!'
+          ]);
+        }
+      }
+    };
+    state.mode = 'choice';
   }
 
   // Branching choice render: prompt + 2-4 options. The dialog box itself
@@ -1084,6 +1195,10 @@
         npc.dialog ? npc.dialog[0] : 'Welcome!',
         'Shall I heal your team?'
       ], () => healAtCenter());
+      return;
+    }
+    if (npc.tutor) {
+      openTutorFlow(npc);
       return;
     }
     if (npc.shop) {
