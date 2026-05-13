@@ -472,7 +472,10 @@ const MAPS = {
       { x:1, y:5, dir:'right', sprite:'npc_kid_girl', name:'NIECE LIA', wander:{ range:1 },
         dialog:["You have so many shoes! Are they all for hiking?"] },
       { x:5, y:5, dir:'left', sprite:'npc_old_woman', name:'AUNT LU', wander:{ range:1 },
-        dialog:["Your mom's pies are the best in the region.","Shh, don't tell her I said that."] }
+        dialog:["Your mom's pies are the best in the region.","Shh, don't tell her I said that."] },
+      { x:6, y:2, dir:'down', sprite:'npc_kid_boy', name:'WARDROBE',
+        dialog:["Try on something new!","Pick a colour and the mirror does the rest."],
+        wardrobe:{ greeting:["Mirror, mirror...","Pick a colour for your outfit:"] } }
     ],
     doors: {
       '3,6': { to:'rodport', x:4, y:5 }

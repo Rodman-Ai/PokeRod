@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.28';
-  const BUILD = '2026.05.11-170';
+  const VERSION = 'v0.55.29';
+  const BUILD = '2026.05.11-171';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -789,6 +789,58 @@
     if ((best[k] | 0) < streak) best[k] = streak;
   }
 
+  // ---------- Wardrobe (avatar customisation) ---------------------
+  // Talking to a wardrobe NPC opens an 8-colour palette picker. The
+  // chosen colour is stored as state.player.appearance.color and read
+  // by sprites_chars.drawPlayer to hue-rotate the atlas sprite, so
+  // every save's avatar reads as visibly different.
+  const WARDROBE_COLOURS = ['RED','ORANGE','YELLOW','GREEN','BLUE','PURPLE','PINK','BLACK'];
+  function openWardrobeFlow(npc) {
+    const greet = (npc.wardrobe && npc.wardrobe.greeting) ||
+                  (npc.dialog && npc.dialog.length ? [npc.dialog[0]] : ['Pick a new look.']);
+    openDialog(greet, () => {
+      const cur = ((state.player.appearance && state.player.appearance.color) ||
+                   state.player.favColor || 'red').toUpperCase();
+      state.dialog = {
+        choice: {
+          prompt: 'Outfit colour? (' + cur + ')',
+          options: WARDROBE_COLOURS.slice(0, 4).concat(['NEXT...']),
+          cursor: WARDROBE_COLOURS.indexOf(cur) >= 0 && WARDROBE_COLOURS.indexOf(cur) < 4
+                  ? WARDROBE_COLOURS.indexOf(cur) : 0,
+          onPick: (idx) => _wardrobePickPage(idx, npc, 0)
+        }
+      };
+      state.mode = 'choice';
+    });
+  }
+  function _wardrobePickPage(idx, npc, page) {
+    state.dialog = null;
+    const pageSize = 4;
+    if (idx === pageSize) {
+      // NEXT - flip to second half.
+      const nextPage = (page + 1) % Math.ceil(WARDROBE_COLOURS.length / pageSize);
+      const slice = WARDROBE_COLOURS.slice(nextPage * pageSize, nextPage * pageSize + pageSize);
+      state.dialog = {
+        choice: {
+          prompt: 'Outfit colour?',
+          options: slice.concat(['NEXT...']),
+          cursor: 0,
+          onPick: (i) => _wardrobePickPage(i, npc, nextPage)
+        }
+      };
+      state.mode = 'choice';
+      return;
+    }
+    const chosen = WARDROBE_COLOURS[page * pageSize + idx];
+    if (!chosen) { state.mode = 'overworld'; return; }
+    state.player.appearance = Object.assign({}, state.player.appearance || {},
+      { color: chosen.toLowerCase() });
+    showFlash(chosen + ' outfit on!');
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+    state.mode = 'overworld';
+  }
+
   // Branching choice render: prompt + 2-4 options. The dialog box itself
   // is reused (flat panel under the choice list) so the speaker stays
   // visible.
@@ -1410,6 +1462,10 @@
     }
     if (npc.tower) {
       openTowerFlow(npc);
+      return;
+    }
+    if (npc.wardrobe) {
+      openWardrobeFlow(npc);
       return;
     }
     if (npc.shop) {

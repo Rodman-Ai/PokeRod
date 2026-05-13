@@ -20,9 +20,37 @@
     return kindPrefix + '_' + d + '_' + f;
   }
 
+  // Player appearance: hue-rotate the pre-rendered atlas sprite by the
+  // player's favourite colour so each save's avatar reads as different.
+  // Falls back to no filter (the red default) when state isn't ready
+  // yet or the colour string is unknown.
+  const APPEARANCE_FILTER = {
+    red:    null,
+    orange: 'hue-rotate(25deg)',
+    yellow: 'hue-rotate(50deg) saturate(1.15)',
+    green:  'hue-rotate(110deg)',
+    blue:   'hue-rotate(220deg)',
+    purple: 'hue-rotate(270deg)',
+    pink:   'hue-rotate(320deg)',
+    black:  'saturate(0) brightness(0.6)'
+  };
+  function playerAppearanceFilter() {
+    const s = window.PR_GAME && window.PR_GAME.state;
+    if (!s || !s.player) return null;
+    const ap = s.player.appearance;
+    const key = String((ap && ap.color) || s.player.favColor || 'red').toLowerCase();
+    return APPEARANCE_FILTER[key] || null;
+  }
+
   function drawPlayer(ctx, sx, sy, dir, frame) {
     if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
+    const filter = playerAppearanceFilter();
+    if (filter) {
+      ctx.save();
+      ctx.filter = filter;
+    }
     window.PR_ATLAS.drawKey(ctx, spriteKey('player', dir, frame), sx, sy);
+    if (filter) ctx.restore();
   }
 
   function drawNpc(ctx, sx, sy, kind, dir, frame /*, flipX */) {
