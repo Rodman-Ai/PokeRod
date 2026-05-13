@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.25';
-  const BUILD = '2026.05.11-167';
+  const VERSION = 'v0.55.26';
+  const BUILD = '2026.05.11-168';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -140,7 +140,7 @@
       el.addEventListener('pointerup', trigger);
       el.addEventListener('touchend', trigger, { passive:false });
     };
-    bindStart(document.getElementById('btn-new'),      () => { unlock(); startNewGame(); });
+    bindStart(document.getElementById('btn-new'),      () => { unlock(); offerNGPlusOrNew(); });
     bindStart(document.getElementById('btn-continue'), () => { unlock(); continueGame(); });
     // Tap anywhere on the title overlay starts the game.
     const titleEl = document.getElementById('title');
@@ -205,6 +205,66 @@
   function transitionToIntro() {
     state.newProfile = null;
     state.mode = 'intro';
+  }
+
+  // If any save slot has cleared the champion (CINDER badge), offer
+  // NG+ on NEW GAME click. NG+ carries over Dex / Trophies / play
+  // stats / settings and bumps trainer levels by +5 per cycle.
+  // Decline keeps the regular new-game flow which leaves the prior
+  // saves alone (NG+ specifically overwrites the cleared slot).
+  function offerNGPlusOrNew() {
+    const championSlot = findChampionSlot();
+    if (championSlot < 0) { startNewGame(); return; }
+    let yes = false;
+    try {
+      if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+        yes = window.confirm(
+          'NEW GAME+ available! Carry over Dex, Trophies, and play stats? ' +
+          'Trainers will be +5 levels per cycle. Cancel for a fresh new game.');
+      }
+    } catch (_) { /* fall back to regular */ }
+    if (yes) startNGPlus(championSlot);
+    else startNewGame();
+  }
+  function findChampionSlot() {
+    if (!window.PR_SAVE || !window.PR_SAVE.load) return -1;
+    for (let s = 0; s < 3; s++) {
+      const data = window.PR_SAVE.load(s);
+      if (data && data.flags && data.flags.beatChampion) return s;
+    }
+    return -1;
+  }
+  function startNGPlus(slot) {
+    const prev = window.PR_SAVE.load(slot);
+    if (!prev) { startNewGame(); return; }
+    const keepDexSeen = prev.dexSeen || (prev.dex && prev.dex.seen) || [];
+    const keepDexCaught = prev.dexCaught || (prev.dex && prev.dex.caught) || [];
+    const keepAchv = (prev.player && prev.player.achievements) || [];
+    const keepStats = Object.assign({}, prev.player && prev.player.stats || {});
+    const prevNg = (prev.flags && (prev.flags.ngPlusCount | 0)) || 0;
+    state.activeSlot = slot;
+    window.PR_SAVE.clear(slot);
+    state.player = { name:(prev.player && prev.player.name) || 'YOU',
+                     map:'rodport', x:6, y:11, dir:'down', money:500, balls:5, steps:0,
+                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1, bicycle:1 },
+                     equipment: { trinket: null },
+                     stats: keepStats,
+                     achievements: keepAchv };
+    state.party = [];
+    state.flags = {
+      starterChosen: false,
+      beatChampion: false,   // earned again next time
+      ngPlusCount: prevNg + 1
+    };
+    state.defeatedTrainers = new Set();
+    state.dex = { seen: new Set(keepDexSeen), caught: new Set(keepDexCaught) };
+    if (window.PR_ITEMS) window.PR_ITEMS.ensureBag(state);
+    state.world = new window.PR_WORLD.World(state);
+    state.intro = { page: 0, charT: 0 };
+    state.newProfile = { page: 0, idx: 0 };
+    state.mode = 'newprofile';
+    if (window.PR_STORY) window.PR_STORY.ensureFlags(state);
+    showOverlay(false);
   }
 
   function continueGame() {
@@ -1101,8 +1161,9 @@
       if (!npc || !npc.trainer || !Array.isArray(npc.trainer.team)) throw new Error('trainer team missing');
       step = 'build-team';
       const diff = (state.settings && DIFFICULTY[state.settings.difficulty]) || DIFFICULTY.normal;
+      const ngLvl = (state.flags && (state.flags.ngPlusCount | 0)) * 5;
       const team = npc.trainer.team.map(([sp, lv]) =>
-        window.PR_DATA.makeMon(sp, Math.max(1, (lv | 0) + (diff.trainerLvDelta || 0))));
+        window.PR_DATA.makeMon(sp, Math.max(1, (lv | 0) + (diff.trainerLvDelta || 0) + ngLvl)));
       step = 'construct-battle';
       state.battle = new window.PR_BATTLE.Battle(state, {
         trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat },
@@ -1750,6 +1811,7 @@
     let footer = null;
     if (v.page === 0) {
       // TRAINER
+      const ngPlus = (flags.ngPlusCount | 0);
       rows = [
         ['AREA', map ? map.name.toUpperCase().slice(0, 20) : (state.player.map || '?').toUpperCase()],
         ['PARTY', String((state.party || []).length) + '/6'],
@@ -1757,7 +1819,8 @@
         ['EARNED', '$' + (stats.totalEarned || 0)],
         ['SPENT', '$' + (flags.totalSpent || 0)],
         ['PLAY TIME', fmtTime(stats.timePlayed)],
-        ['BADGES', String(badges) + '/8']
+        ['BADGES', String(badges) + '/8'],
+        ['NG+ CYCLE', ngPlus > 0 ? ('x' + ngPlus + ' (+' + (ngPlus * 5) + ' LV)') : '-']
       ];
     } else if (v.page === 1) {
       // BATTLES
@@ -3822,6 +3885,12 @@
         state.player.badges.push(battle.opts.badge);
         earnedBadge = battle.opts.badge;
         showFlash('GOT THE ' + battle.opts.badge + ' BADGE!');
+        // CINDER is the champion's badge - flag the save as
+        // champion-cleared so the title screen can offer NG+.
+        if (battle.opts.badge === 'CINDER') {
+          if (!state.flags) state.flags = {};
+          state.flags.beatChampion = true;
+        }
         if (window.PR_ACHV) {
           window.PR_ACHV.unlock(state, 'first_badge');
           if (state.player.badges.length >= 8) window.PR_ACHV.unlock(state, 'all_badges');
