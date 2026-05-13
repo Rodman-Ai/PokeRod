@@ -2611,6 +2611,13 @@
       this.state.onPause();
       return;
     }
+    // SELECT opens the region map directly so the player can fast-travel
+    // without diving through the pause menu. Skipped while a flash /
+    // dialog overlay is taking input.
+    if (this.state.onWorldMap && I.consumePressed('Shift')) {
+      this.state.onWorldMap();
+      return;
+    }
     if (I.consumePressed('z')) {
       if (this.tryInteract()) return;
     }

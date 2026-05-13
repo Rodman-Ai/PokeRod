@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.17';
-  const BUILD = '2026.05.11-159';
+  const VERSION = 'v0.55.18';
+  const BUILD = '2026.05.11-160';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -84,6 +84,7 @@
     openDialog([name + ':', line]);
   };
   state.onPause = openPauseMenu;
+  state.onWorldMap = openWorldMap;
   state.onBattleEnd = endBattle;
 
   function showOverlay(show) {
@@ -2857,8 +2858,36 @@
         state.mode = 'overworld';
         return;
       }
+      // Fast travel gate: need at least 1 badge (the "Fly" unlock) and
+      // the destination must have been visited at least once. Otherwise
+      // the warp is denied with a flash message - the map stays open so
+      // the player can pick a different town.
+      const badges = (state.player.badges || []).length;
+      if (badges < 1) {
+        showFlash('NEED A BADGE TO FLY!');
+        window.PR_SFX && window.PR_SFX.play('error');
+        return;
+      }
+      if (!isWorldNodeVisited(state, target)) {
+        showFlash("HAVEN'T BEEN THERE YET!");
+        window.PR_SFX && window.PR_SFX.play('error');
+        return;
+      }
       warpTo(target);
     }
+  }
+  function isWorldNodeVisited(state, node) {
+    if (!node) return false;
+    const fv = state.flags && state.flags.firstVisited;
+    if (!fv) return false;
+    if (fv[node.id]) return true;
+    // A town also counts as visited if any of its interior maps has
+    // been visited (the player has stepped into the town one way or
+    // another). WORLD_MAP_HINTS maps interior map ids -> town id.
+    for (const k of Object.keys(WORLD_MAP_HINTS)) {
+      if (WORLD_MAP_HINTS[k] === node.id && fv[k]) return true;
+    }
+    return false;
   }
 
   function warpTo(town) {
@@ -2898,10 +2927,13 @@
     for (const link of WORLD_LINKS) drawWorldLink(link);
 
     const currentIdx = worldNodeIndexForMap(state.player.map);
+    const badges = (state.player.badges || []).length;
+    const canFly = badges >= 1;
     for (let i = 0; i < WORLD_NODES.length; i++) {
       const n = WORLD_NODES[i];
       const isSel = i === state.map.idx;
       const isHere = i === currentIdx;
+      const visited = isWorldNodeVisited(state, n);
       const r = isSel ? 6 : 5;
       ctx.fillStyle = 'rgba(32,18,8,0.35)';
       ctx.fillRect(n.x - r - 1, n.y - r + 2, r * 2 + 4, r * 2 + 3);
@@ -2909,20 +2941,31 @@
       ctx.fillRect(n.x - r - 2, n.y - r - 2, r * 2 + 4, r * 2 + 4);
       ctx.fillStyle = '#fff8d8';
       ctx.fillRect(n.x - r - 1, n.y - r - 1, r * 2 + 2, r * 2 + 2);
-      ctx.fillStyle = isSel ? '#f0c020' : n.color;
+      const tile = isSel ? '#f0c020' : (visited ? n.color : '#9a9082');
+      ctx.fillStyle = tile;
       ctx.fillRect(n.x - r, n.y - r, r * 2, r * 2);
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.fillRect(n.x - r + 1, n.y - r + 1, r * 2 - 2, 2);
-      ctx.fillStyle = isHere ? '#e83838' : '#fff';
+      ctx.fillStyle = isHere ? '#e83838' : (visited ? '#fff' : '#d8c8b0');
       ctx.fillRect(n.x - 2, n.y - 2, 4, 4);
       if (isHere) window.PR_UI.drawText(ctx, '*', n.x + 6, n.y - 7, '#e83838');
-      window.PR_UI.drawText(ctx, n.short, n.x - 9, n.y + 8, '#202020');
+      else if (!visited) {
+        // Locked marker on unvisited towns - small `?` over the pin so
+        // the player knows fly won't land here yet.
+        window.PR_UI.drawText(ctx, '?', n.x - 2, n.y - 2, '#403828');
+      }
+      const labelColor = visited ? '#202020' : '#6a604c';
+      window.PR_UI.drawText(ctx, n.short, n.x - 9, n.y + 8, labelColor);
       if (isSel) {
         ctx.fillStyle = '#202020';
         ctx.fillRect(n.x - r - 3, n.y - r - 5, r * 2 + 6, 2);
         ctx.fillRect(n.x - r - 3, n.y + r + 3, r * 2 + 6, 2);
       }
     }
+    // Fly status hint at the bottom-left of the map panel.
+    window.PR_UI.drawText(ctx,
+      canFly ? 'FLY: A WARPS' : 'FLY: LOCKED (NEED A BADGE)',
+      x + 8, y + h - 12, canFly ? '#208830' : '#806040');
 
     const sel = WORLD_NODES[state.map.idx];
     drawWorldAreaPopup(sel, currentIdx);
