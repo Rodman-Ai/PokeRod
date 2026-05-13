@@ -15,6 +15,33 @@
     return 1.0;
   }
 
+  // Per-biome battle backdrop palette. Default 'grass' matches the
+  // colors PokeRod has shipped since v0.x. Cave / interior maps use
+  // the dark variant since they encounter inside dungeons.
+  const BIOME_PALETTES = {
+    grass:  { sky:'#a8c0e8', ground:'#5cae4c', platTop:'#3a8030', platShadow:'#2a6020' },
+    desert: { sky:'#f0c878', ground:'#d8a850', platTop:'#b07820', platShadow:'#805818' },
+    snow:   { sky:'#d8e8f8', ground:'#e0e8f0', platTop:'#a8b8c8', platShadow:'#788898' },
+    cave:   { sky:'#181822', ground:'#383038', platTop:'#503848', platShadow:'#302028' },
+    beach:  { sky:'#b8d8f0', ground:'#f0d878', platTop:'#c8a040', platShadow:'#906838' },
+    forest: { sky:'#98b890', ground:'#388838', platTop:'#205820', platShadow:'#103810' },
+    rock:   { sky:'#c0c0d0', ground:'#888070', platTop:'#605848', platShadow:'#383028' }
+  };
+  // Cheap map-id heuristic - keeps the biome detection here rather
+  // than threading a field through every map definition. Matches the
+  // major outdoor and dungeon maps PokeRod ships.
+  function biomeForMap(m) {
+    if (!m) return 'grass';
+    const id = (m.id || '').toLowerCase();
+    if (m.interior || /cave|cavern|tunnel|grotto/.test(id)) return 'cave';
+    if (/desert|dune/.test(id)) return 'desert';
+    if (/snow|frost|peak|glacier|ice/.test(id)) return 'snow';
+    if (/beach|sea|harbor|coast|searoute|tide/.test(id)) return 'beach';
+    if (/wood|forest|pebble|leaf|fern|grove/.test(id)) return 'forest';
+    if (/highspire|summit|rock|mountain|crest|ruins/.test(id)) return 'rock';
+    return 'grass';
+  }
+
   function Battle(state, opts) {
     this.state = state;
     this.opts = opts || {};
@@ -88,6 +115,10 @@
     if (this.activeAnim) {
       this.activeAnim.t += dt;
       if (this.activeAnim.t >= this.activeAnim.duration) this.activeAnim = null;
+    }
+    if (this.ballAnim) {
+      this.ballAnim.t += dt;
+      if (this.ballAnim.t >= this.ballAnim.duration) this.ballAnim = null;
     }
 
     // Animate hp bars toward target. The rate scales with the
@@ -769,6 +800,18 @@
     if (items) items.take(this.state, ballId, 1);
     else this.state.player.balls--; // fallback if items module is missing
     window.PR_SFX && window.PR_SFX.play('ball');
+    // Visual ball-throw arc from the player sprite (back-view, left
+    // side) to the foe sprite (front-view, right side). Runs in
+    // parallel with the "You threw a BALL!" message; on `fast` text
+    // speed the player advances past the message before the arc
+    // finishes - that's fine, it just feels snappier.
+    this.ballAnim = {
+      t: 0,
+      duration: 0.7,
+      ballId: ballId,
+      fromX: 24 + 28, fromY: 58 + 20,
+      toX:   160 + 24, toY:   30 + 24
+    };
     this.queue('You threw a ' + ballName + '!');
     const sp = window.PR_DATA.CREATURES[this.foe.species];
     const rate = sp.catchRate || 45;
@@ -933,22 +976,24 @@
     let shakeX = 0;
     if (this.shakeTimer > 0) shakeX = (Math.sin(this.timer * 80) * 2) | 0;
 
-    // Background sky/ground. Routed through pf() so monochrome eras
-    // (gb_red, gb_pocket) era-tone the field instead of rendering raw
-    // sky-blue + grass-green.
-    ctx.fillStyle = window.PR_UI.pf('#a8c0e8');
+    // Background sky/ground - per-biome palette so battles in deserts,
+    // caves, snow, etc. don't all look like grassy fields. Routed
+    // through pf() so monochrome eras still era-tone the field.
+    const map = this.state && this.state.world && this.state.world.currentMap && this.state.world.currentMap();
+    const biome = BIOME_PALETTES[biomeForMap(map)] || BIOME_PALETTES.grass;
+    ctx.fillStyle = window.PR_UI.pf(biome.sky);
     ctx.fillRect(0, 0, VIEW_W, 90);
-    ctx.fillStyle = window.PR_UI.pf('#5cae4c');
+    ctx.fillStyle = window.PR_UI.pf(biome.ground);
     ctx.fillRect(0, 90, VIEW_W, VIEW_H - 90);
     // Foe platform.
-    ctx.fillStyle = window.PR_UI.pf('#3a8030');
+    ctx.fillStyle = window.PR_UI.pf(biome.platTop);
     ctx.fillRect(140, 70, 90, 8);
-    ctx.fillStyle = window.PR_UI.pf('#2a6020');
+    ctx.fillStyle = window.PR_UI.pf(biome.platShadow);
     ctx.fillRect(140, 78, 90, 2);
     // Player platform.
-    ctx.fillStyle = window.PR_UI.pf('#3a8030');
+    ctx.fillStyle = window.PR_UI.pf(biome.platTop);
     ctx.fillRect(10, 82, 90, 8);
-    ctx.fillStyle = window.PR_UI.pf('#2a6020');
+    ctx.fillStyle = window.PR_UI.pf(biome.platShadow);
     ctx.fillRect(10, 90, 90, 2);
 
     // Foe sprite.
@@ -962,6 +1007,24 @@
     const meY = 58 - (this.faintAnim.me * 30);
     if (this.faintAnim.me < 1 || this.me.hp > 0) {
       window.PR_MONS.drawCreature(ctx, this.me.species, 24 + shakeX, meY, 56, true, this.me);
+    }
+
+    // Ball-throw arc - parabolic trajectory from the player's hand to
+    // the foe sprite. Drawn before the foe damage flash so the ball
+    // reads as landing on the foe.
+    if (this.ballAnim) {
+      const a = this.ballAnim;
+      const k = Math.min(1, a.t / a.duration);
+      const px = a.fromX + (a.toX - a.fromX) * k;
+      const ly = a.fromY + (a.toY - a.fromY) * k;
+      const py = ly - Math.sin(k * Math.PI) * 32;
+      const size = 12;
+      if (window.PR_ITEMS && window.PR_ITEMS.drawIcon) {
+        window.PR_ITEMS.drawIcon(ctx, a.ballId, (px - size / 2) | 0, (py - size / 2) | 0, size);
+      } else {
+        ctx.fillStyle = window.PR_UI.pf('#e83838');
+        ctx.fillRect((px - 3) | 0, (py - 3) | 0, 6, 6);
+      }
     }
 
     // Damage flash.
