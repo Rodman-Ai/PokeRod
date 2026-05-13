@@ -329,6 +329,13 @@
       detail:'A red folding bike. While riding, every step takes half the time. Auto-stows when surfing or indoors.',
       kind:'key', icon:'rod', color:'#e84848', accent:'#f0e0a0',
       key:true, price:0
+    },
+    stew: {
+      id:'stew', name:'STEW',
+      desc:"MOM's berry stew. Restores 120 HP.",
+      detail:"A bowl of warm berry stew. Slow-cooked with care. Restores 120 HP to one ally.",
+      kind:'heal', icon:'bottle', color:'#a06030', accent:'#f0c020',
+      amount:120, target:'ally', price:0
     }
   };
 
@@ -522,7 +529,7 @@
       out.push({ id, count: state.player.bag[id], def: it });
     }
     // Stable order roughly by category.
-    const order = ['rodball','greatball','quickball','cavernball','heavy_ball','friend_ball','dusk_ball','ultraball','potion','superpotion','hyperpotion','maxpotion','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','old_rod','pokeflute','bicycle','repel','super_repel'];
+    const order = ['rodball','greatball','quickball','cavernball','heavy_ball','friend_ball','dusk_ball','ultraball','potion','superpotion','hyperpotion','maxpotion','stew','antidote','burnheal','paralyzeheal','awakening','fullheal','revive','maxrevive','oranberry','sitrusberry','pechaberry','soothe_bell','lucky_egg','lucky_charm','scholars_glasses','masters_pendant','old_rod','pokeflute','bicycle','repel','super_repel'];
     out.sort((a,b) => {
       const ai = order.indexOf(a.id), bi = order.indexOf(b.id);
       return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
