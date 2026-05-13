@@ -135,6 +135,194 @@
       drums: 'k s k s k s k s k s k s k s k s'.split(' ') };
   }
 
+  // ---- Biome tracks ---------------------------------------------------
+
+  function caveTrack() {
+    const bpm = 88, beat = 60 / bpm;
+    const lead = [
+      ['A4',1],['C5',1],['E5',2],
+      ['D5',1],['B4',1],['A4',2],
+      ['E4',1],['G4',1],['B4',2],
+      ['A4',1],['G4',1],['A4',2],
+      ['C5',1],['B4',1],['A4',2],
+      [null,2],['E5',2],
+      ['D5',2],['C5',2],
+      ['A4',2],[null,2]
+    ];
+    const bass = [
+      ['A2',2],['A2',2],['F2',2],['F2',2],
+      ['E2',2],['E2',2],['A2',2],['A2',2],
+      ['F2',2],['F2',2],['G2',2],['G2',2],
+      ['A2',2],['A2',2],['E2',2],['E2',2]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k . . . . . s . k . . . . . s .'.split(' ') };
+  }
+
+  function beachTrack() {
+    const bpm = 116, beat = 60 / bpm;
+    const lead = [
+      ['C5',1],['E5',1],['G5',1],['E5',1],
+      ['F5',1],['A5',1],['G5',2],
+      ['E5',1],['D5',1],['C5',1],['D5',1],
+      ['E5',2],[null,2],
+      ['G4',1],['B4',1],['D5',1],['B4',1],
+      ['C5',1],['E5',1],['D5',2],
+      ['F5',1],['E5',1],['D5',1],['C5',1],
+      ['C5',2],[null,2]
+    ];
+    const bass = [
+      ['C3',2],['C3',2],['F3',2],['F3',2],
+      ['G3',2],['G3',2],['C3',2],['C3',2],
+      ['G2',2],['G2',2],['C3',2],['C3',2],
+      ['F3',2],['F3',2],['G3',2],['G3',2]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k h h h s h h h k h h h s h h h'.split(' ') };
+  }
+
+  function desertTrack() {
+    const bpm = 92, beat = 60 / bpm;
+    const lead = [
+      ['D5',2],['F5',1],['G5',1],
+      ['A5',2],['G5',2],
+      ['F5',1],['G5',1],['A5',2],
+      ['G5',4],
+      ['D5',2],['F5',2],
+      ['G5',2],['A5',2],
+      ['Bb5',1],['A5',1],['G5',2],
+      ['F5',2],['D5',2]
+    ];
+    const bass = [
+      ['D3',4],['D3',4],
+      ['G2',4],['G2',4],
+      ['F3',4],['F3',4],
+      ['D3',4],['D3',4]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k . . . . . . . s . . . . . . .'.split(' ') };
+  }
+
+  function snowlandTrack() {
+    const bpm = 96, beat = 60 / bpm;
+    const lead = [
+      ['D5',2],['F5',2],
+      ['A5',2],['G5',2],
+      ['F5',1],['E5',1],['D5',2],
+      ['F5',4],
+      ['G5',2],['A5',2],
+      ['Bb5',2],['A5',2],
+      ['G5',1],['F5',1],['E5',2],
+      ['D5',4]
+    ];
+    const bass = [
+      ['D3',4],['D3',4],
+      ['F3',4],['F3',4],
+      ['G3',4],['G3',4],
+      ['D3',4],['D3',4]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k . . . s . . . k . . . s . . .'.split(' ') };
+  }
+
+  function mountainTrack() {
+    const bpm = 120, beat = 60 / bpm;
+    const lead = [
+      ['G4',1],['B4',1],['D5',1],['G5',1],
+      ['F5',1],['D5',1],['B4',2],
+      ['C5',1],['E5',1],['G5',1],['C6',1],
+      ['B5',2],['G5',2],
+      ['A5',1],['G5',1],['F5',1],['E5',1],
+      ['D5',2],['G5',2],
+      ['F5',1],['E5',1],['D5',1],['C5',1],
+      ['G4',4]
+    ];
+    const bass = [
+      ['G2',1],['D3',1],['G2',1],['D3',1],
+      ['G2',1],['D3',1],['G2',1],['D3',1],
+      ['C3',1],['G3',1],['C3',1],['G3',1],
+      ['C3',1],['G3',1],['C3',1],['G3',1],
+      ['F2',1],['C3',1],['F2',1],['C3',1],
+      ['G2',1],['D3',1],['G2',1],['D3',1],
+      ['C3',1],['G3',1],['C3',1],['G3',1],
+      ['G2',1],['D3',1],['G2',1],['D3',1]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k s k s k s k s k s k s k s k s'.split(' ') };
+  }
+
+  // ---- Weather override tracks ---------------------------------------
+
+  function rainMusTrack() {
+    const bpm = 104, beat = 60 / bpm;
+    const lead = [
+      ['A4',1],['C5',1],['E5',2],
+      ['D5',1],['B4',1],['A4',2],
+      ['G4',1],['A4',1],['B4',2],
+      ['A4',2],[null,2],
+      ['E5',1],['D5',1],['C5',2],
+      ['B4',1],['A4',1],['G4',2],
+      ['F4',1],['G4',1],['A4',2],
+      ['A4',2],[null,2]
+    ];
+    const bass = [
+      ['A2',2],['A2',2],['F2',2],['F2',2],
+      ['G2',2],['G2',2],['A2',2],['A2',2],
+      ['E2',2],['E2',2],['F2',2],['F2',2],
+      ['G2',2],['G2',2],['A2',2],['A2',2]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k h h h s h h h k h h h s h h h'.split(' ') };
+  }
+
+  function thunderMusTrack() {
+    const bpm = 144, beat = 60 / bpm;
+    const lead = [
+      ['D5',0.5],['D5',0.5],['F5',0.5],['A5',0.5],
+      ['G5',0.5],['F5',0.5],['D5',1],
+      ['Bb4',0.5],['D5',0.5],['F5',0.5],['Bb5',0.5],
+      ['A5',2],
+      ['D5',0.5],['F5',0.5],['A5',0.5],['D6',0.5],
+      ['C6',0.5],['A5',0.5],['F5',1],
+      ['G5',0.5],['F5',0.5],['E5',0.5],['D5',0.5],
+      ['D5',2]
+    ];
+    const bass = [
+      ['D2',0.5],['D2',0.5],['D2',0.5],['D2',0.5],
+      ['D2',0.5],['D2',0.5],['D2',0.5],['D2',0.5],
+      ['Bb2',0.5],['Bb2',0.5],['Bb2',0.5],['Bb2',0.5],
+      ['A2',0.5],['A2',0.5],['A2',0.5],['A2',0.5],
+      ['D2',0.5],['D2',0.5],['D2',0.5],['D2',0.5],
+      ['F2',0.5],['F2',0.5],['F2',0.5],['F2',0.5],
+      ['G2',0.5],['G2',0.5],['Bb2',0.5],['Bb2',0.5],
+      ['A2',0.5],['A2',0.5],['A2',0.5],['A2',0.5]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k k s s k k s s k k s s k k s s'.split(' ') };
+  }
+
+  function fogMusTrack() {
+    const bpm = 80, beat = 60 / bpm;
+    const lead = [
+      ['D5',4],
+      ['F5',4],
+      ['E5',2],['D5',2],
+      ['C5',4],
+      ['G4',4],
+      ['Bb4',4],
+      ['A4',2],['G4',2],
+      ['D4',4]
+    ];
+    const bass = [
+      ['D3',4],['D3',4],
+      ['F3',4],['F3',4],
+      ['G2',4],['G2',4],
+      ['D3',4],['D3',4]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k . . . . . . . s . . . . . . .'.split(' ') };
+  }
+
   function victoryTrack() {
     const bpm = 140, beat = 60 / bpm;
     const lead = [
@@ -155,7 +343,10 @@
 
   const TRACKS = {
     title: titleTrack, town: townTrack, route: routeTrack,
-    battle: battleTrack, victory: victoryTrack
+    battle: battleTrack, victory: victoryTrack,
+    cave: caveTrack, beach: beachTrack, desert: desertTrack,
+    snowland: snowlandTrack, mountain: mountainTrack,
+    rain_mus: rainMusTrack, thunder_mus: thunderMusTrack, fog_mus: fogMusTrack
   };
 
   function play(name) {
