@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.26';
-  const BUILD = '2026.05.11-168';
+  const VERSION = 'v0.55.27';
+  const BUILD = '2026.05.11-169';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -674,6 +674,121 @@
     state.mode = 'choice';
   }
 
+  // ---------- Battle Tower (postgame) -----------------------------
+  // Talking to a tower NPC opens a streak picker. Each streak is a
+  // chain of trainer battles with a random rental opponent per round
+  // and a level scaling +1 per round won. Party is auto-healed
+  // between rounds. Winning the full streak pays a money reward and
+  // updates the best-streak record. Losing ends the run early.
+  function openTowerFlow(npc) {
+    const flags = state.flags || (state.flags = {});
+    if (npc.tower && npc.tower.requireChampion && !flags.beatChampion) {
+      openDialog([
+        'TOWER LEADER:',
+        'Beat the CHAMPION first.',
+        'Only then is the tower open to you.'
+      ]);
+      return;
+    }
+    const greet = (npc.tower && npc.tower.greeting) ||
+                  (npc.dialog && npc.dialog.length ? [npc.dialog[0]] : ['Welcome to the tower.']);
+    openDialog(greet, () => {
+      state.dialog = {
+        choice: {
+          prompt: 'Pick a streak.',
+          options: ['5 wins ($2,500)', '10 wins ($7,500)', '15 wins ($20,000)', 'Cancel'],
+          cursor: 0,
+          onPick: (idx) => _towerStartStreak(idx, npc)
+        }
+      };
+      state.mode = 'choice';
+    });
+  }
+  function _towerStartStreak(idx, npc) {
+    state.dialog = null;
+    if (idx === 3) { state.mode = 'overworld'; return; }
+    const targets = [5, 10, 15];
+    const rewards = [2500, 7500, 20000];
+    const target = targets[idx];
+    const reward = rewards[idx];
+    const baseLevel = (npc.tower && npc.tower.baseLevel) || 40;
+    state.flags = state.flags || {};
+    state.flags.towerActive = { target, streak: 0, baseLevel, reward };
+    state.mode = 'overworld';
+    _towerStartRound();
+  }
+  function _towerStartRound() {
+    const t = state.flags && state.flags.towerActive;
+    if (!t) return;
+    // Auto-heal the player's party between rounds. Items can't be
+    // used inside a tower battle so this is the only restore.
+    for (const m of state.party) {
+      if (!m) continue;
+      m.hp = m.stats.hp;
+      m.status = null;
+      for (const mv of m.moves) mv.pp = mv.ppMax;
+    }
+    const level = t.baseLevel + t.streak;
+    const team = _towerBuildOpponent(level);
+    const fakeNpc = {
+      name: 'TOWER RIVAL ' + (t.streak + 1) + '/' + t.target,
+      trainer: {
+        team: team,
+        reward: 0,
+        defeat: ['Round ' + (t.streak + 1) + '/' + t.target + ' cleared!']
+      }
+    };
+    startBattleAgainstTrainer(fakeNpc, '_tower_' + t.streak);
+  }
+  function _towerBuildOpponent(level) {
+    const C = window.PR_DATA && window.PR_DATA.CREATURES;
+    if (!C) return [['nibblet', level]];
+    const ids = Object.keys(C);
+    const pickN = 3;
+    const team = [];
+    const used = new Set();
+    while (team.length < pickN && used.size < ids.length) {
+      const id = ids[Math.floor(Math.random() * ids.length)];
+      if (used.has(id)) continue;
+      used.add(id);
+      team.push([id, level]);
+    }
+    return team;
+  }
+  function _towerOnWin() {
+    const t = state.flags && state.flags.towerActive;
+    if (!t) return false;
+    t.streak++;
+    if (t.streak >= t.target) {
+      // Streak cleared. Pay out, record best, exit tower.
+      addMoney(state, t.reward);
+      _towerRecordBest(t.target, t.streak);
+      showFlash('TOWER CLEAR! +$' + t.reward);
+      state.flags.towerActive = null;
+      if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+      return true;
+    }
+    // Schedule the next round on the next overworld tick. Battles
+    // already returned us to the overworld via endBattle.
+    setTimeout(() => { try { _towerStartRound(); } catch (_) {} }, 200);
+    return true;
+  }
+  function _towerOnLoss() {
+    const t = state.flags && state.flags.towerActive;
+    if (!t) return false;
+    _towerRecordBest(t.target, t.streak);
+    showFlash('Streak: ' + t.streak + '/' + t.target);
+    state.flags.towerActive = null;
+    if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+    return true;
+  }
+  function _towerRecordBest(target, streak) {
+    state.flags = state.flags || {};
+    const best = state.flags.towerBest || (state.flags.towerBest = {});
+    const k = 's' + target;
+    if ((best[k] | 0) < streak) best[k] = streak;
+  }
+
   // Branching choice render: prompt + 2-4 options. The dialog box itself
   // is reused (flat panel under the choice list) so the speaker stays
   // visible.
@@ -1293,6 +1408,10 @@
       openTutorFlow(npc);
       return;
     }
+    if (npc.tower) {
+      openTowerFlow(npc);
+      return;
+    }
     if (npc.shop) {
       const greet = (npc.shop.greeting && npc.shop.greeting.length)
         ? npc.shop.greeting
@@ -1824,6 +1943,8 @@
       ];
     } else if (v.page === 1) {
       // BATTLES
+      const tb = flags.towerBest || {};
+      const towerLine = ((tb.s5 | 0) + '/' + (tb.s10 | 0) + '/' + (tb.s15 | 0));
       rows = [
         ['BATTLES WON', String(stats.battlesWon || 0)],
         ['TRAINER WINS', String(stats.trainerWins || 0)],
@@ -1831,6 +1952,7 @@
         ['ENCOUNTERS', String(stats.encounters || 0)],
         ['BIGGEST $', '$' + (stats.biggestReward || 0)],
         ['CATCHES', String(stats.catches || 0)],
+        ['TOWER BEST', towerLine + ' (5/10/15)'],
         ['WHITEOUTS', String(flags.whiteouts || 0)]
       ];
     } else if (v.page === 2) {
@@ -3852,6 +3974,18 @@
 
   // ---------- Battle end ----------
   function endBattle(outcome, battle) {
+    // Battle Tower chains: every trainer battle marked with a
+    // `_tower_*` npcKey is a tower round. Hook in before the
+    // normal lost / won bookkeeping so the tower flow controls the
+    // next step.
+    if (battle && battle.opts && battle.opts.npcKey &&
+        String(battle.opts.npcKey).startsWith('_tower_')) {
+      if (outcome === 'won')  _towerOnWin();
+      if (outcome === 'lost' || outcome === 'ran') _towerOnLoss();
+      // Skip badge / trainer-stat side effects for tower rounds; the
+      // map's stats are still incremented below since they're a useful
+      // play-time signal.
+    }
     if (outcome === 'lost') {
       ensurePlayerStats();
       // Stash the map we whited out IN before we respawn, so the profile
