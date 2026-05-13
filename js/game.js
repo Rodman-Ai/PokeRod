@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.30';
-  const BUILD = '2026.05.11-172';
+  const VERSION = 'v0.55.31';
+  const BUILD = '2026.05.11-173';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -30,13 +30,48 @@
     starterMenu: null
   };
 
-  // Maps that use the route (action) music. Anything else plays town.
-  const ROUTE_MAPS = new Set([
-    'route1','route2','pebblewood','glimcavern','glimcavern_b1',
-    'route1_hollow','pebblewood_cavern','frostpeak_ice_cave',
-    'searoute_tide_cavern','desert_ruins',
-    'frostpeak','searoute','desert','beach','mountain'
-  ]);
+  // Map id -> biome key for music selection. Unknowns fall back to 'town'.
+  // Adds per-biome character: caves get a sparse minor loop, beaches a
+  // breezy major loop, etc. See audio_music.js TRACKS for the full set.
+  const BIOME_OF = {
+    // grass routes
+    route1:'route', route2:'route', pebblewood:'route', route1_hollow:'route',
+    // caves & dungeons
+    glimcavern:'cave', glimcavern_b1:'cave', pebblewood_cavern:'cave',
+    frostpeak_ice_cave:'cave', searoute_tide_cavern:'cave', desert_ruins:'cave',
+    // snowland
+    frostpeak:'snowland', frostmere:'snowland',
+    // beach / sea
+    beach:'beach', searoute:'beach', harborside:'beach',
+    // desert
+    desert:'desert',
+    // mountain
+    mountain:'mountain', summitvale:'mountain'
+  };
+  // Strong weather kinds override the biome track. Light weather
+  // (overcast, sleet, hail, snow) keeps the biome track and lets the
+  // particle layer + weather SFX carry the mood.
+  const WEATHER_TRACK = {
+    rain:'rain_mus',
+    thunder:'thunder_mus',
+    hurricane:'thunder_mus',
+    fog:'fog_mus'
+  };
+  function biomeOf(map) {
+    return (map && BIOME_OF[map.id]) || 'town';
+  }
+  function pickOverworldTrack() {
+    const m = state.world && state.world.currentMap && state.world.currentMap();
+    if (!m || m.interior) return 'town';
+    const w = window.PR_WEATHER && window.PR_WEATHER.currentKind && window.PR_WEATHER.currentKind();
+    return WEATHER_TRACK[w] || biomeOf(m);
+  }
+  function playOverworldMusic() {
+    if (!window.PR_MUSIC) return;
+    const t = pickOverworldTrack();
+    if (window.PR_MUSIC.current && window.PR_MUSIC.current() === t) return;
+    window.PR_MUSIC.play(t);
+  }
 
   const KONAMI_SEQUENCE = [
     'ArrowUp','ArrowUp','ArrowDown','ArrowDown',
@@ -48,11 +83,7 @@
 
   // Wire callbacks the world will invoke.
   state.onMapChange = () => {
-    if (!window.PR_MUSIC) return;
-    const m = state.world && state.world.currentMap();
-    if (!m) return;
-    if (ROUTE_MAPS.has(m.id)) window.PR_MUSIC.play('route');
-    else window.PR_MUSIC.play('town');
+    playOverworldMusic();
     window.PR_SFX && window.PR_SFX.play('door');
   };
   state.onWildEncounter = startWildEncounter;
@@ -4185,11 +4216,7 @@
     }
     state.world.justEntered = false;
     window.PR_SAVE.save(state);
-    if (window.PR_MUSIC) {
-      const m = state.world.currentMap();
-      if (m && ROUTE_MAPS.has(m.id)) window.PR_MUSIC.play('route');
-      else window.PR_MUSIC.play('town');
-    }
+    playOverworldMusic();
     // Drain the story queue once the world has settled.
     if (window.PR_STORY && window.PR_STORY.drainQueue) {
       setTimeout(() => window.PR_STORY.drainQueue(state), 50);
