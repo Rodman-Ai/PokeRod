@@ -613,7 +613,10 @@ const MAPS = {
     npcs: [
       { x:14, y:7, dir:'down', sprite:'npc_girl', name:'GROCER',
         dialog:["BRINDALE TOWN!","The POKEROD CENTER on the left, MART on the right.","I run the produce stall - try a FARM LUNCH!"],
-        shop:{ greeting:["Welcome to the GROCER's stall!","Country lunches and trail snacks."], extraItems:['farm_lunch'] } }
+        shop:{ greeting:["Welcome to the GROCER's stall!","Country lunches and trail snacks."], extraItems:['farm_lunch'] } },
+      { x:13, y:11, dir:'down', sprite:'npc_old', name:'COACH ELI',
+        dialog:["Forgotten a move? Bring 'em to me.","I can refresh anything they ever knew."],
+        tutor:{ cost:500, greeting:["COACH ELI here.","I can teach an old creature an old trick."] } }
     ],
     decorations:[
       { x:14, y:6, key:'produce_stall' }
