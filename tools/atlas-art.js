@@ -3443,6 +3443,502 @@
     birdFlying(c, x, y, '#181820', '#101018', '#101018', '#383848', '#383028', '#f0c020'));
 
   // ------------------------------------------------------------------
+  // === NEW ZONES: Amusement Park, Castle, Casino (60 decorations) ===
+  // 32x32 transparent overlays placed via map.decorations.
+  // ------------------------------------------------------------------
+
+  // ----- Amusement Park (20) -----
+  regDecor('amu_balloon_red', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 8, 6, '#e83838');
+    px(c, x + 13, y + 6, 2, 1, '#f8a8a8');
+    px(c, x + 16, y + 14, 1, 14, '#f0c890');
+    px(c, x + 14, y + 28, 5, 1, '#603020');
+  });
+  regDecor('amu_balloon_blue', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 8, 6, '#3878d8');
+    px(c, x + 13, y + 6, 2, 1, '#a8c8f0');
+    px(c, x + 16, y + 14, 1, 14, '#f0c890');
+    px(c, x + 14, y + 28, 5, 1, '#603020');
+  });
+  regDecor('amu_balloon_yellow', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 8, 6, '#f0c020');
+    px(c, x + 13, y + 6, 2, 1, '#fff8a8');
+    px(c, x + 16, y + 14, 1, 14, '#f0c890');
+    px(c, x + 14, y + 28, 5, 1, '#603020');
+  });
+  regDecor('amu_pinwheel', TILE, TILE, (c, x, y) => {
+    px(c, x + 15, y + 4, 2, 18, '#a06030');
+    px(c, x + 16, y + 6, 6, 6, '#e83838');
+    px(c, x + 10, y + 6, 6, 6, '#f0c020');
+    px(c, x + 16, y + 12, 6, 6, '#3878d8');
+    px(c, x + 10, y + 12, 6, 6, '#388838');
+    disc(c, x + 16, y + 12, 2, '#fff');
+  });
+  regDecor('amu_carnival_flag', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 2, 2, 28, '#604030');
+    px(c, x + 16, y + 3, 12, 6, '#e83838');
+    px(c, x + 16, y + 9, 12, 6, '#f0c020');
+    px(c, x + 16, y + 15, 12, 6, '#3878d8');
+    px(c, x + 28, y + 6, 1, 3, '#a01818');
+  });
+  regDecor('amu_popcorn_cart', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 12, 24, 14, '#e8e8e8', '#a0a0a0', '#fff');
+    px(c, x + 6, y + 8, 20, 5, '#e83838');
+    px(c, x + 6, y + 8, 20, 1, '#f8a8a8');
+    px(c, x + 10, y + 14, 4, 4, '#f0c020');
+    px(c, x + 18, y + 14, 4, 4, '#f0c020');
+    disc(c, x + 8, y + 27, 2, '#202020');
+    disc(c, x + 24, y + 27, 2, '#202020');
+  });
+  regDecor('amu_ice_cream', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 16, 8, 12, '#f0c890');
+    px(c, x + 12, y + 16, 1, 12, '#a06030');
+    px(c, x + 19, y + 16, 1, 12, '#a06030');
+    disc(c, x + 16, y + 12, 5, '#f8a8c8');
+    disc(c, x + 14, y + 8, 4, '#f8e8a8');
+    px(c, x + 14, y + 6, 1, 1, '#fff');
+  });
+  regDecor('amu_prize_tent', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 14, 24, 14, '#e83838');
+    for (let i = 0; i < 6; i++) px(c, x + 4 + i*4, y + 14, 2, 14, '#fff');
+    px(c, x + 14, y + 18, 4, 10, '#101018');
+    px(c, x + 14, y + 6, 2, 8, '#604030');
+    px(c, x + 16, y + 4, 2, 6, '#f0c020');
+  });
+  regDecor('amu_lantern', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 4, 4, 2, '#604030');
+    px(c, x + 12, y + 6, 8, 10, '#f0c020');
+    px(c, x + 12, y + 6, 8, 1, '#a06030');
+    px(c, x + 12, y + 15, 8, 1, '#a06030');
+    disc(c, x + 16, y + 11, 2, '#fff8a8');
+  });
+  regDecor('amu_string_lights', TILE, TILE, (c, x, y) => {
+    for (let i = 0; i < 6; i++) {
+      const cx = x + 2 + i*5;
+      const cy = y + 4 + (i % 2) * 2;
+      px(c, cx, cy, 1, 1, '#604030');
+      const colors = ['#e83838','#f0c020','#3878d8','#388838','#f098a0','#f8e8a8'];
+      px(c, cx - 1, cy + 1, 3, 3, colors[i]);
+    }
+  });
+  regDecor('amu_photo_booth', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 6, y + 6, 20, 22, '#383078', '#181028', '#5848a8');
+    px(c, x + 10, y + 10, 12, 6, '#a8d0e8');
+    px(c, x + 10, y + 16, 12, 1, '#181028');
+    px(c, x + 12, y + 18, 8, 4, '#f0c020');
+    px(c, x + 14, y + 24, 4, 2, '#181018');
+  });
+  regDecor('amu_mascot_statue', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 10, 5, '#f098a0');
+    disc(c, x + 13, y + 10, 1, '#181818');
+    disc(c, x + 19, y + 10, 1, '#181818');
+    px(c, x + 14, y + 12, 4, 1, '#a04060');
+    shaded(c, x + 11, y + 16, 10, 12, '#e83838', '#a01818', '#f8a8a8');
+  });
+  regDecor('amu_dart_wall', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 4, 24, 24, '#a06030', '#604018', '#c89058');
+    disc(c, x + 16, y + 16, 7, '#fff');
+    disc(c, x + 16, y + 16, 5, '#e83838');
+    disc(c, x + 16, y + 16, 3, '#fff');
+    disc(c, x + 16, y + 16, 1, '#e83838');
+  });
+  regDecor('amu_ring_toss', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 24, 16, 4, '#a06030');
+    for (let i = 0; i < 3; i++) {
+      px(c, x + 11 + i*5, y + 16, 2, 8, '#604030');
+    }
+    const ringColors = ['#e83838','#f0c020','#3878d8'];
+    for (let i = 0; i < 3; i++) {
+      const cx = x + 12 + i*5;
+      px(c, cx - 2, y + 14, 4, 1, ringColors[i]);
+      px(c, cx - 2, y + 17, 4, 1, ringColors[i]);
+      px(c, cx - 2, y + 14, 1, 4, ringColors[i]);
+      px(c, cx + 1, y + 14, 1, 4, ringColors[i]);
+    }
+  });
+  regDecor('amu_plush_prize', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 14, 8, '#f0c890');
+    disc(c, x + 12, y + 12, 1, '#101018');
+    disc(c, x + 20, y + 12, 1, '#101018');
+    px(c, x + 14, y + 16, 4, 1, '#a06030');
+    px(c, x + 9, y + 8, 3, 5, '#a06030');
+    px(c, x + 20, y + 8, 3, 5, '#a06030');
+  });
+  regDecor('amu_food_cart', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 16, 24, 10, '#a06030', '#604018', '#c89058');
+    px(c, x + 6, y + 8, 20, 8, '#f0c020');
+    px(c, x + 6, y + 8, 20, 1, '#fff8a8');
+    px(c, x + 8, y + 12, 4, 2, '#e83838');
+    disc(c, x + 9, y + 27, 2, '#181818');
+    disc(c, x + 23, y + 27, 2, '#181818');
+  });
+  regDecor('amu_queue_rail', TILE, TILE, (c, x, y) => {
+    px(c, x + 6, y + 12, 2, 14, '#a8a8b8');
+    px(c, x + 24, y + 12, 2, 14, '#a8a8b8');
+    px(c, x + 8, y + 14, 16, 1, '#a01818');
+    px(c, x + 8, y + 18, 16, 1, '#a01818');
+  });
+  regDecor('amu_ticket_booth', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 8, 24, 20, '#583878', '#281028', '#7858a8');
+    px(c, x + 8, y + 12, 16, 8, '#a8d0e8');
+    px(c, x + 8, y + 16, 16, 1, '#181028');
+    px(c, x + 12, y + 22, 8, 4, '#f0c020');
+    px(c, x + 14, y + 4, 4, 6, '#e83838');
+  });
+  regDecor('amu_carousel_horse', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 14, 22, 12, '#fff', '#a8a8b8', '#f8f8f0');
+    px(c, x + 22, y + 12, 4, 6, '#fff');
+    px(c, x + 24, y + 10, 2, 4, '#fff');
+    px(c, x + 23, y + 12, 1, 1, '#101018');
+    px(c, x + 8, y + 26, 2, 4, '#604030');
+    px(c, x + 22, y + 26, 2, 4, '#604030');
+    px(c, x + 14, y + 8, 2, 8, '#a06030');
+  });
+  regDecor('amu_jackpot_light', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 12, 6, '#f0c020');
+    disc(c, x + 16, y + 12, 4, '#fff8a8');
+    disc(c, x + 16, y + 12, 2, '#fff');
+    px(c, x + 14, y + 18, 4, 8, '#604030');
+  });
+
+  // ----- Castle (20) -----
+  regDecor('cas_banner_red', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 2, 4, 4, '#a06030');
+    shaded(c, x + 8, y + 6, 16, 22, '#a01818', '#600808', '#d83030');
+    px(c, x + 14, y + 14, 4, 4, '#f0c020');
+    px(c, x + 8, y + 28, 4, 2, '#a01818');
+    px(c, x + 12, y + 28, 4, 2, '#600808');
+    px(c, x + 16, y + 28, 4, 2, '#a01818');
+    px(c, x + 20, y + 28, 4, 2, '#600808');
+  });
+  regDecor('cas_banner_blue', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 2, 4, 4, '#a06030');
+    shaded(c, x + 8, y + 6, 16, 22, '#3030a8', '#101058', '#5858d8');
+    disc(c, x + 16, y + 16, 3, '#f0c020');
+    px(c, x + 8, y + 28, 4, 2, '#3030a8');
+    px(c, x + 12, y + 28, 4, 2, '#101058');
+    px(c, x + 16, y + 28, 4, 2, '#3030a8');
+    px(c, x + 20, y + 28, 4, 2, '#101058');
+  });
+  regDecor('cas_knight_armor', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 10, y + 4, 12, 8, '#a8a8b8', '#585858', '#d0d0d8');
+    px(c, x + 12, y + 8, 2, 1, '#181818');
+    px(c, x + 18, y + 8, 2, 1, '#181818');
+    shaded(c, x + 8, y + 12, 16, 14, '#888898', '#383848', '#a8a8b8');
+    px(c, x + 6, y + 14, 2, 8, '#a8a8b8');
+    px(c, x + 24, y + 14, 2, 8, '#a8a8b8');
+    px(c, x + 14, y + 26, 4, 4, '#383838');
+  });
+  regDecor('cas_candelabra', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 18, 4, 10, '#f0c020');
+    px(c, x + 14, y + 18, 4, 1, '#fff8a8');
+    px(c, x + 12, y + 14, 8, 4, '#f0c020');
+    px(c, x + 8, y + 12, 4, 2, '#f0c020');
+    px(c, x + 20, y + 12, 4, 2, '#f0c020');
+    px(c, x + 9, y + 6, 2, 6, '#fff8a8');
+    px(c, x + 15, y + 4, 2, 8, '#fff8a8');
+    px(c, x + 21, y + 6, 2, 6, '#fff8a8');
+    disc(c, x + 10, y + 6, 1, '#f0c020');
+    disc(c, x + 16, y + 4, 1, '#f0c020');
+    disc(c, x + 22, y + 6, 1, '#f0c020');
+  });
+  regDecor('cas_royal_table', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 2, y + 10, 28, 6, '#a06030', '#604018', '#c89058');
+    px(c, x + 2, y + 16, 28, 2, '#a01818');
+    px(c, x + 6, y + 18, 2, 12, '#604030');
+    px(c, x + 24, y + 18, 2, 12, '#604030');
+    disc(c, x + 12, y + 13, 1, '#f0c020');
+    disc(c, x + 20, y + 13, 1, '#f0c020');
+  });
+  regDecor('cas_treasure_chest', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 6, y + 14, 20, 14, '#a06030', '#604018', '#c89058');
+    px(c, x + 6, y + 8, 20, 6, '#a06030');
+    px(c, x + 6, y + 8, 20, 1, '#c89058');
+    px(c, x + 14, y + 14, 4, 4, '#f0c020');
+    disc(c, x + 16, y + 16, 1, '#181818');
+    px(c, x + 6, y + 14, 20, 1, '#604018');
+  });
+  regDecor('cas_sword_display', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 6, y + 4, 20, 24, '#382838', '#181018', '#583058');
+    px(c, x + 15, y + 8, 2, 12, '#a8a8b8');
+    px(c, x + 13, y + 20, 6, 2, '#604030');
+    px(c, x + 14, y + 22, 4, 2, '#604030');
+    disc(c, x + 16, y + 8, 1, '#e83030');
+  });
+  regDecor('cas_rose_vase', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 12, y + 16, 8, 12, '#3878d8', '#181858', '#5898f0');
+    px(c, x + 11, y + 14, 10, 2, '#5898f0');
+    px(c, x + 14, y + 6, 2, 10, '#388838');
+    disc(c, x + 15, y + 6, 2, '#e83030');
+    px(c, x + 18, y + 8, 2, 8, '#388838');
+    disc(c, x + 19, y + 8, 2, '#f098a0');
+  });
+  regDecor('cas_painting', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 4, 24, 24, '#604018', '#3a2010', '#a06838');
+    px(c, x + 7, y + 7, 18, 18, '#a8c8f0');
+    px(c, x + 14, y + 12, 4, 6, '#f0c890');
+    px(c, x + 12, y + 18, 8, 6, '#a01818');
+    disc(c, x + 16, y + 13, 1, '#181818');
+  });
+  regDecor('cas_chandelier', TILE, TILE, (c, x, y) => {
+    px(c, x + 15, y + 0, 2, 6, '#604030');
+    px(c, x + 8, y + 6, 16, 4, '#f0c020');
+    px(c, x + 8, y + 6, 16, 1, '#fff8a8');
+    for (let i = 0; i < 5; i++) {
+      const cx = x + 10 + i*3;
+      px(c, cx, y + 12, 1, 4, '#fff8a8');
+      disc(c, cx, y + 16, 1, '#f0c020');
+    }
+  });
+  regDecor('cas_throne', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 6, y + 4, 20, 22, '#f0c020', '#a08018', '#fff8a8');
+    px(c, x + 8, y + 8, 16, 12, '#a01818');
+    px(c, x + 14, y + 10, 4, 4, '#f0c020');
+    px(c, x + 4, y + 22, 24, 6, '#604030');
+  });
+  regDecor('cas_armor_full', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 12, y + 2, 8, 6, '#a8a8b8', '#585858', '#d0d0d8');
+    px(c, x + 14, y + 5, 1, 1, '#181818');
+    px(c, x + 17, y + 5, 1, 1, '#181818');
+    shaded(c, x + 10, y + 8, 12, 16, '#888898', '#383848', '#a8a8b8');
+    px(c, x + 6, y + 12, 4, 8, '#888898');
+    px(c, x + 22, y + 12, 4, 8, '#888898');
+    px(c, x + 12, y + 24, 4, 6, '#383838');
+    px(c, x + 16, y + 24, 4, 6, '#383838');
+  });
+  regDecor('cas_coat_of_arms', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 8, y + 4, 16, 20, '#a01818', '#600808', '#d83030');
+    px(c, x + 14, y + 8, 4, 8, '#f0c020');
+    px(c, x + 12, y + 12, 8, 4, '#f0c020');
+    disc(c, x + 16, y + 14, 2, '#a01818');
+  });
+  regDecor('cas_pewter_goblet', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 8, 8, 8, '#a8a8b8');
+    px(c, x + 12, y + 8, 8, 1, '#d0d0d8');
+    px(c, x + 14, y + 16, 4, 8, '#888898');
+    px(c, x + 12, y + 24, 8, 2, '#a8a8b8');
+    disc(c, x + 16, y + 12, 2, '#a01818');
+  });
+  regDecor('cas_scroll', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 12, 24, 8, '#f0e8d0');
+    px(c, x + 4, y + 12, 24, 1, '#a08850');
+    px(c, x + 4, y + 19, 24, 1, '#a08850');
+    px(c, x + 4, y + 10, 4, 12, '#604030');
+    px(c, x + 24, y + 10, 4, 12, '#604030');
+    px(c, x + 8, y + 14, 16, 1, '#181018');
+    px(c, x + 8, y + 16, 16, 1, '#181018');
+  });
+  regDecor('cas_kings_crown', TILE, TILE, (c, x, y) => {
+    px(c, x + 8, y + 16, 16, 8, '#f0c020');
+    px(c, x + 8, y + 16, 16, 1, '#fff8a8');
+    px(c, x + 8, y + 12, 2, 4, '#f0c020');
+    px(c, x + 14, y + 8, 4, 8, '#f0c020');
+    px(c, x + 22, y + 12, 2, 4, '#f0c020');
+    disc(c, x + 9, y + 12, 1, '#a01818');
+    disc(c, x + 16, y + 8, 1, '#3878d8');
+    disc(c, x + 23, y + 12, 1, '#a01818');
+  });
+  regDecor('cas_globe', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 22, 4, 6, '#604030');
+    px(c, x + 10, y + 26, 12, 2, '#604030');
+    disc(c, x + 16, y + 12, 8, '#3878d8');
+    disc(c, x + 14, y + 10, 3, '#388838');
+    disc(c, x + 19, y + 14, 2, '#388838');
+  });
+  regDecor('cas_weapon_rack', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 4, 24, 24, '#604030', '#3a2010', '#a06838');
+    px(c, x + 8, y + 8, 2, 16, '#a8a8b8');
+    px(c, x + 14, y + 8, 2, 16, '#a8a8b8');
+    px(c, x + 20, y + 8, 2, 16, '#a8a8b8');
+    px(c, x + 6, y + 8, 6, 1, '#f0c020');
+    px(c, x + 12, y + 8, 6, 1, '#a01818');
+    px(c, x + 18, y + 8, 6, 1, '#3878d8');
+  });
+  regDecor('cas_fireplace', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 4, 24, 24, '#383838', '#181818', '#585858');
+    px(c, x + 8, y + 14, 16, 14, '#181018');
+    disc(c, x + 16, y + 22, 4, '#e83030');
+    disc(c, x + 16, y + 20, 3, '#f0c020');
+    disc(c, x + 16, y + 18, 1, '#fff8a8');
+  });
+  regDecor('cas_tapestry', TILE, TILE, (c, x, y) => {
+    px(c, x + 6, y + 2, 20, 2, '#604030');
+    shaded(c, x + 6, y + 4, 20, 22, '#583058', '#281028', '#783878');
+    px(c, x + 14, y + 8, 4, 8, '#f0c020');
+    px(c, x + 12, y + 16, 8, 4, '#a01818');
+    px(c, x + 6, y + 26, 20, 2, '#382038');
+  });
+
+  // ----- Casino (20) -----
+  regDecor('csn_chip_stack_red', TILE, TILE, (c, x, y) => {
+    for (let i = 0; i < 4; i++) {
+      const cy = y + 22 - i*3;
+      px(c, x + 10, cy, 12, 3, '#a01818');
+      px(c, x + 10, cy, 12, 1, '#e83838');
+      px(c, x + 12, cy + 1, 8, 1, '#fff');
+    }
+  });
+  regDecor('csn_chip_stack_blue', TILE, TILE, (c, x, y) => {
+    for (let i = 0; i < 4; i++) {
+      const cy = y + 22 - i*3;
+      px(c, x + 10, cy, 12, 3, '#283878');
+      px(c, x + 10, cy, 12, 1, '#3878d8');
+      px(c, x + 12, cy + 1, 8, 1, '#fff');
+    }
+  });
+  regDecor('csn_dice', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 14, 12, 12, '#fff', '#a0a0a0', '#fff8e8');
+    px(c, x + 8, y + 18, 2, 2, '#181818');
+    px(c, x + 12, y + 22, 2, 2, '#181818');
+    shaded(c, x + 16, y + 14, 12, 12, '#fff', '#a0a0a0', '#fff8e8');
+    px(c, x + 18, y + 16, 2, 2, '#181818');
+    px(c, x + 22, y + 16, 2, 2, '#181818');
+    px(c, x + 18, y + 22, 2, 2, '#181818');
+    px(c, x + 22, y + 22, 2, 2, '#181818');
+  });
+  regDecor('csn_neon_arrow', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 12, 22, 6, '#e848a8');
+    px(c, x + 5, y + 13, 20, 4, '#f898d0');
+    px(c, x + 22, y + 8, 6, 14, '#e848a8');
+    px(c, x + 24, y + 11, 4, 8, '#f898d0');
+    px(c, x + 16, y + 6, 6, 4, '#a02868');
+  });
+  regDecor('csn_drink', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 8, 8, 14, '#a8d0e8');
+    px(c, x + 12, y + 8, 8, 1, '#fff');
+    px(c, x + 12, y + 12, 8, 6, '#f0c020');
+    px(c, x + 12, y + 22, 8, 1, '#3060a0');
+    px(c, x + 14, y + 22, 4, 6, '#3060a0');
+    px(c, x + 11, y + 28, 10, 2, '#3060a0');
+    disc(c, x + 18, y + 6, 1, '#e83838');
+  });
+  regDecor('csn_jackpot_light', TILE, TILE, (c, x, y) => {
+    px(c, x + 12, y + 22, 8, 6, '#604030');
+    disc(c, x + 16, y + 12, 8, '#fff8a8');
+    disc(c, x + 16, y + 12, 6, '#f0c020');
+    disc(c, x + 16, y + 12, 4, '#fff8a8');
+    px(c, x + 8, y + 4, 2, 2, '#fff8a8');
+    px(c, x + 22, y + 4, 2, 2, '#fff8a8');
+    px(c, x + 4, y + 14, 2, 2, '#fff8a8');
+    px(c, x + 26, y + 14, 2, 2, '#fff8a8');
+  });
+  regDecor('csn_dealer_chair', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 6, y + 4, 20, 16, '#a01818', '#600808', '#d83030');
+    px(c, x + 10, y + 20, 12, 4, '#604030');
+    px(c, x + 10, y + 24, 2, 6, '#604030');
+    px(c, x + 20, y + 24, 2, 6, '#604030');
+  });
+  regDecor('csn_prize_counter', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 2, y + 12, 28, 16, '#604030', '#3a2010', '#a06838');
+    px(c, x + 6, y + 16, 4, 4, '#f0c020');
+    px(c, x + 14, y + 16, 4, 4, '#a01818');
+    px(c, x + 22, y + 16, 4, 4, '#3878d8');
+    px(c, x + 2, y + 12, 28, 1, '#a06838');
+  });
+  regDecor('csn_vending_machine', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 6, y + 2, 20, 28, '#a01818', '#600808', '#d83030');
+    px(c, x + 8, y + 6, 16, 12, '#a8d0e8');
+    px(c, x + 10, y + 8, 4, 4, '#f0c020');
+    px(c, x + 18, y + 8, 4, 4, '#3878d8');
+    px(c, x + 10, y + 14, 4, 2, '#388838');
+    px(c, x + 18, y + 14, 4, 2, '#e83030');
+    px(c, x + 10, y + 20, 12, 4, '#181818');
+    px(c, x + 12, y + 21, 8, 2, '#a8a8b8');
+  });
+  regDecor('csn_cocktail_tray', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 18, 24, 4, '#a8a8b8');
+    px(c, x + 4, y + 18, 24, 1, '#d0d0d8');
+    px(c, x + 8, y + 10, 4, 8, '#a01818');
+    px(c, x + 14, y + 8, 4, 10, '#f0c020');
+    px(c, x + 20, y + 12, 4, 6, '#3878d8');
+    disc(c, x + 9, y + 8, 1, '#e83838');
+    disc(c, x + 22, y + 10, 1, '#3060a0');
+  });
+  regDecor('csn_slot_lever', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 8, y + 6, 16, 22, '#a01818', '#600808', '#d83030');
+    px(c, x + 10, y + 10, 12, 8, '#181018');
+    for (let i = 0; i < 3; i++) {
+      px(c, x + 11 + i*4, y + 12, 3, 4, '#f0c020');
+      px(c, x + 12 + i*4, y + 13, 1, 1, '#fff');
+    }
+    px(c, x + 24, y + 8, 4, 2, '#a8a8b8');
+    px(c, x + 26, y + 10, 2, 6, '#a8a8b8');
+    disc(c, x + 27, y + 16, 2, '#e83838');
+  });
+  regDecor('csn_royal_flush', TILE, TILE, (c, x, y) => {
+    for (let i = 0; i < 5; i++) {
+      const cx = x + 2 + i*5;
+      shaded(c, cx, y + 8, 5, 16, '#fff', '#a0a0a0', '#fff');
+      px(c, cx + 1, y + 10, 1, 2, '#181018');
+      const suits = ['#a01818','#a01818','#a01818','#a01818','#a01818'];
+      disc(c, cx + 2, y + 18, 1, suits[i]);
+    }
+  });
+  regDecor('csn_dollar_sign', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 16, 12, '#388838');
+    disc(c, x + 16, y + 16, 10, '#5cae5c');
+    px(c, x + 14, y + 8, 4, 4, '#f0c020');
+    px(c, x + 12, y + 12, 8, 2, '#f0c020');
+    px(c, x + 12, y + 18, 8, 2, '#f0c020');
+    px(c, x + 14, y + 20, 4, 4, '#f0c020');
+    px(c, x + 15, y + 6, 2, 20, '#f0c020');
+  });
+  regDecor('csn_chip_wheel', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 16, 12, '#181018');
+    disc(c, x + 16, y + 16, 10, '#a01818');
+    disc(c, x + 16, y + 16, 8, '#181018');
+    px(c, x + 4, y + 16, 24, 1, '#f0c020');
+    px(c, x + 16, y + 4, 1, 24, '#f0c020');
+    px(c, x + 7, y + 7, 18, 18, '#fff');
+  });
+  regDecor('csn_neon_sign_2', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 8, 24, 16, '#181018');
+    px(c, x + 6, y + 10, 20, 12, '#a8d0e8');
+    px(c, x + 8, y + 12, 4, 8, '#e848a8');
+    px(c, x + 14, y + 12, 4, 8, '#f0c020');
+    px(c, x + 20, y + 12, 4, 8, '#3878d8');
+  });
+  regDecor('csn_jukebox', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 6, y + 2, 20, 28, '#604030', '#3a2010', '#a06838');
+    px(c, x + 10, y + 6, 12, 8, '#a8d0e8');
+    disc(c, x + 16, y + 10, 3, '#e83030');
+    disc(c, x + 16, y + 10, 1, '#fff');
+    px(c, x + 8, y + 16, 16, 6, '#181018');
+    for (let i = 0; i < 8; i++) px(c, x + 9 + i*2, y + 18, 1, 2, '#f0c020');
+    px(c, x + 10, y + 24, 12, 2, '#a01818');
+  });
+  regDecor('csn_velvet_curtain', TILE, TILE, (c, x, y) => {
+    px(c, x + 4, y + 2, 24, 2, '#f0c020');
+    for (let i = 0; i < 5; i++) {
+      const cx = x + 4 + i*5;
+      shaded(c, cx, y + 4, 5, 24, '#702848', '#380020', '#a04068');
+    }
+    px(c, x + 4, y + 28, 24, 1, '#f0c020');
+  });
+  regDecor('csn_mirror', TILE, TILE, (c, x, y) => {
+    shaded(c, x + 4, y + 4, 24, 24, '#f0c020', '#a08018', '#fff8a8');
+    px(c, x + 7, y + 7, 18, 18, '#a8d0e8');
+    px(c, x + 7, y + 7, 6, 6, '#fff');
+    px(c, x + 19, y + 19, 6, 6, '#fff');
+  });
+  regDecor('csn_microphone', TILE, TILE, (c, x, y) => {
+    px(c, x + 14, y + 16, 4, 14, '#a8a8b8');
+    disc(c, x + 16, y + 10, 5, '#181018');
+    disc(c, x + 16, y + 10, 4, '#383838');
+    for (let i = 0; i < 4; i++) px(c, x + 13 + i, y + 8, 1, 6, '#181018');
+    px(c, x + 12, y + 28, 8, 2, '#383838');
+  });
+  regDecor('csn_prize_wheel', TILE, TILE, (c, x, y) => {
+    disc(c, x + 16, y + 18, 12, '#604030');
+    disc(c, x + 16, y + 18, 10, '#f0c020');
+    disc(c, x + 16, y + 18, 8, '#a01818');
+    px(c, x + 16, y + 8, 1, 20, '#181018');
+    px(c, x + 6, y + 18, 20, 1, '#181018');
+    disc(c, x + 16, y + 18, 2, '#181018');
+    px(c, x + 14, y + 6, 4, 4, '#a01818');
+  });
+
+  // ------------------------------------------------------------------
   // === CHARACTERS ===================================================
   // 32x32 trainer-style sprites with outlined silhouette, multi-tone
   // shading. Uses a parameterised palette per character type.
@@ -3552,7 +4048,25 @@
     npc_marla:  { hat:'#a89868', shirt:'#c0a878', accent:'#684830', pants:'#403828', gear:'map' },
     npc_faye:   { hat:'#80d8e8', shirt:'#fff8e8', accent:'#3878a8', pants:'#286890', gear:'surfboard' },
     npc_wryn:   { hat:'#603020', shirt:'#a03828', accent:'#f0d060', pants:'#582020', gear:'staff' },
-    npc_akira:  { hat:'#c01818', shirt:'#383038', accent:'#f0c020', pants:'#181820', gear:'medal' }
+    npc_akira:  { hat:'#c01818', shirt:'#383038', accent:'#f0c020', pants:'#181820', gear:'medal' },
+    // --- Amusement Park (5 new) ---
+    npc_clown:        { hat:'#e84030', shirt:'#f8f8f0', accent:'#3878d8', pants:'#7028a8', gear:'flower' },
+    npc_ride_op:      { hat:'#583878', shirt:'#a87830', accent:'#f0c020', pants:'#383028', gear:'helmet' },
+    npc_mascot:       { hat:'#f098a0', shirt:'#f8c8d0', accent:'#a04060', pants:'#a04060', gear:'ribbon' },
+    npc_kid_balloon:  { hat:'#f0c020', shirt:'#3878d8', accent:'#e84030', pants:'#283878', gear:'flower' },
+    npc_acrobat:      { hat:'#7030c0', shirt:'#f0c020', accent:'#e83838', pants:'#181828', gear:'star' },
+    // --- Castle (5 new) ---
+    npc_king:         { hat:'#f0c020', shirt:'#a83030', accent:'#f0e8d0', pants:'#583058', gear:'medal' },
+    npc_queen:        { hat:'#a878f0', shirt:'#c8a0e8', accent:'#f0c020', pants:'#583878', gear:'ribbon' },
+    npc_knight:       { hat:'#a8a8b8', shirt:'#888898', accent:'#e83030', pants:'#383848', gear:'helmet' },
+    npc_jester:       { hat:'#7030c0', shirt:'#f0c020', accent:'#e83030', pants:'#3030a8', gear:'flower' },
+    npc_squire:       { hat:'#583020', shirt:'#a87850', accent:'#f0c020', pants:'#382820', gear:'pack' },
+    // --- Casino (5 new) ---
+    npc_dealer:       { hat:'#181828', shirt:'#f8f8f0', accent:'#e83030', pants:'#181828', gear:'badge' },
+    npc_pit_boss:     { hat:'#181818', shirt:'#383038', accent:'#f0c020', pants:'#181018', gear:'briefcase' },
+    npc_high_roller:  { hat:'#a83838', shirt:'#583058', accent:'#f0c020', pants:'#181028', gear:'medal' },
+    npc_showgirl:     { hat:'#f0c020', shirt:'#e070b0', accent:'#a04080', pants:'#702848', gear:'ribbon' },
+    npc_bouncer:      { hat:'#181820', shirt:'#181820', accent:'#f0c020', pants:'#101018', gear:'goggles' }
   };
 
   // ---- Sprite poses ----

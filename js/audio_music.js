@@ -341,12 +341,85 @@
       drums: 'k h s h k h s h k h s h k h s h'.split(' ') };
   }
 
+  // ---- New zone tracks: Amusement Park, Castle, Casino ---------------
+
+  function amusementTrack() {
+    const bpm = 130, beat = 60 / bpm;
+    const lead = [
+      ['C5',0.5],['E5',0.5],['G5',0.5],['C6',0.5],
+      ['B5',0.5],['G5',0.5],['E5',1],
+      ['F5',0.5],['A5',0.5],['C6',0.5],['F6',0.5],
+      ['E6',0.5],['C6',0.5],['A5',1],
+      ['G5',0.5],['B5',0.5],['D6',0.5],['G6',0.5],
+      ['F6',0.5],['D6',0.5],['B5',1],
+      ['C6',0.5],['G5',0.5],['E5',0.5],['C5',0.5],
+      ['C5',2]
+    ];
+    const bass = [
+      ['C3',1],['G3',1],['C3',1],['G3',1],
+      ['F3',1],['C4',1],['F3',1],['C4',1],
+      ['G3',1],['D4',1],['G3',1],['D4',1],
+      ['C3',1],['G3',1],['C3',1],['C3',1]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k h s h k h s h k h s h k h s h'.split(' ') };
+  }
+
+  function castleTrack() {
+    const bpm = 100, beat = 60 / bpm;
+    const lead = [
+      ['A4',1],['C5',1],['E5',2],
+      ['F5',1],['E5',1],['D5',2],
+      ['C5',1],['B4',1],['A4',2],
+      ['G4',2],['A4',2],
+      ['E5',1],['D5',1],['C5',2],
+      ['B4',1],['A4',1],['G4',2],
+      ['F4',1],['G4',1],['A4',2],
+      ['A4',4]
+    ];
+    const bass = [
+      ['A2',2],['A2',2],['F2',2],['F2',2],
+      ['G2',2],['G2',2],['A2',2],['A2',2],
+      ['C3',2],['C3',2],['G2',2],['G2',2],
+      ['F2',2],['F2',2],['A2',2],['A2',2]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k . . s . . k . . s . . k . . s'.split(' ') };
+  }
+
+  function casinoTrack() {
+    const bpm = 120, beat = 60 / bpm;
+    const lead = [
+      ['Eb5',0.5],['G5',0.5],['Bb5',1],
+      ['Ab5',0.5],['G5',0.5],['F5',1],
+      ['Eb5',0.5],['F5',0.5],['G5',0.5],['Ab5',0.5],
+      ['Bb5',2],
+      ['C6',0.5],['Bb5',0.5],['G5',1],
+      ['Ab5',0.5],['G5',0.5],['F5',1],
+      ['Eb5',0.5],['G5',0.5],['Bb5',0.5],['Eb6',0.5],
+      ['Bb5',2]
+    ];
+    const bass = [
+      ['Eb3',0.5],['Bb3',0.5],['Eb3',0.5],['Bb3',0.5],
+      ['Ab3',0.5],['Eb4',0.5],['Ab3',0.5],['Eb4',0.5],
+      ['Bb3',0.5],['F4',0.5],['Bb3',0.5],['F4',0.5],
+      ['Eb3',0.5],['Bb3',0.5],['Eb3',0.5],['Bb3',0.5],
+      ['Eb3',0.5],['Bb3',0.5],['Eb3',0.5],['Bb3',0.5],
+      ['Ab3',0.5],['Eb4',0.5],['Ab3',0.5],['Eb4',0.5],
+      ['G3',0.5],['Bb3',0.5],['G3',0.5],['Bb3',0.5],
+      ['Eb3',0.5],['Bb3',0.5],['Eb3',0.5],['Eb3',0.5]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k h h s k h h s k h h s k h h s'.split(' ') };
+  }
+
   const TRACKS = {
     title: titleTrack, town: townTrack, route: routeTrack,
     battle: battleTrack, victory: victoryTrack,
     cave: caveTrack, beach: beachTrack, desert: desertTrack,
     snowland: snowlandTrack, mountain: mountainTrack,
-    rain_mus: rainMusTrack, thunder_mus: thunderMusTrack, fog_mus: fogMusTrack
+    rain_mus: rainMusTrack, thunder_mus: thunderMusTrack, fog_mus: fogMusTrack,
+    amusement: amusementTrack, castle: castleTrack, casino: casinoTrack
   };
 
   function play(name) {
