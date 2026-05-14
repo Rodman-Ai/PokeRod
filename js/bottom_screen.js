@@ -130,6 +130,12 @@
       if (!window.PR_GAME || !window.PR_GAME.openBagFromBattle) return;
       window.PR_SFX && window.PR_SFX.play('confirm');
       window.PR_GAME.openBagFromBattle();
+    } else if (z.kind === 'title-new') {
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      window.PR_GAME && window.PR_GAME.titleNewGame && window.PR_GAME.titleNewGame();
+    } else if (z.kind === 'title-continue') {
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      window.PR_GAME && window.PR_GAME.titleContinue && window.PR_GAME.titleContinue();
     }
   }
 
@@ -430,21 +436,51 @@
   // top screen. Mirrors the top screen's POKEROD wordmark + tagline so
   // the DS device feels coherent on first boot instead of showing the
   // empty overworld HUD (no party, no money, no badges yet).
+  // Beveled title button in the bottom-screen visual language
+  // (shadow + border + gradient fill + top shine, shifts down 1px
+  // when pressed) - mirrors drawMoveTile so the title panel matches
+  // the rest of the bottom-screen UI.
+  function drawTitleButton(ctx, x, y, w, h, label, sublabel, pressed) {
+    const oy = pressed ? 1 : 0;
+    // Drop shadow.
+    ctx.fillStyle = 'rgba(8,4,2,0.55)';
+    ctx.fillRect(x + 1, y + 3, w, h);
+    // Border.
+    ctx.fillStyle = '#1a0e08';
+    ctx.fillRect(x, y + oy, w, h);
+    // Gradient fill.
+    const g = ctx.createLinearGradient(x, y + oy, x, y + oy + h);
+    g.addColorStop(0, pressed ? '#b8801c' : '#f0c850');
+    g.addColorStop(1, pressed ? '#7a5410' : '#b07818');
+    ctx.fillStyle = g;
+    ctx.fillRect(x + 2, y + oy + 2, w - 4, h - 4);
+    // Top shine.
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(x + 3, y + oy + 3, w - 6, 1);
+    // Label (+ optional sub-label).
+    const lw = window.PR_UI.textWidth(label);
+    if (sublabel) {
+      window.PR_UI.drawText(ctx, label, x + ((w - lw) / 2 | 0), y + oy + 4, '#2a1404');
+      const sw = window.PR_UI.textWidth(sublabel);
+      window.PR_UI.drawText(ctx, sublabel, x + ((w - sw) / 2 | 0), y + oy + 13, '#5a3810');
+    } else {
+      window.PR_UI.drawText(ctx, label, x + ((w - lw) / 2 | 0), y + oy + ((h - 7) / 2 | 0), '#2a1404');
+    }
+  }
+
   function drawTitleLayout(ctx, state) {
     // Dark theme matching the top-screen title overlay so both panels
     // read as one moody device. Solid black base with a soft red glow
     // emanating from the upper-center.
     ctx.fillStyle = '#1a0204';
     ctx.fillRect(0, 0, W, H);
-    const glow = ctx.createRadialGradient(W / 2, 30, 4, W / 2, 30, 140);
+    const glow = ctx.createRadialGradient(W / 2, 24, 4, W / 2, 24, 140);
     glow.addColorStop(0, 'rgba(220, 60, 30, 0.20)');
     glow.addColorStop(0.6, 'rgba(120, 20, 10, 0.06)');
     glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, W, H);
 
-    // Text helper: scaled drawText so the 6x9 font reads at a larger
-    // size for the wordmark.
     function bigText(text, x, y, sx, sy, color) {
       ctx.save();
       ctx.translate(x, y);
@@ -457,48 +493,71 @@
       bigText(text, ((W - w) / 2) | 0, y, sx, sy, color);
     }
 
-    // Two-tone wordmark, treated as ONE centered string so POKE and
-    // ROD don't overlap.
-    const wordScale = 3;
-    const pokeChars = 'POKE', rodChars = 'ROD';
-    const charW = 6 * wordScale;
-    const total_w = (pokeChars.length + rodChars.length) * charW;
+    // Compact two-tone wordmark header (scale 2).
+    const wordScale = 2, charW = 6 * wordScale;
+    const total_w = ('POKE'.length + 'ROD'.length) * charW;
     const startX = ((W - total_w) / 2) | 0;
-    bigText(pokeChars, startX, 16, wordScale, wordScale, '#f0a020');
-    bigText(rodChars,  startX + pokeChars.length * charW, 16, wordScale, wordScale, '#e83838');
+    bigText('POKE', startX, 6, wordScale, wordScale, '#f0a020');
+    bigText('ROD',  startX + 4 * charW, 6, wordScale, wordScale, '#e83838');
+    centered('A CREATURE-COLLECTING ADVENTURE', 22, 1, 1, '#c8a060');
 
-    // Tagline + hint in cream/gold for contrast against dark.
-    centered('A CREATURE-COLLECTING ADVENTURE', 50, 1, 1, '#f0e0c0');
+    // Save context for the CONTINUE button + whether to show it.
+    let hasSave = false, saveSub = '';
+    if (window.PR_SAVE && window.PR_SAVE.exists && window.PR_SAVE.exists()) {
+      hasSave = true;
+      try {
+        const slots = (window.PR_SAVE.slotInfo && window.PR_SAVE.slotInfo()) || [];
+        const s = slots.find((sl) => sl && !sl.empty);
+        if (s) {
+          const sp = s.firstSpecies && window.PR_DATA && window.PR_DATA.CREATURES[s.firstSpecies];
+          const lead = sp ? sp.name.toUpperCase() : 'PARTY';
+          saveSub = lead + '  ' + (s.partyCount | 0) + ' IN PARTY';
+        }
+      } catch (_) { saveSub = ''; }
+    }
 
-    // Tiny rod-and-bobber doodle in the lower-left.
-    const rx = 30, ry = 82;
+    // Interactive buttons - this is the DS touch surface. Hit-zones
+    // are registered so handleTap dispatches to invokeAction.
+    const btnW = 152, btnX = ((W - btnW) / 2) | 0;
+    if (hasSave) {
+      const newY = 34, contY = 62;
+      drawTitleButton(ctx, btnX, newY, btnW, 22, 'NEW GAME', null, pressedTile === 'title:new');
+      hitZones.push({ id:'title:new', kind:'title-new', x:btnX, y:newY, w:btnW, h:22 });
+      drawTitleButton(ctx, btnX, contY, btnW, 26, 'CONTINUE', saveSub, pressedTile === 'title:continue');
+      hitZones.push({ id:'title:continue', kind:'title-continue', x:btnX, y:contY, w:btnW, h:26 });
+    } else {
+      const newY = 48;
+      drawTitleButton(ctx, btnX, newY, btnW, 24, 'NEW GAME', null, pressedTile === 'title:new');
+      hitZones.push({ id:'title:new', kind:'title-new', x:btnX, y:newY, w:btnW, h:24 });
+    }
+
+    // Small rod-and-bobber doodle (lower-left).
+    const rx = 22, ry = 104;
     ctx.strokeStyle = '#a06030';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(rx, ry);
-    ctx.lineTo(rx + 28, ry - 14);
+    ctx.lineTo(rx + 22, ry - 11);
     ctx.stroke();
     ctx.strokeStyle = '#c8c8d0';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(rx + 28, ry - 14);
-    ctx.lineTo(rx + 32, ry + 10);
+    ctx.moveTo(rx + 22, ry - 11);
+    ctx.lineTo(rx + 25, ry + 7);
     ctx.stroke();
     ctx.fillStyle = '#e83838';
     ctx.beginPath();
-    ctx.arc(rx + 32, ry + 11, 3, 0, Math.PI * 2);
+    ctx.arc(rx + 25, ry + 8, 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#fff8a0';
-    ctx.fillRect(rx + 31, ry + 10, 1, 1);
 
-    // Sparkles on the right to balance.
+    // Balanced sparkle accents in both lower corners.
     ctx.fillStyle = '#f0c020';
-    [[200, 74], [212, 82], [195, 90], [218, 96]].forEach(([x, y]) => {
-      ctx.fillRect(x, y, 1, 3);
-      ctx.fillRect(x - 1, y + 1, 3, 1);
+    [[206, 96], [218, 104], [200, 108], [16, 92], [30, 88]].forEach(([sx, sy]) => {
+      ctx.fillRect(sx, sy, 1, 3);
+      ctx.fillRect(sx - 1, sy + 1, 3, 1);
     });
 
-    centered('TAP START ON THE TOP SCREEN', H - 14, 1, 1, '#a08850');
+    centered('TAP A BUTTON  -  OR PRESS START', H - 12, 1, 1, '#a08850');
   }
 
   function render(state) {
