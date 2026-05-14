@@ -426,6 +426,68 @@
     drawPartyRow(ctx, state);
   }
 
+  // Bottom-screen splash drawn while the title overlay is up on the
+  // top screen. Mirrors the top screen's POKEROD wordmark + tagline so
+  // the DS device feels coherent on first boot instead of showing the
+  // empty overworld HUD (no party, no money, no badges yet).
+  function drawTitleLayout(ctx, state) {
+    // Text helper: scaled drawText so the 6x9 font reads at a larger
+    // size for the wordmark.
+    function bigText(text, x, y, sx, sy, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(sx, sy);
+      window.PR_UI.drawText(ctx, text, 0, 0, color);
+      ctx.restore();
+    }
+    // Centered helper - pre-measures at the target scale.
+    function centered(text, y, sx, sy, color) {
+      const w = text.length * 6 * sx;
+      bigText(text, ((W - w) / 2) | 0, y, sx, sy, color);
+    }
+
+    // Top-half wordmark, two-tone like the title-screen logo.
+    centered('POKE', 16, 3, 3, '#f0a020');
+    const poke_w = 'POKE'.length * 6 * 3;
+    const total_w = ('POKE' + 'ROD').length * 6 * 3;
+    bigText('ROD', ((W - total_w) / 2 + poke_w) | 0, 16, 3, 3, '#e83838');
+
+    // Tagline below.
+    centered('A CREATURE-COLLECTING ADVENTURE', 50, 1, 1, '#385890');
+
+    // Tiny rod-and-bobber doodle in the lower-left to echo the title
+    // screen's rod-art element.
+    const rx = 30, ry = 78;
+    ctx.strokeStyle = '#a06030';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.lineTo(rx + 28, ry - 14);
+    ctx.stroke();
+    ctx.strokeStyle = '#c8c8d0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rx + 28, ry - 14);
+    ctx.lineTo(rx + 32, ry + 10);
+    ctx.stroke();
+    ctx.fillStyle = '#e83838';
+    ctx.beginPath();
+    ctx.arc(rx + 32, ry + 11, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff8a0';
+    ctx.fillRect(rx + 31, ry + 10, 1, 1);
+
+    // Mirror splash on the right side - small sparkles to balance.
+    ctx.fillStyle = '#f0c020';
+    [[200, 70], [212, 78], [195, 86], [218, 92]].forEach(([x, y]) => {
+      ctx.fillRect(x, y, 1, 3);
+      ctx.fillRect(x - 1, y + 1, 3, 1);
+    });
+
+    // Hint at the bottom matching the top screen's PRESS START.
+    centered('TAP START ON THE TOP SCREEN', H - 14, 1, 1, '#806040');
+  }
+
   function render(state) {
     if (!window.PR_SETTINGS || window.PR_SETTINGS.graphics !== 'ds_diamond') return;
     const ctx = getCtx();
@@ -444,7 +506,9 @@
     hitZones.length = 0;
     clear(ctx);
     drawHinge(ctx);
-    if (state.mode === 'battle' && state.battle) {
+    if (state.mode === 'title') {
+      drawTitleLayout(ctx, state);
+    } else if (state.mode === 'battle' && state.battle) {
       drawBattleLayout(ctx, state);
     } else {
       drawOverworldLayout(ctx, state);
