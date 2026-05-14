@@ -431,6 +431,18 @@
   // the DS device feels coherent on first boot instead of showing the
   // empty overworld HUD (no party, no money, no badges yet).
   function drawTitleLayout(ctx, state) {
+    // Dark theme matching the top-screen title overlay so both panels
+    // read as one moody device. Solid black base with a soft red glow
+    // emanating from the upper-center.
+    ctx.fillStyle = '#1a0204';
+    ctx.fillRect(0, 0, W, H);
+    const glow = ctx.createRadialGradient(W / 2, 30, 4, W / 2, 30, 140);
+    glow.addColorStop(0, 'rgba(220, 60, 30, 0.20)');
+    glow.addColorStop(0.6, 'rgba(120, 20, 10, 0.06)');
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
     // Text helper: scaled drawText so the 6x9 font reads at a larger
     // size for the wordmark.
     function bigText(text, x, y, sx, sy, color) {
@@ -440,24 +452,26 @@
       window.PR_UI.drawText(ctx, text, 0, 0, color);
       ctx.restore();
     }
-    // Centered helper - pre-measures at the target scale.
     function centered(text, y, sx, sy, color) {
       const w = text.length * 6 * sx;
       bigText(text, ((W - w) / 2) | 0, y, sx, sy, color);
     }
 
-    // Top-half wordmark, two-tone like the title-screen logo.
-    centered('POKE', 16, 3, 3, '#f0a020');
-    const poke_w = 'POKE'.length * 6 * 3;
-    const total_w = ('POKE' + 'ROD').length * 6 * 3;
-    bigText('ROD', ((W - total_w) / 2 + poke_w) | 0, 16, 3, 3, '#e83838');
+    // Two-tone wordmark, treated as ONE centered string so POKE and
+    // ROD don't overlap.
+    const wordScale = 3;
+    const pokeChars = 'POKE', rodChars = 'ROD';
+    const charW = 6 * wordScale;
+    const total_w = (pokeChars.length + rodChars.length) * charW;
+    const startX = ((W - total_w) / 2) | 0;
+    bigText(pokeChars, startX, 16, wordScale, wordScale, '#f0a020');
+    bigText(rodChars,  startX + pokeChars.length * charW, 16, wordScale, wordScale, '#e83838');
 
-    // Tagline below.
-    centered('A CREATURE-COLLECTING ADVENTURE', 50, 1, 1, '#385890');
+    // Tagline + hint in cream/gold for contrast against dark.
+    centered('A CREATURE-COLLECTING ADVENTURE', 50, 1, 1, '#f0e0c0');
 
-    // Tiny rod-and-bobber doodle in the lower-left to echo the title
-    // screen's rod-art element.
-    const rx = 30, ry = 78;
+    // Tiny rod-and-bobber doodle in the lower-left.
+    const rx = 30, ry = 82;
     ctx.strokeStyle = '#a06030';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -477,15 +491,14 @@
     ctx.fillStyle = '#fff8a0';
     ctx.fillRect(rx + 31, ry + 10, 1, 1);
 
-    // Mirror splash on the right side - small sparkles to balance.
+    // Sparkles on the right to balance.
     ctx.fillStyle = '#f0c020';
-    [[200, 70], [212, 78], [195, 86], [218, 92]].forEach(([x, y]) => {
+    [[200, 74], [212, 82], [195, 90], [218, 96]].forEach(([x, y]) => {
       ctx.fillRect(x, y, 1, 3);
       ctx.fillRect(x - 1, y + 1, 3, 1);
     });
 
-    // Hint at the bottom matching the top screen's PRESS START.
-    centered('TAP START ON THE TOP SCREEN', H - 14, 1, 1, '#806040');
+    centered('TAP START ON THE TOP SCREEN', H - 14, 1, 1, '#a08850');
   }
 
   function render(state) {
