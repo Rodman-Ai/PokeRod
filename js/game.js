@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.48';
-  const BUILD = '2026.05.11-190';
+  const VERSION = 'v0.55.49';
+  const BUILD = '2026.05.11-191';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -3444,34 +3444,30 @@
 
   // ---------- World map + warp ----------
   // Circular region layout. Spawn coords are known walkable arrival tiles.
-  // Layout note: positions reflect actual on-foot exit directions per
-  // each town's `edges` block in maps.js. The 8-town main loop has 6
-  // souths + 2 easts (net 6S+2E displacement) so a closed axis-aligned
-  // polygon is impossible. We stack the 6 south edges as a vertical
-  // column on x=170, drop east to desert at the bottom, and close back
-  // up to rodport via a long L-shape (drawn in drawWorldLink). Spurs
-  // attach axis-aligned to their parent's correct side.
+  // Layout: the 8-town main loop is arranged on a circle around the
+  // canvas center (~120, 95) at clock positions, so the world map
+  // reads as a coherent loop. Spurs project outward from their parent
+  // node. The link path builder (buildLinkPath) auto-picks straight
+  // or L-shape segments per pair, so even a circular layout still
+  // honors each town's actual exit direction at the link endpoints.
   const WORLD_NODES = [
-    // Main loop: vertical column going south (axis-aligned).
-    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN',  x:170, y:30,  color:'#60b870', spawn:{x:8,  y:9,  dir:'down'} },
-    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN',  x:170, y:55,  color:'#80c878', spawn:{x:22, y:17, dir:'down'} },
-    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN',  x:170, y:80,  color:'#50a860', spawn:{x:22, y:17, dir:'down'} },
-    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN',  x:170, y:105, color:'#a89870', spawn:{x:22, y:17, dir:'down'} },
-    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN',  x:170, y:130, color:'#98d8e8', spawn:{x:22, y:17, dir:'down'} },
-    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN',  x:170, y:155, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
-    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN',  x:170, y:180, color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
-    // Bottom east stub: summitvale exits east to desert.
-    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:200, y:180, color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} },
-    // Eastern spurs (each parent town exits east to its spur).
-    { id:'mountain',   name:'HIGHSPIRE',  short:'HI',  kind:'SPUR',  x:200, y:105, color:'#a8b8d8', spawn:{x:6,  y:20, dir:'right'} },
-    { id:'beach',      name:'BEACH',      short:'BCH', kind:'SPUR',  x:200, y:155, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
-    // Pokerod farm sits east of mountain (matches farm.west -> mountain).
-    { id:'pokerod_farm',           name:'POKEROD FARM',short:'FRM', kind:'SPUR', x:225, y:105, color:'#a8d860', spawn:{x:1,  y:18, dir:'right'} },
-    // POI zones: door entries (no canonical compass), placed on the
-    // open WEST side of their parent town.
-    { id:'pokerod_amusement_park', name:'AMUSEMENT',   short:'AMU', kind:'TOWN', x:140, y:55,  color:'#f070a0', spawn:{x:14, y:18, dir:'down'} },
-    { id:'pokerod_castle',         name:'CASTLE',      short:'CTL', kind:'TOWN', x:140, y:80,  color:'#a08070', spawn:{x:14, y:18, dir:'down'} },
-    { id:'pokerod_casino',         name:'CASINO',      short:'CSO', kind:'SPUR', x:140, y:155, color:'#7050a0', spawn:{x:14, y:18, dir:'down'} }
+    // Main loop (clockwise from top, 45 degree spacing).
+    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN', x:120, y:25,  color:'#60b870', spawn:{x:8,  y:9,  dir:'down'} },
+    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN', x:170, y:50,  color:'#80c878', spawn:{x:22, y:17, dir:'down'} },
+    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN', x:190, y:95,  color:'#50a860', spawn:{x:22, y:17, dir:'down'} },
+    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN', x:170, y:140, color:'#a89870', spawn:{x:22, y:17, dir:'down'} },
+    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN', x:120, y:165, color:'#98d8e8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN', x:70,  y:140, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN', x:50,  y:95,  color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
+    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP', x:70,  y:50,  color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} },
+    // Spurs project outward radially.
+    { id:'mountain',     name:'HIGHSPIRE',    short:'HI',  kind:'SPUR', x:215, y:115, color:'#a8b8d8', spawn:{x:6,  y:20, dir:'right'} },
+    { id:'beach',        name:'BEACH',        short:'BCH', kind:'SPUR', x:35,  y:165, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
+    { id:'pokerod_farm', name:'POKEROD FARM', short:'FRM', kind:'SPUR', x:225, y:75,  color:'#a8d860', spawn:{x:1,  y:18, dir:'right'} },
+    // POI zones (door-only entries, no canonical compass).
+    { id:'pokerod_amusement_park', name:'AMUSEMENT', short:'AMU', kind:'TOWN', x:215, y:25,  color:'#f070a0', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_castle',         name:'CASTLE',    short:'CTL', kind:'TOWN', x:215, y:165, color:'#a08070', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_casino',         name:'CASINO',    short:'CSO', kind:'SPUR', x:15,  y:95,  color:'#7050a0', spawn:{x:14, y:18, dir:'down'} }
   ];
   const WORLD_LINKS = [
     { a:'rodport', b:'brindale',   label:'ROUTE 1',      color:'#74b870' },

@@ -2691,6 +2691,37 @@
     if (I.consumePressed('x')) {
       if (this.trySurfToggle()) return;
     }
+    // Tap-to-turn movement model:
+    //   Brief tap of a NEW direction      -> turn only (no step), small grace
+    //                                        timer starts so the next held-walk
+    //                                        check waits before walking.
+    //   Tap while ALREADY facing that dir -> walk one step (cancels grace).
+    //   Tap-tap (rapid double-press)      -> 2nd tap finds dir matching
+    //                                        player.dir, walks. = "double tap
+    //                                        to turn and move".
+    //   Hold beyond grace period          -> continuous walk.
+    const KEY_TO_DIR = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
+    let justPressedDir = null;
+    for (const k of Object.keys(KEY_TO_DIR)) {
+      if (I.consumePressed(k)) { justPressedDir = KEY_TO_DIR[k]; break; }
+    }
+    if (justPressedDir) {
+      if (this.player.dir === justPressedDir) {
+        // Already facing -> step (and cancel any lingering turn-grace).
+        this.player.justTurnedTimer = 0;
+        this.tryMove(justPressedDir);
+      } else {
+        // Turn only; held-walk waits out the grace window so a brief
+        // tap doesn't immediately trigger a step.
+        this.player.dir = justPressedDir;
+        this.player.justTurnedTimer = 0.15;
+      }
+      return;
+    }
+    if ((this.player.justTurnedTimer || 0) > 0) {
+      this.player.justTurnedTimer -= dt;
+      return;
+    }
     const dir = I.dirHeld();
     if (dir) {
       this.tryMove(dir);
