@@ -130,7 +130,18 @@
   function hashTile(code, context, dx, dy) {
     const tx = context && context.tx !== undefined ? context.tx : ((dx / state.tileSize) | 0);
     const ty = context && context.ty !== undefined ? context.ty : ((dy / state.tileSize) | 0);
-    let h = (code ? code.charCodeAt(0) : 17) * 73856093;
+    // Multi-char-aware string hash (FNV-1a-style mix). Single-char
+    // codes get the same downstream behaviour as the previous
+    // charCodeAt(0) version since the loop runs once; multi-char
+    // codes get a unique per-string hash so variant selection
+    // doesn't collide across longer codes.
+    let codeHash = 17;
+    if (code) {
+      for (let i = 0; i < code.length; i++) {
+        codeHash = ((codeHash * 31) + code.charCodeAt(i)) | 0;
+      }
+    }
+    let h = codeHash * 73856093;
     h ^= tx * 19349663;
     h ^= ty * 83492791;
     return (h >>> 0);
