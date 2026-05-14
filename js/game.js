@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.49';
-  const BUILD = '2026.05.11-191';
+  const VERSION = 'v0.55.50';
+  const BUILD = '2026.05.11-192';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -3192,10 +3192,12 @@
 
   function openDex() {
     ensureDex();
-    state.dexView = { idx: 0, scroll: 0, filter: 'all' };
+    state.dexView = { idx: 0, scroll: 0, filter: 'all', detail: false, detailPage: 0, moveScroll: 0 };
     state.mode = 'dex';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
+
+  const DEX_DETAIL_PAGES = ['INFO', 'STATS', 'MOVES'];
 
   const DEX_FILTERS = ['all', 'seen', 'got'];
   const DEX_FILTER_LABELS = { all:'ALL', seen:'SEEN', got:'GOT' };
@@ -3208,10 +3210,43 @@
     return ids;
   }
 
+  // Full-screen tabbed detail entry. Mirrors the party-menu sub-mode
+  // pattern (PR #101): a `detail` flag on dexView turns the dex into
+  // a full-screen view; update/draw early-return-dispatch into here.
+  function updateDexDetail(v) {
+    const I = window.PR_INPUT;
+    const ids = dexEntries(v.filter);
+    const max = ids.length;
+    if (max === 0) { v.detail = false; return; }
+    if (v.idx >= max) v.idx = max - 1;
+    if (I.consumePressed('x')) { v.detail = false; window.PR_SFX && window.PR_SFX.play('select'); return; }
+    if (I.consumePressed('ArrowRight')) {
+      v.detailPage = (v.detailPage + 1) % DEX_DETAIL_PAGES.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowLeft')) {
+      v.detailPage = (v.detailPage + DEX_DETAIL_PAGES.length - 1) % DEX_DETAIL_PAGES.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowDown')) {
+      v.idx = (v.idx + 1) % max; v.moveScroll = 0;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowUp')) {
+      v.idx = (v.idx + max - 1) % max; v.moveScroll = 0;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    // Keep browse-list scroll synced so B returns to the same row.
+    const visibleRows = 9;
+    if (v.idx < v.scroll) v.scroll = v.idx;
+    if (v.idx >= v.scroll + visibleRows) v.scroll = v.idx - visibleRows + 1;
+  }
+
   function updateDex() {
     const I = window.PR_INPUT;
     const v = state.dexView;
     if (!v.filter) v.filter = 'all';
+    if (v.detail) { updateDexDetail(v); return; }
     // SELECT cycles the filter. Try to keep the previously selected
     // species highlighted across the filter change; otherwise clamp.
     if (I.consumePressed('Shift')) {
@@ -3237,6 +3272,17 @@
     if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + max - 1) % max; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('ArrowRight')) { v.idx = Math.min(max - 1, v.idx + 6); }
     if (I.consumePressed('ArrowLeft'))  { v.idx = Math.max(0, v.idx - 6); }
+    // A opens the full-screen tabbed entry for any SEEN species.
+    if (I.consumePressed('z')) {
+      if (state.dex.seen.has(ids[v.idx])) {
+        v.detail = true; v.detailPage = 0; v.moveScroll = 0;
+        window.PR_SFX && window.PR_SFX.play('confirm');
+      } else {
+        window.PR_SFX && window.PR_SFX.play('error');
+        showFlash("Haven't seen this one yet.");
+      }
+      return;
+    }
     if (I.consumePressed('x')) { state.dexView = null; state.mode = 'menu'; return; }
     // Keep selection visible.
     const visibleRows = 9;
@@ -3278,6 +3324,7 @@
     ensureDex();
     const v = state.dexView;
     if (!v.filter) v.filter = 'all';
+    if (v.detail) { drawDexDetail(v); return; }
     const ids = dexEntries(v.filter);
     const x = 2, y = 2, w = VIEW_W - 4, h = VIEW_H - 4;
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
@@ -3368,23 +3415,27 @@
     ctx.fillStyle = '#385890';
     ctx.fillRect(dx + 3, divY, dw - 6, 1);
 
-    // Evolution chain renders above the caught gate so SEEN species
-    // already reveal their evolution requirements. Mini sprites use
-    // the seen gate (a creature can only show in the chain as a real
-    // sprite if it itself has been seen).
+    // Evolution chain - bounded so a long chain can never run off the
+    // panel edge. Mini sprites use the seen gate. The cramped stats +
+    // move list that used to live here moved to the full-screen detail
+    // entry (press A); that removed the worst overflow sources.
     const chain = dexEvolutionChain(selId);
     const evoY = divY + 10;
     window.PR_UI.drawText(ctx, 'EVO', dx + 4, evoY, '#385890');
     const evoSize = 14;
+    const evoRight = dx + dw - 4;
     let ex = dx + 22;
     const ey = evoY - 4;
     if (chain.length <= 1) {
       window.PR_UI.drawText(ctx, '(none)', ex, evoY, '#806040');
     } else {
       for (let i = 0; i < chain.length; i++) {
+        if (ex + evoSize > evoRight) {
+          window.PR_UI.drawText(ctx, '>', ex, ey + 4, '#202020');
+          break;
+        }
         const id = chain[i];
-        const isSeenStage = state.dex.seen.has(id);
-        if (isSeenStage) {
+        if (state.dex.seen.has(id)) {
           window.PR_MONS.drawCreature(ctx, id, ex, ey, evoSize, false);
         } else {
           window.PR_MONS.drawCreatureSilhouette(ctx, id, ex, ey, evoSize);
@@ -3401,44 +3452,139 @@
       }
     }
 
-    if (!caught) {
-      window.PR_UI.drawText(ctx, 'Catch for stats + moves.', dx + 4, evoY + 16, '#806040');
-      return;
+    // Footer hint, right-aligned via textWidth so it never overflows.
+    const hint = caught ? 'A:ENTRY  SEL:FILTER  B:BACK'
+                        : 'A:ENTRY  Catch for stats+moves';
+    const hintCol = caught ? '#385890' : '#806040';
+    window.PR_UI.drawText(ctx, hint, dx + dw - 4 - window.PR_UI.textWidth(hint), dy + dh - 11, hintCol);
+  }
+
+  // Horizontal stat bar: label + bar (scaled to a 150 cap) + value.
+  function drawStatBar(label, val, bx, by, barW) {
+    window.PR_UI.drawText(ctx, label, bx, by, '#202020');
+    const trackX = bx + 26, trackW = barW;
+    ctx.fillStyle = '#b8c8d8';
+    ctx.fillRect(trackX, by + 1, trackW, 5);
+    const frac = Math.max(0, Math.min(1, (val | 0) / 150));
+    const fill = val >= 100 ? '#38a838' : val >= 60 ? '#c8a838' : '#c86838';
+    ctx.fillStyle = fill;
+    ctx.fillRect(trackX, by + 1, Math.round(trackW * frac), 5);
+    window.PR_UI.drawText(ctx, String(val | 0), trackX + trackW + 4, by, '#202020');
+  }
+
+  // Full-screen tabbed Pokedex entry (INFO / STATS / MOVES).
+  function drawDexDetail(v) {
+    const ids = dexEntries(v.filter);
+    if (!ids.length) { v.detail = false; return; }
+    if (v.idx >= ids.length) v.idx = ids.length - 1;
+    const selId = ids[v.idx];
+    const sp = window.PR_DATA.CREATURES[selId];
+    const caught = state.dex.caught.has(selId);
+    const seen = state.dex.seen.has(selId);
+    const x = 2, y = 2, w = VIEW_W - 4, h = VIEW_H - 4;
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#d8ecff', border:'#202020', shadow:'#385890' });
+
+    // Header: #dex + name, type chips on the right.
+    const num = String(sp.dex).padStart(3, '0');
+    window.PR_UI.header(ctx, '#' + num + ' ' + sp.name.toUpperCase().slice(0, 14),
+      x + 2, y + 2, w - 4, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    let chipX = x + w - 4;
+    for (let i = sp.types.length - 1; i >= 0; i--) {
+      const t = sp.types[i];
+      const cw = window.PR_UI.textWidth(t) + 6;
+      chipX -= cw + 2;
+      const fill = window.PR_DATA.TYPE_COLOR[t] || '#a8a878';
+      window.PR_UI.chip(ctx, chipX, y + 3, t, { fill, border:'#202020', text:dexTypeTextColor(fill) });
     }
 
-    // Stats: 2 rows of 3. Compact spacing. Pushed below the EVO row.
-    const stY = evoY + 18;
-    const colW = (dw - 8) / 3;
-    const stat = (label, val, col, row) => {
-      window.PR_UI.drawText(ctx,
-        label + ' ' + val,
-        dx + 4 + col * colW,
-        stY + row * 9,
-        '#202020');
-    };
-    stat('HP', sp.baseStats.hp,  0, 0);
-    stat('AT', sp.baseStats.atk, 1, 0);
-    stat('DF', sp.baseStats.def, 2, 0);
-    stat('SP', sp.baseStats.spe, 0, 1);
-    stat('SA', sp.baseStats.spa, 1, 1);
-    stat('SD', sp.baseStats.spd, 2, 1);
-
-    // Moves: 4 levels visible. Show first 4 entries - these are the
-    // earliest learns and the ones a wild encounter is most likely to
-    // know. A "(+N)" hint indicates if there are more.
-    const learn = sp.learnset || [];
-    const visible = learn.slice(0, 4);
-    // Stats take 2 rows of 9 px; MOVES sits below them.
-    const moveY = stY + 2 * 9 + 4;
-    window.PR_UI.drawText(ctx, 'MOVES', dx + 4, moveY, '#385890');
-    for (let i = 0; i < visible.length; i++) {
-      const [lv, mvId] = visible[i];
-      const mv = window.PR_DATA.MOVES[mvId];
-      const label = 'L' + String(lv).padStart(2, ' ') + ' ' + (mv ? mv.name : mvId);
-      window.PR_UI.drawText(ctx, label.slice(0, 18), dx + 4, moveY + 9 + i * 8, '#202020');
+    // Tab bar.
+    const tabY = y + 15;
+    let tabX = x + 4;
+    for (let i = 0; i < DEX_DETAIL_PAGES.length; i++) {
+      const active = i === v.detailPage;
+      const label = DEX_DETAIL_PAGES[i];
+      const tw = window.PR_UI.textWidth(label) + 8;
+      if (active) { ctx.fillStyle = '#385890'; ctx.fillRect(tabX, tabY, tw, 10); }
+      window.PR_UI.drawText(ctx, label, tabX + 4, tabY + 1, active ? '#fff8e0' : '#607890');
+      tabX += tw + 3;
     }
-    if (learn.length > visible.length) {
-      window.PR_UI.drawText(ctx, '+' + (learn.length - visible.length) + ' more', dx + dw - 44, moveY, '#806040');
+    window.PR_UI.drawText(ctx, '<>:TAB ^v:DEX B:BACK',
+      x + w - 4 - window.PR_UI.textWidth('<>:TAB ^v:DEX B:BACK'), tabY + 1, '#607890');
+
+    const bx = x + 4, by = tabY + 13;
+    if (v.detailPage === 0) {
+      // INFO: sprite + full description + evolution chain.
+      const spriteSize = 44;
+      if (seen) window.PR_MONS.drawCreature(ctx, selId, bx + 2, by, spriteSize, false);
+      else window.PR_MONS.drawCreatureSilhouette(ctx, selId, bx + 2, by, spriteSize);
+      const descX = bx + spriteSize + 8, descW = (x + w - 4) - descX;
+      const descMax = Math.max(14, Math.floor(descW / 6));
+      const descLines = window.PR_UI.wrap(sp.description || '', descMax).slice(0, 5);
+      for (let i = 0; i < descLines.length; i++) {
+        window.PR_UI.drawText(ctx, descLines[i], descX, by + 2 + i * 9, '#202020');
+      }
+      // Evolution chain - full panel width, plenty of room.
+      const chain = dexEvolutionChain(selId);
+      const evoY = by + spriteSize + 6;
+      window.PR_UI.drawText(ctx, 'EVOLUTION', bx, evoY, '#385890');
+      const evoSize = 18, ey = evoY + 10;
+      let ex = bx + 4;
+      if (chain.length <= 1) {
+        window.PR_UI.drawText(ctx, '(does not evolve)', ex, ey + 6, '#806040');
+      } else {
+        for (let i = 0; i < chain.length; i++) {
+          const id = chain[i];
+          if (state.dex.seen.has(id)) window.PR_MONS.drawCreature(ctx, id, ex, ey, evoSize, false);
+          else window.PR_MONS.drawCreatureSilhouette(ctx, id, ex, ey, evoSize);
+          ex += evoSize;
+          if (i < chain.length - 1) {
+            const lvNext = window.PR_DATA.CREATURES[id].evolves
+              ? window.PR_DATA.CREATURES[id].evolves.level : '?';
+            window.PR_UI.drawText(ctx, '>', ex + 2, ey + 6, '#202020');
+            window.PR_UI.drawText(ctx, 'L' + lvNext, ex, ey - 4, '#a02828');
+            ex += 14;
+          }
+        }
+      }
+    } else if (v.detailPage === 1) {
+      // STATS: 6 base stats with bars + total. Caught-gated.
+      if (!caught) {
+        window.PR_UI.drawText(ctx, 'Catch this creature to', bx + 4, by + 18, '#806040');
+        window.PR_UI.drawText(ctx, 'reveal its base stats.', bx + 4, by + 28, '#806040');
+        return;
+      }
+      const bs = sp.baseStats;
+      const stats = [['HP', bs.hp], ['ATK', bs.atk], ['DEF', bs.def],
+                     ['SPA', bs.spa], ['SPD', bs.spd], ['SPE', bs.spe]];
+      const barW = 130;
+      for (let i = 0; i < stats.length; i++) {
+        drawStatBar(stats[i][0], stats[i][1], bx + 6, by + 4 + i * 14, barW);
+      }
+      const total = bs.hp + bs.atk + bs.def + bs.spa + bs.spd + bs.spe;
+      window.PR_UI.drawText(ctx, 'TOTAL ' + total, bx + 6, by + 4 + 6 * 14 + 2, '#385890');
+    } else {
+      // MOVES: level-up learnset, two columns. Caught-gated.
+      if (!caught) {
+        window.PR_UI.drawText(ctx, 'Catch this creature to', bx + 4, by + 18, '#806040');
+        window.PR_UI.drawText(ctx, 'reveal its move list.', bx + 4, by + 28, '#806040');
+        return;
+      }
+      const learn = sp.learnset || [];
+      const perCol = 8, maxShown = perCol * 2;
+      const shown = learn.slice(0, maxShown);
+      for (let i = 0; i < shown.length; i++) {
+        const [lv, mvId] = shown[i];
+        const mv = window.PR_DATA.MOVES[mvId];
+        const label = 'L' + String(lv).padStart(2, ' ') + ' ' + (mv ? mv.name : mvId);
+        const col = i < perCol ? 0 : 1;
+        const rowI = i % perCol;
+        window.PR_UI.drawText(ctx, label.slice(0, 18),
+          bx + 6 + col * 114, by + 4 + rowI * 13, '#202020');
+      }
+      if (learn.length > maxShown) {
+        window.PR_UI.drawText(ctx, '+' + (learn.length - maxShown) + ' more learned later',
+          bx + 6, by + 4 + perCol * 13, '#806040');
+      }
     }
   }
 
