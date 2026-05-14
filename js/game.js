@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.50';
-  const BUILD = '2026.05.11-192';
+  const VERSION = 'v0.55.51';
+  const BUILD = '2026.05.11-193';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -3591,29 +3591,31 @@
   // ---------- World map + warp ----------
   // Circular region layout. Spawn coords are known walkable arrival tiles.
   // Layout: the 8-town main loop is arranged on a circle around the
-  // canvas center (~120, 95) at clock positions, so the world map
+  // canvas center (~120, 86) at clock positions, so the world map
   // reads as a coherent loop. Spurs project outward from their parent
-  // node. The link path builder (buildLinkPath) auto-picks straight
-  // or L-shape segments per pair, so even a circular layout still
-  // honors each town's actual exit direction at the link endpoints.
+  // node but stay clamped inside the terrain rect (x 12..228, y
+  // 24..148) so no node ever clips off the panel. The link path
+  // builder (buildLinkPath) auto-picks straight or L-shape segments
+  // per pair, so even a circular layout still honors each town's
+  // actual exit direction at the link endpoints.
   const WORLD_NODES = [
-    // Main loop (clockwise from top, 45 degree spacing).
-    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN', x:120, y:25,  color:'#60b870', spawn:{x:8,  y:9,  dir:'down'} },
-    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN', x:170, y:50,  color:'#80c878', spawn:{x:22, y:17, dir:'down'} },
-    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN', x:190, y:95,  color:'#50a860', spawn:{x:22, y:17, dir:'down'} },
-    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN', x:170, y:140, color:'#a89870', spawn:{x:22, y:17, dir:'down'} },
-    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN', x:120, y:165, color:'#98d8e8', spawn:{x:22, y:17, dir:'down'} },
-    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN', x:70,  y:140, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
-    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN', x:50,  y:95,  color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
-    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP', x:70,  y:50,  color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} },
-    // Spurs project outward radially.
-    { id:'mountain',     name:'HIGHSPIRE',    short:'HI',  kind:'SPUR', x:215, y:115, color:'#a8b8d8', spawn:{x:6,  y:20, dir:'right'} },
-    { id:'beach',        name:'BEACH',        short:'BCH', kind:'SPUR', x:35,  y:165, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
-    { id:'pokerod_farm', name:'POKEROD FARM', short:'FRM', kind:'SPUR', x:225, y:75,  color:'#a8d860', spawn:{x:1,  y:18, dir:'right'} },
+    // Main loop (clockwise from 12 o'clock, ~45 degree spacing, r~52).
+    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN', x:120, y:34,  color:'#60b870', spawn:{x:8,  y:9,  dir:'down'} },
+    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN', x:157, y:49,  color:'#80c878', spawn:{x:22, y:17, dir:'down'} },
+    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN', x:172, y:86,  color:'#50a860', spawn:{x:22, y:17, dir:'down'} },
+    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN', x:157, y:123, color:'#a89870', spawn:{x:22, y:17, dir:'down'} },
+    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN', x:120, y:138, color:'#98d8e8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN', x:83,  y:123, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN', x:68,  y:86,  color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
+    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP', x:83,  y:49,  color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} },
+    // Spurs - projected outward but clamped inside the terrain.
+    { id:'mountain',     name:'HIGHSPIRE',    short:'HI',  kind:'SPUR', x:192, y:128, color:'#a8b8d8', spawn:{x:6,  y:20, dir:'right'} },
+    { id:'beach',        name:'BEACH',        short:'BCH', kind:'SPUR', x:50,  y:138, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
+    { id:'pokerod_farm', name:'POKEROD FARM', short:'FRM', kind:'SPUR', x:200, y:60,  color:'#a8d860', spawn:{x:1,  y:18, dir:'right'} },
     // POI zones (door-only entries, no canonical compass).
-    { id:'pokerod_amusement_park', name:'AMUSEMENT', short:'AMU', kind:'TOWN', x:215, y:25,  color:'#f070a0', spawn:{x:14, y:18, dir:'down'} },
-    { id:'pokerod_castle',         name:'CASTLE',    short:'CTL', kind:'TOWN', x:215, y:165, color:'#a08070', spawn:{x:14, y:18, dir:'down'} },
-    { id:'pokerod_casino',         name:'CASINO',    short:'CSO', kind:'SPUR', x:15,  y:95,  color:'#7050a0', spawn:{x:14, y:18, dir:'down'} }
+    { id:'pokerod_amusement_park', name:'AMUSEMENT', short:'AMU', kind:'TOWN', x:196, y:34,  color:'#f070a0', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_castle',         name:'CASTLE',    short:'CTL', kind:'TOWN', x:206, y:100, color:'#a08070', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_casino',         name:'CASINO',    short:'CSO', kind:'SPUR', x:36,  y:110, color:'#7050a0', spawn:{x:14, y:18, dir:'down'} }
   ];
   const WORLD_LINKS = [
     { a:'rodport', b:'brindale',   label:'ROUTE 1',      color:'#74b870' },
@@ -3908,18 +3910,29 @@
         // the player knows fly won't land here yet.
         window.PR_UI.drawText(ctx, '?', n.x - 2, n.y - 2, '#403828');
       }
-      const labelColor = visited ? '#202020' : '#6a604c';
-      window.PR_UI.drawText(ctx, n.short, n.x - 9, n.y + 8, labelColor);
+      // Label: centered on the pin, placed below for top-half nodes
+      // and above for bottom-half nodes (so labels spread away from
+      // the crowded center), with a dark background chip so the text
+      // stays legible over links / terrain / neighbouring labels.
+      const lw = window.PR_UI.textWidth(n.short);
+      const lx = Math.round(n.x - lw / 2);
+      const ly = n.y < 86 ? n.y + 9 : n.y - 16;
+      ctx.fillStyle = 'rgba(20,12,4,0.78)';
+      ctx.fillRect(lx - 2, ly - 1, lw + 4, 9);
+      window.PR_UI.drawText(ctx, n.short, lx, ly, visited ? '#fff8e0' : '#b0a48c');
       if (isSel) {
         ctx.fillStyle = '#202020';
         ctx.fillRect(n.x - r - 3, n.y - r - 5, r * 2 + 6, 2);
         ctx.fillRect(n.x - r - 3, n.y + r + 3, r * 2 + 6, 2);
       }
     }
-    // Fly status hint at the bottom-left of the map panel.
-    window.PR_UI.drawText(ctx,
-      canFly ? 'FLY: A WARPS' : 'FLY: LOCKED (NEED A BADGE)',
-      x + 8, y + h - 12, canFly ? '#208830' : '#806040');
+    // Fly status hint at the bottom-left of the map panel, on a dark
+    // background strip so it stays legible over nodes / terrain.
+    const flyText = canFly ? 'FLY: A WARPS' : 'FLY: LOCKED (NEED A BADGE)';
+    const flyW = window.PR_UI.textWidth(flyText);
+    ctx.fillStyle = 'rgba(20,12,4,0.78)';
+    ctx.fillRect(x + 6, y + h - 13, flyW + 4, 10);
+    window.PR_UI.drawText(ctx, flyText, x + 8, y + h - 12, canFly ? '#7fe89a' : '#e8b890');
 
     const sel = WORLD_NODES[state.map.idx];
     drawWorldAreaPopup(sel, currentIdx);
@@ -3943,11 +3956,13 @@
       ctx.fillStyle = 'rgba(255,255,255,0.22)';
       ctx.fillRect(x + p[0] + 2, y + p[1] + 2, p[2] - 4, 2);
     }
+    // Compass in the top-left corner of the terrain - out of the
+    // node cluster + the bottom-left FLY hint.
     ctx.fillStyle = '#806040';
-    ctx.fillRect(x + 18, y + h - 19, 20, 2);
-    ctx.fillRect(x + 18, y + h - 19, 2, 10);
-    ctx.fillRect(x + 36, y + h - 19, 2, 10);
-    window.PR_UI.drawText(ctx, 'N', x + 26, y + h - 31, '#806040');
+    ctx.fillRect(x + 14, y + 33, 14, 2);
+    ctx.fillRect(x + 14, y + 33, 2, 8);
+    ctx.fillRect(x + 26, y + 33, 2, 8);
+    window.PR_UI.drawText(ctx, 'N', x + 18, y + 24, '#806040');
   }
 
   // Build the link path: straight line for axis-aligned (vertical or
@@ -4025,7 +4040,7 @@
 
   function drawWorldAreaPopup(sel, currentIdx) {
     const detail = WORLD_AREA_DETAILS[sel.id] || {};
-    const popW = 132, popH = 72;
+    const popW = 140, popH = 86;
     let px = sel.x < VIEW_W / 2 ? 100 : 8;
     let py = sel.y < VIEW_H / 2 ? 84 : 24;
     px = Math.max(8, Math.min(VIEW_W - popW - 8, px));
@@ -4033,7 +4048,7 @@
     window.PR_UI.panel(ctx, px, py, popW, popH, {
       fill:'#fff8e8', border:'#202020', shadow:'#b0702c', highlight:'#fff8f0'
     });
-    window.PR_UI.header(ctx, sel.name.slice(0, 16), px + 4, py + 4, popW - 8, {
+    window.PR_UI.header(ctx, sel.name.slice(0, 18), px + 4, py + 4, popW - 8, {
       fill:'#1a0204', line:sel.color || '#f0c020', text:'#f0c020'
     });
     drawAreaBadge(sel, detail.icon || 'town', px + 7, py + 21);
@@ -4042,9 +4057,11 @@
     });
     const status = state.map.idx === currentIdx ? 'YOU ARE HERE' : 'FAST TRAVEL';
     window.PR_UI.drawText(ctx, status, px + 34, py + 34, state.map.idx === currentIdx ? '#e83838' : '#385890');
+    // Description: 9px line spacing, 3 lines, comfortably clear of the
+    // popH=86 bottom border (last line bottom = py+73).
     const lines = window.PR_UI.wrap(detail.detail || 'A curious place waits here.', 20);
     for (let i = 0; i < Math.min(3, lines.length); i++) {
-      window.PR_UI.drawText(ctx, lines[i], px + 7, py + 47 + i * 8, '#604830');
+      window.PR_UI.drawText(ctx, lines[i], px + 7, py + 48 + i * 9, '#604830');
     }
   }
 
