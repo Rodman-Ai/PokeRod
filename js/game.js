@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.37';
-  const BUILD = '2026.05.11-179';
+  const VERSION = 'v0.55.38';
+  const BUILD = '2026.05.11-180';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -46,7 +46,11 @@
     // desert
     desert:'desert',
     // mountain
-    mountain:'mountain', summitvale:'mountain'
+    mountain:'mountain', summitvale:'mountain',
+    // new themed zones
+    pokerod_amusement_park:'amusement',
+    pokerod_castle:'castle',
+    pokerod_casino:'casino'
   };
   // Strong weather kinds override the biome track. Light weather
   // (overcast, sleet, hail, snow) keeps the biome track and lets the
@@ -3450,7 +3454,12 @@
     { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN',  x:78,  y:110, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
     { id:'beach',      name:'BEACH',      short:'BCH', kind:'SPUR',  x:34,  y:118, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
     { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN',  x:58,  y:74,  color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
-    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:78,  y:38,  color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} }
+    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:78,  y:38,  color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} },
+    // New zones + farm activation.
+    { id:'pokerod_farm',           name:'POKEROD FARM',short:'FRM', kind:'SPUR', x:226, y:118, color:'#a8d860', spawn:{x:1,  y:18, dir:'right'} },
+    { id:'pokerod_amusement_park', name:'AMUSEMENT',   short:'AMU', kind:'TOWN', x:198, y:24,  color:'#f070a0', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_castle',         name:'CASTLE',      short:'CTL', kind:'TOWN', x:218, y:74,  color:'#a08070', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_casino',         name:'CASINO',      short:'CSO', kind:'SPUR', x:38,  y:74,  color:'#7050a0', spawn:{x:14, y:18, dir:'down'} }
   ];
   const WORLD_LINKS = [
     { a:'rodport', b:'brindale',   label:'ROUTE 1',      color:'#74b870' },
@@ -3462,7 +3471,12 @@
     { a:'summitvale', b:'desert',  label:'DUNE ROAD',    color:'#d8a850' },
     { a:'desert', b:'rodport',    label:'DESERT LOOP',   color:'#c89048', gate:'6 BADGES' },
     { a:'crestrock', b:'mountain', label:'HIGHSPIRE',    color:'#b8c8e0', spur:true },
-    { a:'harborside', b:'beach',   label:'BEACH PATH',   color:'#e0c860', spur:true }
+    { a:'harborside', b:'beach',   label:'BEACH PATH',   color:'#e0c860', spur:true },
+    // New zone + farm links.
+    { a:'mountain', b:'pokerod_farm', label:'FARM LANE',   color:'#a8d860', spur:true },
+    { a:'brindale', b:'pokerod_amusement_park', label:'PARK ROAD', color:'#f070a0', spur:true },
+    { a:'woodfall', b:'pokerod_castle', label:'KEEP TRAIL', color:'#a08070', spur:true },
+    { a:'harborside', b:'pokerod_casino', label:'CASINO LANE', color:'#7050a0', spur:true }
   ];
   const WORLD_MAP_HINTS = {
     player_house:'rodport', rival_house:'rodport', lab:'rodport',
@@ -3484,7 +3498,11 @@
     searoute:'harborside', searoute_tide_cavern:'harborside',
     summitvale_center:'summitvale', summitvale_mart:'summitvale', summitvale_house:'summitvale',
     summitvale_lookout:'summitvale', summitvale_hall:'summitvale',
-    mountain:'mountain', beach:'beach', desert:'desert', desert_ruins:'desert'
+    mountain:'mountain', beach:'beach', desert:'desert', desert_ruins:'desert',
+    pokerod_farm:'pokerod_farm',
+    pokerod_amusement_park:'pokerod_amusement_park',
+    pokerod_castle:'pokerod_castle',
+    pokerod_casino:'pokerod_casino'
   };
   const WORLD_AREA_DETAILS = {
     rodport: {
@@ -3526,6 +3544,22 @@
     desert: {
       icon:'ruins', tag:'OASIS LOOP',
       detail:'Old ruins stay cool after copper dusk.'
+    },
+    pokerod_farm: {
+      icon:'forest', tag:'PARTNER PASTURE',
+      detail:'Two of every type, all fed by dawn light.'
+    },
+    pokerod_amusement_park: {
+      icon:'beach', tag:'CARNIVAL ROW',
+      detail:'Calliopes, cotton candy, balloons galore.'
+    },
+    pokerod_castle: {
+      icon:'stone', tag:'OLD KEEP',
+      detail:'Banners snap above a moat of clear water.'
+    },
+    pokerod_casino: {
+      icon:'harbor', tag:'NEON STRIP',
+      detail:'Chips clatter, jackpots blink, drinks flow.'
     }
   };
 
