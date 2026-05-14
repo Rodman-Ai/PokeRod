@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.36';
-  const BUILD = '2026.05.11-178';
+  const VERSION = 'v0.55.37';
+  const BUILD = '2026.05.11-179';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -2402,11 +2402,21 @@
     { key:'treeSway',      label:'TREE SWAY',      type:'bool' }
   ];
 
+  // 7 rows comfortably fit between the header strip and the footer hint
+  // in the 160px viewport. The list scrolls when SETTINGS_ROWS grows
+  // past this number.
+  const SETTINGS_VISIBLE = 7;
+
   function updateSettings() {
     const I = window.PR_INPUT;
     const v = state.settingsView;
+    if (v.scroll === undefined) v.scroll = 0;
     if (I.consumePressed('ArrowDown')) { v.idx = (v.idx + 1) % SETTINGS_ROWS.length; window.PR_SFX && window.PR_SFX.play('select'); }
     if (I.consumePressed('ArrowUp'))   { v.idx = (v.idx + SETTINGS_ROWS.length - 1) % SETTINGS_ROWS.length; window.PR_SFX && window.PR_SFX.play('select'); }
+    // Keep the cursor inside the visible window. Wrap-around (idx jumped
+    // from last to first) is handled by clamping scroll to the cursor.
+    if (v.idx < v.scroll) v.scroll = v.idx;
+    if (v.idx >= v.scroll + SETTINGS_VISIBLE) v.scroll = v.idx - SETTINGS_VISIBLE + 1;
     if (I.consumePressed('x')) { state.settingsView = null; state.mode = 'menu'; return; }
     const row = SETTINGS_ROWS[v.idx];
     const cycle = (delta) => {
@@ -2439,15 +2449,34 @@
     window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
     window.PR_UI.header(ctx, 'SETTINGS', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
-    for (let i = 0; i < SETTINGS_ROWS.length; i++) {
+    const v = state.settingsView;
+    if (v.scroll === undefined) v.scroll = 0;
+    const start = v.scroll;
+    const end = Math.min(SETTINGS_ROWS.length, start + SETTINGS_VISIBLE);
+    for (let i = start; i < end; i++) {
       const row = SETTINGS_ROWS[i];
-      const cy = y + 22 + i * 16;
-      if (i === state.settingsView.idx) window.PR_UI.selectBar(ctx, x + 6, cy - 2, w - 12, 12, true);
+      const cy = y + 22 + (i - start) * 16;
+      if (i === v.idx) window.PR_UI.selectBar(ctx, x + 6, cy - 2, w - 12, 12, true);
       window.PR_UI.drawText(ctx, row.label, x + 12, cy, '#202020');
       let val;
       if (row.type === 'bool') val = state.settings[row.key] ? 'ON' : 'OFF';
       else val = (row.labels && row.labels[state.settings[row.key]]) || (state.settings[row.key] || '').toUpperCase();
       window.PR_UI.drawText(ctx, '< ' + val + ' >', x + w - 92, cy, '#385890');
+    }
+    // Scroll indicators (small triangles) shown when more content sits
+    // above or below the visible window.
+    if (start > 0) {
+      ctx.fillStyle = '#806040';
+      ctx.fillRect(x + w - 14, y + 20, 5, 1);
+      ctx.fillRect(x + w - 13, y + 19, 3, 1);
+      ctx.fillRect(x + w - 12, y + 18, 1, 1);
+    }
+    if (end < SETTINGS_ROWS.length) {
+      ctx.fillStyle = '#806040';
+      const by = y + 22 + SETTINGS_VISIBLE * 16 - 4;
+      ctx.fillRect(x + w - 14, by, 5, 1);
+      ctx.fillRect(x + w - 13, by + 1, 3, 1);
+      ctx.fillRect(x + w - 12, by + 2, 1, 1);
     }
     window.PR_UI.drawText(ctx, 'A/RIGHT: NEXT  LEFT: PREV', x + 8, y + h - 12, '#806040');
     if (pushed) ctx.restore();
