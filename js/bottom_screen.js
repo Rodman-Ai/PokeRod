@@ -283,7 +283,23 @@
 
   // ---- Battle layout ----------------------------------------------
 
-  function drawMoveTile(ctx, x, y, w, h, move, idx, active, disabled, pressed) {
+  // Mirror of the top-screen move-name effectiveness palette + tag
+  // (battle.js around line 1199). Same thresholds + colors so the
+  // two screens read consistently. Returns null for status / 0-power
+  // moves, where type matchup doesn't matter.
+  function moveEffTag(def, foeTypes) {
+    if (!def || !foeTypes || !window.PR_DATA || !window.PR_DATA.effectiveness) return null;
+    if (def.kind === 'status' || (def.power | 0) <= 0) return null;
+    const eff = window.PR_DATA.effectiveness(def.type, foeTypes);
+    if (eff === 0)      return { tag:'X',  color:'#888888' };
+    if (eff >= 4)       return { tag:'++', color:'#208830' };
+    if (eff > 1)        return { tag:'+',  color:'#388838' };
+    if (eff < 0.5)      return { tag:'--', color:'#a06030' };
+    if (eff < 1)        return { tag:'-',  color:'#a08040' };
+    return null;
+  }
+
+  function drawMoveTile(ctx, x, y, w, h, move, idx, active, disabled, pressed, foeTypes) {
     const def = move ? (window.PR_DATA.MOVES[move.id] || null) : null;
     const type = (def && def.type) || 'NORMAL';
     const pal = TYPE_COLORS[type] || TYPE_COLORS.NORMAL;
@@ -328,6 +344,19 @@
     const pw = window.PR_UI.textWidth(ppText);
     window.PR_UI.drawText(ctx, ppText, x + w - pw - 4, y + h - 10, '#1a0820');
     window.PR_UI.drawText(ctx, ppText, x + w - pw - 4, y + h - 11, '#fff8e0');
+    // Effectiveness tag (top-right). Mirrors the top-screen color +
+    // glyph palette so player can read either screen and get the
+    // same matchup signal at a glance.
+    const eff = moveEffTag(def, foeTypes);
+    if (eff) {
+      const tw2 = window.PR_UI.textWidth(eff.tag) + 4;
+      ctx.fillStyle = '#1a1426';
+      ctx.fillRect(x + w - tw2 - 3, y + 2, tw2, 9);
+      ctx.fillStyle = eff.color;
+      ctx.fillRect(x + w - tw2 - 2, y + 3, tw2 - 2, 7);
+      window.PR_UI.drawText(ctx, eff.tag, x + w - tw2, y + 4, '#1a0820');
+      window.PR_UI.drawText(ctx, eff.tag, x + w - tw2, y + 3, '#fff8e0');
+    }
     if (disabled) {
       ctx.fillStyle = 'rgba(20,16,32,0.55)';
       ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
@@ -348,6 +377,11 @@
     const promptText = tappable ? 'WHAT WILL ' + speciesLabel + ' DO?' : 'BATTLE...';
     window.PR_UI.drawText(ctx, promptText, 5, 5, '#1a0820');
 
+    // Foe types for the effectiveness tag on each move tile (mirrors
+    // the top-screen battle.js move-name preview).
+    const foeSpecies = battle && battle.foe && battle.foe.species;
+    const foeTypes = (foeSpecies && window.PR_DATA && window.PR_DATA.CREATURES[foeSpecies] || {}).types || [];
+
     for (let i = 0; i < 4; i++) {
       const col = i & 1, row = (i >> 1) & 1;
       const x = MOVE_GRID_X + col * (MOVE_TILE_W + MOVE_GAP_X);
@@ -357,7 +391,7 @@
       const active = tappable && phase === 'fight' && battle.subSelection === i;
       const id = 'move:' + i;
       const pressed = pressedTile === id;
-      drawMoveTile(ctx, x, y, MOVE_TILE_W, MOVE_TILE_H, mv, i, active, noPp, pressed);
+      drawMoveTile(ctx, x, y, MOVE_TILE_W, MOVE_TILE_H, mv, i, active, noPp, pressed, foeTypes);
       if (tappable && mv && !noPp) {
         hitZones.push({ id, kind:'move', idx:i, x, y, w:MOVE_TILE_W, h:MOVE_TILE_H });
       }

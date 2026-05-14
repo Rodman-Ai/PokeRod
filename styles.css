@@ -374,13 +374,16 @@ body[data-graphics="ds_diamond"] #screen-bottom {
   /* Height is the controlling dimension so the 2:1 ratio is always
      preserved (no horizontal squish on portrait phones with capped
      viewport height). Width follows from height. The optional cap
-     keeps it from outgrowing the top screen on very wide screens. */
-  --bh: clamp(110px, 18vh, 220px);
+     keeps it from outgrowing the top screen on very wide screens.
+     Bumped 30% (143/23.4/286 from 110/18/220) for legibility - the
+     bottom-screen HUD sits closer to the player's reading distance
+     than the top game canvas. */
+  --bh: clamp(143px, 23.4vh, 286px);
   display: block;
   position: relative;
   height: var(--bh);
   width: calc(var(--bh) * 2);
-  max-width: min(92vw, 720px);
+  max-width: min(92vw, 936px);
   margin: 6px auto 4px;
   padding: 8px 14px 12px;
   background: var(--bezel-bg);
