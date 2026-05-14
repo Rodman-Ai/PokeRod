@@ -127,8 +127,112 @@ const TILE_PROPS = {
   '"': { walk:false, name:'fence_v' },
   '/': { walk:false, name:'pc_terminal', interact:'pc' },
   '9': { walk:false, name:'vending' },
-  '}': { walk:false, name:'pottedplant' }
+  '}': { walk:false, name:'pottedplant' },
+
+  // ---- Multi-char tile codes (PR #117 array-row format) ----
+  // Biome packs - one ~10-tile set per region category, so every
+  // zone reads with its own visual character.
+  'route_grass_a':{walk:true,name:'route_grass_a'}, 'route_grass_b':{walk:true,name:'route_grass_b'},
+  'route_dirt_a':{walk:true,name:'route_dirt_a'}, 'route_dirt_b':{walk:true,name:'route_dirt_b'},
+  'route_signpost':{walk:false,name:'route_signpost',interact:'sign'}, 'route_fence_h':{walk:false,name:'route_fence_h'},
+  'route_fence_v':{walk:false,name:'route_fence_v'}, 'route_milestone':{walk:false,name:'route_milestone'},
+  'route_hedge':{walk:false,name:'route_hedge'}, 'route_pond':{walk:false,name:'route_pond'},
+  'town_cobble_a':{walk:true,name:'town_cobble_a'}, 'town_cobble_b':{walk:true,name:'town_cobble_b'},
+  'town_lamp_post':{walk:false,name:'town_lamp_post'}, 'town_planter':{walk:false,name:'town_planter'},
+  'town_well':{walk:false,name:'town_well'}, 'town_clock_pole':{walk:false,name:'town_clock_pole'},
+  'town_market_stall':{walk:false,name:'town_market_stall'}, 'town_window_box':{walk:false,name:'town_window_box'},
+  'town_garden_path':{walk:true,name:'town_garden_path'}, 'town_signboard':{walk:false,name:'town_signboard',interact:'sign'},
+  'cave_floor_a':{walk:true,name:'cave_floor_a'}, 'cave_floor_b':{walk:true,name:'cave_floor_b'},
+  'cave_stalactite':{walk:false,name:'cave_stalactite'}, 'cave_crystal':{walk:false,name:'cave_crystal'},
+  'cave_water_pool':{walk:false,name:'cave_water_pool'}, 'cave_pebble':{walk:true,name:'cave_pebble'},
+  'cave_torch':{walk:false,name:'cave_torch'}, 'cave_pillar':{walk:false,name:'cave_pillar'},
+  'cave_mushroom':{walk:true,name:'cave_mushroom'}, 'cave_glow_lichen':{walk:true,name:'cave_glow_lichen'},
+  'snow_pack_a':{walk:true,name:'snow_pack_a'}, 'snow_pack_b':{walk:true,name:'snow_pack_b'},
+  'snow_drift':{walk:true,name:'snow_drift'}, 'snow_pine_short':{walk:false,name:'snow_pine_short'},
+  'snow_iglooy':{walk:false,name:'snow_iglooy'}, 'snow_lantern':{walk:false,name:'snow_lantern'},
+  'snow_print':{walk:true,name:'snow_print'}, 'snow_log_pile':{walk:false,name:'snow_log_pile'},
+  'snow_signpost_iced':{walk:false,name:'snow_signpost_iced',interact:'sign'}, 'snow_frozen_pond':{walk:true,name:'snow_frozen_pond'},
+  'beach_sand_a':{walk:true,name:'beach_sand_a'}, 'beach_sand_b':{walk:true,name:'beach_sand_b'},
+  'beach_seashell':{walk:true,name:'beach_seashell'}, 'beach_starfish':{walk:true,name:'beach_starfish'},
+  'beach_palm_short':{walk:false,name:'beach_palm_short'}, 'beach_pier_plank':{walk:true,name:'beach_pier_plank'},
+  'beach_buoy':{walk:false,name:'beach_buoy'}, 'beach_umbrella':{walk:false,name:'beach_umbrella'},
+  'beach_kelp':{walk:false,name:'beach_kelp'}, 'beach_sand_castle':{walk:false,name:'beach_sand_castle'},
+  'desert_sand_a':{walk:true,name:'desert_sand_a'}, 'desert_sand_b':{walk:true,name:'desert_sand_b'},
+  'desert_dune':{walk:true,name:'desert_dune'}, 'desert_cactus_short':{walk:false,name:'desert_cactus_short'},
+  'desert_skull':{walk:true,name:'desert_skull'}, 'desert_oasis':{walk:false,name:'desert_oasis'},
+  'desert_ruin_pillar':{walk:false,name:'desert_ruin_pillar'}, 'desert_signboard_burnt':{walk:false,name:'desert_signboard_burnt'},
+  'desert_rock_a':{walk:false,name:'desert_rock_a'}, 'desert_rock_b':{walk:false,name:'desert_rock_b'},
+  'mtn_rock_a':{walk:false,name:'mtn_rock_a'}, 'mtn_rock_b':{walk:false,name:'mtn_rock_b'},
+  'mtn_pine_tall':{walk:false,name:'mtn_pine_tall'}, 'mtn_cliff_face':{walk:false,name:'mtn_cliff_face'},
+  'mtn_eagle_perch':{walk:false,name:'mtn_eagle_perch'}, 'mtn_signpost_painted':{walk:false,name:'mtn_signpost_painted',interact:'sign'},
+  'mtn_snow_patch':{walk:true,name:'mtn_snow_patch'}, 'mtn_log_bridge':{walk:true,name:'mtn_log_bridge'},
+  'mtn_boulder':{walk:false,name:'mtn_boulder'}, 'mtn_alpine_flower':{walk:true,name:'mtn_alpine_flower'},
+  'floor_wood_a':{walk:true,name:'floor_wood_a'}, 'floor_wood_b':{walk:true,name:'floor_wood_b'},
+  'wall_panel_a':{walk:false,name:'wall_panel_a'}, 'rug_red':{walk:true,name:'rug_red'},
+  'rug_blue':{walk:true,name:'rug_blue'}, 'bookshelf':{walk:false,name:'bookshelf'},
+  'picture_frame':{walk:false,name:'picture_frame'}, 'vase_potted_b':{walk:false,name:'vase_potted_b'},
+  'lamp_table':{walk:false,name:'lamp_table'}, 'table_round':{walk:false,name:'table_round'},
+
+  // Casino zone tiles.
+  'csi_floor_carpet':{walk:true,name:'csi_floor_carpet'}, 'csi_floor_marble':{walk:true,name:'csi_floor_marble'},
+  'csi_floor_chip':{walk:true,name:'csi_floor_chip'}, 'csi_slot_machine':{walk:false,name:'csi_slot_machine'},
+  'csi_slot_lever':{walk:false,name:'csi_slot_lever'}, 'csi_roulette_table':{walk:false,name:'csi_roulette_table'},
+  'csi_dealer_post':{walk:false,name:'csi_dealer_post'}, 'csi_velvet_rope':{walk:false,name:'csi_velvet_rope'},
+  'csi_neon_marquee':{walk:false,name:'csi_neon_marquee'}, 'csi_jukebox':{walk:false,name:'csi_jukebox'},
+  'csi_vip_curtain':{walk:false,name:'csi_vip_curtain'}, 'csi_vip_booth':{walk:false,name:'csi_vip_booth'},
+  'csi_prize_counter':{walk:false,name:'csi_prize_counter'}, 'csi_cashier_post':{walk:false,name:'csi_cashier_post'},
+  'csi_jackpot_pillar':{walk:false,name:'csi_jackpot_pillar'}, 'csi_dice_floor':{walk:true,name:'csi_dice_floor'},
+  'csi_chip_stack_red':{walk:true,name:'csi_chip_stack_red'}, 'csi_chip_stack_blue':{walk:true,name:'csi_chip_stack_blue'},
+  'csi_drink_table':{walk:false,name:'csi_drink_table'}, 'csi_casino_door':{walk:true,door:true,name:'csi_casino_door'},
+  'csi_vault_door':{walk:false,name:'csi_vault_door'}, 'csi_neon_arrow':{walk:true,name:'csi_neon_arrow'},
+  'csi_lounge_seat':{walk:false,name:'csi_lounge_seat'}, 'csi_dance_floor':{walk:true,name:'csi_dance_floor'},
+  'csi_bar_top':{walk:false,name:'csi_bar_top'}, 'csi_bar_stool':{walk:false,name:'csi_bar_stool'},
+  'csi_mirror_wall':{walk:false,name:'csi_mirror_wall'}, 'csi_security_cam':{walk:false,name:'csi_security_cam'},
+  'csi_exit_sign':{walk:true,name:'csi_exit_sign'}, 'csi_fountain_chip':{walk:false,name:'csi_fountain_chip'},
+
+  // Amusement park zone tiles.
+  'amu_path_brick':{walk:true,name:'amu_path_brick'}, 'amu_path_candy':{walk:true,name:'amu_path_candy'},
+  'amu_ferris_base_l':{walk:false,name:'amu_ferris_base_l'}, 'amu_ferris_base_r':{walk:false,name:'amu_ferris_base_r'},
+  'amu_ferris_pillar':{walk:false,name:'amu_ferris_pillar'}, 'amu_carousel_floor':{walk:true,name:'amu_carousel_floor'},
+  'amu_carousel_pole':{walk:false,name:'amu_carousel_pole'}, 'amu_carousel_horse_l':{walk:false,name:'amu_carousel_horse_l'},
+  'amu_carousel_horse_r':{walk:false,name:'amu_carousel_horse_r'}, 'amu_coaster_track_h':{walk:false,name:'amu_coaster_track_h'},
+  'amu_coaster_track_v':{walk:false,name:'amu_coaster_track_v'}, 'amu_ticket_booth_l':{walk:false,name:'amu_ticket_booth_l'},
+  'amu_ticket_booth_r':{walk:false,name:'amu_ticket_booth_r'}, 'amu_food_cart':{walk:false,name:'amu_food_cart'},
+  'amu_balloon_arch':{walk:true,name:'amu_balloon_arch'}, 'amu_queue_rail':{walk:false,name:'amu_queue_rail'},
+  'amu_photo_zone':{walk:false,name:'amu_photo_zone'}, 'amu_mascot_statue':{walk:false,name:'amu_mascot_statue'},
+  'amu_prize_tent':{walk:false,name:'amu_prize_tent'}, 'amu_fountain_park':{walk:false,name:'amu_fountain_park'},
+  'amu_lantern_string':{walk:true,name:'amu_lantern_string'}, 'amu_popcorn_kiosk':{walk:false,name:'amu_popcorn_kiosk'},
+  'amu_ride_sign':{walk:false,name:'amu_ride_sign'}, 'amu_sand_pit':{walk:true,name:'amu_sand_pit'},
+  'amu_festive_grass':{walk:true,name:'amu_festive_grass'}, 'amu_candystripe_wall':{walk:false,name:'amu_candystripe_wall'},
+  'amu_plush_prize_floor':{walk:true,name:'amu_plush_prize_floor'}, 'amu_dart_wall':{walk:false,name:'amu_dart_wall'},
+  'amu_ring_toss':{walk:false,name:'amu_ring_toss'}, 'amu_mascot_floor':{walk:true,name:'amu_mascot_floor'},
+
+  // Castle zone tiles.
+  'cas_stone_floor':{walk:true,name:'cas_stone_floor'}, 'cas_stone_wall_block':{walk:false,name:'cas_stone_wall_block'},
+  'cas_throne_dais':{walk:true,name:'cas_throne_dais'}, 'cas_throne_seat':{walk:false,name:'cas_throne_seat'},
+  'cas_drawbridge_h':{walk:true,name:'cas_drawbridge_h'}, 'cas_moat_water_l':{walk:false,name:'cas_moat_water_l'},
+  'cas_moat_water_r':{walk:false,name:'cas_moat_water_r'}, 'cas_portcullis_l':{walk:false,name:'cas_portcullis_l'},
+  'cas_portcullis_r':{walk:false,name:'cas_portcullis_r'}, 'cas_battlement':{walk:false,name:'cas_battlement'},
+  'cas_banner_pole':{walk:false,name:'cas_banner_pole'}, 'cas_banner_red':{walk:false,name:'cas_banner_red'},
+  'cas_banner_blue':{walk:false,name:'cas_banner_blue'}, 'cas_candelabra_lit':{walk:false,name:'cas_candelabra_lit'},
+  'cas_suit_armor':{walk:false,name:'cas_suit_armor'}, 'cas_sword_display':{walk:false,name:'cas_sword_display'},
+  'cas_weapon_rack':{walk:false,name:'cas_weapon_rack'}, 'cas_royal_carpet':{walk:true,name:'cas_royal_carpet'},
+  'cas_royal_wall_panel':{walk:false,name:'cas_royal_wall_panel'}, 'cas_chapel_pew':{walk:false,name:'cas_chapel_pew'},
+  'cas_treasury_vault':{walk:false,name:'cas_treasury_vault'}, 'cas_gold_pile':{walk:true,name:'cas_gold_pile'},
+  'cas_library_shelf':{walk:false,name:'cas_library_shelf'}, 'cas_training_dummy':{walk:false,name:'cas_training_dummy'},
+  'cas_royal_table':{walk:false,name:'cas_royal_table'}, 'cas_fireplace':{walk:false,name:'cas_fireplace'},
+  'cas_kings_crown_floor':{walk:true,name:'cas_kings_crown_floor'}, 'cas_queen_painting':{walk:false,name:'cas_queen_painting'},
+  'cas_scroll_pile':{walk:true,name:'cas_scroll_pile'}, 'cas_gargoyle_pillar':{walk:false,name:'cas_gargoyle_pillar'}
 };
+
+// Expand a readable string-grid into array-of-strings rows where each
+// display char maps to a (possibly multi-char) tile code via `legend`.
+// Chars absent from the legend pass through unchanged, so shared
+// single-char codes ('X' edge, ',' path, 'S' sign, 'D' door) still
+// work alongside zone-specific multi-char codes.
+function tileRows(legend, rows) {
+  return rows.map((r) => Array.from(r, (ch) => (legend[ch] !== undefined ? legend[ch] : ch)));
+}
 
 function tileAt(map, x, y) {
   if (y < 0 || y >= map.tiles.length) return 'T';
@@ -575,7 +679,10 @@ const MAPS = {
       ],
       decor:[
         { on:'Y', codes:['K','E'], rate:17, seed:3 },
-        { on:'Y', codes:['c','e','1'], rate:11, seed:5 }
+        { on:'Y', codes:['c','e','1'], rate:11, seed:5 },
+        // Route biome pack - blocking variants only (same walkability
+        // as the 'Y' fill they replace, so no balance change).
+        { on:'Y', codes:['route_hedge','route_signpost','route_milestone','route_fence_h','route_fence_v'], rate:15, seed:7 }
       ]
     }),
     npcs: [
@@ -815,7 +922,8 @@ const MAPS = {
       ],
       decor:[
         { on:'K', codes:['m','c','1'], rate:10, seed:7 },
-        { on:'K', codes:['E'], rate:19, seed:2 }
+        { on:'K', codes:['E'], rate:19, seed:2 },
+        { on:'K', codes:['route_hedge','route_signpost','route_milestone','route_fence_h'], rate:15, seed:8 }
       ]
     }),
     npcs: [
@@ -998,7 +1106,8 @@ const MAPS = {
       ],
       decor:[
         { on:'G', codes:['U','V','g'], rate:12, seed:4 },
-        { on:'G', codes:['4','n'], rate:18, seed:9 }
+        { on:'G', codes:['4','n'], rate:18, seed:9 },
+        { on:'G', codes:['route_hedge','route_milestone','route_fence_v','cave_pebble'], rate:16, seed:11 }
       ]
     }),
     npcs: [
@@ -1416,7 +1525,8 @@ const MAPS = {
       ],
       decor:[
         { on:'Q', codes:['k','2'], rate:11, seed:6 },
-        { on:'Q', codes:['('], rate:21, seed:12 }
+        { on:'Q', codes:['('], rate:21, seed:12 },
+        { on:'Q', codes:['snow_pine_short','snow_iglooy','snow_log_pile','snow_signpost_iced','snow_lantern'], rate:13, seed:15 }
       ]
     }),
     npcs: [
@@ -1595,7 +1705,8 @@ const MAPS = {
       ],
       decor:[
         { on:'O', codes:['3','s'], rate:10, seed:13 },
-        { on:'O', codes:['W'], rate:28, seed:4 }
+        { on:'O', codes:['W'], rate:28, seed:4 },
+        { on:'O', codes:['beach_palm_short','beach_umbrella','beach_buoy','beach_sand_castle','beach_kelp'], rate:14, seed:16 }
       ]
     }),
     npcs: [
@@ -1773,7 +1884,8 @@ desert: {
       ],
       decor:[
         { on:'J', codes:['3','O'], rate:9, seed:14 },
-        { on:'J', codes:['('], rate:18, seed:3 }
+        { on:'J', codes:['('], rate:18, seed:3 },
+        { on:'J', codes:['desert_cactus_short','desert_rock_a','desert_rock_b','desert_ruin_pillar','desert_signboard_burnt'], rate:13, seed:17 }
       ]
     }),
     npcs: [
@@ -1815,7 +1927,8 @@ desert: {
         { x:29, y:1, w:5, h:26, code:'W' }
       ],
       decor:[
-        { on:'O', codes:['3','s'], rate:9, seed:4 }
+        { on:'O', codes:['3','s'], rate:9, seed:4 },
+        { on:'O', codes:['beach_palm_short','beach_seashell','beach_starfish','beach_umbrella','beach_sand_castle'], rate:12, seed:18 }
       ]
     }),
     npcs: [],
@@ -1847,7 +1960,8 @@ desert: {
       ],
       decor:[
         { on:'G', codes:['#',')'], rate:11, seed:10 },
-        { on:'G', codes:['('], rate:17, seed:2 }
+        { on:'G', codes:['('], rate:17, seed:2 },
+        { on:'G', codes:['mtn_rock_a','mtn_rock_b','mtn_pine_tall','mtn_boulder','mtn_cliff_face'], rate:13, seed:19 }
       ]
     }),
     npcs: [
@@ -3584,31 +3698,48 @@ function applyWorldExpansion(MAPS) {
   // Outdoor walkable maps. Decorations layer carries the theme; tile
   // grid uses existing codes (path, grass, fence, walls, doors).
 
+  // Amusement Park - rebuilt from scratch (competitor analysis:
+  // Disney/Universal midways, Pokemon Pal Park). Carousel + ferris
+  // wheel cluster, coaster track, ticket booths, food court, prize
+  // games. 30 themed amu_* tile codes via the array-row format.
+  const AMU_LEGEND = {
+    g:'amu_festive_grass', p:'amu_path_brick', q:'amu_path_candy',
+    o:'amu_carousel_floor', l:'amu_carousel_pole',
+    h:'amu_carousel_horse_l', H:'amu_carousel_horse_r',
+    e:'amu_ferris_base_l', E:'amu_ferris_base_r', i:'amu_ferris_pillar',
+    z:'amu_coaster_track_h', Z:'amu_coaster_track_v',
+    t:'amu_ticket_booth_l', u:'amu_ticket_booth_r', c:'amu_food_cart',
+    a:'amu_balloon_arch', r:'amu_queue_rail', P:'amu_photo_zone',
+    m:'amu_mascot_statue', n:'amu_prize_tent', f:'amu_fountain_park',
+    L:'amu_lantern_string', k:'amu_popcorn_kiosk', w:'amu_ride_sign',
+    A:'amu_sand_pit', b:'amu_plush_prize_floor', d:'amu_dart_wall',
+    R:'amu_ring_toss', M:'amu_mascot_floor'
+  };
   MAPS.pokerod_amusement_park = {
     id:'pokerod_amusement_park', name:'Amusement Park', tags:['town','park'],
     biome:'amusement',
-    tiles: [
+    tiles: tileRows(AMU_LEGEND, [
       'YYYYYYYYYYYYYYYYYYYYYYYYYYYY',
-      'Y.cccc.cccc.....cccc.cccc..Y',
-      'Y.cccc.cccc.....cccc.cccc..Y',
-      'Y..........................Y',
-      'Y...pppppppppppppppppppp...Y',
-      'Y...p..................p...Y',
-      'Y...p...RRRR....RRRR...p...Y',
-      'Y...p...RRRR....RRRR...p...Y',
-      'Y...p...BB[]....BB[]...p...Y',
-      'Y...p..................p...Y',
-      'Y...p..ppppppppppppp...p...Y',
-      'Y...p..p.....1.....p...p...Y',
-      ',...p..p..........p....p...Y',
-      'Y...p..ppppppppppppp...p...Y',
-      'Y...p..................p...Y',
-      'Y...p...RRRR....RRRR...p...Y',
-      'Y...p...BB[]....BBfB...p...Y',
-      'Y...pppppppppppppppppppp...Y',
-      'X,,,,,,,,,,,,,,,,,,,,S,,,,,Y',
+      'YaLaLaLaLaLaLaLaLaLaLaLaLaLY',
+      'YggggggggggggggggggggggggggY',
+      'YgtuggggggggggggggggggtugggY',
+      'YggggggggggggggggggggggggggY',
+      'YggggggggggggggggggggggggggY',
+      'YggggoohHggggeeEEggggggggggY',
+      'YgggglollggggiiiiggggggggggY',
+      'YggggggggggggggggggggggggggY',
+      'YggzzzzzzzzzzzzzzzzzzzzzzggY',
+      'YggggggggggggggggggggggggggY',
+      'YggggggggggggggggggggggggggY',
+      'XppppppppppppppppppppppppppY',
+      'YggggggggggggggggggggggggggY',
+      'YggndgggggggggggggggggggbRgY',
+      'YggggggggggggggggggggggggggY',
+      'YggggggggggggggggggggDgggggY',
+      'YgggggwgggggggggggwggggggggY',
+      'YkgggggggggffgggggggggggkggY',
       'YYYYYYYYYYYYYYYYYYYYYYYYYYYY'
-    ],
+    ]),
     npcs: [
       { x:14, y:5, dir:'down', sprite:'npc_clown', name:'CLOWN PIPI',
         dialog:["Welcome to POKEROD AMUSEMENT PARK!","Tickets at the booth, smiles are free."] },
@@ -3665,31 +3796,49 @@ function applyWorldExpansion(MAPS) {
     }
   };
 
+  // PokeRod Castle - rebuilt from scratch (competitor analysis:
+  // classic JRPG fortresses, Pokemon trial castles). Battlements +
+  // moat + banners frame a throne room, royal hall, armory, library,
+  // treasury. 30 themed cas_* tile codes. Door tile uses the shared
+  // single-char 'd' (so it stays out of the legend).
+  const CAS_LEGEND = {
+    W:'cas_stone_wall_block', '.':'cas_stone_floor', r:'cas_royal_carpet',
+    I:'cas_throne_dais', h:'cas_throne_seat', g:'cas_drawbridge_h',
+    m:'cas_moat_water_l', M:'cas_moat_water_r',
+    p:'cas_portcullis_l', P:'cas_portcullis_r', b:'cas_battlement',
+    o:'cas_banner_pole', n:'cas_banner_red', N:'cas_banner_blue',
+    c:'cas_candelabra_lit', a:'cas_suit_armor', s:'cas_sword_display',
+    w:'cas_weapon_rack', l:'cas_royal_wall_panel', e:'cas_chapel_pew',
+    v:'cas_treasury_vault', G:'cas_gold_pile', L:'cas_library_shelf',
+    t:'cas_training_dummy', T:'cas_royal_table', f:'cas_fireplace',
+    k:'cas_kings_crown_floor', q:'cas_queen_painting', z:'cas_scroll_pile',
+    y:'cas_gargoyle_pillar'
+  };
   MAPS.pokerod_castle = {
     id:'pokerod_castle', name:'PokeRod Castle', tags:['town','castle'],
     biome:'castle',
-    tiles: [
-      'YYYYYYYYYYYYYYYYYYYYYYYYYYYY',
-      'Y..........WWWWWW..........Y',
-      'Y..........WWWWWW..........Y',
-      'Y.....RRRRRRRRRRRRRRRR.....Y',
-      'Y.....BB##########BBBB.....Y',
-      'Y.....BB[]......[]BBBB.....Y',
-      'Y.....BB##########BBBB.....Y',
-      'Y.....BB##########BBBB.....Y',
-      'Y.....BB##........BBBB.....Y',
-      'Y.....BB##.,,,,,,.BBBB.....Y',
-      'Y.....BB##.,,,,,,.BBBB.....Y',
-      'Y.....BB##.,,,,,,.BBBB.....Y',
-      'Y.....BB##........BBBB.....Y',
-      'Y.....BB##########BBBB.....Y',
-      'Y.....BB####fB####BBBB.....Y',
-      ',...........,,.............Y',
-      'Y...........,,.............Y',
-      'Y...........,,.............Y',
-      'X,,,,,,,,,,,,,,,,,,,,,S,,,,Y',
-      'YYYYYYYYYYYYYYYYYYYYYYYYYYYY'
-    ],
+    tiles: tileRows(CAS_LEGEND, [
+      'WWWWWWWWWWWWWWWWWWWWWWWWWWWW',
+      'WbbbbbbbbbbbbbbbbbbbbbbbbbbW',
+      'WnNnNnNnNnNnNnNnNnNnNnNnNnNW',
+      'W..........IhhI............W',
+      'WrrrrrrrrrrrrrrrrrrrrrrrrrrW',
+      'Wc.a.L....................yW',
+      'W..........................W',
+      'W.....T.........T..........W',
+      'W..........................W',
+      'WL.s.w...........e.e.e.....W',
+      'W..........................W',
+      'W..........................W',
+      'W.....v.G.........t........W',
+      'W..........................W',
+      'W...........d..............W',
+      'X..........................W',
+      'W..........................W',
+      'WggggggggggggggggggggggggggW',
+      'WmMmMmMmMmMmMmMmMmMmMmMmMmMW',
+      'WWWWWWWWWWWWWWWWWWWWWWWWWWWW'
+    ]),
     npcs: [
       { x:14, y:11, dir:'down', sprite:'npc_king', name:'KING ALDRIC',
         dialog:["Welcome to my keep, traveler.","Long has POKEROD CASTLE awaited brave hands."] },
@@ -3751,31 +3900,48 @@ function applyWorldExpansion(MAPS) {
     }
   };
 
+  // PokeRod Casino - rebuilt from scratch (competitor analysis:
+  // Pokemon Diamond Game Corner, Vegas neon strip). Slot/neon wall,
+  // roulette pit, VIP booths, bar, prize + cashier counters, dance
+  // floor. 30 themed csi_* tile codes. East edge punches an 'X' tile
+  // through the wall at row 16 so the player can walk to frostmere.
+  const CSI_LEGEND = {
+    M:'csi_mirror_wall', '#':'csi_floor_marble', '.':'csi_floor_carpet',
+    c:'csi_floor_chip', f:'csi_dance_floor', S:'csi_slot_machine',
+    N:'csi_neon_marquee', R:'csi_roulette_table', e:'csi_dealer_post',
+    v:'csi_velvet_rope', j:'csi_jukebox', B:'csi_vip_booth',
+    P:'csi_prize_counter', C:'csi_cashier_post', J:'csi_jackpot_pillar',
+    i:'csi_dice_floor', r:'csi_chip_stack_red', b:'csi_chip_stack_blue',
+    t:'csi_drink_table', D:'csi_casino_door', U:'csi_vault_door',
+    a:'csi_neon_arrow', l:'csi_lounge_seat', T:'csi_bar_top',
+    o:'csi_bar_stool', m:'csi_security_cam', x:'csi_exit_sign',
+    F:'csi_fountain_chip', L:'csi_slot_lever'
+  };
   MAPS.pokerod_casino = {
     id:'pokerod_casino', name:'PokeRod Casino', tags:['town','casino'],
     biome:'casino',
-    tiles: [
-      'YYYYYYYYYYYYYYYYYYYYYYYYYYYY',
-      'Y..........RRRRRR..........Y',
-      'Y..........RRRRRR..........Y',
-      'Y......BBBBBB[]BBBBBB......Y',
-      'Y......BB............BB....Y',
-      'Y......B..rrrrrrrrrr..B....Y',
-      'Y......B..r........r..B....Y',
-      'Y......B..r........r..B....Y',
-      'Y......B..r........r..B....Y',
-      'Y......B..r........r..B....Y',
-      'Y......B..r........r..B....Y',
-      'Y......B..r........r..B....Y',
-      'Y......B..r........r..B....Y',
-      'Y......B..rrrrrrrrrr..B....Y',
-      'Y......BB............BB....Y',
-      'Y......BBBBB,,,,,BBBBBB....Y',
-      'Y...........,,,,,..........,',
-      'Y...........,,,,,..........Y',
-      'X,,,,,,,,,,,,,,,,,,,,S,,,,,Y',
-      'YYYYYYYYYYYYYYYYYYYYYYYYYYYY'
-    ],
+    tiles: tileRows(CSI_LEGEND, [
+      'MMMMMMMMMMMMMMMMMMMMMMMMMMMM',
+      'MSNSNSNSNSNSNSNSNSNSNSNSNSNM',
+      'M..........................M',
+      'McRc.cRc....JFFJ....cRc.cRcM',
+      'Mcec.cec....J..J....cec.cecM',
+      'M.U......................J.M',
+      'M.BBBB.....cRc......TTTT..mM',
+      'M.BBBB.....cec......oooo...M',
+      'M..........................M',
+      'M.jjjj.....cRc......PPPP...M',
+      'M.jjjj.....cec......CCCC...M',
+      'M..........................M',
+      'M..cRc....ffffff....cRc....M',
+      'M..cec....ffffff....cec....M',
+      'M...........v...v..........M',
+      'M...........v.D.v..........M',
+      'M..........................X',
+      'MlllTooo.aaa.xx.aaa.bbbrrr.M',
+      'M..........................M',
+      'MMMMMMMMMMMMMMMMMMMMMMMMMMMM'
+    ]),
     npcs: [
       { x:9, y:5, dir:'right', sprite:'npc_dealer', name:'DEALER MONA', wander:{ range:1 },
         dialog:["Place your bets, friend.","House rules are posted on the wall."] },
