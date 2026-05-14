@@ -355,7 +355,7 @@ html, body {
   margin: 18px auto 14px;
   padding: 14px 14px 22px;
   background: var(--bezel-bg);
-  border-radius: 14px 14px 28px 14px;
+  border-radius: 14px 14px 22px 22px;
   box-shadow:
     inset 0 0 0 3px var(--bezel-line),
     inset 0 6px 14px rgba(0,0,0,0.7),
@@ -373,17 +373,21 @@ body[data-graphics="ds_diamond"] #screen { margin: clamp(10px, 4vw, 28px) auto 0
 body[data-graphics="ds_diamond"] #screen-bottom {
   /* Height is the controlling dimension so the 2:1 ratio is always
      preserved (no horizontal squish on portrait phones with capped
-     viewport height). Width follows from height. The optional cap
-     keeps it from outgrowing the top screen on very wide screens.
+     viewport height). Width follows from height. The cap matches the
+     top screen (720px) so the two bezels always pixel-align.
      Bumped 30% (143/23.4/286 from 110/18/220) for legibility - the
      bottom-screen HUD sits closer to the player's reading distance
-     than the top game canvas. */
+     than the top game canvas.
+     dvh (dynamic viewport height) is preferred so the layout doesn't
+     pop in when iOS Safari collapses the address bar; vh fallback
+     stays for old browsers that ignore the dvh rule. */
   --bh: clamp(143px, 23.4vh, 286px);
+  --bh: clamp(143px, 23.4dvh, 286px);
   display: block;
   position: relative;
   height: var(--bh);
   width: calc(var(--bh) * 2);
-  max-width: min(92vw, 936px);
+  max-width: min(92vw, 720px);
   margin: 6px auto 4px;
   padding: 8px 14px 12px;
   background: var(--bezel-bg);
