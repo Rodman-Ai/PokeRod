@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.40';
-  const BUILD = '2026.05.11-182';
+  const VERSION = 'v0.55.41';
+  const BUILD = '2026.05.11-183';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -3444,22 +3444,34 @@
 
   // ---------- World map + warp ----------
   // Circular region layout. Spawn coords are known walkable arrival tiles.
+  // Layout note: positions reflect actual on-foot exit directions per
+  // each town's `edges` block in maps.js. The 8-town main loop has 6
+  // souths + 2 easts (net 6S+2E displacement) so a closed axis-aligned
+  // polygon is impossible. We stack the 6 south edges as a vertical
+  // column on x=170, drop east to desert at the bottom, and close back
+  // up to rodport via a long L-shape (drawn in drawWorldLink). Spurs
+  // attach axis-aligned to their parent's correct side.
   const WORLD_NODES = [
-    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN',  x:118, y:24,  color:'#60b870', spawn:{x:8,  y:9,  dir:'down'} },
-    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN',  x:158, y:38,  color:'#80c878', spawn:{x:22, y:17, dir:'down'} },
-    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN',  x:178, y:74,  color:'#50a860', spawn:{x:22, y:17, dir:'down'} },
-    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN',  x:158, y:110, color:'#a89870', spawn:{x:22, y:17, dir:'down'} },
-    { id:'mountain',   name:'HIGHSPIRE',  short:'HI',  kind:'SPUR',  x:204, y:118, color:'#a8b8d8', spawn:{x:6,  y:20, dir:'right'} },
-    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN',  x:118, y:124, color:'#98d8e8', spawn:{x:22, y:17, dir:'down'} },
-    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN',  x:78,  y:110, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
-    { id:'beach',      name:'BEACH',      short:'BCH', kind:'SPUR',  x:34,  y:118, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
-    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN',  x:58,  y:74,  color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
-    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:78,  y:38,  color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} },
-    // New zones + farm activation.
-    { id:'pokerod_farm',           name:'POKEROD FARM',short:'FRM', kind:'SPUR', x:226, y:118, color:'#a8d860', spawn:{x:1,  y:18, dir:'right'} },
-    { id:'pokerod_amusement_park', name:'AMUSEMENT',   short:'AMU', kind:'TOWN', x:198, y:24,  color:'#f070a0', spawn:{x:14, y:18, dir:'down'} },
-    { id:'pokerod_castle',         name:'CASTLE',      short:'CTL', kind:'TOWN', x:218, y:74,  color:'#a08070', spawn:{x:14, y:18, dir:'down'} },
-    { id:'pokerod_casino',         name:'CASINO',      short:'CSO', kind:'SPUR', x:38,  y:74,  color:'#7050a0', spawn:{x:14, y:18, dir:'down'} }
+    // Main loop: vertical column going south (axis-aligned).
+    { id:'rodport',    name:'RODPORT',    short:'ROD', kind:'TOWN',  x:170, y:30,  color:'#60b870', spawn:{x:8,  y:9,  dir:'down'} },
+    { id:'brindale',   name:'BRINDALE',   short:'BRI', kind:'TOWN',  x:170, y:55,  color:'#80c878', spawn:{x:22, y:17, dir:'down'} },
+    { id:'woodfall',   name:'WOODFALL',   short:'WDF', kind:'TOWN',  x:170, y:80,  color:'#50a860', spawn:{x:22, y:17, dir:'down'} },
+    { id:'crestrock',  name:'CRESTROCK',  short:'CRG', kind:'TOWN',  x:170, y:105, color:'#a89870', spawn:{x:22, y:17, dir:'down'} },
+    { id:'frostmere',  name:'FROSTMERE',  short:'FRS', kind:'TOWN',  x:170, y:130, color:'#98d8e8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'harborside', name:'HARBORSIDE', short:'HBR', kind:'TOWN',  x:170, y:155, color:'#58a8d8', spawn:{x:22, y:17, dir:'down'} },
+    { id:'summitvale', name:'SUMMITVALE', short:'SMT', kind:'TOWN',  x:170, y:180, color:'#d88858', spawn:{x:22, y:17, dir:'down'} },
+    // Bottom east stub: summitvale exits east to desert.
+    { id:'desert',     name:'DESERT',     short:'DST', kind:'LOOP',  x:200, y:180, color:'#d8a850', spawn:{x:6,  y:20, dir:'right'} },
+    // Eastern spurs (each parent town exits east to its spur).
+    { id:'mountain',   name:'HIGHSPIRE',  short:'HI',  kind:'SPUR',  x:200, y:105, color:'#a8b8d8', spawn:{x:6,  y:20, dir:'right'} },
+    { id:'beach',      name:'BEACH',      short:'BCH', kind:'SPUR',  x:200, y:155, color:'#f0d070', spawn:{x:7,  y:20, dir:'right'} },
+    // Pokerod farm sits east of mountain (matches farm.west -> mountain).
+    { id:'pokerod_farm',           name:'POKEROD FARM',short:'FRM', kind:'SPUR', x:225, y:105, color:'#a8d860', spawn:{x:1,  y:18, dir:'right'} },
+    // POI zones: door entries (no canonical compass), placed on the
+    // open WEST side of their parent town.
+    { id:'pokerod_amusement_park', name:'AMUSEMENT',   short:'AMU', kind:'TOWN', x:140, y:55,  color:'#f070a0', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_castle',         name:'CASTLE',      short:'CTL', kind:'TOWN', x:140, y:80,  color:'#a08070', spawn:{x:14, y:18, dir:'down'} },
+    { id:'pokerod_casino',         name:'CASINO',      short:'CSO', kind:'SPUR', x:140, y:155, color:'#7050a0', spawn:{x:14, y:18, dir:'down'} }
   ];
   const WORLD_LINKS = [
     { a:'rodport', b:'brindale',   label:'ROUTE 1',      color:'#74b870' },
@@ -3796,31 +3808,76 @@
     window.PR_UI.drawText(ctx, 'N', x + 26, y + h - 31, '#806040');
   }
 
+  // Build the link path: straight line for axis-aligned (vertical or
+  // horizontal) endpoints, L-shape for everything else, special
+  // wrapping L for the rodport <-> desert loop-close so its rendered
+  // path leaves desert's east side and enters rodport's west side
+  // (matching the actual edge directions).
+  function buildLinkPath(a, b, link, yOffset) {
+    const yo = yOffset || 0;
+    const isLoopClose =
+      (link.a === 'desert' && link.b === 'rodport') ||
+      (link.a === 'rodport' && link.b === 'desert');
+    if (isLoopClose) {
+      const desert  = a.id === 'desert'  ? a : b;
+      const rodport = a.id === 'rodport' ? a : b;
+      const farX = 225;
+      const start = a.id === 'desert' ? desert : rodport;
+      const end   = a.id === 'desert' ? rodport : desert;
+      const path = [{x:a.x, y:a.y + yo}];
+      // From whichever end is desert: east, north, west.
+      if (a.id === 'desert') {
+        path.push({x:farX, y:desert.y + yo});
+        path.push({x:farX, y:rodport.y + yo});
+        path.push({x:rodport.x, y:rodport.y + yo});
+      } else {
+        // rodport -> desert: west exit on rodport (already west of farX
+        // anyway), so draw rodport -> farX(north) -> down -> west.
+        path.push({x:farX, y:rodport.y + yo});
+        path.push({x:farX, y:desert.y + yo});
+        path.push({x:desert.x, y:desert.y + yo});
+      }
+      return path;
+    }
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const path = [{x:a.x, y:a.y + yo}];
+    // Straight line if endpoints share an axis (or are very close on
+    // the off-axis). Otherwise an L-shape pivoting on the shorter axis.
+    if (Math.abs(dx) < 4 || Math.abs(dy) < 4) {
+      // Already axis-aligned.
+      path.push({x:b.x, y:b.y + yo});
+    } else {
+      // L-shape: vertical first then horizontal.
+      path.push({x:a.x, y:b.y + yo});
+      path.push({x:b.x, y:b.y + yo});
+    }
+    return path;
+  }
+
+  function strokePath(path) {
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+    ctx.stroke();
+  }
+
   function drawWorldLink(link) {
     const a = worldNode(link.a);
     const b = worldNode(link.b);
-    const cx = 118, cy = 76;
-    const mx = (a.x + b.x) / 2;
-    const my = (a.y + b.y) / 2;
-    const bend = link.spur ? 0 : 0.22;
-    const ox = mx + (mx - cx) * bend;
-    const oy = my + (my - cy) * bend;
     ctx.save();
+    // Soft drop shadow (offset 2 px south).
     ctx.strokeStyle = window.PR_UI.pf('rgba(32,20,10,0.35)');
     ctx.lineWidth = link.gate ? 3 : 4;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     if (link.spur || link.gate) ctx.setLineDash([3, 2]);
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y + 2);
-    ctx.quadraticCurveTo(ox, oy + 2, b.x, b.y + 2);
-    ctx.stroke();
+    strokePath(buildLinkPath(a, b, link, 2));
+    // Foreground colored stroke.
     ctx.setLineDash([]);
     ctx.strokeStyle = window.PR_UI.pf(link.color);
     ctx.lineWidth = link.gate ? 2 : 3;
     if (link.spur || link.gate) ctx.setLineDash([3, 2]);
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.quadraticCurveTo(ox, oy, b.x, b.y);
-    ctx.stroke();
+    strokePath(buildLinkPath(a, b, link, 0));
     ctx.restore();
   }
 
