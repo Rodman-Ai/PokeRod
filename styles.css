@@ -33,6 +33,10 @@
   --dpad-btn-top: #4a4a55;
   --dpad-btn-bot: #050508;
   --dpad-hub-bg: #1a1a1f;
+  /* Solid d-pad cap color (used by the perimeter-bevel + dimple
+     rules on #dpad). Default dark for the four CRT-era shells; GBA
+     SP overrides to silver to match the real-hardware photo. */
+  --dpad-btn-solid: #1d1d24;
 }
 
 body[data-graphics="gb_red"] {
@@ -164,6 +168,8 @@ body[data-graphics="gba_firered"] {
   --dpad-btn-top:    #f4f6fa;
   --dpad-btn-bot:    #6c7078;
   --dpad-hub-bg:     #2a2d34;
+  /* Silver d-pad cap to match the GBA SP brushed-aluminium shell. */
+  --dpad-btn-solid:  #9098a0;
 }
 
 body[data-graphics="ds_diamond"] {
@@ -826,9 +832,9 @@ body[data-graphics="ds_diamond"] #game-bottom {
      - dark at the bottom of one cell, light at the top of the next -
      which read as a horizontal slash through the cross. A single
      solid midtone eliminates those discontinuities so the four arms
-     + center read as one continuous plus. Bevel still comes from the
-     perimeter inset highlights below. */
-  background: #1d1d24;
+     + center read as one continuous plus. Per-era color via
+     --dpad-btn-solid (default dark, GBA SP overrides to silver). */
+  background: var(--dpad-btn-solid);
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -893,7 +899,7 @@ body[data-graphics="ds_diamond"] #game-bottom {
       rgba(0,0,0,0.40) 14%,
       rgba(0,0,0,0.15) 26%,
       transparent 34%),
-    #1d1d24;
+    var(--dpad-btn-solid);
   box-shadow: none;
 }
 
