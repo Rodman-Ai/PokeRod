@@ -803,19 +803,22 @@ body[data-graphics="ds_diamond"] #game-bottom {
   align-self: flex-end;
 }
 
-/* Universal handheld controls (desktop and mobile) */
+/* Universal handheld controls (desktop and mobile)
+   The d-pad is rendered as a free-floating plus/cross shape (matching
+   the real-hardware Game Boy d-pad in the reference image). No outer
+   well, no surrounding box - the four direction buttons + center hub
+   ARE the d-pad. Press feedback is per-button (inset shadow flip on
+   :active) instead of a container-level effect. */
 #dpad {
   display: grid;
   grid-template-columns: repeat(3, clamp(48px, 15vw, 58px));
   grid-template-rows: repeat(3, clamp(48px, 15vw, 58px));
   gap: 0;
-  background: var(--dpad-well-bg);
-  border-radius: 12px;
-  padding: 5px;
-  box-shadow:
-    0 4px 0 var(--dpad-well-edge),
-    inset 0 2px 4px rgba(0,0,0,0.6),
-    inset 0 0 0 2px var(--dpad-well-inset);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  filter: drop-shadow(0 3px 0 rgba(0,0,0,0.45));
 }
 #dpad .dbtn {
   background: var(--dpad-btn-bg);
@@ -826,10 +829,12 @@ body[data-graphics="ds_diamond"] #game-bottom {
   font-size: 20px;
   font-weight: bold;
 }
-#dpad .dbtn:nth-child(1) { grid-column: 2; grid-row: 1; border-radius: 6px 6px 0 0; }
-#dpad .dbtn:nth-child(2) { grid-column: 1; grid-row: 2; border-radius: 6px 0 0 6px; }
-#dpad .dbtn:nth-child(3) { grid-column: 3; grid-row: 2; border-radius: 0 6px 6px 0; }
-#dpad .dbtn:nth-child(4) { grid-column: 2; grid-row: 3; border-radius: 0 0 6px 6px; }
+/* Rounded OUTER corners of each direction button; inner corners stay
+   square so the four buttons stitch together into a continuous plus. */
+#dpad .dbtn:nth-child(1) { grid-column: 2; grid-row: 1; border-radius: 8px 8px 0 0; }
+#dpad .dbtn:nth-child(2) { grid-column: 1; grid-row: 2; border-radius: 8px 0 0 8px; }
+#dpad .dbtn:nth-child(3) { grid-column: 3; grid-row: 2; border-radius: 0 8px 8px 0; }
+#dpad .dbtn:nth-child(4) { grid-column: 2; grid-row: 3; border-radius: 0 0 8px 8px; }
 #dpad .dbtn:active {
   background: var(--dpad-btn-active-bg);
   box-shadow: inset 0 0 0 var(--dpad-btn-bot);
@@ -838,12 +843,9 @@ body[data-graphics="ds_diamond"] #game-bottom {
 #dpad::before {
   content: '';
   grid-column: 2; grid-row: 2;
-  width: 24px; height: 24px;
-  align-self: center;
-  justify-self: center;
-  background: var(--dpad-hub-bg);
-  border-radius: 50%;
-  box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+  width: 100%; height: 100%;
+  background: var(--dpad-btn-bg);
+  box-shadow: inset 0 -2px 0 var(--dpad-btn-bot), inset 0 2px 0 var(--dpad-btn-top);
 }
 
 #abuttons {
