@@ -4,6 +4,24 @@
 // 'P' center roof (block), 'M' mart roof (block), 'F' floor, 'S' sign,
 // 'C' counter (block), 'H' healer counter (block, interact heals), 'L' ledge (jump south),
 // 'X' exit edge (transition), 'r' rug (walkable, decorative), 's' sand (walkable)
+//
+// TILE-CODE ENCODING (dual format, both supported everywhere):
+//
+//   1) Per-row STRING (most existing maps). Each character in the row
+//      string is one tile code. Codes are limited to single ASCII chars,
+//      e.g. tiles[3] = 'XXXX,,,,YYYY'.
+//
+//   2) Per-row ARRAY OF STRINGS (new format, opt-in for new maps). Each
+//      element is a tile code of arbitrary length, e.g.
+//      tiles[3] = ['X','X','X','X',',',',',',',',', 'amu_carousel','Y','Y'].
+//      Use this for any map that needs to reference tile codes beyond
+//      the single-ASCII-char namespace (currently exhausted at ~95).
+//
+// Both formats work transparently with tileAt(), drawTileCode(),
+// TILE_PROPS lookup, and the atlas registry - row[x] indexing returns
+// the correct code in either case (a 1-char string from format 1, the
+// full code string from format 2). This unlocks 2-3x more tile codes
+// in the next phase without breaking any existing map.
 'use strict';
 
 const TILE_PROPS = {
@@ -643,7 +661,8 @@ const MAPS = {
     },
     edges: {
       north: { y:0,  to:'route1', tx:18, ty:26 },
-      south: { y:17, to:'route2', tx:7, ty:1 }
+      south: { y:17, to:'route2', tx:7, ty:1 },
+      east:  { x:43, to:'pokerod_amusement_park', tx:1, ty:12 }
     }
   },
 
@@ -870,7 +889,8 @@ const MAPS = {
     },
     edges: {
       north: { y:0,  to:'route2',     tx:18, ty:26 },
-      south: { y:17, to:'pebblewood', tx:7, ty:1 }
+      south: { y:17, to:'pebblewood', tx:7, ty:1 },
+      east:  { x:43, to:'pokerod_castle', tx:1, ty:15 }
     }
   },
 
@@ -1283,8 +1303,13 @@ const MAPS = {
     },
     edges: {
       north: { y:0,  to:'glimcavern', tx:18, ty:26 },
-      south: { y:17, to:'frostpeak',  tx:7, ty:1 }
-    }
+      south: { y:17, to:'frostpeak',  tx:7, ty:1 },
+      west:  { x:0,  to:'pokerod_casino', tx:26, ty:16 }
+    },
+    /* Static `tiles:` are wiped by updateCity('frostmere'); the new
+       west exit lives via cfg.edges.west:true + the [0,11] path
+       extension above. tx:26 ty:16 is the casino arrival, not a
+       frostmere coord. */
   },
 
   frostmere_gym: {
@@ -2190,8 +2215,8 @@ function applyWorldExpansion(MAPS) {
   updateCity('brindale', {
     fill:'K', pathCode:'p', trees:['c','1','e','K'], seed:7,
     treeRate:18,
-    edges:{ north:true, south:true },
-    borderRing:{ kind:'hedge', thickness:2, edges:{ east:true, west:true }, seed:7 },
+    edges:{ north:true, south:true, east:true },
+    borderRing:{ kind:'hedge', thickness:2, edges:{ west:true }, seed:7 },
     buildings:brindaleBuildings,
     paths:[
       // Outer ring road (rectangular boundary).
@@ -2205,6 +2230,8 @@ function applyWorldExpansion(MAPS) {
       { points:[[22,22],[22,33]], radius:1 },
       // East-west cross diameter through fountain.
       { points:[[7,17],[35,17]], radius:1 },
+      // East exit spur to amusement park.
+      { points:[[35,17],[43,17]], radius:0 },
       // Building door spurs.
       { points:[[7,8],[7,11]], radius:0 },       // pokecenter
       { points:[[36,8],[36,11]], radius:0 },     // mart
@@ -2321,8 +2348,8 @@ function applyWorldExpansion(MAPS) {
   updateCity('woodfall', {
     fill:'G', pathCode:'z', trees:['U','V','4','n'], seed:4,
     treeRate:20,
-    edges:{ north:true, south:true },
-    borderRing:{ kind:'darkforest', thickness:2, edges:{ east:true, west:true }, seed:4 },
+    edges:{ north:true, south:true, east:true },
+    borderRing:{ kind:'darkforest', thickness:2, edges:{ west:true }, seed:4 },
     buildings:woodfallBuildings,
     paths:[
       // Curved spine from north to south, jogging around the central oak.
@@ -2580,12 +2607,14 @@ function applyWorldExpansion(MAPS) {
   updateCity('frostmere', {
     fill:'Q', pathCode:'6', trees:['k','2','Q'], seed:6,
     treeRate:18,
-    edges:{ north:true, south:true },
-    borderRing:{ kind:'pines', thickness:2, edges:{ east:true, west:true }, seed:6 },
+    edges:{ north:true, south:true, west:true },
+    borderRing:{ kind:'pines', thickness:2, edges:{ east:true }, seed:6 },
     buildings:frostmereBuildings,
     paths:[
       // Top east-west road across the buildings.
-      { points:[[2,11],[42,11]], radius:1 },
+      { points:[[0,11],[42,11]], radius:1 },
+      // West exit spur to casino.
+      { points:[[0,11],[0,11]], radius:0 },
       // Building door spurs.
       { points:[[7,8],[7,12]], radius:0 },     // center
       { points:[[16,8],[16,12]], radius:0 },   // mart
@@ -3571,7 +3600,7 @@ function applyWorldExpansion(MAPS) {
       'Y...p..................p...Y',
       'Y...p..ppppppppppppp...p...Y',
       'Y...p..p.....1.....p...p...Y',
-      'Y...p..p..........p....p...Y',
+      ',...p..p..........p....p...Y',
       'Y...p..ppppppppppppp...p...Y',
       'Y...p..................p...Y',
       'Y...p...RRRR....RRRR...p...Y',
@@ -3630,6 +3659,9 @@ function applyWorldExpansion(MAPS) {
     ],
     doors: {
       '21,16': { to:'brindale', x:22, y:17 }
+    },
+    edges: {
+      west: { x:0, to:'brindale', tx:42, ty:17 }
     }
   };
 
@@ -3652,7 +3684,7 @@ function applyWorldExpansion(MAPS) {
       'Y.....BB##........BBBB.....Y',
       'Y.....BB##########BBBB.....Y',
       'Y.....BB####fB####BBBB.....Y',
-      'Y...........,,.............Y',
+      ',...........,,.............Y',
       'Y...........,,.............Y',
       'Y...........,,.............Y',
       'X,,,,,,,,,,,,,,,,,,,,,S,,,,Y',
@@ -3713,6 +3745,9 @@ function applyWorldExpansion(MAPS) {
     ],
     doors: {
       '12,14': { to:'woodfall', x:22, y:17 }
+    },
+    edges: {
+      west: { x:0, to:'woodfall', tx:42, ty:17 }
     }
   };
 
@@ -3736,7 +3771,7 @@ function applyWorldExpansion(MAPS) {
       'Y......B..rrrrrrrrrr..B....Y',
       'Y......BB............BB....Y',
       'Y......BBBBB,,,,,BBBBBB....Y',
-      'Y...........,,,,,..........Y',
+      'Y...........,,,,,..........,',
       'Y...........,,,,,..........Y',
       'X,,,,,,,,,,,,,,,,,,,,S,,,,,Y',
       'YYYYYYYYYYYYYYYYYYYYYYYYYYYY'
@@ -3796,6 +3831,9 @@ function applyWorldExpansion(MAPS) {
     ],
     doors: {
       '14,15': { to:'harborside', x:22, y:17 }
+    },
+    edges: {
+      east: { x:27, to:'frostmere', tx:1, ty:11 }
     }
   };
 
