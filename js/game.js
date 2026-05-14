@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.39';
-  const BUILD = '2026.05.11-181';
+  const VERSION = 'v0.55.40';
+  const BUILD = '2026.05.11-182';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -3666,8 +3666,18 @@
       warpTo(target);
     }
   }
+  // Themed POI zones don't have walk-in doors from their parent town
+  // (their decoration layout is the whole point), so we treat them as
+  // always-reachable on the world map. The badge gate still applies.
+  const ALWAYS_REACHABLE = new Set([
+    'pokerod_farm',
+    'pokerod_amusement_park',
+    'pokerod_castle',
+    'pokerod_casino'
+  ]);
   function isWorldNodeVisited(state, node) {
     if (!node) return false;
+    if (ALWAYS_REACHABLE.has(node.id)) return true;
     const fv = state.flags && state.flags.firstVisited;
     if (!fv) return false;
     if (fv[node.id]) return true;
