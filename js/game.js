@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.51';
-  const BUILD = '2026.05.11-193';
+  const VERSION = 'v0.55.52';
+  const BUILD = '2026.05.11-194';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -973,7 +973,12 @@
     startBattleAgainstTrainer,
     startBattleAgainstWild,
     startFishing,
-    showFlash
+    showFlash,
+    // Title-screen actions for the interactive DS bottom-screen panel.
+    // Mirror the top-screen DOM buttons (game.js:178-179) exactly,
+    // including the audio-unlock step + the NG+ prompt.
+    titleNewGame: () => { window.PR_AUDIO && window.PR_AUDIO.unlock(); offerNGPlusOrNew(); },
+    titleContinue: () => { window.PR_AUDIO && window.PR_AUDIO.unlock(); continueGame(); }
   };
 
   // ---------- New profile entry ----------
