@@ -1111,10 +1111,12 @@ const MAPS = {
       ]
     }),
     npcs: [
-      { x:14, y:6, dir:'left', sprite:'npc_youth', name:'BUG-FAN ARI',
-        dialog:["Bugs are the BEST POKEROD.","I'll prove it in battle!"],
-        trainer: { team:[['crawlbug',8],['bumblesting',8]], reward:360,
-                   defeat:["Bugs are still the best though!","...probably."] } }
+      { x:14, y:6, dir:'left', sprite:'npc_youth', name:'BUG-FAN DUO',
+        dialog:["We're ARI and BEX, the bug-fan duo!","Bugs are the BEST POKEROD.","It's a tag battle - a passing ranger will lend you a hand!"],
+        trainer: { team:[['crawlbug',8],['bumblesting',8],['crawlbug',9],['silkuttle',9]], reward:560,
+                   tag:{ foeName:'Bug-fans Ari & Bex', allyName:'Camper Nel',
+                         allyTeam:[['nibblet',8],['fernsprout',9]] },
+                   defeat:["Bugs are still the best though!","...probably.","Nice teamwork out there!"] } }
     ],
     signs: {},
     encounters: [
@@ -1125,7 +1127,9 @@ const MAPS = {
       { species:'mantilux',    minL:7, maxL:10, weight:3 },
       { species:'dewfae',      minL:8, maxL:11, weight:2 },
       { species:'clodlet',     minL:6, maxL:9,  weight:2 },
-      { species:'glimkit',     minL:8, maxL:11, weight:1 }
+      { species:'glimkit',     minL:8, maxL:11, weight:1 },
+      // Weather-exclusive (idea #28): mud-flats rise when it rains.
+      { species:'mudmote',     minL:7, maxL:10, weight:3, weather:'rain' }
     ],
     // Hidden grotto entrance: a normal-looking path tile at (13, 6)
     // along the main route through column 13 secretly warps to a
@@ -1316,7 +1320,10 @@ const MAPS = {
       { species:'stoneworm', minL:11, maxL:15, weight:3 },
       { species:'wraithlet', minL:11, maxL:14, weight:3, time:'night' },
       { species:'rivetbolt', minL:11, maxL:14, weight:2 },
-      { species:'crysthorn', minL:12, maxL:15, weight:1 }
+      { species:'crysthorn', minL:12, maxL:15, weight:1 },
+      // Weather-exclusive (idea #28): frostpups slip down from
+      // Highspire when hail rolls in.
+      { species:'frostpup',  minL:11, maxL:14, weight:3, weather:'hail' }
     ],
     doors: {
       '29,6': { to:'glimcavern_b1', x:10, y:1 }

@@ -81,6 +81,29 @@
       fill:'#1a0204', border:'#e84848', text:'#f0d8a0'
     });
   }
+  // RUN chip (idea #31): shown while the player is holding B to run.
+  // Stacks below the BIKE slot so the two never collide (running and
+  // biking are mutually exclusive anyway).
+  function drawRunChip(ctx, viewW) {
+    const text = 'RUN';
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 18, text, {
+      fill:'#1a0204', border:'#d88820', text:'#f0d8a0'
+    });
+  }
+  // Catch-combo chip (idea #6): shows the current chain length while
+  // it's non-zero, so the player can see their shiny-hunt streak.
+  function drawComboChip(ctx, viewW, combo) {
+    const text = 'CHAIN ' + combo.count;
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 32, text, {
+      fill:'#1a0204', border:'#88c860', text:'#a8f0a0'
+    });
+  }
   function drawRepelTimer(ctx, viewW, stepsRemaining) {
     const text = 'REPEL ' + stepsRemaining;
     const textW = window.PR_UI.textWidth(text);
@@ -412,6 +435,12 @@
   // Returns null for interiors / unweathered maps (no bias applies).
   function currentWeatherKind() {
     const G = window.PR_GAME && window.PR_GAME.state;
+    // Battle-set weather (Rain Dance etc., idea #5) overrides the map's
+    // ambient weather for the duration of the battle. The override
+    // lives on state.battle, so it's cleared automatically when the
+    // battle ends - no separate teardown needed.
+    const b = G && G.battle;
+    if (b && b.weather && b.weather.kind && b.weather.turns > 0) return b.weather.kind;
     const m = G && G.world && G.world.currentMap && G.world.currentMap();
     if (!m || m.interior) return null;
     const w = parseWeather(m.weather);
@@ -2235,7 +2264,15 @@
       }
     }
 
-    const stepDur = this.state.player.onBike ? this.anim.duration * 0.5 : this.anim.duration;
+    // Movement speed: bike halves step duration; otherwise holding B
+    // (the 'x' key) bumps speed to ~1.4x of walking (idea #31). Bike
+    // wins if both apply.
+    let stepDur = this.anim.duration;
+    if (this.state.player.onBike) {
+      stepDur *= 0.5;
+    } else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) {
+      stepDur *= 0.7;
+    }
     this.startMove(p.x, p.y, nx, ny, stepDur);
   };
 
@@ -3088,6 +3125,9 @@
     // permanent clutter. Drawn after the clock so it appears below.
     if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, this.player.repelSteps);
     if (this.player.onBike) drawBikeChip(ctx, VIEW_W);
+    else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) drawRunChip(ctx, VIEW_W);
+    const combo = this.player.catchCombo;
+    if (combo && combo.count > 0) drawComboChip(ctx, VIEW_W, combo);
 
     // Map name banner on entry.
     if (this.justEntered) {

@@ -46,6 +46,120 @@ function effectiveness(atkType, defTypes) {
   return m;
 }
 
+// ---- Abilities (idea #1) -------------------------------------------
+// Passive per-species traits, Gen-3 model: one fixed ability per
+// species, resolved from the SPECIES_ABILITIES side table. Keeping the
+// roster as a side table (rather than inline on each CREATURES entry)
+// makes it easy to scan and tune in one place. Each ability hooks a
+// specific point in the battle engine - calcDamage below, or
+// executeMove / switch-in in js/battle.js. Species absent from the
+// table simply have no ability.
+const ABILITIES = {
+  blaze:       { name:'Blaze',        desc:'Powers up FIRE moves when HP is low.' },
+  torrent:     { name:'Torrent',      desc:'Powers up WATER moves when HP is low.' },
+  overgrow:    { name:'Overgrow',     desc:'Powers up GRASS moves when HP is low.' },
+  levitate:    { name:'Levitate',     desc:'Takes no damage from GROUND moves.' },
+  intimidate:  { name:'Intimidate',   desc:'Lowers the foe ATK on entry.' },
+  sturdy:      { name:'Sturdy',       desc:'Endures a KO hit when at full HP.' },
+  static:      { name:'Static',       desc:'Contact may paralyze the attacker.' },
+  flamebody:   { name:'Flame Body',   desc:'Contact may burn the attacker.' },
+  thickfat:    { name:'Thick Fat',    desc:'Halves FIRE and ICE damage taken.' },
+  waterabsorb: { name:'Water Absorb', desc:'WATER moves restore HP instead.' },
+  voltabsorb:  { name:'Volt Absorb',  desc:'ELECTRIC moves restore HP instead.' }
+};
+
+const SPECIES_ABILITIES = {
+  emberkit:'blaze', flarebound:'blaze', infernarok:'flamebody',
+  aquapup:'torrent', tideturtle:'torrent', maelstroth:'torrent',
+  sproutling:'overgrow', leafurge:'overgrow', verdantsage:'overgrow',
+  zapret:'static', boltbeard:'static',
+  pebra:'sturdy', boulderon:'sturdy',
+  flitwing:'intimidate', skylordan:'intimidate',
+  nibblet:'intimidate', whiskaroth:'intimidate',
+  crawlbug:'static', mothmane:'levitate',
+  cavewing:'levitate', vampirothy:'levitate',
+  splashfin:'torrent', levifin:'torrent',
+  glimkit:'intimidate', lustrofox:'levitate',
+  cinderpup:'blaze', pyrohound:'blaze', magmaron:'flamebody',
+  mistfin:'torrent', tidalwhal:'thickfat', glacierock:'thickfat',
+  fernsprout:'overgrow', bramblewood:'overgrow', thornedred:'overgrow',
+  voltkit:'static', voltlynx:'static', stormfangis:'static',
+  stoneworm:'sturdy', quakeworm:'sturdy', tectonarch:'sturdy',
+  bumblesting:'static', hivequeen:'intimidate', royalwasp:'intimidate',
+  galewing:'intimidate', tempestir:'intimidate',
+  solarwing:'blaze', solarcrest:'flamebody',
+  frostpup:'thickfat', snowox:'thickfat', glacioxen:'thickfat',
+  crysthorn:'levitate', prismage:'levitate',
+  geistmite:'intimidate', shadefox:'intimidate', umbrasire:'intimidate',
+  dreamilly:'levitate', reverieus:'levitate',
+  rivettot:'sturdy', mindrop:'levitate', pugpaw:'intimidate',
+  joltlet:'voltabsorb', breezlet:'levitate', silkuttle:'static',
+  venipip:'intimidate', mudmote:'waterabsorb', frostnip:'thickfat',
+  craglet:'sturdy', wraithlet:'levitate', draekit:'intimidate',
+  dewfae:'levitate', clawmonk:'intimidate', rivetbolt:'sturdy',
+  frostbloom:'overgrow', mantilux:'intimidate', clodlet:'sturdy',
+  budling:'overgrow', miasmite:'thickfat'
+};
+
+function abilityOf(speciesId) {
+  return SPECIES_ABILITIES[speciesId] || null;
+}
+
+// ---- Creature marks & titles (idea #20) ----------------------------
+// Each mark is a tag rolled at catch time describing the conditions.
+// `title` is a short "the X" suffix shown after the nickname in
+// detail views; `desc` is the long-form tooltip-style text. Most
+// catches end up with mark:null - marks are meant to be a collector's
+// detail, not a default badge on every creature.
+const MARKS = {
+  pristine:    { name:'Pristine',    title:'the Pristine',    desc:'Caught from full HP.' },
+  weakened:    { name:'Weakened',    title:'the Lucky',       desc:'Snared at the brink.' },
+  stormcaught: { name:'Stormcaught', title:'the Stormborne',  desc:'Caught during heavy weather.' },
+  nocturnal:   { name:'Nocturnal',   title:'the Nocturnal',   desc:'Caught under the moon.' },
+  sparker:     { name:'Sparker',     title:'the Chain Spark', desc:'Caught mid-chain.' },
+  rookie:      { name:'Rookie',      title:'the Rookie',      desc:'Caught at a tender level.' },
+  veteran:     { name:'Veteran',     title:'the Veteran',     desc:'Caught at a hardy level.' },
+  shimmer:     { name:'Shimmer',     title:'the Shimmer',     desc:'Caught while shiny.' }
+};
+function markOf(markId) { return markId && MARKS[markId] ? MARKS[markId] : null; }
+
+// ---- Natures (idea #11) --------------------------------------------
+// 25 natures from the mainline games. Each one bumps one stat by 10%
+// and another by -10% (HP is never affected). Five are "neutral" -
+// the same stat up and down, i.e. no net change. The short tag is
+// what appears in the party-menu second line.
+const NATURES = {
+  hardy:   { name:'Hardy',   short:'HRDY', up:null,  down:null  },
+  lonely:  { name:'Lonely',  short:'LNLY', up:'atk', down:'def' },
+  brave:   { name:'Brave',   short:'BRAV', up:'atk', down:'spe' },
+  adamant: { name:'Adamant', short:'ADAM', up:'atk', down:'spa' },
+  naughty: { name:'Naughty', short:'NAUG', up:'atk', down:'spd' },
+  bold:    { name:'Bold',    short:'BOLD', up:'def', down:'atk' },
+  docile:  { name:'Docile',  short:'DOCI', up:null,  down:null  },
+  relaxed: { name:'Relaxed', short:'RLXD', up:'def', down:'spe' },
+  impish:  { name:'Impish',  short:'IMPS', up:'def', down:'spa' },
+  lax:     { name:'Lax',     short:'LAX',  up:'def', down:'spd' },
+  timid:   { name:'Timid',   short:'TIMD', up:'spe', down:'atk' },
+  hasty:   { name:'Hasty',   short:'HSTY', up:'spe', down:'def' },
+  serious: { name:'Serious', short:'SERS', up:null,  down:null  },
+  jolly:   { name:'Jolly',   short:'JOLY', up:'spe', down:'spa' },
+  naive:   { name:'Naive',   short:'NAIV', up:'spe', down:'spd' },
+  modest:  { name:'Modest',  short:'MOST', up:'spa', down:'atk' },
+  mild:    { name:'Mild',    short:'MILD', up:'spa', down:'def' },
+  quiet:   { name:'Quiet',   short:'QUIT', up:'spa', down:'spe' },
+  bashful: { name:'Bashful', short:'BSHF', up:null,  down:null  },
+  rash:    { name:'Rash',    short:'RASH', up:'spa', down:'spd' },
+  calm:    { name:'Calm',    short:'CALM', up:'spd', down:'atk' },
+  gentle:  { name:'Gentle',  short:'GNTL', up:'spd', down:'def' },
+  sassy:   { name:'Sassy',   short:'SASY', up:'spd', down:'spe' },
+  careful: { name:'Careful', short:'CARE', up:'spd', down:'spa' },
+  quirky:  { name:'Quirky',  short:'QRKY', up:null,  down:null  }
+};
+const NATURE_IDS = Object.keys(NATURES);
+function randomNatureId() {
+  return NATURE_IDS[Math.floor(Math.random() * NATURE_IDS.length)];
+}
+
 // Moves: id -> { name, type, power, accuracy, kind: 'physical'|'special'|'status', pp, effect? }
 const MOVES = {
   tackle:    { name:'Tackle',    type:'NORMAL',   power:40, accuracy:100, kind:'physical', pp:35 },
@@ -59,7 +173,7 @@ const MOVES = {
   bubble:    { name:'Bubble',    type:'WATER',    power:40, accuracy:100, kind:'special',  pp:30 },
   watergun:  { name:'Water Gun', type:'WATER',    power:55, accuracy:100, kind:'special',  pp:25 },
   vinelash:  { name:'Vine Lash', type:'GRASS',    power:45, accuracy:100, kind:'physical', pp:25 },
-  leafcut:   { name:'Leaf Cut',  type:'GRASS',    power:60, accuracy:95,  kind:'physical', pp:20 },
+  leafcut:   { name:'Leaf Cut',  type:'GRASS',    power:60, accuracy:95,  kind:'physical', pp:20, highCrit:true },
   spark:     { name:'Spark',     type:'ELECTRIC', power:40, accuracy:100, kind:'special',  pp:30, paralyzeChance:0.1 },
   zapburst:  { name:'Zap Burst', type:'ELECTRIC', power:65, accuracy:95,  kind:'special',  pp:15, paralyzeChance:0.1 },
   gust:      { name:'Gust',      type:'FLYING',   power:40, accuracy:100, kind:'special',  pp:30 },
@@ -115,7 +229,7 @@ const MOVES = {
   mindcrush:      { name:'Mind Crush',     type:'PSYCHIC',  power:80, accuracy:95,  kind:'special',  pp:10, statChange:{target:'foe',stat:'spd',stages:-1} },
   telekinesis:    { name:'Telekinesis',    type:'PSYCHIC',  power:0,  accuracy:100, kind:'status',   pp:15, statChange:{target:'self',stat:'spa',stages:1} },
   swarmstrike:    { name:'Swarm Strike',   type:'BUG',      power:25, accuracy:100, kind:'physical', pp:15, multi:[2,5] },
-  karatechop:     { name:'Karate Chop',    type:'FIGHTING', power:50, accuracy:100, kind:'physical', pp:25 },
+  karatechop:     { name:'Karate Chop',    type:'FIGHTING', power:50, accuracy:100, kind:'physical', pp:25, highCrit:true },
   focusblast:     { name:'Focus Blast',    type:'FIGHTING', power:90, accuracy:70,  kind:'special',  pp:5,  statChange:{target:'foe',stat:'spd',stages:-1} },
   shadowstrike:   { name:'Shadow Strike',  type:'DARK',     power:70, accuracy:100, kind:'physical', pp:15, priority:1 },
   nightveil:      { name:'Night Veil',     type:'DARK',     power:0,  accuracy:100, kind:'status',   pp:10, statChange:{target:'foe',stat:'acc',stages:-2} },
@@ -125,7 +239,7 @@ const MOVES = {
   stardust:       { name:'Stardust',       type:'FAIRY',    power:70, accuracy:100, kind:'special',  pp:15, sleepChance:0.1 },
   // ---- 34 new moves added in v0.52.0 (each has a signature animation) ----
   doublestrike:   { name:'Double Strike',  type:'NORMAL',   power:50, accuracy:100, kind:'physical', pp:15, multi:[2,2] },
-  recklesscharge: { name:'Reckless Charge',type:'NORMAL',   power:100,accuracy:85,  kind:'physical', pp:10 },
+  recklesscharge: { name:'Reckless Charge',type:'NORMAL',   power:100,accuracy:85,  kind:'physical', pp:10, recoil:0.25 },
   firefist:       { name:'Fire Fist',      type:'FIRE',     power:70, accuracy:100, kind:'physical', pp:15, burnChance:0.2 },
   searingbeam:    { name:'Searing Beam',   type:'FIRE',     power:85, accuracy:100, kind:'special',  pp:10, burnChance:0.15 },
   willowisp:      { name:'Will-o-Wisp',    type:'FIRE',     power:0,  accuracy:85,  kind:'status',   pp:15, burnChance:1.0 },
@@ -148,7 +262,7 @@ const MOVES = {
   gravitywell:    { name:'Gravity Well',   type:'PSYCHIC',  power:80, accuracy:100, kind:'special',  pp:10, statChange:{target:'foe',stat:'spe',stages:-1} },
   solarcharge:    { name:'Solar Charge',   type:'PSYCHIC',  power:85, accuracy:100, kind:'special',  pp:10 },
   siphonfang:     { name:'Siphon Fang',    type:'BUG',      power:70, accuracy:100, kind:'physical', pp:10 },
-  crystalspear:   { name:'Crystal Spear',  type:'ROCK',     power:80, accuracy:95,  kind:'physical', pp:10 },
+  crystalspear:   { name:'Crystal Spear',  type:'ROCK',     power:80, accuracy:95,  kind:'physical', pp:10, highCrit:true },
   lifedrain:      { name:'Life Drain',     type:'GHOST',    power:60, accuracy:100, kind:'special',  pp:15, statChange:{target:'foe',stat:'atk',stages:-1} },
   dragondance:    { name:'Dragon Dance',   type:'DRAGON',   power:0,  accuracy:100, kind:'status',   pp:15, statChange:{target:'self',stat:'spe',stages:2} },
   tripledagger:   { name:'Triple Dagger',  type:'DARK',     power:30, accuracy:100, kind:'physical', pp:15, multi:[3,3] },
@@ -157,7 +271,32 @@ const MOVES = {
   mirrorshield:   { name:'Mirror Shield',  type:'STEEL',    power:0,  accuracy:100, kind:'status',   pp:10, statChange:{target:'foe',stat:'atk',stages:-2} },
   metalsong:      { name:'Metal Song',     type:'STEEL',    power:0,  accuracy:100, kind:'status',   pp:10, statChange:{target:'foe',stat:'def',stages:-2} },
   moonlight:      { name:'Moonlight',      type:'FAIRY',    power:0,  accuracy:100, kind:'status',   pp:10, statChange:{target:'self',stat:'spa',stages:1} },
-  mistygale:      { name:'Misty Gale',     type:'FAIRY',    power:70, accuracy:100, kind:'special',  pp:15, statChange:{target:'foe',stat:'spa',stages:-1} }
+  mistygale:      { name:'Misty Gale',     type:'FAIRY',    power:70, accuracy:100, kind:'special',  pp:15, statChange:{target:'foe',stat:'spa',stages:-1} },
+  // ---- field moves: screens / hazards / weather (ideas #3, #5) ----
+  // Status moves with no statChange; their effect is carried by the
+  // setScreen / setHazard / setWeather tag and resolved in battle.js.
+  reflect:        { name:'Reflect',        type:'PSYCHIC',  power:0,  accuracy:100, kind:'status',   pp:20, setScreen:'reflect' },
+  lightscreen:    { name:'Light Screen',   type:'PSYCHIC',  power:0,  accuracy:100, kind:'status',   pp:20, setScreen:'lightscreen' },
+  spikes:         { name:'Spikes',         type:'GROUND',   power:0,  accuracy:100, kind:'status',   pp:20, setHazard:'spikes' },
+  stealthrock:    { name:'Stealth Rock',   type:'ROCK',     power:0,  accuracy:100, kind:'status',   pp:20, setHazard:'stealthrock' },
+  raindance:      { name:'Rain Dance',     type:'WATER',    power:0,  accuracy:100, kind:'status',   pp:10, setWeather:'rain' },
+  stormcall:      { name:'Storm Call',     type:'ELECTRIC', power:0,  accuracy:100, kind:'status',   pp:10, setWeather:'thunder' },
+  hailstorm:      { name:'Hailstorm',      type:'ICE',      power:0,  accuracy:100, kind:'status',   pp:10, setWeather:'hail' },
+  // ---- High-crit + Focus Energy (idea #9) ----
+  // highCrit bumps the move's effective crit stage by 1. focusenergy
+  // raises the user's persistent crit stage by 2 (via critBoost).
+  slash:          { name:'Slash',          type:'NORMAL',   power:70, accuracy:100, kind:'physical', pp:20, highCrit:true },
+  focusenergy:    { name:'Focus Energy',   type:'NORMAL',   power:0,  accuracy:100, kind:'status',   pp:30, critBoost:2 },
+  // ---- Charge / recharge moves (idea #4) ----
+  // charge:true = turn 1 builds, turn 2 fires. recharge:true = turn 1
+  // fires (heavy hit), turn 2 the attacker is stunned recovering.
+  solarbeam:      { name:'Solar Beam',     type:'GRASS',    power:120,accuracy:100, kind:'special',  pp:10, charge:true },
+  skyattack:      { name:'Sky Attack',     type:'FLYING',   power:140,accuracy:95,  kind:'physical', pp:5,  charge:true, highCrit:true },
+  hyperbeam:      { name:'Hyper Beam',     type:'NORMAL',   power:150,accuracy:90,  kind:'special',  pp:5,  recharge:true },
+  // ---- Recoil / drain (idea #10) ----
+  takedown:       { name:'Take Down',      type:'NORMAL',   power:90, accuracy:85,  kind:'physical', pp:20, recoil:0.25 },
+  gigadrain:      { name:'Giga Drain',     type:'GRASS',    power:75, accuracy:100, kind:'special',  pp:10, drain:0.5 },
+  drainpunch:     { name:'Drain Punch',    type:'FIGHTING', power:75, accuracy:100, kind:'physical', pp:10, drain:0.5 }
 };
 
 // Creatures (original designs). Stats are baseStats. Sprite is drawn procedurally from "design".
@@ -242,7 +381,7 @@ const CREATURES = {
     id:'verdantsage', name:'Verdantsage', dex:37,
     types:['GRASS','POISON'],
     baseStats:{hp:80, atk:82, def:83, spa:100, spd:100, spe:80},
-    learnset:[ [1,'petalstorm'],[1,'tackle'],[5,'vinelash'],[10,'leafcut'],[20,'acidspray'],[27,'sandattack'],[32,'petalstorm'],[33,'toxicspike'],[38,'shimmer'],[44,'lullaby'] ],
+    learnset:[ [1,'petalstorm'],[1,'tackle'],[5,'vinelash'],[10,'leafcut'],[20,'acidspray'],[27,'sandattack'],[32,'petalstorm'],[33,'toxicspike'],[38,'shimmer'],[42,'solarbeam'],[44,'lullaby'] ],
     catchRate:15,
     design:{ palette:['#1c6818','#f04898','#082008'], shape:'plant', accent:'bud', big:true, beard:true },
     description:'Centuries of pollen cling to its shoulders. It is said to remember every garden it has seen.'
@@ -294,7 +433,7 @@ const CREATURES = {
   skylordan: {
     id:'skylordan', name:'Skylordan', dex:47, types:['NORMAL','FLYING'],
     baseStats:{hp:75, atk:85, def:75, spa:65, spd:70, spe:96},
-    learnset:[ [1,'aerialace'],[1,'tackle'],[5,'gust'],[10,'sandattack'],[14,'quickjab'],[18,'airslash'],[24,'shimmer'],[26,'skyrend'],[30,'agility'],[34,'hurricaneblast'] ],
+    learnset:[ [1,'aerialace'],[1,'tackle'],[5,'gust'],[10,'sandattack'],[14,'quickjab'],[18,'airslash'],[24,'shimmer'],[26,'skyrend'],[30,'agility'],[34,'hurricaneblast'],[40,'skyattack'],[46,'hyperbeam'] ],
     catchRate:60,
     design:{ palette:['#785030','#d8b878','#1a0a04'], shape:'bird', accent:'wings', beard:true },
     description:'Hunters call its silhouette the courier of dawn. It rarely lands twice in the same field.'
@@ -303,7 +442,7 @@ const CREATURES = {
     id:'nibblet', name:'Nibblet', dex:10,
     types:['NORMAL'],
     baseStats:{hp:30, atk:56, def:35, spa:25, spd:35, spe:72},
-    learnset:[ [1,'quickjab'],[1,'tackle'],[4,'tailwhip'],[8,'sandattack'],[10,'bite'],[18,'screech'],[24,'doublestrike'] ],
+    learnset:[ [1,'quickjab'],[1,'tackle'],[4,'tailwhip'],[8,'sandattack'],[10,'bite'],[15,'slash'],[18,'screech'],[24,'doublestrike'] ],
     evolves:{ to:'whiskaroth', level:20 }, catchRate:255,
     design:{ palette:['#a06030','#d4a36a','#1f1006'], shape:'mouse', accent:'tail' },
     description:'A pocket-sized nibbler with bottomless courage. It dreams of being huge.'
@@ -311,7 +450,7 @@ const CREATURES = {
   whiskaroth: {
     id:'whiskaroth', name:'Whiskaroth', dex:52, types:['NORMAL','DARK'],
     baseStats:{hp:55, atk:81, def:60, spa:50, spd:70, spe:97},
-    learnset:[ [1,'scratch'],[1,'tackle'],[4,'quickjab'],[8,'sandattack'],[12,'bite'],[18,'screech'],[20,'megapunch'],[22,'shimmer'],[26,'doublestrike'],[28,'agility'] ],
+    learnset:[ [1,'scratch'],[1,'tackle'],[4,'quickjab'],[8,'sandattack'],[12,'bite'],[15,'slash'],[18,'screech'],[20,'megapunch'],[22,'shimmer'],[26,'doublestrike'],[28,'agility'],[40,'hyperbeam'] ],
     catchRate:127,
     design:{ palette:['#704020','#a07040','#0a0402'], shape:'mouse', accent:'tail', beard:true },
     description:'Older nibblets that learned to keep secrets. Their whiskers map the shadows.'
@@ -411,7 +550,7 @@ const CREATURES = {
   mistfin: {
     id:'mistfin', name:'Mistfin', dex:17, types:['WATER'],
     baseStats:{hp:42, atk:40, def:42, spa:60, spd:50, spe:60},
-    learnset:[ [1,'tackle'],[1,'watergun'],[5,'bubble'],[10,'harden'],[15,'watergun'],[21,'freezewind'] ],
+    learnset:[ [1,'tackle'],[1,'watergun'],[5,'bubble'],[10,'harden'],[15,'watergun'],[18,'raindance'],[21,'freezewind'] ],
     evolves:{ to:'tidalwhal', level:20 }, catchRate:180,
     design:{ palette:['#5a98e0','#c0e8ff','#1a3868'], shape:'fish', accent:'fins' },
     description:'A fish that breathes fog. It surfaces to gossip with herons.'
@@ -459,7 +598,7 @@ const CREATURES = {
   voltkit: {
     id:'voltkit', name:'Voltkit', dex:21, types:['ELECTRIC'],
     baseStats:{hp:40, atk:50, def:35, spa:65, spd:50, spe:80},
-    learnset:[ [1,'spark'],[1,'tackle'],[5,'tailwhip'],[10,'sandattack'],[10,'quickjab'],[20,'zapburst'] ],
+    learnset:[ [1,'spark'],[1,'tackle'],[5,'tailwhip'],[10,'sandattack'],[10,'quickjab'],[16,'stormcall'],[20,'zapburst'] ],
     evolves:{ to:'voltlynx', level:20 }, catchRate:120,
     design:{ palette:['#f0d018','#383018','#e85a5a'], shape:'fox', accent:'tail' },
     description:'Static makes its tail tuft puff. It greets friends by zapping them.'
@@ -507,7 +646,7 @@ const CREATURES = {
   bumblesting: {
     id:'bumblesting', name:'Bumblesting', dex:25, types:['BUG','POISON'],
     baseStats:{hp:40, atk:55, def:35, spa:30, spd:35, spe:75},
-    learnset:[ [1,'poisonsting'],[1,'tackle'],[5,'bugbite'],[10,'harden'],[14,'pinmissile'] ],
+    learnset:[ [1,'poisonsting'],[1,'tackle'],[5,'bugbite'],[10,'harden'],[14,'pinmissile'],[17,'spikes'] ],
     evolves:{ to:'hivequeen', level:20 }, catchRate:150,
     design:{ palette:['#f0c020','#000000','#e85a18'], shape:'caterpillar', accent:'segments' },
     description:'A stripe of warning on tiny wings. It guards its hive with grim cheer.'
@@ -563,7 +702,7 @@ const CREATURES = {
   frostpup: {
     id:'frostpup', name:'Frostpup', dex:29, types:['ICE'],
     baseStats:{hp:50, atk:55, def:50, spa:65, spd:55, spe:60},
-    learnset:[ [1,'icefang'],[1,'tackle'],[5,'bite'],[10,'harden'],[14,'freezewind'] ],
+    learnset:[ [1,'icefang'],[1,'tackle'],[5,'bite'],[10,'harden'],[14,'freezewind'],[18,'hailstorm'] ],
     evolves:{ to:'snowox', level:20 }, catchRate:120,
     design:{ palette:['#e0f0ff','#88c8ff','#284868'], shape:'fox', accent:'tail' },
     description:'A puppy of fresh frost. Its breath sketches winter on your sleeve.'
@@ -651,16 +790,16 @@ const CREATURES = {
   mindrop: {
     id:'mindrop', name:'Mindrop', dex:59, types:['PSYCHIC'],
     baseStats:{hp:42, atk:30, def:40, spa:72, spd:60, spe:56},
-    learnset:[ [1,'tackle'],[1,'telekinesis'],[5,'shimmer'],[10,'dazzle'],[15,'hypnoray'],[20,'lullaby'],[20,'telekinesis'],[26,'freezewind'],[34,'gravitywell'] ],
-    catchRate:170,
+    learnset:[ [1,'tackle'],[1,'telekinesis'],[5,'shimmer'],[10,'dazzle'],[12,'reflect'],[15,'hypnoray'],[18,'lightscreen'],[20,'lullaby'],[20,'telekinesis'],[26,'freezewind'],[34,'gravitywell'] ],
+    evolves:{ to:'reverieus', friendship:220 }, catchRate:170,
     design:{ palette:['#d898e8','#fff0ff','#704088'], shape:'blob', accent:'glow', tuftX:16, tuftY:10 },
     description:'A bead of dreaming made flesh. Its hum makes onlookers misplace their car keys.'
   },
   pugpaw: {
     id:'pugpaw', name:'Pugpaw', dex:60, types:['FIGHTING'],
     baseStats:{hp:50, atk:68, def:45, spa:30, spd:42, spe:65},
-    learnset:[ [1,'focusjab'],[1,'karatechop'],[5,'quickjab'],[10,'tailwhip'],[12,'karatechop'],[14,'palmstrike'],[20,'screech'],[24,'megapunch'],[26,'agility'],[32,'ironfist'] ],
-    catchRate:180,
+    learnset:[ [1,'focusjab'],[1,'karatechop'],[5,'quickjab'],[10,'tailwhip'],[12,'karatechop'],[14,'palmstrike'],[18,'focusenergy'],[20,'screech'],[24,'megapunch'],[26,'agility'],[32,'ironfist'] ],
+    evolves:{ to:'clawmonk', friendship:220 }, catchRate:180,
     design:{ palette:['#c07848','#f0c090','#502818'], shape:'mouse', accent:'tail', tuftX:16, tuftY:8 },
     description:'A polite brawler with sturdy paws. It bows before each match and after.'
   },
@@ -668,7 +807,7 @@ const CREATURES = {
     id:'joltlet', name:'Joltlet', dex:61, types:['ELECTRIC'],
     baseStats:{hp:38, atk:48, def:36, spa:68, spd:48, spe:82},
     learnset:[ [1,'quickjab'],[1,'tailwhip'],[5,'spark'],[10,'sandattack'],[14,'bite'],[18,'zapburst'],[24,'agility'],[30,'shockwave'] ],
-    catchRate:180,
+    evolves:{ to:'voltlynx', stone:'thunderstone' }, catchRate:180,
     design:{ palette:['#f0d838','#403010','#f07838'], shape:'mouse', accent:'bolt', tuftX:16, tuftY:8 },
     description:'A spark dressed up as a kitten. It sleeps with one eye on the outlets.'
   },
@@ -676,7 +815,7 @@ const CREATURES = {
     id:'breezlet', name:'Breezlet', dex:62, types:['FLYING'],
     baseStats:{hp:44, atk:50, def:42, spa:58, spd:48, spe:76},
     learnset:[ [1,'roost'],[1,'tackle'],[5,'gust'],[10,'sandattack'],[14,'quickjab'],[20,'airslash'],[24,'skyrend'],[26,'agility'] ],
-    catchRate:190,
+    evolves:{ to:'galewing', friendship:220 }, catchRate:190,
     design:{ palette:['#88b8e8','#f8f8ff','#304870'], shape:'bird', accent:'wings', tuftX:16, tuftY:6 },
     description:'It lifts in any breeze, including imaginary ones. Children clap to keep it aloft.'
   },
@@ -700,7 +839,7 @@ const CREATURES = {
     id:'mudmote', name:'Mudmote', dex:65, types:['GROUND'],
     baseStats:{hp:56, atk:60, def:72, spa:25, spd:38, spe:30},
     learnset:[ [1,'dustbomb'],[1,'tackle'],[5,'earthbump'],[10,'harden'],[14,'rocktoss'],[20,'bite'],[24,'sandstorm'],[26,'sandattack'] ],
-    catchRate:190,
+    evolves:{ to:'quakeworm', stone:'firestone' }, catchRate:190,
     design:{ palette:['#a87848','#604020','#d8b878'], shape:'caterpillar', accent:'segments', tuftX:12, tuftY:15 },
     description:'A clump of rich soil with hopes. It is welcome in any garden.'
   },
@@ -708,14 +847,14 @@ const CREATURES = {
     id:'frostnip', name:'Frostnip', dex:66, types:['ICE'],
     baseStats:{hp:44, atk:48, def:46, spa:66, spd:58, spe:58},
     learnset:[ [1,'flashfreeze'],[1,'scratch'],[5,'freezewind'],[10,'harden'],[14,'bite'],[20,'shimmer'],[26,'agility'],[28,'icebeam'] ],
-    catchRate:180,
+    evolves:{ to:'snowox', stone:'icestone' }, catchRate:180,
     design:{ palette:['#d8f0ff','#80c8f0','#284860'], shape:'fox', accent:'tail', tuftX:16, tuftY:8 },
     description:'A nip of cold packed in fluff. It tags travelers’ boots with little snowflakes.'
   },
   craglet: {
     id:'craglet', name:'Craglet', dex:67, types:['ROCK'],
     baseStats:{hp:52, atk:64, def:84, spa:28, spd:40, spe:24},
-    learnset:[ [1,'rockslide'],[1,'tackle'],[5,'rocktoss'],[10,'harden'],[14,'earthbump'],[20,'screech'],[26,'sandattack'] ],
+    learnset:[ [1,'rockslide'],[1,'tackle'],[5,'rocktoss'],[10,'harden'],[14,'earthbump'],[17,'stealthrock'],[20,'screech'],[26,'sandattack'] ],
     catchRate:190,
     design:{ palette:['#9a8870','#5a4a38','#c8b898'], shape:'rock', accent:'pebble', tuftX:16, tuftY:9 },
     description:'A stubborn shard with stubborn eyes. It has plans, and they are slow.'
@@ -747,7 +886,7 @@ const CREATURES = {
   clawmonk: {
     id:'clawmonk', name:'Clawmonk', dex:71, types:['FIGHTING'],
     baseStats:{hp:55, atk:80, def:50, spa:35, spd:50, spe:75},
-    learnset:[ [1,'focusjab'],[1,'palmstrike'],[5,'quickjab'],[10,'sandattack'],[14,'karatechop'],[14,'palmstrike'],[20,'screech'],[26,'agility'],[30,'ironfist'],[34,'focusblast'] ],
+    learnset:[ [1,'focusjab'],[1,'palmstrike'],[5,'quickjab'],[10,'sandattack'],[14,'karatechop'],[14,'palmstrike'],[18,'focusenergy'],[20,'screech'],[26,'agility'],[30,'ironfist'],[34,'focusblast'] ],
     catchRate:90,
     design:{ palette:['#a86040','#e8c0a0','#382010'], shape:'mouse', accent:'tail', tuftX:16, tuftY:8 },
     description:'A martial student of the foothills. Bows precede every kick.'
@@ -772,7 +911,7 @@ const CREATURES = {
     id:'mantilux', name:'Mantilux', dex:74, types:['BUG'],
     baseStats:{hp:45, atk:50, def:55, spa:55, spd:50, spe:60},
     learnset:[ [1,'airslash'],[1,'scratch'],[5,'bugbite'],[10,'harden'],[14,'pinmissile'],[20,'shimmer'],[26,'sandattack'] ],
-    catchRate:120,
+    evolves:{ to:'mothmane', stone:'moonstone' }, catchRate:120,
     design:{ palette:['#80b078','#284820','#f8f0a0'], shape:'caterpillar', accent:'segments' },
     description:'Its bands glow from within. Lost travelers follow its trail home.'
   },
@@ -788,7 +927,7 @@ const CREATURES = {
     id:'budling', name:'Budling', dex:76, types:['GRASS'],
     baseStats:{hp:45, atk:50, def:45, spa:55, spd:50, spe:65},
     learnset:[ [1,'growl'],[1,'tackle'],[5,'gust'],[10,'vinelash'],[14,'sandattack'],[20,'leafcut'],[26,'airslash'] ],
-    catchRate:150,
+    evolves:{ to:'bramblewood', stone:'leafstone' }, catchRate:150,
     design:{ palette:['#88c878','#f0e890','#284820'], shape:'bird', accent:'wings' },
     description:'It sows wildflowers from its feathers. Spring tends to follow its flightpath.'
   },
@@ -819,13 +958,20 @@ function makeMon(speciesId, level, opts) {
   // Pick up to 4 most-recent moves at this level.
   const learned = sp.learnset.filter(([lv]) => lv <= level).map(([,m]) => m);
   const moves = learned.slice(-4).map(id => ({ id, pp: MOVES[id].pp, ppMax: MOVES[id].pp }));
-  const stats = computeStats(sp.baseStats, ivs, level);
+  // Nature (idea #11): random unless the caller forced one. Folded
+  // into computeStats so the stat-table reflects it from spawn.
+  const nature = (opts && opts.nature) || randomNatureId();
+  const stats = computeStats(sp.baseStats, ivs, level, nature);
+  // Shiny odds: base 1/512, scaled by opts.shinyMult (e.g. 2x when
+  // the player holds the Shiny Charm, idea #44).
+  const shinyMult = (opts && opts.shinyMult) || 1;
   return {
     species: speciesId,
     nickname: (opts && opts.nickname) || sp.name,
     level,
     xp: xpForLevel(level),
     ivs,
+    nature,
     moves,
     stats,
     hp: stats.hp,
@@ -838,7 +984,7 @@ function makeMon(speciesId, level, opts) {
     // in a normal playthrough). opts.shiny can force it (story/debug).
     // Render path applies a hue-rotate filter on top of the regular
     // atlas sprite.
-    shiny: !!(opts && opts.shiny) || (Math.random() < 1/512),
+    shiny: !!(opts && opts.shiny) || (Math.random() < (1/512) * shinyMult),
     // Friendship / affection (0-255). Starts at 70 to match the
     // mainline neutral baseline. Climbs on battle wins, level-ups,
     // and via PokeRod Center heals. High friendship grants a small
@@ -847,10 +993,10 @@ function makeMon(speciesId, level, opts) {
   };
 }
 
-function computeStats(base, ivs, level) {
+function computeStats(base, ivs, level, nature) {
   const calc = (b, iv) => Math.floor(((2*b + iv) * level) / 100) + 5;
   const calcHp = (b, iv) => Math.floor(((2*b + iv) * level) / 100) + level + 10;
-  return {
+  const stats = {
     hp:  calcHp(base.hp, ivs.hp),
     atk: calc(base.atk, ivs.atk),
     def: calc(base.def, ivs.def),
@@ -858,6 +1004,14 @@ function computeStats(base, ivs, level) {
     spd: calc(base.spd, ivs.spd),
     spe: calc(base.spe, ivs.spe)
   };
+  // Nature (idea #11): ±10% to a matching pair of stats. Five
+  // "neutral" natures have up===down and skip the mod.
+  const n = nature && NATURES[nature];
+  if (n && n.up && n.down && n.up !== n.down) {
+    stats[n.up]   = Math.floor(stats[n.up]   * 1.1);
+    stats[n.down] = Math.floor(stats[n.down] * 0.9);
+  }
+  return stats;
 }
 
 // XP yield on defeat.
@@ -924,6 +1078,12 @@ function heldTypeBoostMult(attacker, moveType) {
 
 function calcDamage(attacker, defender, move, isCrit) {
   if (move.kind === 'status' || (move.power|0) === 0) return 0;
+  // Ability: Levitate grants full immunity to GROUND moves. Reported
+  // back via immuneAbility so the battle log can name the ability.
+  const defAbility = abilityOf(defender.species);
+  if (defAbility === 'levitate' && move.type === 'GROUND') {
+    return { dmg: 0, eff: 0, stab: 1, crit: isCrit, immuneAbility: 'levitate' };
+  }
   const A = move.kind === 'physical' ? attacker.stats.atk : attacker.stats.spa;
   const D = move.kind === 'physical' ? defender.stats.def : defender.stats.spd;
   const stab = (CREATURES[attacker.species].types.includes(move.type)) ? 1.5 : 1;
@@ -939,8 +1099,29 @@ function calcDamage(attacker, defender, move, isCrit) {
   // bonded with into tough fights rather than swapping in unread
   // benchmons.
   const friend = (attacker.friendship | 0) >= 200 && attacker.hp === attacker.stats.hp ? 1.10 : 1.0;
+  // Ability damage modifiers: Blaze / Torrent / Overgrow boost their
+  // matching type by 1.5x while the attacker sits at or below 1/3 HP;
+  // Thick Fat halves incoming FIRE / ICE damage.
+  let ability = 1;
+  const atkAbility = abilityOf(attacker.species);
+  const lowHp = attacker.hp > 0 && (attacker.hp / Math.max(1, attacker.stats.hp)) <= 1/3;
+  if (lowHp && atkAbility === 'blaze'    && move.type === 'FIRE')  ability *= 1.5;
+  if (lowHp && atkAbility === 'torrent'  && move.type === 'WATER') ability *= 1.5;
+  if (lowHp && atkAbility === 'overgrow' && move.type === 'GRASS') ability *= 1.5;
+  if (defAbility === 'thickfat' && (move.type === 'FIRE' || move.type === 'ICE')) ability *= 0.5;
+  // Held-item passive effects (idea #16). Eviolite buffs unevolved
+  // defenders; Expert Belt boosts super-effective hits the attacker
+  // is wearing it for.
+  let item = 1;
+  const I = (typeof window !== 'undefined') && window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+  if (I) {
+    const dHeld = defender.held && I[defender.held];
+    if (dHeld && dHeld.eviolite && CREATURES[defender.species].evolves) item *= 1 / 1.5;
+    const aHeld = attacker.held && I[attacker.held];
+    if (aHeld && aHeld.expertBelt && eff > 1) item *= 1.2;
+  }
   const base = (((2*attacker.level/5 + 2) * move.power * (A/Math.max(1,D))) / 50) + 2;
-  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather * held * friend)), eff, stab, crit:isCrit };
+  return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather * held * friend * ability * item)), eff, stab, crit:isCrit };
 }
 
-window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };
+window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, ABILITIES, SPECIES_ABILITIES, abilityOf, NATURES, randomNatureId, MARKS, markOf, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };

@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.52';
-  const BUILD = '2026.05.11-194';
+  const VERSION = 'v0.55.56';
+  const BUILD = '2026.05.15-198';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -376,6 +376,7 @@
     else if (state.mode === 'map') updateWorldMap();
     else if (state.mode === 'settings') updateSettings();
     else if (state.mode === 'dex') updateDex();
+    else if (state.mode === 'types') updateTypes();
     else if (state.mode === 'slots') updateSlotPicker();
     else if (state.mode === 'bag') updateBag();
     else if (state.mode === 'bagtarget') updateBagTarget();
@@ -503,6 +504,7 @@
       else if (state.mode === 'map') drawWorldMap();
       else if (state.mode === 'settings') drawSettings();
       else if (state.mode === 'dex') drawDex();
+      else if (state.mode === 'types') drawTypes();
       else if (state.mode === 'slots') drawSlotPicker();
       else if (state.mode === 'bag') drawBag();
       else if (state.mode === 'bagtarget') drawBagTarget();
@@ -974,6 +976,7 @@
     startBattleAgainstWild,
     startFishing,
     showFlash,
+    currentPhase: currentPhaseName,
     // Title-screen actions for the interactive DS bottom-screen panel.
     // Mirror the top-screen DOM buttons (game.js:178-179) exactly,
     // including the audio-unlock step + the NG+ prompt.
@@ -1382,6 +1385,23 @@
     const filtered = list.filter(e => encounterMatchesPhase(e, phase));
     return filtered.length ? filtered : list;
   }
+  // Encounter entries can also opt in to a `weather` field (idea #28).
+  // Same accepted shapes as `time` above: a single string or an
+  // any-of array. Entries without `weather` appear in any weather, so
+  // adding a weather-only spawn alongside an evergreen pool just adds
+  // a rare option when conditions match. Falls back to unfiltered if
+  // the gate would otherwise leave the player with nothing to find.
+  function encounterMatchesWeather(entry, kind) {
+    if (!entry.weather) return true;
+    if (Array.isArray(entry.weather)) return entry.weather.indexOf(kind) !== -1;
+    return entry.weather === kind;
+  }
+  function filterEncountersByWeather(list) {
+    if (!list || !list.length) return list;
+    const kind = (window.PR_WEATHER && window.PR_WEATHER.currentKind && window.PR_WEATHER.currentKind()) || null;
+    const filtered = list.filter(e => encounterMatchesWeather(e, kind));
+    return filtered.length ? filtered : list;
+  }
 
   function encounterPoolForMap(map) {
     if (!map) return [];
@@ -1399,7 +1419,7 @@
       }
     }
     if (!list) list = map.encounters || [];
-    return filterEncountersByTime(list);
+    return filterEncountersByWeather(filterEncountersByTime(list));
   }
 
   // ---------- Battle setup helpers ----------
@@ -1431,7 +1451,9 @@
         window.PR_DATA.makeMon(sp, Math.max(1, (lv | 0) + (diff.trainerLvDelta || 0) + ngLvl)));
       step = 'construct-battle';
       state.battle = new window.PR_BATTLE.Battle(state, {
-        trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat },
+        trainer: { team, reward: npc.trainer.reward, defeat: npc.trainer.defeat,
+                   tag: npc.trainer.tag || null },
+        trainerName: (npc.name || 'Trainer'),
         npcKey: trainerKey,
         badge: npc.badge || null
       });
@@ -1461,7 +1483,20 @@
       step = 'check-battle';
       if (!window.PR_BATTLE || !window.PR_BATTLE.Battle) throw new Error('PR_BATTLE missing');
       step = 'make-mon';
-      const wild = window.PR_DATA.makeMon(species, level);
+      // Shiny Charm (idea #44): doubles wild shiny odds when held.
+      const charm = state.player.bag && state.player.bag.shinycharm
+        && window.PR_ITEMS && window.PR_ITEMS.ITEMS && window.PR_ITEMS.ITEMS.shinycharm;
+      const charmMult = (charm && charm.shinyMult) || 1;
+      // Catch combo (idea #6): when the encountered species matches
+      // the current chain, scale shiny odds upward by one stage per
+      // five catches (caps at +4 stages -> 5x).
+      const combo = state.player.catchCombo;
+      let comboMult = 1;
+      if (combo && combo.species === species && combo.count > 0) {
+        comboMult = 1 + Math.min(4, Math.floor(combo.count / 5));
+      }
+      const shinyMult = charmMult * comboMult;
+      const wild = window.PR_DATA.makeMon(species, level, { shinyMult });
       step = 'construct-battle';
       state.battle = new window.PR_BATTLE.Battle(state, { wild });
       step = 'set-mode';
@@ -1815,7 +1850,7 @@
 
   // ---------- Pause menu ----------
   const MENU_ICONS = {
-    MAP:'map', DEX:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
+    MAP:'map', DEX:'dex', TYPES:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
     PROFILE:'profile', QUEST:'map', ERA:'gear',
     SETTINGS:'gear', SAVE:'save', LOAD:'save', PHOTO:'dex'
   };
@@ -1855,7 +1890,7 @@
     }
   }
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','BAG','PARTY','PROFILE','BOX','QUEST','ERA','SETTINGS','PHOTO','SAVE','LOAD'] };
+    state.menu = { idx: 0, options: ['MAP','DEX','TYPES','BAG','PARTY','PROFILE','BOX','QUEST','ERA','SETTINGS','PHOTO','SAVE','LOAD'] };
     state.mode = 'menu';
     startMenuAnim();
   }
@@ -1899,6 +1934,8 @@
         openSettings();
       } else if (opt === 'DEX') {
         openDex();
+      } else if (opt === 'TYPES') {
+        openTypeChart();
       } else if (opt === 'BAG') {
         openBag('overworld');
       } else if (opt === 'BOX') {
@@ -2991,6 +3028,7 @@
       if (sel.def.kind === 'ball') footer = v.returnTo === 'battle' ? 'A:THROW' : 'BATTLE ONLY';
       else if (sel.def.kind === 'trainer_gear') footer = 'A:EQUIP';
       else if (sel.def.kind === 'held_gear' || sel.def.holdable) footer = 'A:HOLD';
+      else if (sel.def.kind === 'tm') footer = 'A:TEACH';
       if (window.PR_ITEMS && window.PR_ITEMS.drawCard) {
         window.PR_ITEMS.drawCard(ctx, sel.id, cardX, cardY, cardW, cardH, {
           count:sel.count, lines:5, footer
@@ -3036,7 +3074,9 @@
       }
       const result = window.PR_ITEMS.apply(t.itemId, target);
       if (!result.ok) { showFlash(result.message); return; }
-      window.PR_ITEMS.take(state, t.itemId, 1);
+      // Reusable items (TMs etc., idea #21) stay in the bag.
+      const idef = window.PR_ITEMS.ITEMS[t.itemId];
+      if (!(idef && idef.reusable)) window.PR_ITEMS.take(state, t.itemId, 1);
       window.PR_SFX && window.PR_SFX.play('heal');
       // Mirror the change into the active battle creature if it's the one in play.
       if (state.battle && (state.battle.me === target)) {
@@ -3194,6 +3234,100 @@
   function dexMarkSeen(speciesId) { ensureDex(); state.dex.seen.add(speciesId); }
   function dexMarkCaught(speciesId) { ensureDex(); state.dex.seen.add(speciesId); state.dex.caught.add(speciesId); }
   window.PR_DEX = { markSeen: dexMarkSeen, markCaught: dexMarkCaught };
+
+  // ---------- Type chart page (idea #35) ----------
+  const TYPE_ABBR = {
+    NORMAL:'NRM', FIRE:'FIR', WATER:'WTR', ELECTRIC:'ELE',
+    GRASS:'GRS', ICE:'ICE', FIGHTING:'FGT', POISON:'POI',
+    GROUND:'GND', FLYING:'FLY', PSYCHIC:'PSY', BUG:'BUG',
+    ROCK:'ROC', GHOST:'GHT', DRAGON:'DRG', DARK:'DRK',
+    STEEL:'STL', FAIRY:'FAY'
+  };
+  function openTypeChart() {
+    state.typesView = { idx: 0 };
+    state.mode = 'types';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+  function updateTypes() {
+    const I = window.PR_INPUT;
+    const v = state.typesView;
+    const T = window.PR_DATA.TYPES;
+    if (I.consumePressed('ArrowRight') || I.consumePressed('ArrowDown')) {
+      v.idx = (v.idx + 1) % T.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('ArrowLeft') || I.consumePressed('ArrowUp')) {
+      v.idx = (v.idx - 1 + T.length) % T.length;
+      window.PR_SFX && window.PR_SFX.play('select');
+    }
+    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+      state.typesView = null;
+      state.mode = 'menu';
+    }
+  }
+  function drawTypes() {
+    const D = window.PR_DATA;
+    const v = state.typesView;
+    const type = D.TYPES[v.idx];
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'TYPE CHART', x + 4, y + 4, w - 8, { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    // Centered selector with the type chip.
+    const cw = 64, cy = y + 20;
+    const cx = x + ((w - cw) / 2 | 0);
+    window.PR_UI.drawText(ctx, '<', cx - 10, cy + 2, '#202020');
+    ctx.fillStyle = window.PR_UI.pf(D.TYPE_COLOR[type] || '#202020');
+    ctx.fillRect(cx, cy, cw, 11);
+    const nameW = window.PR_UI.textWidth(type);
+    window.PR_UI.drawText(ctx, type, cx + ((cw - nameW) / 2 | 0), cy + 2, '#fff');
+    window.PR_UI.drawText(ctx, '>', cx + cw + 4, cy + 2, '#202020');
+    // Bucket the other 18 types by matchup, offensive & defensive.
+    const offSup = [], offWeak = [], offImm = [];
+    const defSup = [], defWeak = [], defImm = [];
+    for (const t of D.TYPES) {
+      const eo = D.effectiveness(type, [t]);
+      if (eo === 0) offImm.push(t);
+      else if (eo > 1) offSup.push(t);
+      else if (eo < 1) offWeak.push(t);
+      const ed = D.effectiveness(t, [type]);
+      if (ed === 0) defImm.push(t);
+      else if (ed > 1) defSup.push(t);
+      else if (ed < 1) defWeak.push(t);
+    }
+    function drawChips(list, lx, ly, maxW) {
+      if (!list.length) {
+        window.PR_UI.drawText(ctx, '-', lx, ly + 1, '#888888');
+        return;
+      }
+      let px = lx, py = ly;
+      for (const t of list) {
+        const abbr = TYPE_ABBR[t] || t.slice(0,3);
+        const chW = window.PR_UI.textWidth(abbr) + 4;
+        if (px + chW > lx + maxW) { px = lx; py += 11; }
+        ctx.fillStyle = window.PR_UI.pf(D.TYPE_COLOR[t] || '#202020');
+        ctx.fillRect(px, py, chW, 9);
+        window.PR_UI.drawText(ctx, abbr, px + 2, py + 1, '#fff');
+        px += chW + 2;
+      }
+    }
+    // Section: offensive (this type attacking).
+    window.PR_UI.drawText(ctx, 'OFFENSIVE: vs ...', x + 6, y + 36, '#1a0204');
+    window.PR_UI.drawText(ctx, '2x:',  x + 6, y + 48, '#208830');
+    drawChips(offSup,  x + 30, y + 48, w - 36);
+    window.PR_UI.drawText(ctx, '1/2:', x + 6, y + 60, '#806020');
+    drawChips(offWeak, x + 30, y + 60, w - 36);
+    window.PR_UI.drawText(ctx, '0x:',  x + 6, y + 72, '#585858');
+    drawChips(offImm,  x + 30, y + 72, w - 36);
+    // Section: defensive (... attacking this type).
+    window.PR_UI.drawText(ctx, 'DEFENSIVE: ... vs you', x + 6, y + 88, '#1a0204');
+    window.PR_UI.drawText(ctx, 'TAKE 2x:', x + 6, y + 100, '#c83838');
+    drawChips(defSup,  x + 50, y + 100, w - 56);
+    window.PR_UI.drawText(ctx, 'RESIST:',  x + 6, y + 112, '#388838');
+    drawChips(defWeak, x + 50, y + 112, w - 56);
+    window.PR_UI.drawText(ctx, 'IMMUNE:',  x + 6, y + 124, '#3088c8');
+    drawChips(defImm,  x + 50, y + 124, w - 56);
+  }
 
   function openDex() {
     ensureDex();

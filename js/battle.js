@@ -65,6 +65,36 @@
     this.flashTimer = 0;
     this.shakeTimer = 0;
     this.faintAnim = { foe: 0, me: 0 };
+    // Per-side field state - entry hazards & screens (idea #3). 'me' is
+    // the player's side, 'foe' the opponent's. reflect / lightScreen
+    // are turn counters; spikes is a 0-3 layer count; stealthrock is a
+    // 0/1 flag.
+    this.field = {
+      me:  { reflect:0, lightScreen:0, spikes:0, stealthrock:0 },
+      foe: { reflect:0, lightScreen:0, spikes:0, stealthrock:0 }
+    };
+    // Battle-set weather - Rain Dance etc. (idea #5). PR_WEATHER's
+    // currentKind() reads this off state.battle while the battle is
+    // live, so calcDamage + the hail chip pick it up automatically.
+    this.weather = { kind:null, turns:0 };
+    // Tag battle (idea #2): an AI ally fights at your side, taking the
+    // active slot in alternation with your own creatures as each
+    // faints. meOwner tracks who owns the current active slot.
+    this.tag = (this.trainer && this.trainer.tag) || null;
+    this.allyTeam = [];
+    this.meOwner = 'player';   // 'player' | 'ally'
+    // Trainer-class intro flourish (idea #50): a "VS NAME" banner
+    // slides across the upper third for ~1.6s on trainer encounters.
+    this.trainerName = opts.trainerName || null;
+    this.introBanner = this.trainer ? { t: 0, duration: 1.6 } : null;
+    if (this.tag && Array.isArray(this.tag.allyTeam)) {
+      const ng = (state.flags && (state.flags.ngPlusCount | 0)) * 5;
+      for (const entry of this.tag.allyTeam) {
+        try {
+          this.allyTeam.push(window.PR_DATA.makeMon(entry[0], Math.max(1, (entry[1]|0) + ng)));
+        } catch (_) { /* skip unknown species */ }
+      }
+    }
     // Guard against missing party / foe so a corrupted save can't freeze
     // the game on battle start. We bail out cleanly instead of throwing.
     if (!this.me || !this.foe) {
@@ -80,6 +110,10 @@
       for (const f of this.foeTeam) if (f && f.species) window.PR_DEX.markSeen(f.species);
     }
     this.startIntroMessages();
+    // Opening switch-in hooks (Intimidate, idea #1). Hazards are empty
+    // at battle start, so only abilities fire here.
+    this._onSwitchIn(this.foe, 'foe');
+    this._onSwitchIn(this.me, 'me');
   }
 
   function pickFirstAlive(party) {
@@ -89,7 +123,12 @@
 
   Battle.prototype.startIntroMessages = function() {
     if (this.trainer) {
-      this.queue('A trainer wants to battle!');
+      if (this.tag) {
+        this.queue((this.tag.foeName || 'An opposing duo') + ' want to battle!');
+        this.queue((this.tag.allyName || 'An ally') + ' joined your side!');
+      } else {
+        this.queue('A trainer wants to battle!');
+      }
       this.queue('Sent out ' + this.foe.nickname + '!');
     } else {
       this.queue('A wild ' + this.foe.nickname + ' appeared!');
@@ -119,6 +158,10 @@
     if (this.ballAnim) {
       this.ballAnim.t += dt;
       if (this.ballAnim.t >= this.ballAnim.duration) this.ballAnim = null;
+    }
+    if (this.introBanner) {
+      this.introBanner.t += dt;
+      if (this.introBanner.t >= this.introBanner.duration) this.introBanner = null;
     }
 
     // Animate hp bars toward target. The rate scales with the
@@ -154,7 +197,20 @@
     if (this.phase === 'learnmove') return this.updateLearnMove();
 
     try {
-      if (this.phase === 'menu')   return this.updateMenu();
+      if (this.phase === 'menu') {
+        // Tag battle: the AI ally auto-acts when it holds the slot.
+        if (this.meOwner === 'ally') return this._allyTurn();
+        // Recharge (idea #4): last turn the user fired a recharge
+        // move (Hyper Beam etc.); this turn is a forfeit.
+        if (this.me.mustRecharge) return this._rechargeTurn();
+        // Charge (idea #4): force the firing turn of a 2-turn move.
+        if (this.me.chargingMove) {
+          const m = this.me.moves.find(mv => mv.id === this.me.chargingMove);
+          if (m) { this.queueTurn(m); return; }
+          this.me.chargingMove = null;   // defensive: not in moveset
+        }
+        return this.updateMenu();
+      }
       if (this.phase === 'fight')  return this.updateFight();
       if (this.phase === 'party')  return this.updateParty();
       if (this.phase === 'turn')   return this.updateTurn(dt);
@@ -210,6 +266,8 @@
   // fight). No-op during turn animations / messages.
   Battle.prototype.chooseMove = function(idx) {
     if (this.phase !== 'menu' && this.phase !== 'fight') return false;
+    // Tag battle: the AI ally's slot isn't player-controllable.
+    if (this.meOwner === 'ally') return false;
     const moves = this.me && this.me.moves;
     if (!moves) return false;
     const m = moves[idx];
@@ -273,6 +331,18 @@
     if (myPriority !== foePriority) order = myPriority > foePriority ? ['me','foe'] : ['foe','me'];
     else if (meSpeed === foeSpeed) order = Math.random() < 0.5 ? ['me','foe'] : ['foe','me'];
     else order = meSpeed > foeSpeed ? ['me','foe'] : ['foe','me'];
+    // Quick Claw (idea #16): roll once per holder; lets them strike
+    // first regardless of speed when priorities are tied. If both
+    // sides roll, the original speed-based order stands.
+    if (myPriority === foePriority) {
+      const ITEMS = window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+      const meIt  = ITEMS && this.me.held  && ITEMS[this.me.held];
+      const foeIt = ITEMS && this.foe.held && ITEMS[this.foe.held];
+      const meQ  = !!(meIt  && meIt.quickClaw  && Math.random() < (meIt.quickClawChance  || 0.2));
+      const foeQ = !!(foeIt && foeIt.quickClaw && Math.random() < (foeIt.quickClawChance || 0.2));
+      if (meQ && !foeQ) order = ['me','foe'];
+      else if (foeQ && !meQ) order = ['foe','me'];
+    }
     this.turnOrder = order;
     this.turnMoves = { me: myMove, foe: foeMove };
     this.turnStep = 0;
@@ -292,6 +362,11 @@
   }
 
   function pickFoeMove(foe, defender) {
+    // Charge (idea #4): locked into the firing turn of a 2-turn move.
+    if (foe.chargingMove) {
+      const fm = foe.moves.find(mv => mv.id === foe.chargingMove);
+      if (fm) return fm;
+    }
     const usable = foe.moves.filter(m => m.pp > 0);
     const pool = usable.length ? usable : foe.moves;
     if (!defender || Math.random() < 0.15) {
@@ -320,6 +395,29 @@
     return best;
   }
 
+  // Switch-in matchup preview (idea #7): how the current foe's types
+  // would hit a candidate party member, accounting for Levitate.
+  // Returns a small {tag,color} badge, or null for a neutral matchup.
+  function switchMatchup(foe, mon) {
+    const D = window.PR_DATA;
+    if (!foe || !mon || !D) return null;
+    const foeTypes = (D.CREATURES[foe.species] || {}).types || [];
+    const monTypes = (D.CREATURES[mon.species] || {}).types || [];
+    const monAbil = D.abilityOf(mon.species);
+    let worst = 1, best = 1;
+    for (const ft of foeTypes) {
+      let e = D.effectiveness(ft, monTypes);
+      if (monAbil === 'levitate' && ft === 'GROUND') e = 0;
+      worst = Math.max(worst, e);
+      best = Math.min(best, e);
+    }
+    if (worst >= 4) return { tag:'RISK!', color:'#d83030' };
+    if (worst >= 2) return { tag:'RISK',  color:'#c84838' };
+    if (best === 0) return { tag:'WALL',  color:'#3088c8' };
+    if (best < 1)   return { tag:'GOOD',  color:'#208830' };
+    return null;
+  }
+
   Battle.prototype.updateTurn = function(dt) {
     if (this.messages.length) {
       this.phase = 'message';
@@ -340,8 +438,29 @@
 
   Battle.prototype.executeMove = function(who, attacker, defender, move) {
     const def = window.PR_DATA.MOVES[move.id];
-    move.pp = Math.max(0, move.pp - 1);
-    this.queue(attacker.nickname + ' used ' + def.name + '!');
+    // Recharge turn (idea #4): foe was locked from a recharge move
+    // last turn; skip its action with a one-line message. (The player
+    // side is gated at update() dispatch and never lands here.)
+    if (attacker.mustRecharge) {
+      this.queue(attacker.nickname + ' must recharge!');
+      attacker.mustRecharge = false;
+      return;
+    }
+    // Charge turn vs firing turn (idea #4). PP is paid on the charge
+    // turn so we don't double-decrement.
+    if (def.charge && attacker.chargingMove !== move.id) {
+      move.pp = Math.max(0, move.pp - 1);
+      attacker.chargingMove = move.id;
+      this.queue(attacker.nickname + ' is charging ' + def.name + '!');
+      return;
+    }
+    if (attacker.chargingMove === move.id) {
+      attacker.chargingMove = null;
+      this.queue(attacker.nickname + ' unleashed ' + def.name + '!');
+    } else {
+      move.pp = Math.max(0, move.pp - 1);
+      this.queue(attacker.nickname + ' used ' + def.name + '!');
+    }
 
     // Pre-move status checks.
     if (attacker.status === 'paralyzed' && Math.random() < 0.25) {
@@ -380,14 +499,33 @@
       if (attacker.confusionTurns === 0) this.queue(attacker.nickname + ' snapped out of confusion!');
     }
 
-    // Accuracy.
-    if (def.accuracy && Math.random() * 100 > def.accuracy) {
+    // Accuracy. Wide Lens (idea #16) bumps the move's accuracy by 10
+    // (clamped to 100) for whoever's holding it.
+    let acc = def.accuracy;
+    if (acc && attacker.held) {
+      const it = window.PR_ITEMS && window.PR_ITEMS.ITEMS && window.PR_ITEMS.ITEMS[attacker.held];
+      if (it && it.wideLens) acc = Math.min(100, acc + (it.wideLensBonus || 10));
+    }
+    if (acc && Math.random() * 100 > acc) {
       this.queue(attacker.nickname + "'s attack missed!");
       return;
     }
 
     if (def.kind === 'status') {
       if (def.dud) { this.queue('But nothing happened!'); return; }
+      // Field moves: screens / hazards / weather (ideas #3, #5).
+      if (def.setScreen || def.setHazard || def.setWeather) {
+        this._applyFieldMove(who, def);
+        return;
+      }
+      // Focus Energy etc. (idea #9): bumps the user's persistent
+      // crit-stage counter, consumed inside the damage calc below.
+      if (def.critBoost) {
+        const before = attacker.critStage || 0;
+        attacker.critStage = Math.min(4, before + def.critBoost);
+        this.queue(attacker.nickname + ' is getting pumped!');
+        return;
+      }
       if (def.statChange) {
         const target = def.statChange.target === 'foe' ? defender : attacker;
         const stat = def.statChange.stat;
@@ -402,7 +540,28 @@
     }
 
     // Damage move.
-    const isCrit = Math.random() < 1/16;
+    // Ability (idea #1): Water Absorb / Volt Absorb turn an incoming
+    // move of the matching type into healing instead of damage.
+    const defAbil = window.PR_DATA.abilityOf(defender.species);
+    if ((defAbil === 'waterabsorb' && def.type === 'WATER') ||
+        (defAbil === 'voltabsorb'  && def.type === 'ELECTRIC')) {
+      const abilName = window.PR_DATA.ABILITIES[defAbil].name;
+      if (defender.hp >= defender.stats.hp) {
+        this.queue(defender.nickname + "'s " + abilName + ' made it useless!');
+      } else {
+        const heal = Math.max(1, Math.floor(defender.stats.hp / 4));
+        const before = defender.hp;
+        defender.hp = Math.min(defender.stats.hp, defender.hp + heal);
+        this.queue(defender.nickname + ' drew it in with ' + abilName + '!');
+        this.queue(defender.nickname + ' restored ' + (defender.hp - before) + ' HP.');
+      }
+      return;
+    }
+    // Crit stage (idea #9): persistent attacker.critStage rises via
+    // Focus Energy etc.; highCrit moves get +1 stage on top.
+    const cs = Math.min(4, (attacker.critStage || 0) + (def.highCrit ? 1 : 0));
+    const CRIT_RATES = [1/16, 1/8, 1/2, 1, 1];
+    const isCrit = Math.random() < CRIT_RATES[cs];
     const result = window.PR_DATA.calcDamage(attacker, defender, def, isCrit);
     let totalDmg = result.dmg;
     if (def.multi) {
@@ -411,14 +570,28 @@
       totalDmg = result.dmg * hits;
       this.queue('It hit ' + hits + ' times!');
     }
-    // Focus Sash - if the defender was at full HP and this hit would
-    // faint them, hold them at 1 HP and consume the held sash.
-    if (defender.held && totalDmg >= defender.hp && defender.hp === defender.stats.hp) {
-      const it = window.PR_ITEMS && window.PR_ITEMS.ITEMS && window.PR_ITEMS.ITEMS[defender.held];
+    // Screens (idea #3): Reflect halves physical damage, Light Screen
+    // halves special, on the defender's side. Crits punch through.
+    if (totalDmg > 0 && !result.crit) {
+      const dSide = (defender === this.me) ? this.field.me : this.field.foe;
+      if (def.kind === 'physical' && dSide.reflect > 0) {
+        totalDmg = Math.max(1, Math.floor(totalDmg / 2));
+      } else if (def.kind === 'special' && dSide.lightScreen > 0) {
+        totalDmg = Math.max(1, Math.floor(totalDmg / 2));
+      }
+    }
+    // Focus Sash / Sturdy - if the defender was at full HP and this hit
+    // would faint them, hold them at 1 HP. The Sash is consumed; the
+    // Sturdy ability (idea #1) is passive and is not used up.
+    if (totalDmg >= defender.hp && defender.hp === defender.stats.hp) {
+      const it = defender.held && window.PR_ITEMS && window.PR_ITEMS.ITEMS && window.PR_ITEMS.ITEMS[defender.held];
       if (it && it.focusSash) {
         totalDmg = defender.hp - 1;
         defender.held = null;
         this.queue(defender.nickname + ' held on with its ' + it.name + '!');
+      } else if (defAbil === 'sturdy') {
+        totalDmg = defender.hp - 1;
+        this.queue(defender.nickname + ' endured the hit with Sturdy!');
       }
     }
     defender.hp = Math.max(0, defender.hp - totalDmg);
@@ -449,11 +622,94 @@
     }
     if (result.crit) this.queue('A critical hit!');
     if (result.eff > 1) this.queue("It's super effective!");
-    else if (result.eff === 0) this.queue("It doesn't affect " + defender.nickname + '...');
+    else if (result.eff === 0) this.queue(result.immuneAbility
+      ? defender.nickname + "'s " + window.PR_DATA.ABILITIES[result.immuneAbility].name + ' makes it immune!'
+      : "It doesn't affect " + defender.nickname + '...');
     else if (result.eff < 1) this.queue("It's not very effective...");
 
     // Side-effect chances (status moves use the same helper above).
     this._applyMoveSideEffects(def, defender);
+
+    // Contact abilities (idea #1): a physical hit that lands on a
+    // Static / Flame Body holder may paralyze or burn the attacker.
+    if (def.kind === 'physical' && defender.hp > 0 && attacker.hp > 0 && !attacker.status) {
+      const aTypes = window.PR_DATA.CREATURES[attacker.species].types;
+      if (defAbil === 'static' && Math.random() < 0.3) {
+        attacker.status = 'paralyzed';
+        this.queue(attacker.nickname + ' was paralyzed by ' + defender.nickname + "'s Static!");
+      } else if (defAbil === 'flamebody' && Math.random() < 0.3 && !aTypes.includes('FIRE')) {
+        attacker.status = 'burned';
+        this.queue(attacker.nickname + ' was burned by ' + defender.nickname + "'s Flame Body!");
+      }
+    }
+    // Recoil (idea #10): the attacker takes a fraction of damage dealt.
+    if (def.recoil && totalDmg > 0 && attacker.hp > 0) {
+      const recoil = Math.max(1, Math.floor(totalDmg * def.recoil));
+      attacker.hp = Math.max(0, attacker.hp - recoil);
+      this.queue(attacker.nickname + ' was hit by recoil!');
+    }
+    // Drain (idea #10): the attacker heals a fraction of damage dealt.
+    if (def.drain && totalDmg > 0 && attacker.hp > 0 && attacker.hp < attacker.stats.hp) {
+      const heal = Math.max(1, Math.floor(totalDmg * def.drain));
+      const before = attacker.hp;
+      attacker.hp = Math.min(attacker.stats.hp, attacker.hp + heal);
+      this.queue(attacker.nickname + ' drained ' + (attacker.hp - before) + ' HP!');
+    }
+    // Recharge moves (idea #4) leave the attacker stunned next turn.
+    if (def.recharge && attacker.hp > 0) attacker.mustRecharge = true;
+  };
+
+  // Creature mark roll (idea #20). Priority order: shimmer (shiny)
+  // beats everything; otherwise the first matching context tag wins.
+  // Most ordinary catches return null.
+  Battle.prototype._pickCatchMark = function() {
+    if (!this.foe) return null;
+    if (this.foe.shiny) return 'shimmer';
+    const W = window.PR_WEATHER && window.PR_WEATHER.currentKind && window.PR_WEATHER.currentKind();
+    if (W === 'rain' || W === 'thunder' || W === 'hail' || W === 'hurricane') return 'stormcaught';
+    const phase = (window.PR_GAME && window.PR_GAME.currentPhase && window.PR_GAME.currentPhase()) || null;
+    if (phase === 'night') return 'nocturnal';
+    const combo = this.state.player && this.state.player.catchCombo;
+    if (combo && combo.species === this.foe.species && combo.count >= 5) return 'sparker';
+    const maxHp = this.foe.stats.hp || 1;
+    if (this.foe.hp / maxHp < 0.10) return 'weakened';
+    if (this.foe.hp === maxHp) return 'pristine';
+    if (this.foe.level <= 5) return 'rookie';
+    if (this.foe.level >= 30) return 'veteran';
+    return null;
+  };
+
+  // Trainer-class intro banner (idea #50). Slides in from the right,
+  // holds for ~1s, slides out to the left. Drawn over the upper-band
+  // platform area so it doesn't fight HP boxes or menus.
+  Battle.prototype.drawTrainerBanner = function(ctx) {
+    if (!this.introBanner) return;
+    const k = Math.max(0, Math.min(1, this.introBanner.t / this.introBanner.duration));
+    let xOff = 0;
+    if (k < 0.18)      xOff = (1 - k / 0.18) * VIEW_W;
+    else if (k > 0.82) xOff = -((k - 0.82) / 0.18) * VIEW_W;
+    ctx.save();
+    ctx.fillStyle = 'rgba(8,4,20,0.78)';
+    ctx.fillRect(xOff, 48, VIEW_W, 14);
+    ctx.fillStyle = window.PR_UI.pf('#f0c020');
+    ctx.fillRect(xOff,     48, 3, 14);
+    ctx.fillRect(xOff,     61, VIEW_W, 1);
+    window.PR_UI.drawText(ctx, 'VS', xOff + 8, 51, '#f0c020');
+    const name = (this.trainerName || 'TRAINER').toUpperCase().slice(0, 24);
+    window.PR_UI.drawText(ctx, name, xOff + 24, 51, '#fff8e0');
+    ctx.restore();
+  };
+
+  // Player-side recharge turn (idea #4): forfeit the player's action,
+  // foe still acts. Mirrors how voluntary-swap surrenders the turn.
+  Battle.prototype._rechargeTurn = function() {
+    this.queue(this.me.nickname + ' must recharge!');
+    this.me.mustRecharge = false;
+    const foeMove = pickFoeMove(this.foe, this.me);
+    this.turnOrder = ['foe'];
+    this.turnMoves = { foe: foeMove };
+    this.turnStep = 0;
+    this.phase = 'turn';
   };
 
   // Apply any chance-based status side-effects defined on the move def
@@ -499,6 +755,119 @@
         this.queue(defender.nickname + ' became confused!');
       }
     }
+  };
+
+  // Switch-in hooks: entry hazards (idea #3) and Intimidate (idea #1).
+  // sideKey is the side the incoming creature belongs to ('me'|'foe').
+  Battle.prototype._onSwitchIn = function(mon, sideKey) {
+    if (!mon || mon.hp <= 0) return;
+    const D = window.PR_DATA;
+    const f = this.field[sideKey];
+    // Entry hazards laid on this side bite the incoming creature.
+    if (f && f.stealthrock) {
+      const eff = D.effectiveness('ROCK', D.CREATURES[mon.species].types);
+      const dmg = Math.max(1, Math.floor(mon.stats.hp * eff / 8));
+      mon.hp = Math.max(0, mon.hp - dmg);
+      this.queue('Pointed stones dug into ' + mon.nickname + '!');
+    }
+    if (mon.hp > 0 && f && f.spikes > 0) {
+      const types = D.CREATURES[mon.species].types;
+      // Spikes are a ground hazard - flyers and Levitate float over.
+      const grounded = !types.includes('FLYING') && D.abilityOf(mon.species) !== 'levitate';
+      if (grounded) {
+        const denom = f.spikes >= 3 ? 4 : (f.spikes === 2 ? 6 : 8);
+        const dmg = Math.max(1, Math.floor(mon.stats.hp / denom));
+        mon.hp = Math.max(0, mon.hp - dmg);
+        this.queue(mon.nickname + ' was hurt by spikes!');
+      }
+    }
+    if (mon.hp <= 0) return;
+    // Intimidate drops the opposing active creature's ATK one stage.
+    if (D.abilityOf(mon.species) === 'intimidate') {
+      const target = sideKey === 'me' ? this.foe : this.me;
+      if (target && target.hp > 0 && (target.statStages.atk || 0) > -6) {
+        target.statStages.atk = Math.max(-6, (target.statStages.atk || 0) - 1);
+        const owner = target === this.me ? this.me.nickname : 'Foe ' + this.foe.nickname;
+        this.queue(mon.nickname + "'s Intimidate cut " + owner + "'s ATK!");
+      }
+    }
+  };
+
+  // Resolve a screen / hazard / weather move (ideas #3, #5). `who` is
+  // the side that used the move ('me'|'foe').
+  Battle.prototype._applyFieldMove = function(who, def) {
+    const mySide  = who === 'me' ? 'me'  : 'foe';
+    const foeSide = who === 'me' ? 'foe' : 'me';
+    const ownerWord = who === 'me' ? 'your' : "the foe's";
+    if (def.setScreen) {
+      const f = this.field[mySide];
+      const key = def.setScreen === 'lightscreen' ? 'lightScreen' : 'reflect';
+      if (f[key] > 0) { this.queue('But it failed!'); return; }
+      f[key] = 5;
+      this.queue(def.setScreen === 'lightscreen'
+        ? 'Light Screen shielded ' + ownerWord + ' team!'
+        : 'Reflect shielded ' + ownerWord + ' team!');
+      return;
+    }
+    if (def.setHazard) {
+      const f = this.field[foeSide];
+      if (def.setHazard === 'stealthrock') {
+        if (f.stealthrock) { this.queue('But it failed!'); return; }
+        f.stealthrock = 1;
+        this.queue('Pointed stones float around the foe!');
+      } else {
+        if (f.spikes >= 3) { this.queue('But it failed!'); return; }
+        f.spikes++;
+        this.queue('Spikes were scattered at the foe!');
+      }
+      return;
+    }
+    if (def.setWeather) {
+      this.weather = { kind: def.setWeather, turns: 5 };
+      this.queue(({
+        rain:    'It started to rain!',
+        thunder: 'A thunderstorm rolled in!',
+        hail:    'It started to hail!'
+      })[def.setWeather] || 'The weather changed!');
+      return;
+    }
+  };
+
+  // Tag battle (idea #2): the AI ally auto-picks a move when it holds
+  // the active slot. Reuses the foe move-picker for parity.
+  Battle.prototype._allyTurn = function() {
+    const moves = this.me && this.me.moves;
+    if (!moves || !moves.length) {
+      // Defensive: an ally with no usable moves just forfeits the turn
+      // to the foe (also avoids re-dispatching into this same handler).
+      this.turnOrder = ['foe'];
+      this.turnMoves = { foe: pickFoeMove(this.foe, this.me) };
+      this.turnStep = 0;
+      this.phase = 'turn';
+      return;
+    }
+    this.queueTurn(pickFoeMove(this.me, this.foe));
+  };
+
+  // Tag battle: find the next creature to occupy the player's side,
+  // alternating ownership (you <-> ally) and falling back to the same
+  // owner if the other side is wiped out. Returns {owner, idx} or null.
+  Battle.prototype._tagNextMeSlot = function() {
+    const benchOf = (owner) => owner === 'ally' ? this.allyTeam : this.state.party;
+    const firstAlive = (owner) => {
+      const bench = benchOf(owner);
+      for (let i = 0; i < bench.length; i++) {
+        const m = bench[i];
+        if (m && m.hp > 0 && !(owner === this.meOwner && i === this.partyIdx)) return i;
+      }
+      return -1;
+    };
+    const other = this.meOwner === 'player' ? 'ally' : 'player';
+    let idx = firstAlive(other);
+    if (idx >= 0) return { owner: other, idx };
+    idx = firstAlive(this.meOwner);
+    if (idx >= 0) return { owner: this.meOwner, idx };
+    return null;
   };
 
   Battle.prototype._enterLearnMove = function() {
@@ -625,6 +994,24 @@
     tickBerry(this.me);
     tickBerry(this.foe);
 
+    // Tick down screens (idea #3) and battle weather (idea #5). The
+    // hail chip above already read the battle weather via currentKind,
+    // so the count-down happens after damage, as in the mainline.
+    const tickScreens = (side, label) => {
+      const f = this.field[side];
+      if (f.reflect > 0 && --f.reflect === 0) this.queue(label + " Reflect wore off.");
+      if (f.lightScreen > 0 && --f.lightScreen === 0) this.queue(label + " Light Screen wore off.");
+    };
+    tickScreens('me', 'Your');
+    tickScreens('foe', "The foe's");
+    if (this.weather.kind && this.weather.turns > 0) {
+      this.weather.turns--;
+      if (this.weather.turns === 0) {
+        this.queue('The ' + this.weather.kind + ' let up.');
+        this.weather.kind = null;
+      }
+    }
+
     if (this.foe.hp <= 0 || this.me.hp <= 0) {
       this.phase = 'faint';
       this.faintAnim = { foe: this.foe.hp <= 0 ? 0 : 1, me: this.me.hp <= 0 ? 0 : 1 };
@@ -656,10 +1043,19 @@
           this.foe = this.foeTeam[this.foeIdx];
           this.hpAnim.foe = this.foe.hp;
           this.faintAnim.foe = 1;
-          this.queue('Trainer sent out ' + this.foe.nickname + '!');
+          const sender = this.tag ? (this.tag.foeName || 'The opposing pair') : 'Trainer';
+          this.queue(sender + ' sent out ' + this.foe.nickname + '!');
+          // Switch-in hooks for the incoming foe (hazards / Intimidate).
+          this._onSwitchIn(this.foe, 'foe');
           this.afterMessages = () => {
             this.faintAnim.foe = 0; // reset slide-in next render
-            this.phase = 'menu'; this.selection = 0;
+            if (this.foe.hp <= 0) {
+              // Switch-in hazards KO'd the incoming foe - back to faint.
+              this.phase = 'faint';
+              this.faintAnim = { foe: 0, me: this.me.hp <= 0 ? 0 : 1 };
+            } else {
+              this.phase = 'menu'; this.selection = 0;
+            }
           };
           this.phase = 'message';
           return;
@@ -683,6 +1079,47 @@
       this.faintAnim.me = 1;
       window.PR_SFX && window.PR_SFX.play('faint');
       this.queue(this.me.nickname + ' fainted!');
+      // Tag battle (idea #2): the active slot alternates owner on each
+      // faint - your creature goes down, your ally tags in, and vice
+      // versa. The AI ally enters automatically; you pick your own.
+      if (this.tag) {
+        const slot = this._tagNextMeSlot();
+        if (!slot) {
+          this.queue('Your side is out of partners...');
+          this.queue('You scurry back to safety.');
+          this.phase = 'message';
+          this.afterMessages = () => { this.phase = 'lost'; };
+          return;
+        }
+        if (slot.owner === 'ally') {
+          const allyName = this.tag.allyName || 'Your ally';
+          this.phase = 'message';
+          this.afterMessages = () => {
+            this.meOwner = 'ally';
+            this.partyIdx = slot.idx;
+            this.me = this.allyTeam[slot.idx];
+            this.hpAnim.me = this.me.hp;
+            this.faintAnim.me = 0;
+            this.queue(allyName + ' sent out ' + this.me.nickname + '!');
+            this._onSwitchIn(this.me, 'me');
+            this.phase = 'message';
+            this.afterMessages = () => { this.phase = 'menu'; this.selection = 0; };
+          };
+        } else {
+          this.queue('Choose your next partner!');
+          this.phase = 'message';
+          this.afterMessages = () => {
+            this.meOwner = 'player';
+            // No player creature occupies the active slot right now
+            // (the ally just went down) - clear the "in battle" marker.
+            this.partyIdx = -1;
+            this.phase = 'party';
+            this.subSelection = slot.idx;
+            this.forcedSwap = true;
+          };
+        }
+        return;
+      }
       const next = nextAlive(this.state.party, this.partyIdx);
       if (next >= 0) {
         // Force a switch.
@@ -724,18 +1161,33 @@
 
   Battle.prototype.swapTo = function(idx, fainted) {
     const old = this.me.nickname;
+    const forced = this.forcedSwap;
+    this.forcedSwap = false;
+    // The player only ever swaps in their own creatures - reclaim the
+    // active slot for the player side (matters in tag battles).
+    this.meOwner = 'player';
     this.partyIdx = idx;
     this.me = this.state.party[idx];
     this.hpAnim.me = this.me.hp;
     this.faintAnim.me = 1;
     if (!fainted) this.queue('Come back, ' + old + '!');
     this.queue('Go, ' + this.me.nickname + '!');
+    // Switch-in hooks (hazards / Intimidate) queue into this same
+    // message batch so they read before control returns.
+    this._onSwitchIn(this.me, 'me');
     this.phase = 'message';
-    if (this.forcedSwap) {
-      this.forcedSwap = false;
+    if (this.me.hp <= 0) {
+      // Switch-in hazards KO'd the creature - route straight to faint.
+      this.afterMessages = () => {
+        this.phase = 'faint';
+        this.faintAnim = { foe: this.foe.hp <= 0 ? 0 : 1, me: 0 };
+      };
+      return;
+    }
+    if (forced) {
       this.afterMessages = () => { this.phase = 'menu'; this.selection = 0; };
     } else {
-      // Foe gets a free turn after swap.
+      // Foe gets a free turn after a voluntary swap.
       this.afterMessages = () => {
         const foeMove = pickFoeMove(this.foe, this.me);
         this.turnOrder = ['foe'];
@@ -843,6 +1295,24 @@
       if (this.state.player) {
         if (!this.state.player.stats) this.state.player.stats = {};
         this.state.player.stats.catches = (this.state.player.stats.catches || 0) + 1;
+        // Catch combo (idea #6): consecutive same-species catches keep
+        // the chain alive; a different species resets it. The wild
+        // encounter spawn reads player.catchCombo at battle start.
+        const combo = this.state.player.catchCombo || { species:null, count:0 };
+        if (combo.species === this.foe.species) combo.count = Math.min(99, combo.count + 1);
+        else { combo.species = this.foe.species; combo.count = 1; }
+        this.state.player.catchCombo = combo;
+        if (combo.count >= 5 && combo.count % 5 === 0) {
+          this.queue('Chain of ' + combo.count + '!');
+        }
+      }
+      // Creature mark (idea #20): tag the caught mon with a context
+      // marker so collectors can hunt for rare-condition catches.
+      const mk = this._pickCatchMark();
+      if (mk) {
+        this.foe.mark = mk;
+        const meta = window.PR_DATA.markOf(mk);
+        if (meta) this.queue(this.foe.nickname + ' is ' + meta.title + '!');
       }
       // Achievement triggers - first/ten/fifty catch, first shiny, dex
       // milestones, first fish if this was an A-on-water fishing battle.
@@ -858,6 +1328,15 @@
         if (caught >= 20) A.unlock(this.state, 'dex_quarter');
         if (caught >= 40) A.unlock(this.state, 'dex_half');
         if (caught >= 77) A.unlock(this.state, 'dex_full');
+      }
+      // Shiny Charm (idea #44): granted once the Pokedex is complete.
+      const caughtNow = (this.state.dex && this.state.dex.caught && this.state.dex.caught.size) || 0;
+      if (caughtNow >= 77 && window.PR_ITEMS) {
+        const bag = this.state.player && this.state.player.bag;
+        if (!bag || !bag.shinycharm) {
+          window.PR_ITEMS.add(this.state, 'shinycharm', 1);
+          this.queue('The PROFESSOR mailed a SHINY CHARM!');
+        }
       }
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) {
@@ -917,7 +1396,7 @@
       window.PR_SFX && window.PR_SFX.play('levelup');
       let sp = window.PR_DATA.CREATURES[mon.species];
       const oldStats = mon.stats;
-      const newStats = window.PR_DATA.computeStats(sp.baseStats, mon.ivs, mon.level);
+      const newStats = window.PR_DATA.computeStats(sp.baseStats, mon.ivs, mon.level, mon.nature);
       const dHp = newStats.hp - mon.stats.hp;
       mon.stats = newStats;
       mon.hp = Math.min(mon.stats.hp, mon.hp + Math.max(0, dHp));
@@ -944,13 +1423,18 @@
           }
         }
       }
-      // Evolve at level threshold.
-      if (sp.evolves && mon.level >= sp.evolves.level) {
+      // Evolve at level threshold, or at the friendship threshold on
+      // the next level-up (idea #15). Stone-only evolutions list
+      // neither and are skipped here; they're handled by items.apply.
+      const evoCfg = sp.evolves;
+      const meetsLevel      = evoCfg && evoCfg.level && mon.level >= evoCfg.level;
+      const meetsFriendship = evoCfg && evoCfg.friendship && (mon.friendship | 0) >= evoCfg.friendship;
+      if (evoCfg && (meetsLevel || meetsFriendship)) {
         const evo = sp.evolves.to;
         const fromSpecies = mon.species;
         mon.species = evo;
         const evoSp = window.PR_DATA.CREATURES[evo];
-        const evoStats = window.PR_DATA.computeStats(evoSp.baseStats, mon.ivs, mon.level);
+        const evoStats = window.PR_DATA.computeStats(evoSp.baseStats, mon.ivs, mon.level, mon.nature);
         const evoHpGain = evoStats.hp - mon.stats.hp;
         mon.stats = evoStats;
         mon.hp = Math.min(mon.stats.hp, mon.hp + Math.max(0, evoHpGain));
@@ -1087,6 +1571,8 @@
 
     this.drawFoeBox(ctx);
     this.drawMeBox(ctx);
+    this.drawFieldStatus(ctx);
+    this.drawTrainerBanner(ctx);
 
     if (this.phase === 'message' || this.phase === 'turn' || this.phase === 'faint' ||
         this.phase === 'won' || this.phase === 'lost' || this.phase === 'ran' || this.phase === 'caught') {
@@ -1159,6 +1645,33 @@
       ctx.fillStyle = window.PR_UI.pf('#e83838'); ctx.fillRect(x + 4, y + 22, 16, 6);
       window.PR_UI.drawText(ctx, tag, x + 5, y + 22, '#fff');
     }
+  };
+
+  // Compact field-state strip (ideas #3, #5): battle weather and the
+  // per-side screens, drawn top-right where there's free space. The
+  // full-screen party menu draws over it, which is fine.
+  Battle.prototype.drawFieldStatus = function(ctx) {
+    const tx = 150;
+    let ty = 44;
+    const chip = (text, bg) => {
+      ctx.fillStyle = window.PR_UI.pf(bg);
+      ctx.fillRect(tx, ty, 56, 9);
+      window.PR_UI.drawText(ctx, text, tx + 2, ty + 1, '#fff');
+      ty += 11;
+    };
+    if (this.weather.kind && this.weather.turns > 0) {
+      chip(this.weather.kind.toUpperCase() + ' ' + this.weather.turns, '#284878');
+    }
+    const screenTag = (f) => {
+      const t = [];
+      if (f.reflect > 0) t.push('REF');
+      if (f.lightScreen > 0) t.push('LS');
+      return t.join('/');
+    };
+    const foeS = screenTag(this.field.foe);
+    if (foeS) chip('FOE ' + foeS, '#806020');
+    const meS = screenTag(this.field.me);
+    if (meS) chip('YOU ' + meS, '#206040');
   };
 
   Battle.prototype.drawMenu = function(ctx) {
@@ -1244,6 +1757,20 @@
       window.PR_UI.drawHpBar(ctx, x + 130, cy + 2, 60, m.hp, m.stats.hp);
       window.PR_UI.drawText(ctx, m.hp + '/' + m.stats.hp, x + w - 60, cy + 8, '#202020');
       if (i === this.partyIdx) window.PR_UI.drawText(ctx, '*', x + w - 12, cy, '#e83838');
+      // Second line: ability (first word) (idea #1), nature short
+      // (idea #11) and switch-in matchup (idea #7) so the player can
+      // read a candidate's strengths at a glance.
+      const ab = window.PR_DATA.abilityOf(m.species);
+      if (ab) {
+        const abName = (window.PR_DATA.ABILITIES[ab] || {}).name || '';
+        window.PR_UI.drawText(ctx, abName.split(' ')[0], x + 28, cy + 8, '#586878');
+      }
+      if (m.nature) {
+        const nshort = (window.PR_DATA.NATURES[m.nature] || {}).short || m.nature.slice(0,4).toUpperCase();
+        window.PR_UI.drawText(ctx, nshort, x + 68, cy + 8, '#a06030');
+      }
+      const mu = switchMatchup(this.foe, m);
+      if (mu) window.PR_UI.drawText(ctx, mu.tag, x + 108, cy + 8, mu.color);
     }
     window.PR_UI.drawText(ctx, 'B: BACK', x + 8, y + h - 12, '#202020');
   };

@@ -308,6 +308,118 @@
       kind:'held_gear', icon:'charm', color:'#a05030', accent:'#f0c020',
       holdable:true, focusSash:true, price:2000
     },
+    // ---- Held items expansion (idea #16) ----
+    eviolite: {
+      id:'eviolite', name:'EVIOLITE',
+      desc:'Boosts DEF & SP.DEF if the holder can still evolve.',
+      detail:'A chunk of fossilised evolutionary potential. Strengthens defences while the holder is unevolved.',
+      kind:'held_gear', icon:'charm', color:'#284060', accent:'#a0c8e8',
+      holdable:true, eviolite:true, price:2400
+    },
+    quick_claw: {
+      id:'quick_claw', name:'QUICK CLAW',
+      desc:'May let the holder strike first regardless of speed.',
+      detail:'A sharpened claw that lashes out at the first opening - about a one-in-five chance each turn.',
+      kind:'held_gear', icon:'charm', color:'#806040', accent:'#f0d870',
+      holdable:true, quickClaw:true, quickClawChance:0.20, price:1800
+    },
+    wide_lens: {
+      id:'wide_lens', name:'WIDE LENS',
+      desc:"Improves the holder's move accuracy by 10%.",
+      detail:'A polished lens that helps the holder line up shaky shots.',
+      kind:'held_gear', icon:'charm', color:'#308060', accent:'#c0f0d0',
+      holdable:true, wideLens:true, wideLensBonus:10, price:1500
+    },
+    expert_belt: {
+      id:'expert_belt', name:'EXPERT BELT',
+      desc:'Boosts super-effective moves by 20%.',
+      detail:'A worn leather belt awarded to type specialists. Bites harder when the matchup is right.',
+      kind:'held_gear', icon:'charm', color:'#8a4a18', accent:'#f0c020',
+      holdable:true, expertBelt:true, price:2200
+    },
+    shinycharm: {
+      id:'shinycharm', name:'SHINY CHARM',
+      desc:'Doubles wild shiny odds. Granted at full Pokedex.',
+      detail:'A glittering badge the Professor mails when every species has been seen and caught.',
+      kind:'key', icon:'charm', color:'#f0c020', accent:'#fff8e0',
+      key:true, shinyCharm:true, shinyMult:2, price:0
+    },
+    // ---- Evolution stones (idea #14) ----
+    // Each carries a `stone` tag matched against CREATURES[species].evolves.stone.
+    firestone: {
+      id:'firestone', name:'FIRE STONE',
+      desc:'Triggers some FIRE-aligned evolutions.',
+      detail:'A blazing chunk of red crystal. Some creatures lock into a new form when held to it.',
+      kind:'evostone', icon:'charm', color:'#e84818', accent:'#f0c020',
+      stone:'firestone', price:2100
+    },
+    thunderstone: {
+      id:'thunderstone', name:'THUNDER STONE',
+      desc:'Triggers some ELECTRIC-aligned evolutions.',
+      detail:'A jagged green crystal that crackles with stored lightning.',
+      kind:'evostone', icon:'charm', color:'#88c020', accent:'#f0e840',
+      stone:'thunderstone', price:2100
+    },
+    icestone: {
+      id:'icestone', name:'ICE STONE',
+      desc:'Triggers some ICE-aligned evolutions.',
+      detail:'A frozen shard that never melts. Cold even through a glove.',
+      kind:'evostone', icon:'charm', color:'#8898d8', accent:'#e0f0ff',
+      stone:'icestone', price:2100
+    },
+    leafstone: {
+      id:'leafstone', name:'LEAF STONE',
+      desc:'Triggers some GRASS-aligned evolutions.',
+      detail:'A leaf-veined chunk of green agate. Smells faintly of meadows.',
+      kind:'evostone', icon:'charm', color:'#388838', accent:'#a0e068',
+      stone:'leafstone', price:2100
+    },
+    moonstone: {
+      id:'moonstone', name:'MOON STONE',
+      desc:'Triggers some nocturnal evolutions.',
+      detail:'A silvery pebble that glows faintly at night. Soft to the touch.',
+      kind:'evostone', icon:'charm', color:'#a0a0c8', accent:'#fff8e0',
+      stone:'moonstone', price:2100
+    },
+    // ---- Technical Machines (idea #21) ----
+    // Reusable across the playthrough (Gen 8+ model); any species can
+    // learn any TM as long as it has a free move slot. The bag's USE
+    // path checks `reusable` and skips the take() that would consume.
+    tm_solarbeam: {
+      id:'tm_solarbeam', name:'TM01 SOLARBEAM',
+      desc:'Teaches SOLAR BEAM. Reusable.',
+      detail:'A reusable disc that imprints the SOLAR BEAM move on any creature with a free slot.',
+      kind:'tm', icon:'charm', color:'#388838', accent:'#a0e068',
+      teaches:'solarbeam', tmNum:1, reusable:true, price:5000
+    },
+    tm_thunderclap: {
+      id:'tm_thunderclap', name:'TM02 THUNDERCLAP',
+      desc:'Teaches THUNDERCLAP. Reusable.',
+      detail:'A reusable disc that imprints the THUNDERCLAP move on any creature with a free slot.',
+      kind:'tm', icon:'charm', color:'#c8a020', accent:'#fff8e0',
+      teaches:'thunderclap', tmNum:2, reusable:true, price:4000
+    },
+    tm_icebeam: {
+      id:'tm_icebeam', name:'TM03 ICE BEAM',
+      desc:'Teaches ICE BEAM. Reusable.',
+      detail:'A reusable disc that imprints the ICE BEAM move on any creature with a free slot.',
+      kind:'tm', icon:'charm', color:'#88c8d8', accent:'#e0f0ff',
+      teaches:'icebeam', tmNum:3, reusable:true, price:4000
+    },
+    tm_earthquake: {
+      id:'tm_earthquake', name:'TM04 QUAKE',
+      desc:'Teaches EARTHQUAKE. Reusable.',
+      detail:'A reusable disc that imprints the EARTHQUAKE move on any creature with a free slot.',
+      kind:'tm', icon:'charm', color:'#a06030', accent:'#f0c020',
+      teaches:'earthquake', tmNum:4, reusable:true, price:5500
+    },
+    tm_hyperbeam: {
+      id:'tm_hyperbeam', name:'TM05 HYPRBEAM',
+      desc:'Teaches HYPER BEAM. Reusable.',
+      detail:'A reusable disc that imprints the HYPER BEAM move on any creature with a free slot.',
+      kind:'tm', icon:'charm', color:'#c83838', accent:'#f0c020',
+      teaches:'hyperbeam', tmNum:5, reusable:true, price:7000
+    },
     // ---- Overworld utility ----
     repel: {
       id:'repel', name:'REPEL',
@@ -350,6 +462,8 @@
     if (it.kind === 'held_gear') return 'HELD';
     if (it.kind === 'key') return 'KEY';
     if (it.kind === 'repel') return 'REPEL';
+    if (it.kind === 'tm') return 'TM';
+    if (it.kind === 'evostone') return 'STONE';
     return 'ITEM';
   }
 
@@ -490,6 +604,44 @@
       target.status = null;
       return { ok:true, message:target.nickname + ' was revived!' };
     }
+    // Evolution stone (idea #14). Matches against the species' opt-in
+    // `evolves: { to:X, stone:Y }`. Stats / sprite update inline so we
+    // don't have to drag the battle-side evolution logic into items.
+    // TM (idea #21). Teaches a move if the target has a free slot;
+    // refuses cleanly otherwise. The disc itself is reusable - the
+    // bag flow checks `reusable` before consuming.
+    if (it.kind === 'tm') {
+      const D = (typeof window !== 'undefined') && window.PR_DATA;
+      const moveId = it.teaches;
+      const mv = D && moveId && D.MOVES[moveId];
+      if (!mv) return { ok:false, message:'It had no effect.' };
+      if (target.moves.find(m => m.id === moveId)) {
+        return { ok:false, message:target.nickname + ' already knows it.' };
+      }
+      if (target.moves.length >= 4) {
+        return { ok:false, message:target.nickname + ' needs a free move slot.' };
+      }
+      target.moves.push({ id: moveId, pp: mv.pp, ppMax: mv.pp });
+      return { ok:true, message:target.nickname + ' learned ' + mv.name + '!' };
+    }
+    if (it.kind === 'evostone') {
+      const D = (typeof window !== 'undefined') && window.PR_DATA;
+      const sp = D && D.CREATURES[target.species];
+      if (!sp || !sp.evolves || sp.evolves.stone !== it.stone) {
+        return { ok:false, message:'It had no effect on ' + target.nickname + '.' };
+      }
+      const evoId = sp.evolves.to;
+      const evoSp = D.CREATURES[evoId];
+      if (!evoSp) return { ok:false, message:'It had no effect.' };
+      const oldName = sp.name;
+      target.species = evoId;
+      const newStats = D.computeStats(evoSp.baseStats, target.ivs, target.level, target.nature);
+      const dHp = newStats.hp - target.stats.hp;
+      target.stats = newStats;
+      target.hp = Math.min(target.stats.hp, target.hp + Math.max(0, dHp));
+      if (target.nickname === oldName) target.nickname = evoSp.name;
+      return { ok:true, message:target.nickname + ' evolved into ' + evoSp.name + '!' };
+    }
     return { ok:false, message:'Cannot use that.' };
   }
 
@@ -585,10 +737,10 @@
     { tier:1, items:['greatball','superpotion','paralyzeheal','awakening','super_repel'] },
     { tier:2, items:['quickball','cavernball','burnheal','oranberry','lucky_charm','soothe_bell'] },
     { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand','heavy_ball','dusk_ball'] },
-    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash','friend_ball'] },
-    { tier:5, items:['ultraball','fullheal','leftovers'] },
-    { tier:6, items:['maxpotion','masters_pendant'] },
-    { tier:7, items:['maxrevive'] }
+    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash','friend_ball','wide_lens','firestone','thunderstone','icestone','leafstone','moonstone'] },
+    { tier:5, items:['ultraball','fullheal','leftovers','quick_claw','expert_belt','eviolite','tm_thunderclap','tm_icebeam'] },
+    { tier:6, items:['maxpotion','masters_pendant','tm_solarbeam','tm_earthquake'] },
+    { tier:7, items:['maxrevive','tm_hyperbeam'] }
   ];
 
   // Compute the visible shop list for an NPC given player state. The
