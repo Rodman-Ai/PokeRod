@@ -1306,13 +1306,25 @@
       const cx = s.x * TS - camX + TS / 2;
       const cy = s.y * TS - camY + TS - 10;
       if (cx < -TS || cx > VIEW_W + TS || cy < -TS || cy > VIEW_H + TS) continue;
-      const k = Math.max(0, Math.min(1, s.t / 0.35));
-      ctx.fillStyle = window.PR_UI.pf('rgba(168,232,128,' + (0.9 * k).toFixed(3) + ')');
+      // Pre-encounter telegraph (idea #43): a longer, redder rustle the
+      // step before a wild creature springs out. Visually distinct from
+      // the regular green walk-through rustle.
+      const pre = !!s.pre;
+      const lifespan = pre ? 0.55 : 0.35;
+      const k = Math.max(0, Math.min(1, s.t / lifespan));
+      const col = pre
+        ? 'rgba(248,168,64,'  + (0.95 * k).toFixed(3) + ')'
+        : 'rgba(168,232,128,' + (0.90 * k).toFixed(3) + ')';
+      ctx.fillStyle = window.PR_UI.pf(col);
       // Two angled slashes flanking the centre, suggesting parted blades.
       ctx.fillRect((cx - 6) | 0, (cy - 1) | 0, 4, 1);
       ctx.fillRect((cx + 2) | 0, (cy - 1) | 0, 4, 1);
       ctx.fillRect((cx - 5) | 0, (cy)     | 0, 3, 1);
       ctx.fillRect((cx + 3) | 0, (cy)     | 0, 3, 1);
+      if (pre) {
+        // Extra-bold center accent on the telegraph rustle.
+        ctx.fillRect((cx - 1) | 0, (cy - 3) | 0, 2, 2);
+      }
     }
   }
   // Foreground tall grass: when a movable sprite (player, NPC, ambient
@@ -2700,8 +2712,22 @@
 
         const props = window.PR_MAPS.TILE_PROPS[code];
         if (props && props.encounter && this.encounterCooldown <= 0) {
-          if (Math.random() < 0.12) {
+          if (this._pendingEncounter) {
+            // The previous grass step armed an encounter telegraph;
+            // fire the battle now (idea #43).
+            this._pendingEncounter = false;
             this.state.onWildEncounter();
+          } else if (Math.random() < 0.12) {
+            if (code === ':' && !reducedM) {
+              // Push an orange "rustle!" tile and defer the encounter
+              // by one step so the player sees the tell.
+              this._sweptGrass.push({ x: this.player.x, y: this.player.y, t: 0.55, pre: true });
+              if (this._sweptGrass.length > 12) this._sweptGrass.splice(0, this._sweptGrass.length - 12);
+              this._pendingEncounter = true;
+            } else {
+              // Non-grass encounter tiles (cave / sand) fire instantly.
+              this.state.onWildEncounter();
+            }
           }
         }
         if (this.encounterCooldown > 0) this.encounterCooldown -= 1;

@@ -55,6 +55,10 @@
     this.me = state.party[this.partyIdx];
     this.phase = 'intro';   // intro -> message -> menu -> ...
     this.messages = [];
+    // Battle log (idea #38): keep a copy of every queued line so we
+    // can persist it into state.battleHistory at outcome time. The
+    // play stream consumes from `messages`; this stays intact.
+    this.log = [];
     this.subPhase = null;
     this.selection = 0;
     this.subSelection = 0;
@@ -141,6 +145,11 @@
 
   Battle.prototype.queue = function(msg) {
     this.messages.push(msg);
+    if (this.log) {
+      this.log.push(msg);
+      // Cap to avoid a runaway 100-turn battle blowing the history.
+      if (this.log.length > 80) this.log.splice(0, this.log.length - 80);
+    }
   };
 
   Battle.prototype.currentMessage = function() {
@@ -235,11 +244,12 @@
     if (I.consumePressed('ArrowDown'))  this.selection = (this.selection + 2) & 3;
     if (I.consumePressed('ArrowUp'))    this.selection = (this.selection + 2) & 3;
     if (I.consumePressed('z')) {
-      if (this.selection === 0) { this.phase = 'fight'; this.subSelection = 0; }
-      else if (this.selection === 1) { this.tryRun(); }
+      if (this.selection === 0) { this.phase = 'fight'; this.subSelection = 0; this._freeSwap = false; }
+      else if (this.selection === 1) { this.tryRun(); this._freeSwap = false; }
       else if (this.selection === 2) { this.phase = 'party'; this.subSelection = 0; }
       else if (this.selection === 3) {
         // Open bag instead of directly throwing.
+        this._freeSwap = false;
         if (window.PR_GAME && window.PR_GAME.openBagFromBattle) window.PR_GAME.openBagFromBattle();
         else this.tryThrowBall();
       }
@@ -1054,6 +1064,11 @@
               this.phase = 'faint';
               this.faintAnim = { foe: 0, me: this.me.hp <= 0 ? 0 : 1 };
             } else {
+              // Shift-mode (idea #26): give the player a one-shot free
+              // swap window after the foe sends out the next mon. The
+              // window is consumed by any non-PARTY action.
+              const style = this.state.settings && this.state.settings.battleStyle;
+              this._freeSwap = style === 'shift';
               this.phase = 'menu'; this.selection = 0;
             }
           };
@@ -1161,8 +1176,12 @@
 
   Battle.prototype.swapTo = function(idx, fainted) {
     const old = this.me.nickname;
-    const forced = this.forcedSwap;
+    // forced = required swap (faint), or a free post-KO swap window in
+    // shift-mode (idea #26); both skip the foe's free turn.
+    const free = !!this._freeSwap;
+    const forced = this.forcedSwap || free;
     this.forcedSwap = false;
+    this._freeSwap = false;
     // The player only ever swaps in their own creatures - reclaim the
     // active slot for the player side (matters in tag battles).
     this.meOwner = 'player';
@@ -1475,6 +1494,18 @@
   Battle.prototype.updateOutcome = function() {
     if (window.PR_INPUT.consumePressed('z') || window.PR_INPUT.consumePressed('Enter')) {
       this.outcome = this.phase;
+      // Battle log persistence (idea #38). Keeps last 3 battles on
+      // state.battleHistory, newest at index 0.
+      if (this.state && Array.isArray(this.log)) {
+        if (!Array.isArray(this.state.battleHistory)) this.state.battleHistory = [];
+        const entry = {
+          outcome: this.outcome,
+          foeName: (this.trainer && this.trainerName) || (this.foe && this.foe.nickname) || '?',
+          lines: this.log.slice()
+        };
+        this.state.battleHistory.unshift(entry);
+        if (this.state.battleHistory.length > 3) this.state.battleHistory.length = 3;
+      }
       this.state.onBattleEnd(this.outcome, this);
     }
   };

@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.57';
-  const BUILD = '2026.05.15-199';
+  const VERSION = 'v0.55.58';
+  const BUILD = '2026.05.15-200';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -374,7 +374,7 @@
     }
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
-    else if (state.mode === 'overworld') state.world.update(dt);
+    else if (state.mode === 'overworld') { maybeGrantDailyBonus(); state.world.update(dt); }
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'cutscene') updateCutscene(dt);
@@ -385,6 +385,8 @@
     else if (state.mode === 'settings') updateSettings();
     else if (state.mode === 'dex') updateDex();
     else if (state.mode === 'types') updateTypes();
+    else if (state.mode === 'coverage') updateCoverage();
+    else if (state.mode === 'battlelog') updateBattleLog();
     else if (state.mode === 'slots') updateSlotPicker();
     else if (state.mode === 'bag') updateBag();
     else if (state.mode === 'bagtarget') updateBagTarget();
@@ -438,6 +440,33 @@
 
   let flashText = null, flashTimer = 0;
   function showFlash(text) { flashText = text; flashTimer = 1.4; }
+
+  // Daily login bonus (idea #10). Grants a rotating item the first
+  // time the player enters the overworld on any new local-date day.
+  // No quest plumbing - this is a login gift only.
+  const DAILY_BONUS_CYCLE = [
+    { id:'potion',      label:'POTION' },
+    { id:'greatball',   label:'GREAT BALL' },
+    { id:'rodball',     label:'ROD BALL' },
+    { id:'revive',      label:'REVIVE' },
+    { id:'repel',       label:'REPEL' }
+  ];
+  function maybeGrantDailyBonus() {
+    try {
+      if (!state.flags) state.flags = {};
+      const today = new Date().toDateString();
+      if (state.flags.lastDailyDate === today) return;
+      state.flags.lastDailyDate = today;
+      if (!window.PR_ITEMS || !window.PR_ITEMS.add || !window.PR_ITEMS.ITEMS) return;
+      const dayNum = Math.floor(Date.now() / 86400000);
+      const pick = DAILY_BONUS_CYCLE[dayNum % DAILY_BONUS_CYCLE.length];
+      if (!window.PR_ITEMS.ITEMS[pick.id]) return;
+      window.PR_ITEMS.add(state, pick.id, 1);
+      showFlash('DAILY BONUS: ' + pick.label);
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    } catch (_) { /* never block the overworld tick on a bonus issue */ }
+  }
   state.showFlash = showFlash;
 
   function updateKonamiCode() {
@@ -472,11 +501,18 @@
       addMoney(state, 10000);
       window.PR_SFX && window.PR_SFX.play('confirm');
       showFlash('GOT $10000!');
+      // Also arm the cheat menu (idea #45) so the pause menu opens
+      // with the 3-charge cheat rows on top.
+      state.konamiArmed = true;
+      state.cheatUses = 3;
       window.PR_SAVE.save && window.PR_SAVE.save(state);
       return true;
     }
     state.konamiArmed = true;
-    showFlash('KONAMI READY');
+    state.cheatUses = 3;
+    showFlash('KONAMI READY - 3 CHEATS');
+    // If the pause menu is open, rebuild it so the cheat rows show up.
+    if (state.mode === 'menu') openPauseMenu();
     return true;
   }
 
@@ -620,6 +656,8 @@
       else if (state.mode === 'settings') drawSettings();
       else if (state.mode === 'dex') drawDex();
       else if (state.mode === 'types') drawTypes();
+      else if (state.mode === 'coverage') drawCoverage();
+      else if (state.mode === 'battlelog') drawBattleLog();
       else if (state.mode === 'slots') drawSlotPicker();
       else if (state.mode === 'bag') drawBag();
       else if (state.mode === 'bagtarget') drawBagTarget();
@@ -1534,7 +1572,22 @@
       }
     }
     if (!list) list = map.encounters || [];
-    return filterEncountersByWeather(filterEncountersByTime(list));
+    return widenByBadges(filterEncountersByWeather(filterEncountersByTime(list)));
+  }
+
+  // Encounter pool widens with badges (idea #36). Each badge bumps the
+  // weight of every "rare" entry (weight <= 2) by +25%, capped at
+  // ~2.5x at full 8-badge clear. Common species are untouched, so the
+  // late-game routes feel surprising without rewriting tables.
+  function widenByBadges(list) {
+    if (!list || !list.length) return list;
+    const badges = (state.player && state.player.badges) ? state.player.badges.length : 0;
+    if (badges <= 0) return list;
+    const bump = 1 + badges * 0.25;
+    return list.map((e) => {
+      if (!e || (e.weight | 0) > 2) return e;
+      return Object.assign({}, e, { weight: Math.max(1, Math.round((e.weight || 1) * bump)) });
+    });
   }
 
   // ---------- Battle setup helpers ----------
@@ -1589,7 +1642,11 @@
       step = 'sfx-play';
       if (window.PR_SFX) {
         window.PR_SFX.play('encounter');
-        if (window.PR_SFX.cry) window.PR_SFX.cry(species);
+        if (window.PR_SFX.cry) {
+          // Idea #44: roaming legendary gets a louder, longer cry.
+          const isRoamer = !!(state.flags && state.flags.roamerSpecies === species);
+          window.PR_SFX.cry(species, isRoamer ? { loud: true } : null);
+        }
       }
       step = 'music-play';
       if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
@@ -1965,10 +2022,48 @@
 
   // ---------- Pause menu ----------
   const MENU_ICONS = {
-    MAP:'map', DEX:'dex', TYPES:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
+    MAP:'map', DEX:'dex', TYPES:'dex', COVER:'party', LOG:'dex', BAG:'bag', PARTY:'party', BOX:'bag',
     PROFILE:'profile', QUEST:'map', ERA:'gear',
-    SETTINGS:'gear', SAVE:'save', LOAD:'save', PHOTO:'dex'
+    SETTINGS:'gear', SAVE:'save', LOAD:'save', PHOTO:'dex',
+    'CHEAT-HEAL':'gear', 'CHEAT-$$$':'gear', 'CHEAT-LVL':'gear'
   };
+
+  function applyCheat(kind) {
+    if (!state.konamiArmed || (state.cheatUses | 0) <= 0) return;
+    let msg = '';
+    if (kind === 'heal') {
+      for (const m of (state.party || [])) {
+        if (!m) continue;
+        m.hp = m.stats.hp;
+        m.status = null;
+        for (const mv of (m.moves || [])) mv.pp = mv.ppMax;
+      }
+      msg = 'PARTY FULLY HEALED!';
+    } else if (kind === 'money') {
+      addMoney(state, 1000);
+      msg = 'GOT $1000!';
+    } else if (kind === 'level') {
+      const lead = state.party && state.party[0];
+      if (lead && lead.level < 100 && window.PR_DATA && state.battle == null) {
+        lead.xp = window.PR_DATA.xpForLevel(lead.level + 1);
+        lead.level += 1;
+        const sp = window.PR_DATA.CREATURES[lead.species];
+        if (sp) {
+          const ns = window.PR_DATA.computeStats(sp.baseStats, lead.ivs, lead.level, lead.nature);
+          const dh = ns.hp - lead.stats.hp;
+          lead.stats = ns;
+          lead.hp = Math.min(lead.stats.hp, lead.hp + Math.max(0, dh));
+        }
+        msg = lead.nickname + ' LV +1!';
+      } else { msg = 'NO TARGET'; }
+    }
+    state.cheatUses = Math.max(0, (state.cheatUses | 0) - 1);
+    if (state.cheatUses <= 0) state.konamiArmed = false;
+    showFlash(msg);
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    // Reopen the menu so the row count refreshes if charges hit 0.
+    openPauseMenu();
+  }
   // Photo mode: snap the top-screen canvas to a downloadable PNG.
   // The menu is closed first so the world (not the pause panel)
   // renders into the canvas, then we capture on the next frame.
@@ -2005,7 +2100,14 @@
     }
   }
   function openPauseMenu() {
-    state.menu = { idx: 0, options: ['MAP','DEX','TYPES','BAG','PARTY','PROFILE','BOX','QUEST','ERA','SETTINGS','PHOTO','SAVE','LOAD'] };
+    const base = ['MAP','DEX','TYPES','COVER','LOG','BAG','PARTY','PROFILE','BOX','QUEST','ERA','SETTINGS','PHOTO','SAVE','LOAD'];
+    // Konami cheat menu (idea #45): three armed cheat rows show up at
+    // the top of the menu once the code has been entered. Each use
+    // burns one charge; at 0, the rows vanish.
+    if (state.konamiArmed && (state.cheatUses | 0) > 0) {
+      base.unshift('CHEAT-LVL', 'CHEAT-$$$', 'CHEAT-HEAL');
+    }
+    state.menu = { idx: 0, options: base };
     state.mode = 'menu';
     startMenuAnim();
   }
@@ -2051,6 +2153,16 @@
         openDex();
       } else if (opt === 'TYPES') {
         openTypeChart();
+      } else if (opt === 'COVER') {
+        openCoverage();
+      } else if (opt === 'LOG') {
+        openBattleLog();
+      } else if (opt === 'CHEAT-HEAL') {
+        applyCheat('heal');
+      } else if (opt === 'CHEAT-$$$') {
+        applyCheat('money');
+      } else if (opt === 'CHEAT-LVL') {
+        applyCheat('level');
       } else if (opt === 'BAG') {
         openBag('overworld');
       } else if (opt === 'BOX') {
@@ -2464,6 +2576,7 @@
     musicVol: 'med',
     textSpeed: 'normal', // slow | normal | fast
     difficulty: 'normal', // easy | normal | hard
+    battleStyle: 'set',  // set | shift - shift lets you free-swap after a foe KO
     reducedMotion: false,
     colorblind: false,
     dayNightCycle: true,
@@ -2483,6 +2596,7 @@
   const VOL_VALUES = { off:0, low:0.25, med:0.55, high:1.0 };
   const TEXT_SPEED_STEPS = ['slow','normal','fast'];
   const DIFFICULTY_STEPS = ['easy','normal','hard'];
+  const BATTLE_STYLE_STEPS = ['set','shift'];
   // Per-difficulty knobs: XP gain, money gain (battle reward), trainer
   // team level offset, wild trainer level offset. easy is the "this is
   // for kids / I'm here for the story" mode; hard is the "I want a
@@ -2511,6 +2625,7 @@
     if (VOL_STEPS.indexOf(state.settings.musicVol) === -1) state.settings.musicVol = SETTINGS_DEFAULTS.musicVol;
     if (TEXT_SPEED_STEPS.indexOf(state.settings.textSpeed) === -1) state.settings.textSpeed = SETTINGS_DEFAULTS.textSpeed;
     if (DIFFICULTY_STEPS.indexOf(state.settings.difficulty) === -1) state.settings.difficulty = SETTINGS_DEFAULTS.difficulty;
+    if (BATTLE_STYLE_STEPS.indexOf(state.settings.battleStyle) === -1) state.settings.battleStyle = SETTINGS_DEFAULTS.battleStyle;
     // First-boot reconciliation: if state.settings.mute hasn't been
     // explicitly set yet, mirror the live audio state so a player who
     // muted before this setting existed isn't surprised on reload.
@@ -2555,6 +2670,7 @@
     { key:'musicVol',      label:'MUSIC VOLUME',   type:'enum', steps:VOL_STEPS },
     { key:'textSpeed',     label:'TEXT SPEED',     type:'enum', steps:TEXT_SPEED_STEPS },
     { key:'difficulty',    label:'DIFFICULTY',     type:'enum', steps:DIFFICULTY_STEPS },
+    { key:'battleStyle',   label:'BATTLE STYLE',   type:'enum', steps:BATTLE_STYLE_STEPS },
     { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
     { key:'colorblind',    label:'COLOR-BLIND',    type:'bool' },
     { key:'dayNightCycle', label:'DAY/NIGHT',      type:'bool' },
@@ -2875,9 +2991,24 @@
     list:    () => { ensureBox(); return state.box; }
   };
 
+  // PC box sort (idea #11). Cycles through these labels on R press.
+  const BOX_SORT_STEPS = ['caught','name','level','dex'];
+  function sortBoxBy(key) {
+    if (!state.box || !state.box.length) return;
+    const D = window.PR_DATA && window.PR_DATA.CREATURES;
+    if (key === 'name') {
+      state.box.sort((a, b) => (a.nickname || '').localeCompare(b.nickname || ''));
+    } else if (key === 'level') {
+      state.box.sort((a, b) => (b.level | 0) - (a.level | 0));
+    } else if (key === 'dex') {
+      state.box.sort((a, b) => ((D && D[a.species] && D[a.species].dex) | 0) - ((D && D[b.species] && D[b.species].dex) | 0));
+    }
+    // 'caught' = native insertion order, no-op.
+  }
+
   function openBox() {
     ensureBox();
-    state.boxView = { idx: 0, side: 'box' /* or 'party' */, action: null };
+    state.boxView = { idx: 0, side: 'box' /* or 'party' */, action: null, sortBy: 'caught' };
     state.mode = 'box';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
@@ -2901,6 +3032,16 @@
       v.releaseSelected = {};
       if (v.releaseMode) { v.side = 'box'; v.idx = 0; }
       window.PR_SFX && window.PR_SFX.play('select');
+    }
+    // R cycles the box sort (idea #11).
+    if (I.consumePressed('r') && !v.releaseMode) {
+      if (!v.sortBy) v.sortBy = 'caught';
+      const cur = BOX_SORT_STEPS.indexOf(v.sortBy);
+      v.sortBy = BOX_SORT_STEPS[(cur + 1) % BOX_SORT_STEPS.length];
+      sortBoxBy(v.sortBy);
+      if (v.side === 'box') v.idx = 0;
+      window.PR_SFX && window.PR_SFX.play('select');
+      showFlash('SORT: ' + v.sortBy.toUpperCase());
     }
     if (I.consumePressed('x')) {
       if (v.releaseMode) {
@@ -2974,7 +3115,8 @@
     const headerText = v && v.releaseMode ? 'PC STORAGE - RELEASE MODE' : 'PC STORAGE';
     window.PR_UI.header(ctx, headerText, x + 4, y + 4, w - 8,
       { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
-    window.PR_UI.drawText(ctx, 'B:BACK  <>SIDE', x + w - 86, y + 4, '#806040');
+    const sortLabel = (v && v.sortBy) || 'caught';
+    window.PR_UI.drawText(ctx, 'B:BACK  R:' + sortLabel.toUpperCase().slice(0, 5), x + w - 96, y + 4, '#806040');
 
     // Two columns: BOX | PARTY
     const colW = (w - 16) / 2;
@@ -3442,6 +3584,127 @@
     drawChips(defWeak, x + 50, y + 112, w - 56);
     window.PR_UI.drawText(ctx, 'IMMUNE:',  x + 6, y + 124, '#3088c8');
     drawChips(defImm,  x + 50, y + 124, w - 56);
+  }
+
+  // ---------- Type-coverage party advisor (idea #42) ----------
+  // For each of the 18 types, shows the strongest super-effective
+  // multiplier the player's party can land vs that defending type
+  // (only counts damage moves the party actually knows). Reads as a
+  // grid of chips: green '4x' / '2x' = covered, grey '-' = not covered.
+  function openCoverage() {
+    state.coverageView = {};
+    state.mode = 'coverage';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+  function updateCoverage() {
+    const I = window.PR_INPUT;
+    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+      state.coverageView = null;
+      state.mode = 'menu';
+    }
+  }
+  function partyCoverageBest(defType) {
+    const D = window.PR_DATA;
+    if (!D || !state.party) return 0;
+    let best = 0;
+    for (const mon of state.party) {
+      if (!mon || !mon.moves) continue;
+      for (const mv of mon.moves) {
+        const m = D.MOVES[mv.id];
+        if (!m || m.kind === 'status' || (m.power | 0) <= 0) continue;
+        const e = D.effectiveness(m.type, [defType]);
+        if (e > best) best = e;
+      }
+    }
+    return best;
+  }
+  function drawCoverage() {
+    const D = window.PR_DATA;
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'PARTY COVERAGE', x + 4, y + 4, w - 8,
+      { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, 'BEST DAMAGE MULT vs DEFENDER TYPE', x + 6, y + 18, '#385890');
+    // 18 types in a 6 col x 3 row grid.
+    const cols = 6, rows = 3;
+    const cellW = (w - 12) / cols;
+    const cellH = 30;
+    const top = y + 30;
+    for (let i = 0; i < D.TYPES.length; i++) {
+      const t = D.TYPES[i];
+      const col = i % cols, row = (i / cols) | 0;
+      const cx = x + 6 + col * cellW;
+      const cy = top + row * cellH;
+      // Type chip
+      ctx.fillStyle = window.PR_UI.pf(D.TYPE_COLOR[t] || '#202020');
+      ctx.fillRect(cx, cy, cellW - 4, 11);
+      const abbr = TYPE_ABBR[t] || t.slice(0, 3);
+      window.PR_UI.drawText(ctx, abbr, cx + 2, cy + 2, '#fff');
+      // Best mult tag below
+      const best = partyCoverageBest(t);
+      let tag = '-', col2 = '#888888';
+      if (best >= 4)      { tag = '4x'; col2 = '#208830'; }
+      else if (best >= 2) { tag = '2x'; col2 = '#388838'; }
+      else if (best > 1)  { tag = '+';  col2 = '#388838'; }
+      else if (best === 0){ tag = '0x'; col2 = '#3088c8'; }
+      else if (best < 1)  { tag = '-';  col2 = '#a06030'; }
+      window.PR_UI.drawText(ctx, tag, cx + 4, cy + 14, col2);
+    }
+    // Footer hint.
+    window.PR_UI.drawText(ctx, 'GREEN = SUPER EFFECTIVE FROM YOUR PARTY', x + 6, y + h - 14, '#806040');
+  }
+
+  // ---------- Battle log scrollback (idea #38) ----------
+  // Battles persist their final message buffer (up to ~32 lines) into
+  // state.battleHistory at outcome time. The viewer renders the most
+  // recent first; arrow keys scroll between battles + line offset.
+  function openBattleLog() {
+    state.battleLogView = { battleIdx: 0, scroll: 0 };
+    state.mode = 'battlelog';
+    window.PR_SFX && window.PR_SFX.play('confirm');
+  }
+  function updateBattleLog() {
+    const I = window.PR_INPUT;
+    const v = state.battleLogView;
+    const history = state.battleHistory || [];
+    if (I.consumePressed('x') || I.consumePressed('Enter')) {
+      state.battleLogView = null;
+      state.mode = 'menu';
+      return;
+    }
+    if (history.length === 0) return;
+    if (I.consumePressed('ArrowLeft'))  { v.battleIdx = Math.max(0, v.battleIdx - 1); v.scroll = 0; window.PR_SFX && window.PR_SFX.play('select'); }
+    if (I.consumePressed('ArrowRight')) { v.battleIdx = Math.min(history.length - 1, v.battleIdx + 1); v.scroll = 0; window.PR_SFX && window.PR_SFX.play('select'); }
+    const lines = (history[v.battleIdx] && history[v.battleIdx].lines) || [];
+    if (I.consumePressed('ArrowDown')) v.scroll = Math.min(Math.max(0, lines.length - 8), v.scroll + 1);
+    if (I.consumePressed('ArrowUp'))   v.scroll = Math.max(0, v.scroll - 1);
+  }
+  function drawBattleLog() {
+    const x = 6, y = 6, w = VIEW_W - 12, h = VIEW_H - 12;
+    window.PR_UI.panel(ctx, x, y, w, h, { fill:'#f8f0d8', border:'#202020', shadow:'#c89048' });
+    window.PR_UI.header(ctx, 'BATTLE LOG', x + 4, y + 4, w - 8,
+      { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
+    window.PR_UI.drawText(ctx, 'B:BACK', x + w - 38, y + 4, '#806040');
+    const history = state.battleHistory || [];
+    if (history.length === 0) {
+      window.PR_UI.drawText(ctx, 'NO BATTLES RECORDED YET.', x + 8, y + 30, '#806040');
+      return;
+    }
+    const v = state.battleLogView;
+    const entry = history[v.battleIdx];
+    const total = history.length;
+    const tag = '#' + (v.battleIdx + 1) + '/' + total + '   ' + (entry.outcome || '').toUpperCase();
+    window.PR_UI.drawText(ctx, tag, x + 8, y + 18, '#385890');
+    window.PR_UI.drawText(ctx, 'vs ' + (entry.foeName || '?'), x + 8, y + 28, '#202020');
+    window.PR_UI.drawText(ctx, '<>: BATTLE   ^v: SCROLL', x + w - 124, y + 28, '#806040');
+    // Render up to 8 lines starting at scroll offset.
+    const lines = entry.lines || [];
+    const start = v.scroll;
+    for (let i = 0; i < 8 && start + i < lines.length; i++) {
+      const cy = y + 42 + i * 11;
+      window.PR_UI.drawText(ctx, (lines[start + i] || '').slice(0, 36), x + 8, cy, '#202020');
+    }
   }
 
   function openDex() {
@@ -4726,11 +4989,30 @@
         ['SPD', mon.stats.spd, mon.ivs && mon.ivs.spd],
         ['SPE', mon.stats.spe, mon.ivs && mon.ivs.spe]
       ];
+      // IV-judge overlay (idea #30): colour each individual IV, and
+      // tag a rolled-up potential label at the foot of the page.
+      const ivColor = (iv) => {
+        if (iv == null) return '#806040';
+        if (iv >= 28) return '#c8a020';     // gold
+        if (iv >= 20) return '#208830';     // green
+        return '#806040';                   // neutral
+      };
       for (let i = 0; i < rows.length; i++) {
         const cy = y + 42 + i * 11;
         window.PR_UI.drawText(ctx, rows[i][0], x + 8, cy, '#385890');
         window.PR_UI.drawText(ctx, String(rows[i][1]), x + 44, cy, '#202020');
-        window.PR_UI.drawText(ctx, 'IV ' + (rows[i][2] == null ? '-' : rows[i][2]), x + 82, cy, '#806040');
+        window.PR_UI.drawText(ctx, 'IV ' + (rows[i][2] == null ? '-' : rows[i][2]), x + 82, cy, ivColor(rows[i][2]));
+      }
+      // Potential rollup. 6 IVs × max 31 each = 186 possible total.
+      const ivs = mon.ivs;
+      if (ivs) {
+        const total = (ivs.hp|0) + (ivs.atk|0) + (ivs.def|0) + (ivs.spa|0) + (ivs.spd|0) + (ivs.spe|0);
+        let label = 'ROUGH', col = '#806040';
+        if (total >= 165)      { label = 'LEGENDARY';   col = '#c83838'; }
+        else if (total >= 132) { label = 'EXCEPTIONAL'; col = '#c8a020'; }
+        else if (total >= 96)  { label = 'DECENT';      col = '#208830'; }
+        window.PR_UI.drawText(ctx, 'POTENTIAL', x + 8, y + h - 14, '#385890');
+        window.PR_UI.drawText(ctx, label, x + 64, y + h - 14, col);
       }
     } else {
       for (let i = 0; i < 4; i++) {
