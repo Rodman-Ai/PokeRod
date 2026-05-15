@@ -439,6 +439,14 @@ body[data-graphics="ds_diamond"] #game-bottom {
   margin: 0 !important;
 }
 
+/* The #title overlay was the old smooth-web-font title screen.
+   The top canvas now renders a retro pixel-art title that mirrors
+   the bottom-screen panel (see drawTopTitle in js/game.js), so the
+   DOM overlay is permanently hidden. The HTML stays in place to
+   keep the existing #btn-new / #btn-continue / #title click hooks
+   bound without errors. */
+#title { display: none !important; }
+
 .overlay {
   position: absolute;
   top: 14px; right: 14px; bottom: 22px; left: 14px;

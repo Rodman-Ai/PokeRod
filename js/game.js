@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.56';
-  const BUILD = '2026.05.15-198';
+  const VERSION = 'v0.55.57';
+  const BUILD = '2026.05.15-199';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -158,8 +158,11 @@
     const startFromTitle = (preferContinue) => {
       if (state.mode !== 'title') return;
       unlock();
-      if (preferContinue && window.PR_SAVE.exists()) continueGame();
-      else if (window.PR_SAVE.exists()) continueGame();
+      // Honour the d-pad selection if the player has been navigating;
+      // otherwise prefer the save-aware default (matches old behaviour).
+      const sel = (typeof state.titleSel === 'number') ? state.titleSel : (window.PR_SAVE.exists() ? 1 : 0);
+      if (sel === 1 && window.PR_SAVE.exists()) continueGame();
+      else if (preferContinue && window.PR_SAVE.exists()) continueGame();
       else startNewGame();
     };
     const bindStart = (el, handler) => {
@@ -180,14 +183,19 @@
     // Tap anywhere on the title overlay starts the game.
     const titleEl = document.getElementById('title');
     bindStart(titleEl, () => startFromTitle(true));
-    // Keyboard: Enter / Space / Z / X all start.
+    // Title input: keyboard arrows toggle the d-pad selection,
+    // Enter / Space / Z / X confirm. updateTitle() owns the actual
+    // navigation; this handler only handles the unlock + preventDefault
+    // so the document doesn't scroll on Space/Arrows. The PR_INPUT
+    // edge-press cache (driven by the same keydown via input.js) is
+    // what updateTitle reads.
     document.addEventListener('keydown', (e) => {
       unlock();
       if (state.mode === 'title') {
         const k = e.key;
-        if (k === 'Enter' || k === ' ' || k === 'z' || k === 'Z' || k === 'x' || k === 'X') {
+        if (k === 'ArrowUp' || k === 'ArrowDown' || k === 'Enter' || k === ' ' ||
+            k === 'z' || k === 'Z' || k === 'x' || k === 'X') {
           e.preventDefault();
-          startFromTitle(true);
         }
       }
     });
@@ -474,11 +482,118 @@
 
   function updateTitle() {
     const I = window.PR_INPUT;
+    const hasSave = !!(window.PR_SAVE && window.PR_SAVE.exists && window.PR_SAVE.exists());
+    // Lazy-init: cursor lands on CONTINUE when a save exists so the
+    // player doesn't have to scroll back to where they were.
+    if (typeof state.titleSel !== 'number') state.titleSel = hasSave ? 1 : 0;
+    if (!hasSave) state.titleSel = 0;
+    if (hasSave) {
+      if (I.consumePressed('ArrowUp') || I.consumePressed('ArrowDown')) {
+        state.titleSel = state.titleSel ? 0 : 1;
+        window.PR_SFX && window.PR_SFX.play && window.PR_SFX.play('select');
+      }
+    }
     if (I.consumePressed('Enter') || I.consumePressed('z') || I.consumePressed('x')) {
       window.PR_AUDIO && window.PR_AUDIO.unlock();
-      if (window.PR_SAVE.exists()) continueGame();
-      else startNewGame();
+      if (state.titleSel === 1 && hasSave) continueGame();
+      else offerNGPlusOrNew();
     }
+  }
+
+  // Retro top-screen title (idea: pixel-art parity with the DS bottom
+  // panel). Mirrors drawTitleLayout in bottom_screen.js but uses the
+  // 240x160 top canvas, draws a scale-3 wordmark, and highlights the
+  // d-pad-selected button.
+  function drawTopTitle() {
+    state.titleFrame = (state.titleFrame | 0) + 1;
+    // Background: dark base + soft red radial glow (matches bottom).
+    ctx.fillStyle = '#1a0204';
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    const glow = ctx.createRadialGradient(VIEW_W / 2, 32, 4, VIEW_W / 2, 32, 200);
+    glow.addColorStop(0,   'rgba(220, 60, 30, 0.22)');
+    glow.addColorStop(0.6, 'rgba(120, 20, 10, 0.06)');
+    glow.addColorStop(1,   'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    function bigText(text, x, y, sx, sy, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(sx, sy);
+      window.PR_UI.drawText(ctx, text, 0, 0, color);
+      ctx.restore();
+    }
+    function centered(text, y, sx, sy, color) {
+      const w = text.length * 6 * sx;
+      bigText(text, ((VIEW_W - w) / 2) | 0, y, sx, sy, color);
+    }
+
+    // Two-tone wordmark (scale 3 - bigger than bottom's scale 2).
+    const wordScale = 3, charW = 6 * wordScale;
+    const totalW = ('POKE'.length + 'ROD'.length) * charW;
+    const startX = ((VIEW_W - totalW) / 2) | 0;
+    bigText('POKE', startX,                  10, wordScale, wordScale, '#f0a020');
+    bigText('ROD',  startX + 4 * charW,      10, wordScale, wordScale, '#e83838');
+    centered('A CREATURE-COLLECTING ADVENTURE', 40, 1, 1, '#c8a060');
+
+    // Save context for CONTINUE.
+    let hasSave = false, saveSub = '';
+    if (window.PR_SAVE && window.PR_SAVE.exists && window.PR_SAVE.exists()) {
+      hasSave = true;
+      try {
+        const slots = (window.PR_SAVE.slotInfo && window.PR_SAVE.slotInfo()) || [];
+        const s = slots.find((sl) => sl && !sl.empty);
+        if (s) {
+          const sp = s.firstSpecies && window.PR_DATA && window.PR_DATA.CREATURES[s.firstSpecies];
+          const lead = sp ? sp.name.toUpperCase() : 'PARTY';
+          saveSub = lead + '  ' + (s.partyCount | 0) + ' IN PARTY';
+        }
+      } catch (_) { saveSub = ''; }
+    }
+
+    const sel = (state.titleSel | 0);
+    const btnW = 152, btnX = ((VIEW_W - btnW) / 2) | 0;
+    if (hasSave) {
+      const newY = 60, contY = 88;
+      window.PR_UI.titleButton(ctx, btnX, newY,  btnW, 22, 'NEW GAME', null,    { highlighted: sel === 0 });
+      window.PR_UI.titleButton(ctx, btnX, contY, btnW, 26, 'CONTINUE', saveSub, { highlighted: sel === 1 });
+    } else {
+      const newY = 74;
+      window.PR_UI.titleButton(ctx, btnX, newY, btnW, 24, 'NEW GAME', null, { highlighted: true });
+    }
+
+    // Rod-and-bobber doodle (lower-left).
+    const rx = 22, ry = 138;
+    ctx.strokeStyle = '#a06030';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.lineTo(rx + 22, ry - 11);
+    ctx.stroke();
+    ctx.strokeStyle = '#c8c8d0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rx + 22, ry - 11);
+    ctx.lineTo(rx + 25, ry + 7);
+    ctx.stroke();
+    ctx.fillStyle = '#e83838';
+    ctx.beginPath();
+    ctx.arc(rx + 25, ry + 8, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sparkle accents in the corners (mirrors the bottom panel).
+    ctx.fillStyle = '#f0c020';
+    const sparks = [[210, 120],[224, 132],[202, 138],[16, 124],[30, 116],[218, 50],[28, 56]];
+    for (let i = 0; i < sparks.length; i++) {
+      const sx = sparks[i][0], sy = sparks[i][1];
+      ctx.fillRect(sx, sy, 1, 3);
+      ctx.fillRect(sx - 1, sy + 1, 3, 1);
+    }
+
+    // D-pad hint + blinking PRESS START.
+    centered('UP/DOWN SELECT  -  A OR START CONFIRM', 128, 1, 1, '#a08850');
+    const blink = ((state.titleFrame % 60) < 30);
+    centered('PRESS START', 148, 1, 1, blink ? '#ffd060' : '#806020');
   }
 
   // The canvas is 480x320 native, but most UI / battle / intro art was
@@ -491,7 +606,7 @@
     finally { ctx.restore(); }
   }
   function render() {
-    if (state.mode === 'title') { withScale2(drawFlash); renderBottom(); return; }
+    if (state.mode === 'title') { withScale2(() => { drawTopTitle(); drawFlash(); drawTrophyToast(); }); renderBottom(); return; }
     if (state.mode === 'intro') { withScale2(() => { drawIntro(); drawFlash(); drawTrophyToast(); }); renderBottom(); return; }
     if (state.mode === 'newprofile') { withScale2(() => { drawNewProfile(); drawFlash(); drawTrophyToast(); }); renderBottom(); return; }
     if (state.mode === 'battle') { withScale2(() => { state.battle.render(ctx); drawFlash(); drawTrophyToast(); }); renderBottom(); return; }

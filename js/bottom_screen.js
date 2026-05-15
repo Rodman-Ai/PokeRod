@@ -437,37 +437,6 @@
   // the DS device feels coherent on first boot instead of showing the
   // empty overworld HUD (no party, no money, no badges yet).
   // Beveled title button in the bottom-screen visual language
-  // (shadow + border + gradient fill + top shine, shifts down 1px
-  // when pressed) - mirrors drawMoveTile so the title panel matches
-  // the rest of the bottom-screen UI.
-  function drawTitleButton(ctx, x, y, w, h, label, sublabel, pressed) {
-    const oy = pressed ? 1 : 0;
-    // Drop shadow.
-    ctx.fillStyle = 'rgba(8,4,2,0.55)';
-    ctx.fillRect(x + 1, y + 3, w, h);
-    // Border.
-    ctx.fillStyle = '#1a0e08';
-    ctx.fillRect(x, y + oy, w, h);
-    // Gradient fill.
-    const g = ctx.createLinearGradient(x, y + oy, x, y + oy + h);
-    g.addColorStop(0, pressed ? '#b8801c' : '#f0c850');
-    g.addColorStop(1, pressed ? '#7a5410' : '#b07818');
-    ctx.fillStyle = g;
-    ctx.fillRect(x + 2, y + oy + 2, w - 4, h - 4);
-    // Top shine.
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.fillRect(x + 3, y + oy + 3, w - 6, 1);
-    // Label (+ optional sub-label).
-    const lw = window.PR_UI.textWidth(label);
-    if (sublabel) {
-      window.PR_UI.drawText(ctx, label, x + ((w - lw) / 2 | 0), y + oy + 4, '#2a1404');
-      const sw = window.PR_UI.textWidth(sublabel);
-      window.PR_UI.drawText(ctx, sublabel, x + ((w - sw) / 2 | 0), y + oy + 13, '#5a3810');
-    } else {
-      window.PR_UI.drawText(ctx, label, x + ((w - lw) / 2 | 0), y + oy + ((h - 7) / 2 | 0), '#2a1404');
-    }
-  }
-
   function drawTitleLayout(ctx, state) {
     // Dark theme matching the top-screen title overlay so both panels
     // read as one moody device. Solid black base with a soft red glow
@@ -521,13 +490,13 @@
     const btnW = 152, btnX = ((W - btnW) / 2) | 0;
     if (hasSave) {
       const newY = 34, contY = 62;
-      drawTitleButton(ctx, btnX, newY, btnW, 22, 'NEW GAME', null, pressedTile === 'title:new');
+      window.PR_UI.titleButton(ctx, btnX, newY, btnW, 22, 'NEW GAME', null, { pressed: pressedTile === 'title:new' });
       hitZones.push({ id:'title:new', kind:'title-new', x:btnX, y:newY, w:btnW, h:22 });
-      drawTitleButton(ctx, btnX, contY, btnW, 26, 'CONTINUE', saveSub, pressedTile === 'title:continue');
+      window.PR_UI.titleButton(ctx, btnX, contY, btnW, 26, 'CONTINUE', saveSub, { pressed: pressedTile === 'title:continue' });
       hitZones.push({ id:'title:continue', kind:'title-continue', x:btnX, y:contY, w:btnW, h:26 });
     } else {
       const newY = 48;
-      drawTitleButton(ctx, btnX, newY, btnW, 24, 'NEW GAME', null, pressedTile === 'title:new');
+      window.PR_UI.titleButton(ctx, btnX, newY, btnW, 24, 'NEW GAME', null, { pressed: pressedTile === 'title:new' });
       hitZones.push({ id:'title:new', kind:'title-new', x:btnX, y:newY, w:btnW, h:24 });
     }
 
