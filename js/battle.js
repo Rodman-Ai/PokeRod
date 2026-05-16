@@ -166,6 +166,9 @@
 
   Battle.prototype.update = function(dt) {
     this.timer += dt;
+    // Hit-pause (idea #48): brief freeze-frame after a super-effective
+    // hit so the player feels the impact. Skips every other tick.
+    if (this.hitPause > 0) { this.hitPause -= dt; return; }
     if (this.flashTimer > 0) this.flashTimer -= dt;
     if (this.shakeTimer > 0) this.shakeTimer -= dt;
     if (this.activeAnim) {
@@ -279,11 +282,27 @@
     if (I.consumePressed('ArrowDown'))  this.subSelection = Math.min(moves.length - 1, this.subSelection + 2);
     if (I.consumePressed('ArrowUp'))    this.subSelection = Math.max(0, this.subSelection - 2);
     if (I.consumePressed('x')) { this.phase = 'menu'; return; }
+    // Mega-style power surge (idea #19). Holders of a Power Gem can
+    // trigger one ATK+1/SPA+1 boost per battle via the M hotkey.
+    if (I.consumePressed('m')) this._tryPowerSurge();
     if (I.consumePressed('z')) {
       const m = moves[this.subSelection];
       if (!m || m.pp <= 0) { this.flashMsg('No PP left for that move!'); return; }
       this.queueTurn(m);
     }
+  };
+
+  Battle.prototype._tryPowerSurge = function() {
+    if (this._megaUsed) { this.flashMsg('Already surged this battle.'); return; }
+    const ITEMS = window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+    const it = this.me.held && ITEMS && ITEMS[this.me.held];
+    if (!it || !it.powerGem) { this.flashMsg('Need a POWER GEM!'); return; }
+    this._megaUsed = true;
+    const s = this.me.statStages;
+    s.atk = Math.min(6, (s.atk | 0) + 1);
+    s.spa = Math.min(6, (s.spa | 0) + 1);
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    this.flashMsg(this.me.nickname + ' surged with the POWER GEM!');
   };
 
   // Public API for the bottom-screen tap handler. Picks move idx from
@@ -442,7 +461,7 @@
     if (!foe || !mon || !D) return null;
     const foeTypes = (D.CREATURES[foe.species] || {}).types || [];
     const monTypes = (D.CREATURES[mon.species] || {}).types || [];
-    const monAbil = D.abilityOf(mon.species);
+    const monAbil = D.abilityOfMon(mon);
     let worst = 1, best = 1;
     for (const ft of foeTypes) {
       let e = D.effectiveness(ft, monTypes);
@@ -581,7 +600,7 @@
     // Damage move.
     // Ability (idea #1): Water Absorb / Volt Absorb turn an incoming
     // move of the matching type into healing instead of damage.
-    const defAbil = window.PR_DATA.abilityOf(defender.species);
+    const defAbil = window.PR_DATA.abilityOfMon(defender);
     if ((defAbil === 'waterabsorb' && def.type === 'WATER') ||
         (defAbil === 'voltabsorb'  && def.type === 'ELECTRIC')) {
       const abilName = window.PR_DATA.ABILITIES[defAbil].name;
@@ -671,6 +690,8 @@
       else if (result.eff < 1 && result.eff > 0) window.PR_SFX.play('weak');
       else window.PR_SFX.play('hit');
     }
+    // Hit-pause (idea #48): freeze frame on super-effective hits.
+    if (result.eff > 1) this.hitPause = 0.10;
     if (result.crit) this.queue('A critical hit!');
     if (result.eff > 1) this.queue("It's super effective!");
     else if (result.eff === 0) this.queue(result.immuneAbility
@@ -836,7 +857,7 @@
     if (mon.hp > 0 && f && f.spikes > 0) {
       const types = D.CREATURES[mon.species].types;
       // Spikes are a ground hazard - flyers and Levitate float over.
-      const grounded = !types.includes('FLYING') && D.abilityOf(mon.species) !== 'levitate';
+      const grounded = !types.includes('FLYING') && D.abilityOfMon(mon) !== 'levitate';
       if (grounded) {
         const denom = f.spikes >= 3 ? 4 : (f.spikes === 2 ? 6 : 8);
         const dmg = Math.max(1, Math.floor(mon.stats.hp / denom));
@@ -846,7 +867,7 @@
     }
     if (mon.hp <= 0) return;
     // Intimidate drops the opposing active creature's ATK one stage.
-    if (D.abilityOf(mon.species) === 'intimidate') {
+    if (D.abilityOfMon(mon) === 'intimidate') {
       const target = sideKey === 'me' ? this.foe : this.me;
       if (target && target.hp > 0 && (target.statStages.atk || 0) > -6) {
         target.statStages.atk = Math.max(-6, (target.statStages.atk || 0) - 1);
@@ -1403,8 +1424,26 @@
         if (caught >= 40) A.unlock(this.state, 'dex_half');
         if (caught >= 77) A.unlock(this.state, 'dex_full');
       }
-      // Shiny Charm (idea #44): granted once the Pokedex is complete.
+      // Dex milestone rewards (BACKLOG #43, idea #10). Each tier
+      // grants once; previously-granted tiers live on state.flags so
+      // re-catches don't re-pay.
       const caughtNow = (this.state.dex && this.state.dex.caught && this.state.dex.caught.size) || 0;
+      if (window.PR_ITEMS) {
+        const flags = this.state.flags = this.state.flags || {};
+        const granted = flags.dexMilestonesGranted = flags.dexMilestonesGranted || [];
+        const milestones = [
+          { at: 20, item: 'greatball', label: 'GREAT BALL' },
+          { at: 40, item: 'lucky_egg', label: 'LUCKY EGG' }
+        ];
+        for (const m of milestones) {
+          if (caughtNow >= m.at && granted.indexOf(m.at) === -1) {
+            window.PR_ITEMS.add(this.state, m.item, 1);
+            granted.push(m.at);
+            this.queue('DEX REWARD: ' + m.label + '!');
+          }
+        }
+      }
+      // Shiny Charm (idea #44): granted once the Pokedex is complete.
       if (caughtNow >= 77 && window.PR_ITEMS) {
         const bag = this.state.player && this.state.player.bag;
         if (!bag || !bag.shinycharm) {
@@ -1852,10 +1891,11 @@
       // Second line: ability (first word) (idea #1), nature short
       // (idea #11) and switch-in matchup (idea #7) so the player can
       // read a candidate's strengths at a glance.
-      const ab = window.PR_DATA.abilityOf(m.species);
+      const ab = window.PR_DATA.abilityOfMon(m);
       if (ab) {
         const abName = (window.PR_DATA.ABILITIES[ab] || {}).name || '';
-        window.PR_UI.drawText(ctx, abName.split(' ')[0], x + 28, cy + 8, '#586878');
+        const tag = abName.split(' ')[0] + (m.hiddenAbility ? '(H)' : '');
+        window.PR_UI.drawText(ctx, tag, x + 28, cy + 8, '#586878');
       }
       if (m.nature) {
         const nshort = (window.PR_DATA.NATURES[m.nature] || {}).short || m.nature.slice(0,4).toUpperCase();

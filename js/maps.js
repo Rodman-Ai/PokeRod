@@ -746,6 +746,10 @@ const MAPS = {
     signs: {
       '16,6': "ROUTE 1 - Tall grass hides wild creatures. Walk carefully."
     },
+    hiddenItems: {
+      '12,9': 'apricorn',
+      '4,12':  'potion'
+    },
     encounters: [
       { species:'nibblet',     minL:2, maxL:4, weight:5 },
       { species:'flitwing',    minL:2, maxL:4, weight:4, time:['day','dawn','dusk'] },
@@ -991,6 +995,10 @@ const MAPS = {
     // tall-grass pocket transitions into a quiet mossy room.
     doors: {
       '7,18': { to:'route2_grotto', x:4, y:6 }
+    },
+    hiddenItems: {
+      '20,6': 'apricorn',
+      '8,20':  'oranberry'
     },
     encounters: [
       { species:'flitwing',    minL:4, maxL:7, weight:4 },

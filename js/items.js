@@ -380,6 +380,13 @@
       kind:'held_gear', icon:'charm', color:'#a02020', accent:'#f0c020',
       holdable:true, choiceBand:true, choiceMult:1.5, price:2400
     },
+    power_gem: {
+      id:'power_gem', name:'POWER GEM',
+      desc:'Press M in FIGHT to surge ATK + SP.ATK by 1 stage. Once per battle.',
+      detail:'A crystal that channels the holder\'s resolve into a one-time burst. Glows faintly when the holder is in trouble.',
+      kind:'held_gear', icon:'charm', color:'#a020a0', accent:'#f0c8ff',
+      holdable:true, powerGem:true, price:6000
+    },
     shinycharm: {
       id:'shinycharm', name:'SHINY CHARM',
       desc:'Doubles wild shiny odds. Granted at full Pokedex.',
@@ -462,6 +469,30 @@
       detail:'A reusable disc that imprints the HYPER BEAM move on any creature with a free slot.',
       kind:'tm', icon:'charm', color:'#c83838', accent:'#f0c020',
       teaches:'hyperbeam', tmNum:5, reusable:true, price:7000
+    },
+    // ---- Bait lures (brainstorm #30) ----
+    // Each biases the wild-encounter pool toward its tagged type for
+    // 30 steps. Stacks with itself; HUD chip mirrors the REPEL slot.
+    bait_bug: {
+      id:'bait_bug', name:'BUG LURE',
+      desc:'Lures BUG-type wild creatures for 30 steps.',
+      detail:'A sticky paste that mimics flower-sap. Biases the next encounters toward BUGs.',
+      kind:'lure', icon:'bottle', color:'#88a830', accent:'#e8f098',
+      lureType:'BUG', steps:30, price:600
+    },
+    bait_water: {
+      id:'bait_water', name:'WATER LURE',
+      desc:'Lures WATER-type wild creatures for 30 steps.',
+      detail:'Briny chum on a string. Biases the next encounters toward WATER mons.',
+      kind:'lure', icon:'bottle', color:'#3070b0', accent:'#a0d0f0',
+      lureType:'WATER', steps:30, price:600
+    },
+    bait_fire: {
+      id:'bait_fire', name:'FIRE LURE',
+      desc:'Lures FIRE-type wild creatures for 30 steps.',
+      detail:'A smoking sachet of chillies. Biases the next encounters toward FIRE mons.',
+      kind:'lure', icon:'bottle', color:'#c83030', accent:'#f0c080',
+      lureType:'FIRE', steps:30, price:600
     },
     // ---- Overworld utility ----
     repel: {
@@ -796,10 +827,10 @@
     { tier:0, items:['rodball','potion','antidote','repel'] },
     { tier:1, items:['greatball','superpotion','paralyzeheal','awakening','super_repel'] },
     { tier:2, items:['quickball','cavernball','burnheal','oranberry','lucky_charm','soothe_bell'] },
-    { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand','heavy_ball','dusk_ball'] },
+    { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand','heavy_ball','dusk_ball','bait_bug','bait_water','bait_fire'] },
     { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash','friend_ball','wide_lens','firestone','thunderstone','icestone','leafstone','moonstone','apricorn'] },
     { tier:5, items:['ultraball','fullheal','leftovers','quick_claw','expert_belt','eviolite','choice_band','tm_thunderclap','tm_icebeam'] },
-    { tier:6, items:['maxpotion','masters_pendant','tm_solarbeam','tm_earthquake'] },
+    { tier:6, items:['maxpotion','masters_pendant','tm_solarbeam','tm_earthquake','power_gem'] },
     { tier:7, items:['maxrevive','tm_hyperbeam'] }
   ];
 
