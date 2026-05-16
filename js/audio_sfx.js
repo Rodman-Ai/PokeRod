@@ -116,7 +116,7 @@
       default:         return { wave:'square',   detune: 0,   bend:0.5,  noise:0.03 };
     }
   }
-  function cry(species) {
+  function cry(species, opts) {
     const A = _t();
     if (!A) return;
     const c = A.ctx;
@@ -128,12 +128,17 @@
     const dex = (sp.dex | 0) || 1;
     const baseSemitone = -8 + (dex * 7) % 24; // -8..+15 semitones from A4
     const baseHz = 440 * Math.pow(2, (baseSemitone + profile.detune) / 12);
+    // Loud variant (idea #44): boost envelope gain and stretch the
+    // tail. Used by the roaming legendary on sight / sendout.
+    const loud = !!(opts && opts.loud);
+    const g = loud ? 1.5 : 1;
+    const d = loud ? 1.4 : 1;
     const t = c.currentTime;
-    A.tone(baseHz, t,         0.10, { gain:0.16, type:profile.wave, bend:profile.bend });
-    A.tone(baseHz * 1.18, t + 0.08, 0.10, { gain:0.14, type:profile.wave, bend:profile.bend * 0.6 });
-    A.tone(baseHz * 0.85, t + 0.18, 0.12, { gain:0.12, type:profile.wave, bend:profile.bend * 0.4 });
+    A.tone(baseHz, t,                  0.10 * d, { gain:0.16 * g, type:profile.wave, bend:profile.bend });
+    A.tone(baseHz * 1.18, t + 0.08, 0.10 * d, { gain:0.14 * g, type:profile.wave, bend:profile.bend * 0.6 });
+    A.tone(baseHz * 0.85, t + 0.18, 0.12 * d, { gain:0.12 * g, type:profile.wave, bend:profile.bend * 0.4 });
     if (profile.noise > 0) {
-      A.noiseBurst(t + 0.02, 0.08, { gain:profile.noise * 0.6, cutoff:1800 });
+      A.noiseBurst(t + 0.02, 0.08 * d, { gain:profile.noise * 0.6 * g, cutoff:1800 });
     }
   }
 

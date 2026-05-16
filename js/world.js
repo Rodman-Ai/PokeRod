@@ -81,6 +81,29 @@
       fill:'#1a0204', border:'#e84848', text:'#f0d8a0'
     });
   }
+  // RUN chip (idea #31): shown while the player is holding B to run.
+  // Stacks below the BIKE slot so the two never collide (running and
+  // biking are mutually exclusive anyway).
+  function drawRunChip(ctx, viewW) {
+    const text = 'RUN';
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 18, text, {
+      fill:'#1a0204', border:'#d88820', text:'#f0d8a0'
+    });
+  }
+  // Catch-combo chip (idea #6): shows the current chain length while
+  // it's non-zero, so the player can see their shiny-hunt streak.
+  function drawComboChip(ctx, viewW, combo) {
+    const text = 'CHAIN ' + combo.count;
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 32, text, {
+      fill:'#1a0204', border:'#88c860', text:'#a8f0a0'
+    });
+  }
   function drawRepelTimer(ctx, viewW, stepsRemaining) {
     const text = 'REPEL ' + stepsRemaining;
     const textW = window.PR_UI.textWidth(text);
@@ -412,6 +435,12 @@
   // Returns null for interiors / unweathered maps (no bias applies).
   function currentWeatherKind() {
     const G = window.PR_GAME && window.PR_GAME.state;
+    // Battle-set weather (Rain Dance etc., idea #5) overrides the map's
+    // ambient weather for the duration of the battle. The override
+    // lives on state.battle, so it's cleared automatically when the
+    // battle ends - no separate teardown needed.
+    const b = G && G.battle;
+    if (b && b.weather && b.weather.kind && b.weather.turns > 0) return b.weather.kind;
     const m = G && G.world && G.world.currentMap && G.world.currentMap();
     if (!m || m.interior) return null;
     const w = parseWeather(m.weather);
@@ -1277,13 +1306,25 @@
       const cx = s.x * TS - camX + TS / 2;
       const cy = s.y * TS - camY + TS - 10;
       if (cx < -TS || cx > VIEW_W + TS || cy < -TS || cy > VIEW_H + TS) continue;
-      const k = Math.max(0, Math.min(1, s.t / 0.35));
-      ctx.fillStyle = window.PR_UI.pf('rgba(168,232,128,' + (0.9 * k).toFixed(3) + ')');
+      // Pre-encounter telegraph (idea #43): a longer, redder rustle the
+      // step before a wild creature springs out. Visually distinct from
+      // the regular green walk-through rustle.
+      const pre = !!s.pre;
+      const lifespan = pre ? 0.55 : 0.35;
+      const k = Math.max(0, Math.min(1, s.t / lifespan));
+      const col = pre
+        ? 'rgba(248,168,64,'  + (0.95 * k).toFixed(3) + ')'
+        : 'rgba(168,232,128,' + (0.90 * k).toFixed(3) + ')';
+      ctx.fillStyle = window.PR_UI.pf(col);
       // Two angled slashes flanking the centre, suggesting parted blades.
       ctx.fillRect((cx - 6) | 0, (cy - 1) | 0, 4, 1);
       ctx.fillRect((cx + 2) | 0, (cy - 1) | 0, 4, 1);
       ctx.fillRect((cx - 5) | 0, (cy)     | 0, 3, 1);
       ctx.fillRect((cx + 3) | 0, (cy)     | 0, 3, 1);
+      if (pre) {
+        // Extra-bold center accent on the telegraph rustle.
+        ctx.fillRect((cx - 1) | 0, (cy - 3) | 0, 2, 2);
+      }
     }
   }
   // Foreground tall grass: when a movable sprite (player, NPC, ambient
@@ -2235,7 +2276,15 @@
       }
     }
 
-    const stepDur = this.state.player.onBike ? this.anim.duration * 0.5 : this.anim.duration;
+    // Movement speed: bike halves step duration; otherwise holding B
+    // (the 'x' key) bumps speed to ~1.4x of walking (idea #31). Bike
+    // wins if both apply.
+    let stepDur = this.anim.duration;
+    if (this.state.player.onBike) {
+      stepDur *= 0.5;
+    } else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) {
+      stepDur *= 0.7;
+    }
     this.startMove(p.x, p.y, nx, ny, stepDur);
   };
 
@@ -2663,8 +2712,22 @@
 
         const props = window.PR_MAPS.TILE_PROPS[code];
         if (props && props.encounter && this.encounterCooldown <= 0) {
-          if (Math.random() < 0.12) {
+          if (this._pendingEncounter) {
+            // The previous grass step armed an encounter telegraph;
+            // fire the battle now (idea #43).
+            this._pendingEncounter = false;
             this.state.onWildEncounter();
+          } else if (Math.random() < 0.12) {
+            if (code === ':' && !reducedM) {
+              // Push an orange "rustle!" tile and defer the encounter
+              // by one step so the player sees the tell.
+              this._sweptGrass.push({ x: this.player.x, y: this.player.y, t: 0.55, pre: true });
+              if (this._sweptGrass.length > 12) this._sweptGrass.splice(0, this._sweptGrass.length - 12);
+              this._pendingEncounter = true;
+            } else {
+              // Non-grass encounter tiles (cave / sand) fire instantly.
+              this.state.onWildEncounter();
+            }
           }
         }
         if (this.encounterCooldown > 0) this.encounterCooldown -= 1;
@@ -3088,6 +3151,9 @@
     // permanent clutter. Drawn after the clock so it appears below.
     if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, this.player.repelSteps);
     if (this.player.onBike) drawBikeChip(ctx, VIEW_W);
+    else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) drawRunChip(ctx, VIEW_W);
+    const combo = this.player.catchCombo;
+    if (combo && combo.count > 0) drawComboChip(ctx, VIEW_W, combo);
 
     // Map name banner on entry.
     if (this.justEntered) {

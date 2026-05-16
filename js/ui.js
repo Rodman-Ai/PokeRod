@@ -395,9 +395,50 @@
     }
   }
 
+  // Beveled retro title button (shadow + border + gold gradient + top
+  // shine, shifts down 1px when pressed). Used by both the bottom-
+  // screen DS title panel and the top-screen retro title.
+  // opts: { pressed, highlighted } - highlighted draws a '>' chevron
+  // 4 px left of the button and brightens the top shine to mark the
+  // d-pad focus.
+  function titleButton(ctx, x, y, w, h, label, sublabel, opts) {
+    const o = opts || {};
+    const pressed = !!o.pressed;
+    const highlighted = !!o.highlighted;
+    const oy = pressed ? 1 : 0;
+    // Drop shadow.
+    ctx.fillStyle = 'rgba(8,4,2,0.55)';
+    ctx.fillRect(x + 1, y + 3, w, h);
+    // Border.
+    ctx.fillStyle = highlighted ? '#f0c850' : '#1a0e08';
+    ctx.fillRect(x, y + oy, w, h);
+    // Gradient fill.
+    const g = ctx.createLinearGradient(x, y + oy, x, y + oy + h);
+    g.addColorStop(0, pressed ? '#b8801c' : '#f0c850');
+    g.addColorStop(1, pressed ? '#7a5410' : '#b07818');
+    ctx.fillStyle = g;
+    ctx.fillRect(x + 2, y + oy + 2, w - 4, h - 4);
+    // Top shine (brighter when highlighted to signal focus).
+    ctx.fillStyle = highlighted ? 'rgba(255,248,224,0.7)' : 'rgba(255,255,255,0.4)';
+    ctx.fillRect(x + 3, y + oy + 3, w - 6, 1);
+    // Label (+ optional sub-label).
+    const lw = textWidth(label);
+    if (sublabel) {
+      drawText(ctx, label, x + ((w - lw) / 2 | 0), y + oy + 4, '#2a1404');
+      const sw = textWidth(sublabel);
+      drawText(ctx, sublabel, x + ((w - sw) / 2 | 0), y + oy + 13, '#5a3810');
+    } else {
+      drawText(ctx, label, x + ((w - lw) / 2 | 0), y + oy + ((h - 7) / 2 | 0), '#2a1404');
+    }
+    // Focus chevron (d-pad selection cursor).
+    if (highlighted) {
+      drawText(ctx, '>', x - 8, y + oy + ((h - 7) / 2 | 0), '#f0c850');
+    }
+  }
+
   window.PR_UI = {
     drawText, drawChar, textWidth, wrap, box, panel, header, selectBar,
-    chip, icon, drawDialog, drawChoiceBox, drawHpBar, drawXpBar, FONT,
+    chip, icon, titleButton, drawDialog, drawChoiceBox, drawHpBar, drawXpBar, FONT,
     // Era-aware palette filter (exported so world.js drawMinimap /
     // drawWorldClock can route their fills through the same mapping).
     pf
