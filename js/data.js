@@ -105,6 +105,30 @@ function abilityOf(speciesId) {
   return SPECIES_ABILITIES[speciesId] || null;
 }
 
+// Hidden abilities (brainstorm #17). A rare second ability rolled at
+// makeMon time (~1/8 wild encounters). Species not in this table have
+// no hidden variant and roll normally. Resolved via abilityOfMon(mon)
+// rather than abilityOf(species) so the hidden flag lives on the
+// instance.
+const HIDDEN_ABILITIES = {
+  emberkit:'flamebody',     flarebound:'sturdy',
+  aquapup:'waterabsorb',    tideturtle:'sturdy',
+  sproutling:'thickfat',    leafurge:'static',
+  zapret:'voltabsorb',      voltkit:'voltabsorb',
+  pebra:'sturdy',           nibblet:'static',
+  cinderpup:'flamebody',    mistfin:'waterabsorb',
+  frostpup:'waterabsorb',   geistmite:'levitate',
+  glimkit:'levitate',       pugpaw:'static',
+  joltlet:'static',         breezlet:'intimidate',
+  dewfae:'static',          mantilux:'flamebody'
+};
+
+function abilityOfMon(mon) {
+  if (!mon) return null;
+  if (mon.hiddenAbility && HIDDEN_ABILITIES[mon.species]) return HIDDEN_ABILITIES[mon.species];
+  return SPECIES_ABILITIES[mon.species] || null;
+}
+
 // ---- Creature marks & titles (idea #20) ----------------------------
 // Each mark is a tag rolled at catch time describing the conditions.
 // `title` is a short "the X" suffix shown after the nickname in
@@ -965,6 +989,10 @@ function makeMon(speciesId, level, opts) {
   // Shiny odds: base 1/512, scaled by opts.shinyMult (e.g. 2x when
   // the player holds the Shiny Charm, idea #44).
   const shinyMult = (opts && opts.shinyMult) || 1;
+  // Hidden ability (brainstorm #17): 1/8 chance on a wild encounter
+  // if the species has a hidden variant. opts.hidden forces it.
+  const hiddenAbility = !!(opts && opts.hidden) ||
+    (HIDDEN_ABILITIES[speciesId] && Math.random() < 1/8);
   return {
     species: speciesId,
     nickname: (opts && opts.nickname) || sp.name,
@@ -979,6 +1007,7 @@ function makeMon(speciesId, level, opts) {
     sleepTurns: 0,
     confusionTurns: 0,
     statStages: { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 },
+    hiddenAbility,
     // Classic genre flex - 1/512 chance to roll shiny (PokeRod-tuned;
     // mainline is 1/4096 but we want the sparkle to actually show up
     // in a normal playthrough). opts.shiny can force it (story/debug).
@@ -1080,7 +1109,7 @@ function calcDamage(attacker, defender, move, isCrit) {
   if (move.kind === 'status' || (move.power|0) === 0) return 0;
   // Ability: Levitate grants full immunity to GROUND moves. Reported
   // back via immuneAbility so the battle log can name the ability.
-  const defAbility = abilityOf(defender.species);
+  const defAbility = abilityOfMon(defender);
   if (defAbility === 'levitate' && move.type === 'GROUND') {
     return { dmg: 0, eff: 0, stab: 1, crit: isCrit, immuneAbility: 'levitate' };
   }
@@ -1103,7 +1132,7 @@ function calcDamage(attacker, defender, move, isCrit) {
   // matching type by 1.5x while the attacker sits at or below 1/3 HP;
   // Thick Fat halves incoming FIRE / ICE damage.
   let ability = 1;
-  const atkAbility = abilityOf(attacker.species);
+  const atkAbility = abilityOfMon(attacker);
   const lowHp = attacker.hp > 0 && (attacker.hp / Math.max(1, attacker.stats.hp)) <= 1/3;
   if (lowHp && atkAbility === 'blaze'    && move.type === 'FIRE')  ability *= 1.5;
   if (lowHp && atkAbility === 'torrent'  && move.type === 'WATER') ability *= 1.5;
@@ -1119,9 +1148,13 @@ function calcDamage(attacker, defender, move, isCrit) {
     if (dHeld && dHeld.eviolite && CREATURES[defender.species].evolves) item *= 1 / 1.5;
     const aHeld = attacker.held && I[attacker.held];
     if (aHeld && aHeld.expertBelt && eff > 1) item *= 1.2;
+    // Choice Band (idea #1): +50% physical damage; lock-into-one-move
+    // enforcement happens in battle.js. The mult here only applies to
+    // physical moves, matching the mainline restriction.
+    if (aHeld && aHeld.choiceBand && move.kind === 'physical') item *= (aHeld.choiceMult || 1.5);
   }
   const base = (((2*attacker.level/5 + 2) * move.power * (A/Math.max(1,D))) / 50) + 2;
   return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather * held * friend * ability * item)), eff, stab, crit:isCrit };
 }
 
-window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, ABILITIES, SPECIES_ABILITIES, abilityOf, NATURES, randomNatureId, MARKS, markOf, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };
+window.PR_DATA = { TYPES, TYPE_COLOR, TYPE_CHART, MOVES, CREATURES, ABILITIES, SPECIES_ABILITIES, HIDDEN_ABILITIES, abilityOf, abilityOfMon, NATURES, randomNatureId, MARKS, markOf, effectiveness, makeMon, computeStats, xpForLevel, levelFromXp, xpYield, xpShareRatio, xpMultiplier, calcDamage };

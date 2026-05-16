@@ -69,6 +69,14 @@
     this.flashTimer = 0;
     this.shakeTimer = 0;
     this.faintAnim = { foe: 0, me: 0 };
+    // Choice Band lock (idea #1) is a per-battle commitment. Clear it
+    // on every party + foe mon at construct so stale flags can't carry
+    // across battles.
+    for (const m of (state.party || [])) if (m) m.lockedMoveId = null;
+    for (const m of (opts.trainer && opts.trainer.team) || []) if (m) m.lockedMoveId = null;
+    if (opts.wild) opts.wild.lockedMoveId = null;
+    // Friendship-endure (idea #31) bracket: per-side, once per battle.
+    this._bondUsed = { me:false, foe:false };
     // Per-side field state - entry hazards & screens (idea #3). 'me' is
     // the player's side, 'foe' the opponent's. reflect / lightScreen
     // are turn counters; spikes is a 0-3 layer count; stealthrock is a
@@ -158,6 +166,9 @@
 
   Battle.prototype.update = function(dt) {
     this.timer += dt;
+    // Hit-pause (idea #48): brief freeze-frame after a super-effective
+    // hit so the player feels the impact. Skips every other tick.
+    if (this.hitPause > 0) { this.hitPause -= dt; return; }
     if (this.flashTimer > 0) this.flashTimer -= dt;
     if (this.shakeTimer > 0) this.shakeTimer -= dt;
     if (this.activeAnim) {
@@ -244,7 +255,14 @@
     if (I.consumePressed('ArrowDown'))  this.selection = (this.selection + 2) & 3;
     if (I.consumePressed('ArrowUp'))    this.selection = (this.selection + 2) & 3;
     if (I.consumePressed('z')) {
-      if (this.selection === 0) { this.phase = 'fight'; this.subSelection = 0; this._freeSwap = false; }
+      if (this.selection === 0) {
+        // Choice Band lock (idea #1): if the holder already committed
+        // to a move this battle, auto-fire it instead of opening fight.
+        this._freeSwap = false;
+        const locked = this._choiceLockedMove(this.me);
+        if (locked) { this.queueTurn(locked); return; }
+        this.phase = 'fight'; this.subSelection = 0;
+      }
       else if (this.selection === 1) { this.tryRun(); this._freeSwap = false; }
       else if (this.selection === 2) { this.phase = 'party'; this.subSelection = 0; }
       else if (this.selection === 3) {
@@ -264,11 +282,27 @@
     if (I.consumePressed('ArrowDown'))  this.subSelection = Math.min(moves.length - 1, this.subSelection + 2);
     if (I.consumePressed('ArrowUp'))    this.subSelection = Math.max(0, this.subSelection - 2);
     if (I.consumePressed('x')) { this.phase = 'menu'; return; }
+    // Mega-style power surge (idea #19). Holders of a Power Gem can
+    // trigger one ATK+1/SPA+1 boost per battle via the M hotkey.
+    if (I.consumePressed('m')) this._tryPowerSurge();
     if (I.consumePressed('z')) {
       const m = moves[this.subSelection];
       if (!m || m.pp <= 0) { this.flashMsg('No PP left for that move!'); return; }
       this.queueTurn(m);
     }
+  };
+
+  Battle.prototype._tryPowerSurge = function() {
+    if (this._megaUsed) { this.flashMsg('Already surged this battle.'); return; }
+    const ITEMS = window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+    const it = this.me.held && ITEMS && ITEMS[this.me.held];
+    if (!it || !it.powerGem) { this.flashMsg('Need a POWER GEM!'); return; }
+    this._megaUsed = true;
+    const s = this.me.statStages;
+    s.atk = Math.min(6, (s.atk | 0) + 1);
+    s.spa = Math.min(6, (s.spa | 0) + 1);
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    this.flashMsg(this.me.nickname + ' surged with the POWER GEM!');
   };
 
   // Public API for the bottom-screen tap handler. Picks move idx from
@@ -280,10 +314,13 @@
     if (this.meOwner === 'ally') return false;
     const moves = this.me && this.me.moves;
     if (!moves) return false;
-    const m = moves[idx];
+    // Choice Band lock (idea #1): if a move is committed, force it
+    // and ignore the requested index. Tap-anywhere = locked move.
+    const locked = this._choiceLockedMove(this.me);
+    const m = locked || moves[idx];
     if (!m) return false;
     if (m.pp <= 0) { this.flashMsg('No PP left for that move!'); return false; }
-    this.subSelection = idx;
+    this.subSelection = (locked ? moves.indexOf(locked) : idx);
     this.phase = 'fight';
     this.queueTurn(m);
     return true;
@@ -333,6 +370,10 @@
       return;
     }
     const foeMove = pickFoeMove(this.foe, this.me);
+    // Choice Band lock (idea #1): commit to the move both sides chose
+    // for the remainder of the battle.
+    this._lockChoiceBand(this.me, myMove);
+    this._lockChoiceBand(this.foe, foeMove);
     const myPriority = (window.PR_DATA.MOVES[myMove.id].priority || 0);
     const foePriority = (window.PR_DATA.MOVES[foeMove.id].priority || 0);
     const meSpeed = effectiveSpeed(this.me);
@@ -377,6 +418,13 @@
       const fm = foe.moves.find(mv => mv.id === foe.chargingMove);
       if (fm) return fm;
     }
+    // Choice Band (idea #1): a holder is committed to the first move
+    // they used this battle. Falls through if the locked move has no
+    // PP left, letting the AI pick something else (matches mainline).
+    if (foe.lockedMoveId) {
+      const lm = foe.moves.find(mv => mv.id === foe.lockedMoveId && mv.pp > 0);
+      if (lm) return lm;
+    }
     const usable = foe.moves.filter(m => m.pp > 0);
     const pool = usable.length ? usable : foe.moves;
     if (!defender || Math.random() < 0.15) {
@@ -413,7 +461,7 @@
     if (!foe || !mon || !D) return null;
     const foeTypes = (D.CREATURES[foe.species] || {}).types || [];
     const monTypes = (D.CREATURES[mon.species] || {}).types || [];
-    const monAbil = D.abilityOf(mon.species);
+    const monAbil = D.abilityOfMon(mon);
     let worst = 1, best = 1;
     for (const ft of foeTypes) {
       let e = D.effectiveness(ft, monTypes);
@@ -552,7 +600,7 @@
     // Damage move.
     // Ability (idea #1): Water Absorb / Volt Absorb turn an incoming
     // move of the matching type into healing instead of damage.
-    const defAbil = window.PR_DATA.abilityOf(defender.species);
+    const defAbil = window.PR_DATA.abilityOfMon(defender);
     if ((defAbil === 'waterabsorb' && def.type === 'WATER') ||
         (defAbil === 'voltabsorb'  && def.type === 'ELECTRIC')) {
       const abilName = window.PR_DATA.ABILITIES[defAbil].name;
@@ -604,6 +652,18 @@
         this.queue(defender.nickname + ' endured the hit with Sturdy!');
       }
     }
+    // Friendship endure (idea #31). A creature with friendship >= 220
+    // braces through one would-be KO per battle, regardless of HP,
+    // capped at one save per side. Sits after the sash/sturdy check
+    // so they don't double-save.
+    if (totalDmg >= defender.hp && (defender.friendship | 0) >= 220) {
+      const defWho = (defender === this.me) ? 'me' : 'foe';
+      if (this._bondUsed && !this._bondUsed[defWho]) {
+        this._bondUsed[defWho] = true;
+        totalDmg = defender.hp - 1;
+        this.queue(defender.nickname + ' braced through your bond!');
+      }
+    }
     defender.hp = Math.max(0, defender.hp - totalDmg);
     // Trigger move animation on the defender's side. Per-move VFX is
     // delegated to PR_MOVE_FX (js/move_effects.js); duration depends on
@@ -630,6 +690,8 @@
       else if (result.eff < 1 && result.eff > 0) window.PR_SFX.play('weak');
       else window.PR_SFX.play('hit');
     }
+    // Hit-pause (idea #48): freeze frame on super-effective hits.
+    if (result.eff > 1) this.hitPause = 0.10;
     if (result.crit) this.queue('A critical hit!');
     if (result.eff > 1) this.queue("It's super effective!");
     else if (result.eff === 0) this.queue(result.immuneAbility
@@ -712,6 +774,18 @@
 
   // Player-side recharge turn (idea #4): forfeit the player's action,
   // foe still acts. Mirrors how voluntary-swap surrenders the turn.
+  // Choice Band lock helpers (idea #1).
+  Battle.prototype._lockChoiceBand = function(mon, move) {
+    if (!mon || !move || mon.lockedMoveId) return;
+    const I = window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+    const it = mon.held && I && I[mon.held];
+    if (it && it.choiceBand) mon.lockedMoveId = move.id;
+  };
+  Battle.prototype._choiceLockedMove = function(mon) {
+    if (!mon || !mon.lockedMoveId) return null;
+    return mon.moves.find(mv => mv.id === mon.lockedMoveId && mv.pp > 0) || null;
+  };
+
   Battle.prototype._rechargeTurn = function() {
     this.queue(this.me.nickname + ' must recharge!');
     this.me.mustRecharge = false;
@@ -783,7 +857,7 @@
     if (mon.hp > 0 && f && f.spikes > 0) {
       const types = D.CREATURES[mon.species].types;
       // Spikes are a ground hazard - flyers and Levitate float over.
-      const grounded = !types.includes('FLYING') && D.abilityOf(mon.species) !== 'levitate';
+      const grounded = !types.includes('FLYING') && D.abilityOfMon(mon) !== 'levitate';
       if (grounded) {
         const denom = f.spikes >= 3 ? 4 : (f.spikes === 2 ? 6 : 8);
         const dmg = Math.max(1, Math.floor(mon.stats.hp / denom));
@@ -793,7 +867,7 @@
     }
     if (mon.hp <= 0) return;
     // Intimidate drops the opposing active creature's ATK one stage.
-    if (D.abilityOf(mon.species) === 'intimidate') {
+    if (D.abilityOfMon(mon) === 'intimidate') {
       const target = sideKey === 'me' ? this.foe : this.me;
       if (target && target.hp > 0 && (target.statStages.atk || 0) > -6) {
         target.statStages.atk = Math.max(-6, (target.statStages.atk || 0) - 1);
@@ -1182,6 +1256,8 @@
     const forced = this.forcedSwap || free;
     this.forcedSwap = false;
     this._freeSwap = false;
+    // Choice Band lock (idea #1) clears when the holder leaves play.
+    if (this.me) this.me.lockedMoveId = null;
     // The player only ever swaps in their own creatures - reclaim the
     // active slot for the player side (matters in tag battles).
     this.meOwner = 'player';
@@ -1348,14 +1424,38 @@
         if (caught >= 40) A.unlock(this.state, 'dex_half');
         if (caught >= 77) A.unlock(this.state, 'dex_full');
       }
-      // Shiny Charm (idea #44): granted once the Pokedex is complete.
+      // Dex milestone rewards (BACKLOG #43, idea #10). Each tier
+      // grants once; previously-granted tiers live on state.flags so
+      // re-catches don't re-pay.
       const caughtNow = (this.state.dex && this.state.dex.caught && this.state.dex.caught.size) || 0;
+      if (window.PR_ITEMS) {
+        const flags = this.state.flags = this.state.flags || {};
+        const granted = flags.dexMilestonesGranted = flags.dexMilestonesGranted || [];
+        const milestones = [
+          { at: 20, item: 'greatball', label: 'GREAT BALL' },
+          { at: 40, item: 'lucky_egg', label: 'LUCKY EGG' }
+        ];
+        for (const m of milestones) {
+          if (caughtNow >= m.at && granted.indexOf(m.at) === -1) {
+            window.PR_ITEMS.add(this.state, m.item, 1);
+            granted.push(m.at);
+            this.queue('DEX REWARD: ' + m.label + '!');
+          }
+        }
+      }
+      // Shiny Charm (idea #44): granted once the Pokedex is complete.
       if (caughtNow >= 77 && window.PR_ITEMS) {
         const bag = this.state.player && this.state.player.bag;
         if (!bag || !bag.shinycharm) {
           window.PR_ITEMS.add(this.state, 'shinycharm', 1);
           this.queue('The PROFESSOR mailed a SHINY CHARM!');
         }
+      }
+      // Heal Ball (idea #46): caught creature emerges fully restored.
+      if (def && def.healOnCatch) {
+        this.foe.hp = this.foe.stats.hp;
+        this.foe.status = null;
+        for (const mv of (this.foe.moves || [])) mv.pp = mv.ppMax;
       }
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) {
@@ -1791,10 +1891,11 @@
       // Second line: ability (first word) (idea #1), nature short
       // (idea #11) and switch-in matchup (idea #7) so the player can
       // read a candidate's strengths at a glance.
-      const ab = window.PR_DATA.abilityOf(m.species);
+      const ab = window.PR_DATA.abilityOfMon(m);
       if (ab) {
         const abName = (window.PR_DATA.ABILITIES[ab] || {}).name || '';
-        window.PR_UI.drawText(ctx, abName.split(' ')[0], x + 28, cy + 8, '#586878');
+        const tag = abName.split(' ')[0] + (m.hiddenAbility ? '(H)' : '');
+        window.PR_UI.drawText(ctx, tag, x + 28, cy + 8, '#586878');
       }
       if (m.nature) {
         const nshort = (window.PR_DATA.NATURES[m.nature] || {}).short || m.nature.slice(0,4).toUpperCase();

@@ -113,6 +113,18 @@
       fill:'#1a0204', border:'#d8b870', text:'#d8b870'
     });
   }
+  // Bait lure chip (brainstorm #30): mirrors REPEL placement so the
+  // two share the top-center slot; lure stacks below the repel chip
+  // when both are active.
+  function drawLureChip(ctx, viewW, type, steps) {
+    const text = (type || '?').toUpperCase().slice(0, 4) + ' LURE ' + steps;
+    const textW = window.PR_UI.textWidth(text);
+    const w = Math.max(18, textW + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 18, text, {
+      fill:'#1a0204', border:'#88c860', text:'#a8f0a0'
+    });
+  }
   function drawWorldClock(ctx, viewW, steps) {
     const hm = clockHM(steps);
     const phase = phaseForSteps(steps);
@@ -1102,6 +1114,9 @@
       }
     }
     if (reduced) return;
+    // Rain check for puddle-ripple overlay below (brainstorm #49).
+    const _wKind = window.PR_WEATHER && window.PR_WEATHER.currentKind && window.PR_WEATHER.currentKind();
+    const rainActive = _wKind === 'rain' || _wKind === 'thunder' || _wKind === 'hurricane';
     // Scrolling ripple bands + sparkles. Drawn on every visible water
     // tile, in tile-aligned modulo so adjacent tiles seam together.
     ctx.save();
@@ -1133,6 +1148,23 @@
           const spy = sy + ((wy * 23) & 31);
           ctx.fillStyle = window.PR_UI.pf('rgba(255,255,255,0.85)');
           ctx.fillRect(spx, spy, 1, 1);
+        }
+        // Rain puddle ripples (brainstorm #49) - small expanding ring
+        // when rain is active. Deterministic per tile so it doesn't
+        // strobe; one ring per tile staggered across the rain cycle.
+        if (rainActive) {
+          const rseed = (wx * 31 ^ wy * 53) & 15;
+          const phase = ((wallMs / 1800 + rseed * 0.0625) % 1);
+          if (phase < 0.35) {
+            const r = 1 + Math.floor(phase * 8);
+            const rcx = sx + 8 + ((wx * 11) & 15);
+            const rcy = sy + 8 + ((wy * 13) & 15);
+            ctx.strokeStyle = window.PR_UI.pf('rgba(220,240,255,' + ((0.32 - phase * 0.7).toFixed(2)) + ')');
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(rcx, rcy, r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
         }
       }
     }
@@ -2337,6 +2369,26 @@
     return false;
   }
 
+  World.prototype._tryHiddenItem = function(x, y) {
+    const m = this.currentMap();
+    if (!m || !m.hiddenItems) return;
+    const key = x + ',' + y;
+    const itemId = m.hiddenItems[key];
+    if (!itemId) return;
+    const flags = this.state.flags = this.state.flags || {};
+    const picked = flags.pickedItems = flags.pickedItems || {};
+    const slot = m.id + ':' + key;
+    if (picked[slot]) return;
+    if (!window.PR_ITEMS || !window.PR_ITEMS.add) return;
+    window.PR_ITEMS.add(this.state, itemId, 1);
+    picked[slot] = true;
+    const def = window.PR_ITEMS.ITEMS && window.PR_ITEMS.ITEMS[itemId];
+    const name = (def && def.name) || itemId.toUpperCase();
+    if (this.state.showFlash) this.state.showFlash('FOUND ' + name + '!');
+    if (window.PR_SFX) window.PR_SFX.play && window.PR_SFX.play('confirm');
+    if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(this.state);
+  };
+
   World.prototype.tryDoorAt = function(x, y) {
     const m = this.currentMap();
     if (!m.doors) return false;
@@ -2687,6 +2739,14 @@
             this.player.repelKind = null;
           }
         }
+        // Bait lure countdown (brainstorm #30): same shape as repel.
+        if ((this.player.lureSteps | 0) > 0) {
+          this.player.lureSteps = (this.player.lureSteps | 0) - 1;
+          if (this.player.lureSteps === 0 && this.state.showFlash) {
+            this.state.showFlash('Lure dissipated.');
+            this.player.lureType = null;
+          }
+        }
         this.frame ^= 1;
         // Check for door / encounter / edge after step.
         const code = this.tileAt(this.player.x, this.player.y);
@@ -2709,6 +2769,10 @@
           return;
         }
         if (this.tryDoorAt(this.player.x, this.player.y)) return;
+        // Hidden item pickup (brainstorm idea). Maps opt-in via a
+        // hiddenItems:{ 'x,y': itemId } dict. Stepping on a listed
+        // tile grants the item once; flag persists across saves.
+        this._tryHiddenItem(this.player.x, this.player.y);
 
         const props = window.PR_MAPS.TILE_PROPS[code];
         if (props && props.encounter && this.encounterCooldown <= 0) {
@@ -2739,6 +2803,13 @@
     const I = window.PR_INPUT;
     if (this.state.onPause && I.consumePressed('Enter')) {
       this.state.onPause();
+      return;
+    }
+    // Overworld quick-heal (brainstorm #34): H pops the first potion
+    // in the bag onto the lead party member. Cheap to spam in the
+    // open world without diving through the bag.
+    if (this.state.onQuickHeal && I.consumePressed('h')) {
+      this.state.onQuickHeal();
       return;
     }
     // SELECT opens the region map directly so the player can fast-travel
@@ -3150,6 +3221,7 @@
     // a Repel is active. Hidden when expired so it doesn't add
     // permanent clutter. Drawn after the clock so it appears below.
     if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, this.player.repelSteps);
+    if ((this.player.lureSteps | 0) > 0) drawLureChip(ctx, VIEW_W, this.player.lureType, this.player.lureSteps);
     if (this.player.onBike) drawBikeChip(ctx, VIEW_W);
     else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) drawRunChip(ctx, VIEW_W);
     const combo = this.player.catchCombo;

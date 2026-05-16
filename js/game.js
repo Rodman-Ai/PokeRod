@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.58';
-  const BUILD = '2026.05.15-200';
+  const VERSION = 'v0.55.60';
+  const BUILD = '2026.05.15-202';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -75,6 +75,13 @@
     const t = pickOverworldTrack();
     if (window.PR_MUSIC.current && window.PR_MUSIC.current() === t) return;
     window.PR_MUSIC.play(t);
+    // Ambient pad (idea #33): layer a faint biome drone under the
+    // overworld track. Skipped for interiors.
+    if (window.PR_MUSIC.ambient) {
+      const m = state.world && state.world.currentMap && state.world.currentMap();
+      const biome = (m && !m.interior) ? biomeOf(m) : null;
+      window.PR_MUSIC.ambient(biome);
+    }
   }
 
   const KONAMI_SEQUENCE = [
@@ -120,6 +127,7 @@
   };
   state.onPause = openPauseMenu;
   state.onWorldMap = openWorldMap;
+  state.onQuickHeal = quickHealLead;
   state.onBattleEnd = endBattle;
 
   function showOverlay(show) {
@@ -287,9 +295,18 @@
     const prevNg = (prev.flags && (prev.flags.ngPlusCount | 0)) || 0;
     state.activeSlot = slot;
     window.PR_SAVE.clear(slot);
+    // NG+ keepsake (idea #37): one bonus key item per NG+ tier carries
+    // over into the fresh bag, so each loop feels like a meaningful
+    // graduation. Picks compound: tier 1 = lucky_egg, tier 2 adds
+    // shiny_charm if owned, tier 3 adds bicycle pre-equipped.
+    const ngTier = prevNg + 1;
+    const startingBag = { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1, bicycle:1 };
+    if (ngTier >= 1) startingBag.lucky_egg = 1;
+    if (ngTier >= 2 && prev.player && prev.player.bag && prev.player.bag.shinycharm) startingBag.shinycharm = 1;
+    if (ngTier >= 3) startingBag.masters_pendant = (startingBag.masters_pendant || 0) + 1;
     state.player = { name:(prev.player && prev.player.name) || 'YOU',
                      map:'rodport', x:6, y:11, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1, bicycle:1 },
+                     bag: startingBag,
                      equipment: { trinket: null },
                      stats: keepStats,
                      achievements: keepAchv };
@@ -297,7 +314,10 @@
     state.flags = {
       starterChosen: false,
       beatChampion: false,   // earned again next time
-      ngPlusCount: prevNg + 1
+      ngPlusCount: ngTier,
+      // Preserve the daily-bonus marker so the player doesn't get a
+      // freebie immediately after the reset.
+      lastDailyDate: (prev.flags && prev.flags.lastDailyDate) || null
     };
     state.defeatedTrainers = new Set();
     state.dex = { seen: new Set(keepDexSeen), caught: new Set(keepDexCaught) };
@@ -374,7 +394,7 @@
     }
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
-    else if (state.mode === 'overworld') { maybeGrantDailyBonus(); state.world.update(dt); }
+    else if (state.mode === 'overworld') { maybeGrantDailyBonus(); maybeArmRematches(); state.world.update(dt); }
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'cutscene') updateCutscene(dt);
@@ -441,6 +461,30 @@
   let flashText = null, flashTimer = 0;
   function showFlash(text) { flashText = text; flashTimer = 1.4; }
 
+  // Overworld quick-heal (brainstorm #34). H key picks the first
+  // usable potion in the bag (potion -> superpotion -> hyperpotion ->
+  // maxpotion) and applies it to the lead party member. Flashes the
+  // result. No-op when nothing to heal or no potion available.
+  const POTION_LADDER = ['potion','superpotion','hyperpotion','maxpotion'];
+  function quickHealLead() {
+    if (!state.party || !state.party.length) return;
+    const lead = state.party[0];
+    if (!lead || lead.hp <= 0) { showFlash(lead && lead.hp <= 0 ? 'LEAD FAINTED' : 'NO LEAD'); return; }
+    if (lead.hp >= lead.stats.hp) { showFlash('LEAD ALREADY FULL'); return; }
+    const bag = state.player && state.player.bag;
+    if (!bag || !window.PR_ITEMS) return;
+    for (const id of POTION_LADDER) {
+      if ((bag[id] | 0) <= 0) continue;
+      const result = window.PR_ITEMS.apply(id, lead);
+      if (!result.ok) continue;
+      window.PR_ITEMS.take(state, id, 1);
+      window.PR_SFX && window.PR_SFX.play('heal');
+      showFlash(result.message);
+      return;
+    }
+    showFlash('NO POTIONS LEFT');
+  }
+
   // Daily login bonus (idea #10). Grants a rotating item the first
   // time the player enters the overworld on any new local-date day.
   // No quest plumbing - this is a login gift only.
@@ -451,6 +495,20 @@
     { id:'revive',      label:'REVIVE' },
     { id:'repel',       label:'REPEL' }
   ];
+  // Trainer rematch tick (brainstorm #41). Flip rematchReady=true on
+  // any defeated trainer who's been waiting 100+ steps.
+  function maybeArmRematches() {
+    const rms = state.flags && state.flags.rematches;
+    if (!rms) return;
+    const now = (state.player && state.player.steps) | 0;
+    for (const key in rms) {
+      const rm = rms[key];
+      if (rm && !rm.rematchReady && (now - (rm.defeatedAt | 0)) >= 100) {
+        rm.rematchReady = true;
+      }
+    }
+  }
+
   function maybeGrantDailyBonus() {
     try {
       if (!state.flags) state.flags = {};
@@ -881,6 +939,109 @@
   // and a level scaling +1 per round won. Party is auto-healed
   // between rounds. Winning the full streak pays a money reward and
   // updates the best-streak record. Losing ends the run early.
+  // Apricorn craft flow (idea #46). NPC declares `craft:true` and the
+  // overworld interaction routes here. Player picks a ball, spends N
+  // apricorns. Reuses the existing choice-dialog plumbing.
+  const CRAFT_BALLS = [
+    { id:'heal_ball',   label:'HEAL BALL' },
+    { id:'net_ball',    label:'NET BALL' },
+    { id:'timer_ball',  label:'TIMER BALL' },
+    { id:'luxury_ball', label:'LUXURY BALL' }
+  ];
+  function openCraftFlow(npc) {
+    const intro = (npc.craft && npc.craft.greeting) ||
+      ['I turn APRICORNS into special balls.', 'Tough work, but the colour matters.'];
+    const cost = (npc.craft && npc.craft.cost) || 3;
+    openDialog(intro.concat(['Each ball needs ' + cost + ' APRICORNS.']), () => {
+      const have = (state.player.bag && state.player.bag.apricorn) || 0;
+      if (have < cost) {
+        openDialog(['You need ' + cost + ' APRICORNS.', 'Come back with a few.']);
+        return;
+      }
+      state.dialog = {
+        choice: {
+          prompt: 'Craft which ball?',
+          options: CRAFT_BALLS.map(b => b.label).concat(['Cancel']),
+          cursor: 0,
+          onPick: (idx) => _craftPick(idx, npc, cost)
+        }
+      };
+      state.mode = 'choice';
+    });
+  }
+  function _craftPick(idx, npc, cost) {
+    state.dialog = null;
+    if (idx >= CRAFT_BALLS.length) { state.mode = 'overworld'; return; }
+    const target = CRAFT_BALLS[idx];
+    const have = (state.player.bag && state.player.bag.apricorn) || 0;
+    if (have < cost) { state.mode = 'overworld'; return; }
+    window.PR_ITEMS.take(state, 'apricorn', cost);
+    window.PR_ITEMS.add(state, target.id, 1);
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    openDialog(['Crafted one ' + target.label + '!', 'Use it well.']);
+  }
+
+  // Berry farming lite (idea #14). One shared patch keyed off
+  // state.flags.berryPatch. Player can plant a berry from their bag;
+  // after ~300 steps it ripens into 2 of the planted berry on harvest.
+  const BERRY_GROW_STEPS = 300;
+  const PLANTABLE_BERRIES = ['oranberry','sitrusberry','pechaberry'];
+  function openBerryPatchFlow(npc) {
+    state.flags = state.flags || {};
+    const patch = state.flags.berryPatch || null;
+    const stepsNow = (state.player && state.player.steps) || 0;
+    if (!patch) {
+      // Plant: pick which berry the player wants to sow.
+      const owned = PLANTABLE_BERRIES
+        .filter(id => (state.player.bag && state.player.bag[id]) > 0)
+        .map(id => ({ id, name:window.PR_ITEMS.ITEMS[id].name }));
+      if (!owned.length) {
+        openDialog(["You don't have any berries to plant.","Bring an ORAN, SITRUS or PECHA berry."]);
+        return;
+      }
+      openDialog(['The patch is empty. Plant which berry?'], () => {
+        state.dialog = {
+          choice: {
+            prompt: 'Plant which berry?',
+            options: owned.map(b => b.name).concat(['Cancel']),
+            cursor: 0,
+            onPick: (idx) => _berryPlant(idx, owned)
+          }
+        };
+        state.mode = 'choice';
+      });
+      return;
+    }
+    const elapsed = stepsNow - (patch.plantedAt | 0);
+    if (elapsed < BERRY_GROW_STEPS) {
+      const left = BERRY_GROW_STEPS - elapsed;
+      openDialog(['The ' + (window.PR_ITEMS.ITEMS[patch.berry].name) + ' is still sprouting.',
+                  'About ' + left + ' steps to ripen.']);
+      return;
+    }
+    // Ripe: hand out 2x the planted berry.
+    const def = window.PR_ITEMS.ITEMS[patch.berry];
+    window.PR_ITEMS.add(state, patch.berry, 2);
+    state.flags.berryPatch = null;
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    openDialog(['Ripe! Harvested 2 ' + def.name + '.','The patch is empty again.']);
+  }
+  function _berryPlant(idx, owned) {
+    state.dialog = null;
+    if (idx >= owned.length) { state.mode = 'overworld'; return; }
+    const pick = owned[idx];
+    window.PR_ITEMS.take(state, pick.id, 1);
+    state.flags.berryPatch = {
+      berry: pick.id,
+      plantedAt: (state.player && state.player.steps) || 0
+    };
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    openDialog(['Planted one ' + pick.name + '.','Come back after a long walk.']);
+  }
+
   function openTowerFlow(npc) {
     const flags = state.flags || (state.flags = {});
     if (npc.tower && npc.tower.requireChampion && !flags.beatChampion) {
@@ -918,6 +1079,16 @@
     state.mode = 'overworld';
     _towerStartRound();
   }
+  // Battle Tower trainer-class rotation (idea #41). Names cycle by
+  // round so the VS-banner reads varied across a streak.
+  const TOWER_CLASSES = [
+    'ACE TRAINER LIA',
+    'VETERAN OMI',
+    'CHALLENGER RIO',
+    'EXPERT BAYA',
+    'BLACK BELT KOJ',
+    'PSYCHIC NEM'
+  ];
   function _towerStartRound() {
     const t = state.flags && state.flags.towerActive;
     if (!t) return;
@@ -931,8 +1102,9 @@
     }
     const level = t.baseLevel + t.streak;
     const team = _towerBuildOpponent(level);
+    const cls = TOWER_CLASSES[t.streak % TOWER_CLASSES.length];
     const fakeNpc = {
-      name: 'TOWER RIVAL ' + (t.streak + 1) + '/' + t.target,
+      name: cls + ' (' + (t.streak + 1) + '/' + t.target + ')',
       trainer: {
         team: team,
         reward: 0,
@@ -959,6 +1131,12 @@
   function _towerOnWin() {
     const t = state.flags && state.flags.towerActive;
     if (!t) return false;
+    // Per-floor payout (idea #41): each cleared round drops some cash.
+    // Streak-clear bonus still pays the headline reward.
+    const floor = t.baseLevel + t.streak;
+    const perFloor = 200 * Math.max(1, floor);
+    addMoney(state, perFloor);
+    showFlash('Won $' + perFloor + '!');
     t.streak++;
     if (t.streak >= t.target) {
       // Streak cleared. Pay out, record best, exit tower.
@@ -1572,7 +1750,22 @@
       }
     }
     if (!list) list = map.encounters || [];
-    return widenByBadges(filterEncountersByWeather(filterEncountersByTime(list)));
+    return applyLureBias(widenByBadges(filterEncountersByWeather(filterEncountersByTime(list))));
+  }
+
+  // Bait lure bias (brainstorm #30). When state.player.lureType is set,
+  // weight matching-type entries 3x.
+  function applyLureBias(list) {
+    if (!list || !list.length) return list;
+    const lure = state.player && state.player.lureType;
+    if (!lure || (state.player.lureSteps | 0) <= 0) return list;
+    const D = window.PR_DATA && window.PR_DATA.CREATURES;
+    if (!D) return list;
+    return list.map((e) => {
+      const sp = D[e && e.species];
+      if (!sp || !sp.types || sp.types.indexOf(lure) === -1) return e;
+      return Object.assign({}, e, { weight: Math.max(1, Math.round((e.weight || 1) * 3)) });
+    });
   }
 
   // Encounter pool widens with badges (idea #36). Each badge bumps the
@@ -1592,6 +1785,20 @@
 
   // ---------- Battle setup helpers ----------
   // Each step is logged on failure so we can pinpoint which line threw.
+  // Trainer rematch (brainstorm #41): wraps startBattleAgainstTrainer
+  // with a synthetic NPC whose team is +3 levels and reward 1.5x.
+  function startTrainerRematch(npc, trainerKey) {
+    const t = npc.trainer || {};
+    const team = (t.team || []).map(([sp, lv]) => [sp, (lv | 0) + 3]);
+    const reward = Math.floor((t.reward || 0) * 1.5);
+    const rNpc = Object.assign({}, npc, {
+      name: 'REMATCH: ' + (npc.name || 'TRAINER'),
+      trainer: Object.assign({}, t, { team, reward,
+        defeat: (t.defeat || ['A worthier match next time!']).slice() })
+    });
+    startBattleAgainstTrainer(rNpc, trainerKey);
+  }
+
   function startBattleAgainstTrainer(npc, trainerKey) {
     let step = 'init';
     try {
@@ -1605,7 +1812,13 @@
         if (lead && window.PR_SFX.cry) window.PR_SFX.cry(lead[0]);
       }
       step = 'music-play';
-      if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
+      // Battle music variants (idea #23): champion = badge fights;
+      // trainer = any other NPC; wild encounters use the original.
+      if (window.PR_MUSIC) {
+        if (window.PR_MUSIC.stopAmbient) window.PR_MUSIC.stopAmbient();
+        const variant = (npc && npc.badge) ? 'battle_champion' : 'battle_trainer';
+        window.PR_MUSIC.play(variant);
+      }
       step = 'check-data';
       if (!window.PR_DATA || !window.PR_DATA.makeMon) throw new Error('PR_DATA missing');
       step = 'check-battle';
@@ -1649,7 +1862,10 @@
         }
       }
       step = 'music-play';
-      if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
+      if (window.PR_MUSIC) {
+        if (window.PR_MUSIC.stopAmbient) window.PR_MUSIC.stopAmbient();
+        window.PR_MUSIC.play('battle');
+      }
       step = 'check-data';
       if (!window.PR_DATA || !window.PR_DATA.makeMon) throw new Error('PR_DATA missing');
       step = 'check-battle';
@@ -1765,6 +1981,14 @@
       openTutorFlow(npc);
       return;
     }
+    if (npc.craft) {
+      openCraftFlow(npc);
+      return;
+    }
+    if (npc.berryPatch) {
+      openBerryPatchFlow(npc);
+      return;
+    }
     if (npc.tower) {
       openTowerFlow(npc);
       return;
@@ -1867,6 +2091,30 @@
       if (state.defeatedTrainers.has(trainerKey)) {
         if (npc.gym && addBadgeIfMissing(npc.badge)) {
           window.PR_SAVE.save && window.PR_SAVE.save(state);
+        }
+        // Trainer rematch (brainstorm #41): if cooldown elapsed,
+        // offer a +3-level / 1.5x-reward rematch.
+        const rm = state.flags && state.flags.rematches && state.flags.rematches[trainerKey];
+        if (rm && rm.rematchReady && !npc.gym) {
+          state.dialog = {
+            choice: {
+              prompt: 'Rematch? (Levels +3)',
+              options: ['Bring it on!', 'Not now.'],
+              cursor: 0,
+              onPick: (idx) => {
+                state.dialog = null;
+                if (idx === 0) {
+                  rm.rematchReady = false;
+                  rm.defeatedAt = state.player.steps | 0;
+                  startTrainerRematch(npc, trainerKey);
+                } else {
+                  state.mode = 'overworld';
+                }
+              }
+            }
+          };
+          state.mode = 'choice';
+          return;
         }
         openDialog(npc.trainer.defeat || ['You already beat me!']);
         return;
@@ -2107,13 +2355,17 @@
     if (state.konamiArmed && (state.cheatUses | 0) > 0) {
       base.unshift('CHEAT-LVL', 'CHEAT-$$$', 'CHEAT-HEAL');
     }
-    state.menu = { idx: 0, options: base };
+    // Menu cursor memory (idea #39).
+    const remembered = (state.menuCursor && state.menuCursor.pause) | 0;
+    state.menu = { idx: Math.max(0, Math.min(base.length - 1, remembered)), options: base };
     state.mode = 'menu';
     startMenuAnim();
   }
   function updateMenu() {
     const I = window.PR_INPUT;
     const m = state.menu;
+    // Cursor memory (idea #39).
+    if (m) { state.menuCursor = state.menuCursor || {}; state.menuCursor.pause = m.idx | 0; }
     if (m.viewing === 'party') { updatePartyView(); return; }
     const rows = Math.ceil(m.options.length / 2);
     const moveGrid = (dx, dy) => {
@@ -3008,7 +3260,9 @@
 
   function openBox() {
     ensureBox();
-    state.boxView = { idx: 0, side: 'box' /* or 'party' */, action: null, sortBy: 'caught' };
+    // Menu cursor memory (idea #39).
+    const remembered = (state.menuCursor && state.menuCursor.box) | 0;
+    state.boxView = { idx: remembered, side: 'box' /* or 'party' */, action: null, sortBy: 'caught' };
     state.mode = 'box';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
@@ -3016,6 +3270,8 @@
   function updateBox() {
     const I = window.PR_INPUT;
     const v = state.boxView;
+    // Cursor memory (idea #39).
+    if (v) { state.menuCursor = state.menuCursor || {}; state.menuCursor.box = v.idx | 0; }
     if (!v.releaseSelected) v.releaseSelected = {};
     const list = v.side === 'box' ? state.box : state.party;
     if (I.consumePressed('ArrowDown')) { if (list.length) v.idx = (v.idx + 1) % list.length; }
@@ -3162,7 +3418,9 @@
   // ---------- Bag ----------
   function openBag(returnTo) {
     window.PR_ITEMS && window.PR_ITEMS.ensureBag(state);
-    state.bagView = { idx: 0, scroll: 0, returnTo: returnTo || 'overworld' };
+    // Menu cursor memory (idea #39).
+    const remembered = (state.menuCursor && state.menuCursor.bag) | 0;
+    state.bagView = { idx: remembered, scroll: 0, returnTo: returnTo || 'overworld' };
     state.mode = 'bag';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
@@ -3174,6 +3432,8 @@
   function updateBag() {
     const I = window.PR_INPUT;
     const v = state.bagView;
+    // Cursor memory (idea #39).
+    if (v) { state.menuCursor = state.menuCursor || {}; state.menuCursor.bag = v.idx | 0; }
     const items = bagItems();
     const max = items.length;
     if (max === 0) {
@@ -3212,6 +3472,19 @@
       if (def.kind === 'repel') {
         state.player.repelSteps = (state.player.repelSteps || 0) + (def.steps || 100);
         state.player.repelKind = def.id;
+        window.PR_ITEMS.take(state, it.id, 1);
+        window.PR_SFX && window.PR_SFX.play('confirm');
+        showFlash(def.name + ' active!');
+        state.bagView = null;
+        state.mode = 'overworld';
+        if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+        return;
+      }
+      // Bait lure (brainstorm #30): biases the encounter table to one
+      // type for the next N steps. Stacks the counter if reused.
+      if (def.kind === 'lure') {
+        state.player.lureSteps = (state.player.lureSteps || 0) + (def.steps || 30);
+        state.player.lureType = def.lureType || null;
         window.PR_ITEMS.take(state, it.id, 1);
         window.PR_SFX && window.PR_SFX.play('confirm');
         showFlash(def.name + ' active!');
@@ -3709,7 +3982,9 @@
 
   function openDex() {
     ensureDex();
-    state.dexView = { idx: 0, scroll: 0, filter: 'all', detail: false, detailPage: 0, moveScroll: 0 };
+    // Menu cursor memory (idea #39).
+    const remembered = (state.menuCursor && state.menuCursor.dex) | 0;
+    state.dexView = { idx: remembered, scroll: 0, filter: 'all', detail: false, detailPage: 0, moveScroll: 0 };
     state.mode = 'dex';
     window.PR_SFX && window.PR_SFX.play('confirm');
   }
@@ -3762,6 +4037,8 @@
   function updateDex() {
     const I = window.PR_INPUT;
     const v = state.dexView;
+    // Cursor memory (idea #39).
+    if (v) { state.menuCursor = state.menuCursor || {}; state.menuCursor.dex = v.idx | 0; }
     if (!v.filter) v.filter = 'all';
     if (v.detail) { updateDexDetail(v); return; }
     // SELECT cycles the filter. Try to keep the previously selected
@@ -4450,6 +4727,22 @@
     ctx.fillStyle = 'rgba(20,12,4,0.78)';
     ctx.fillRect(x + 6, y + h - 13, flyW + 4, 10);
     window.PR_UI.drawText(ctx, flyText, x + 8, y + h - 12, canFly ? '#7fe89a' : '#e8b890');
+    // Quest objective marker (brainstorm #37). Quests don't carry a
+    // map id, so we surface the first active quest's name + hint as a
+    // status strip along the top so the player has a "where next?"
+    // cue without opening the QUEST page.
+    if (window.PR_QUESTS && window.PR_QUESTS.list) {
+      const qs = window.PR_QUESTS.list(state);
+      const active = qs.find(q => q.status === 'active' || q.status === 'ready');
+      if (active && active.def) {
+        const tag = (active.status === 'ready' ? 'TURN IN: ' : 'QUEST: ') + (active.def.name || '');
+        const tw = Math.min(w - 12, window.PR_UI.textWidth(tag) + 6);
+        ctx.fillStyle = 'rgba(20,12,4,0.78)';
+        ctx.fillRect(x + 6, y + h - 26, tw, 10);
+        window.PR_UI.drawText(ctx, tag, x + 8, y + h - 25,
+          active.status === 'ready' ? '#f0c020' : '#a8d8f0');
+      }
+    }
 
     const sel = WORLD_NODES[state.map.idx];
     drawWorldAreaPopup(sel, currentIdx);
@@ -5335,7 +5628,17 @@
       // respawn standing on a tree.
       state.player.x = 22; state.player.y = 17; state.player.dir = 'down';
     }
-    if (outcome === 'won' && battle.opts && battle.opts.npcKey) state.defeatedTrainers.add(battle.opts.npcKey);
+    if (outcome === 'won' && battle.opts && battle.opts.npcKey) {
+      state.defeatedTrainers.add(battle.opts.npcKey);
+      // Trainer rematch (brainstorm #41): stamp the step count so the
+      // overworld step-tick can flip `rematchReady` after a cooldown.
+      state.flags = state.flags || {};
+      state.flags.rematches = state.flags.rematches || {};
+      state.flags.rematches[battle.opts.npcKey] = {
+        defeatedAt: (state.player.steps | 0),
+        rematchReady: false
+      };
+    }
     if (outcome === 'won') {
       ensurePlayerStats();
       state.player.stats.battlesWon = (state.player.stats.battlesWon || 0) + 1;
