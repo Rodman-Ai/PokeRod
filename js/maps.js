@@ -546,7 +546,9 @@ const MAPS = {
         dialog:["Welcome to the world of POKEROD!","I'm PROF. ROD, the local researcher.","Pick a partner from the lab to begin your journey!"] },
       { x:14, y:6, dir:'down', sprite:'npc_girl', name:'MARKET LILA',
         dialog:["The tall grass north of town is full of wild creatures.","Step right up to LILA's stall!"],
-        shop:{ greeting:["Welcome to LILA's stall!","Shore-pearl charms, fresh today."], extraItems:['wave_charm'] } }
+        shop:{ greeting:["Welcome to LILA's stall!","Shore-pearl charms, fresh today."], extraItems:['wave_charm'] } },
+      { x:16, y:6, dir:'down', sprite:'npc_kid_boy', name:'BERRY PATCH', berryPatch:true, dayOnly:true,
+        dialog:["A loose plot of dark soil. Good for berries."] }
     ],
     decorations:[
       { x:14, y:5, key:'produce_stall' }
@@ -627,6 +629,56 @@ const MAPS = {
     ],
     doors: {
       '3,6': { to:'rodport', x:11, y:5 }
+    }
+  },
+
+  // Hidden grottos (idea #22). Small 8x8 rooms reachable via a single
+  // inconspicuous doorway in a parent map's tall grass. Each has one
+  // unique encounter not normally found on the parent route.
+  route2_grotto: {
+    id:'route2_grotto', name:'Mossy Grotto', tags:['interior','grotto'],
+    tiles: [
+      'TTTTTTTT',
+      'T......T',
+      'T.::::.T',
+      'T.::::.T',
+      'T.::::.T',
+      'T.::::.T',
+      'T......T',
+      'TTTT.TTT'
+    ],
+    npcs: [
+      { x:5, y:2, dir:'down', sprite:'npc_carver', name:'',
+        dialog:["Soft light. The grass barely moves.","Something curious lives here."] }
+    ],
+    signs: {},
+    encounters: [
+      { species:'dreamilly', minL:7, maxL:10, weight:5 }
+    ],
+    doors: {
+      '4,7': { to:'route2', x:7, y:18 }
+    }
+  },
+
+  crestrock_grotto: {
+    id:'crestrock_grotto', name:'Snowmelt Hollow', tags:['interior','grotto'],
+    tiles: [
+      'TTTTTTTT',
+      'T......T',
+      'T.::::.T',
+      'T.::::.T',
+      'T.::::.T',
+      'T.::::.T',
+      'T......T',
+      'TTTT.TTT'
+    ],
+    npcs: [],
+    signs: {},
+    encounters: [
+      { species:'shadefox', minL:13, maxL:16, weight:5 }
+    ],
+    doors: {
+      '4,7': { to:'crestrock', x:5, y:7 }
     }
   },
 
@@ -896,7 +948,7 @@ const MAPS = {
     npcs: [
       { x:4, y:2, dir:'down', sprite:'npc_old', name:'OLD MAN',
         dialog:["In my day, we walked uphill both ways through tall grass!","...and we liked it."] },
-      { x:1, y:5, dir:'right', sprite:'npc_baker', name:'BAKER PEM', wander:{ range:1 },
+      { x:1, y:5, dir:'right', sprite:'npc_baker', name:'BAKER PEM', wander:{ range:1 }, dayOnly:true,
         dialog:["I'm visiting from RODPORT. Such a quiet town!"] },
       { x:5, y:5, dir:'left', sprite:'npc_kid_girl', name:'GRAND-DAUGHTER LU', wander:{ range:1 },
         dialog:["Grandpa knows ALL the old routes!"] }
@@ -934,6 +986,11 @@ const MAPS = {
     ],
     signs: {
       '16,4': "ROUTE 2 - The grass thickens. Keep your team ready."
+    },
+    // Hidden grotto (idea #22) - inconspicuous step in the south-west
+    // tall-grass pocket transitions into a quiet mossy room.
+    doors: {
+      '7,18': { to:'route2_grotto', x:4, y:6 }
     },
     encounters: [
       { species:'flitwing',    minL:4, maxL:7, weight:4 },
@@ -1187,7 +1244,10 @@ const MAPS = {
     doors: {
       '5,5':  { to:'crestrock_center', x:4, y:6 },
       '12,5': { to:'crestrock_mart',   x:5, y:9 },
-      '10,12':{ to:'crestrock_gym',    x:4, y:7 }
+      '10,12':{ to:'crestrock_gym',    x:4, y:7 },
+      // Hidden grotto (idea #22) - a step into the side alley
+      // transitions into a quiet snowmelt-fed hollow.
+      '5,7':  { to:'crestrock_grotto', x:4, y:7 }
     },
     edges: {
       north: { y:0,  to:'pebblewood', tx:18, ty:26 },
@@ -1221,7 +1281,7 @@ const MAPS = {
       { x:1, y:6, dir:'right', sprite:'npc_construction', name:'WORKER LANE',
         dialog:["Boss said no chiseling on the gym walls."],
         trainer:{ team:[['stoneworm',20],['pebra',21]], reward:780, defeat:["Tough as bedrock, you are."] } },
-      { x:7, y:6, dir:'left', sprite:'npc_security', name:'GUARD MAR', wander:{ range:1 },
+      { x:7, y:6, dir:'left', sprite:'npc_security', name:'GUARD MAR', wander:{ range:1 }, nightOnly:true,
         dialog:["BOULDER doesn't like loud noises during matches."] },
       { x:4, y:7, dir:'up', sprite:'npc_kid_girl', name:'KID NIA', wander:{ range:1 },
         dialog:["I'll beat BOULDER someday!"] }
@@ -2266,7 +2326,7 @@ function applyWorldExpansion(MAPS) {
         dialog:["Catch! ...wait, that was just a leaf."] },
       { x:22, y:18, dir:'down', sprite:'npc_journalist',    name:'REPORTER KAY', wander:{ range:1 },
         dialog:["Mind a quick photo for the GAZETTE?","Smile! ...okay maybe later."] },
-      { x:5,  y:23, dir:'right', sprite:'npc_baker',        name:'BAKER PIPPA', wander:{ range:1 },
+      { x:5,  y:23, dir:'right', sprite:'npc_baker',        name:'BAKER PIPPA', wander:{ range:1 }, dayOnly:true,
         dialog:["The fresh shell-bread comes out at noon.","BAKERY's just up the path - turn at the lamppost."] }
     ],
     decorations:[
@@ -2648,7 +2708,7 @@ function applyWorldExpansion(MAPS) {
       { x:22, y:5,  dir:'down',  sprite:'npc_construction', name:'FOREMAN PIKE', wander:{ range:2 },
         dialog:["Stone needs to settle before we lay paths."],
         trainer:{ team:[['pebra',22],['boulderon',23]], reward:920, defeat:["Sturdy! Like real CRESTROCK stone."] } },
-      { x:22, y:11, dir:'down',  sprite:'npc_security',     name:'GUARD VANCE', wander:{ range:1 },
+      { x:22, y:11, dir:'down',  sprite:'npc_security',     name:'GUARD VANCE', wander:{ range:1 }, nightOnly:true,
         dialog:["I'm watching for ROCK SLIDES.","HIGHSPIRE gate is open if you've earned it."] },
       { x:19, y:16, dir:'right', sprite:'npc_cyclist',      name:'CYCLIST CRU', wander:{ range:1 },
         dialog:["Switchbacks are murder on the legs!"],
@@ -2789,8 +2849,11 @@ function applyWorldExpansion(MAPS) {
         trainer:{ team:[['pebra',30],['boulderon',32],['pugpaw',31]], reward:1450, defeat:["You climb fast for a city walker!"] } },
       { x:24, y:23, dir:'right',  sprite:'npc_old_woman',    name:'GRAN UNN', wander:{ range:1 },
         dialog:["My SCARF is older than half this town."] },
-      { x:39, y:17, dir:'left',  sprite:'npc_baker',        name:'BAKER FYR', wander:{ range:1 },
-        dialog:["Cinnamon buns! Just out of the stove!"] }
+      { x:39, y:17, dir:'left',  sprite:'npc_baker',        name:'BAKER FYR', wander:{ range:1 }, dayOnly:true,
+        dialog:["Cinnamon buns! Just out of the stove!"] },
+      { x:30, y:24, dir:'down',  sprite:'npc_carver',       name:'BALL-MAKER YORI', wander:{ range:1 },
+        craft:{ cost:3, greeting:["Got APRICORNS?","I carve them into balls. Each ball needs three."] },
+        dialog:["Bring me APRICORNS and I'll shape them."] }
     ],
     decorations:[
       // ICE SCULPTURE landmark in the south plaza.
@@ -3964,7 +4027,7 @@ function applyWorldExpansion(MAPS) {
         dialog:["The midnight revue is sold out!","Come early for the warm-up act."] },
       { x:16, y:11, dir:'left', sprite:'npc_showgirl', name:'SHOWGIRL ROSA', wander:{ range:1 },
         dialog:["Feathers, sequins, three costume changes.","I'm tired just thinking about it."] },
-      { x:9, y:13, dir:'right', sprite:'npc_bouncer', name:'BOUNCER GUS',
+      { x:9, y:13, dir:'right', sprite:'npc_bouncer', name:'BOUNCER GUS', nightOnly:true,
         dialog:["No fights. No cheats.","No exceptions, friend."] },
       { x:18, y:13, dir:'left', sprite:'npc_bouncer', name:'BOUNCER LARS',
         dialog:["Show me your chips at the door.","No chips, no entry. House rule."] },

@@ -59,6 +59,42 @@
       kind:'ball', icon:'ball', color:'#403868', accent:'#a888d0',
       battleOnly:true, price:1000, catchBonus:1.0, nightBonus:2.0
     },
+    // ---- Apricorn-crafted balls (idea #46) ----
+    heal_ball: {
+      id:'heal_ball', name:'HEAL BALL',
+      desc:'Restores the caught creature to full HP.',
+      detail:'A pale-pink ball that mends as it captures. Status and HP are restored when the creature emerges.',
+      kind:'ball', icon:'ball', color:'#d878a8', accent:'#fff0c8',
+      battleOnly:true, price:0, catchBonus:1.0, healOnCatch:true
+    },
+    net_ball: {
+      id:'net_ball', name:'NET BALL',
+      desc:'1.5x catch rate vs BUG or WATER.',
+      detail:'A latticed teal ball especially attuned to chitin and scales. Excellent against bugs and aquatics.',
+      kind:'ball', icon:'ball', color:'#388898', accent:'#a8e8d0',
+      battleOnly:true, price:0, catchBonus:1.0, typeBonus:1.5, typeBonusTypes:['BUG','WATER']
+    },
+    timer_ball: {
+      id:'timer_ball', name:'TIMER BALL',
+      desc:'Better the longer the battle has run.',
+      detail:'Marked with rings that fill as the fight drags on. Grows to 4x catch rate after about ten turns.',
+      kind:'ball', icon:'ball', color:'#a08068', accent:'#e8c8a0',
+      battleOnly:true, price:0, catchBonus:1.0, timerStep:0.3, timerCap:4.0
+    },
+    luxury_ball: {
+      id:'luxury_ball', name:'LUXURY BALL',
+      desc:'Caught creatures start with a friendship boost.',
+      detail:'Lined with velvet. Caught creatures emerge already fond of you (friendship 120).',
+      kind:'ball', icon:'ball', color:'#984848', accent:'#f0c8a8',
+      battleOnly:true, price:0, catchBonus:1.0, friendshipOnCatch:120
+    },
+    apricorn: {
+      id:'apricorn', name:'APRICORN',
+      desc:'Coloured fruit-pit. The craftsman shapes them into special balls.',
+      detail:'A hard, dye-tinted pit shed by certain trees. Worthless on its own, prized by ball-makers.',
+      kind:'apricorn', icon:'rod', color:'#a04030', accent:'#f0c020',
+      price:200
+    },
     potion: {
       id:'potion', name:'POTION',
       desc:'Fizzy red medicine. Restores 20 HP.',
@@ -336,6 +372,13 @@
       detail:'A worn leather belt awarded to type specialists. Bites harder when the matchup is right.',
       kind:'held_gear', icon:'charm', color:'#8a4a18', accent:'#f0c020',
       holdable:true, expertBelt:true, price:2200
+    },
+    choice_band: {
+      id:'choice_band', name:'CHOICE BAND',
+      desc:'Boosts ATK +50% but locks the holder to one move.',
+      detail:'A leather band that focuses the holder\'s fury. Once they pick a move, they\'re committed to it for the battle.',
+      kind:'held_gear', icon:'charm', color:'#a02020', accent:'#f0c020',
+      holdable:true, choiceBand:true, choiceMult:1.5, price:2400
     },
     shinycharm: {
       id:'shinycharm', name:'SHINY CHARM',
@@ -727,6 +770,23 @@
         bonus = Math.max(bonus, it.nightBonus);
       }
     }
+    // Net Ball (idea #46): bonus when the foe matches a type in the
+    // ball's typeBonusTypes list.
+    if (it.typeBonus && it.typeBonusTypes && it.typeBonusTypes.length && battle && battle.foe) {
+      const D = window.PR_DATA;
+      const foeTypes = D && D.CREATURES[battle.foe.species] && D.CREATURES[battle.foe.species].types;
+      if (foeTypes) {
+        for (const t of it.typeBonusTypes) {
+          if (foeTypes.indexOf(t) !== -1) { bonus = Math.max(bonus, it.typeBonus); break; }
+        }
+      }
+    }
+    // Timer Ball (idea #46): bonus scales with battle.turnCount, capped.
+    if (it.timerStep && battle && (battle.turnCount | 0) > 0) {
+      const cap = it.timerCap || 4.0;
+      const scaled = Math.min(cap, 1 + (battle.turnCount | 0) * it.timerStep);
+      bonus = Math.max(bonus, scaled);
+    }
     return bonus;
   }
 
@@ -737,8 +797,8 @@
     { tier:1, items:['greatball','superpotion','paralyzeheal','awakening','super_repel'] },
     { tier:2, items:['quickball','cavernball','burnheal','oranberry','lucky_charm','soothe_bell'] },
     { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand','heavy_ball','dusk_ball'] },
-    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash','friend_ball','wide_lens','firestone','thunderstone','icestone','leafstone','moonstone'] },
-    { tier:5, items:['ultraball','fullheal','leftovers','quick_claw','expert_belt','eviolite','tm_thunderclap','tm_icebeam'] },
+    { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash','friend_ball','wide_lens','firestone','thunderstone','icestone','leafstone','moonstone','apricorn'] },
+    { tier:5, items:['ultraball','fullheal','leftovers','quick_claw','expert_belt','eviolite','choice_band','tm_thunderclap','tm_icebeam'] },
     { tier:6, items:['maxpotion','masters_pendant','tm_solarbeam','tm_earthquake'] },
     { tier:7, items:['maxrevive','tm_hyperbeam'] }
   ];

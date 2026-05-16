@@ -69,6 +69,14 @@
     this.flashTimer = 0;
     this.shakeTimer = 0;
     this.faintAnim = { foe: 0, me: 0 };
+    // Choice Band lock (idea #1) is a per-battle commitment. Clear it
+    // on every party + foe mon at construct so stale flags can't carry
+    // across battles.
+    for (const m of (state.party || [])) if (m) m.lockedMoveId = null;
+    for (const m of (opts.trainer && opts.trainer.team) || []) if (m) m.lockedMoveId = null;
+    if (opts.wild) opts.wild.lockedMoveId = null;
+    // Friendship-endure (idea #31) bracket: per-side, once per battle.
+    this._bondUsed = { me:false, foe:false };
     // Per-side field state - entry hazards & screens (idea #3). 'me' is
     // the player's side, 'foe' the opponent's. reflect / lightScreen
     // are turn counters; spikes is a 0-3 layer count; stealthrock is a
@@ -244,7 +252,14 @@
     if (I.consumePressed('ArrowDown'))  this.selection = (this.selection + 2) & 3;
     if (I.consumePressed('ArrowUp'))    this.selection = (this.selection + 2) & 3;
     if (I.consumePressed('z')) {
-      if (this.selection === 0) { this.phase = 'fight'; this.subSelection = 0; this._freeSwap = false; }
+      if (this.selection === 0) {
+        // Choice Band lock (idea #1): if the holder already committed
+        // to a move this battle, auto-fire it instead of opening fight.
+        this._freeSwap = false;
+        const locked = this._choiceLockedMove(this.me);
+        if (locked) { this.queueTurn(locked); return; }
+        this.phase = 'fight'; this.subSelection = 0;
+      }
       else if (this.selection === 1) { this.tryRun(); this._freeSwap = false; }
       else if (this.selection === 2) { this.phase = 'party'; this.subSelection = 0; }
       else if (this.selection === 3) {
@@ -280,10 +295,13 @@
     if (this.meOwner === 'ally') return false;
     const moves = this.me && this.me.moves;
     if (!moves) return false;
-    const m = moves[idx];
+    // Choice Band lock (idea #1): if a move is committed, force it
+    // and ignore the requested index. Tap-anywhere = locked move.
+    const locked = this._choiceLockedMove(this.me);
+    const m = locked || moves[idx];
     if (!m) return false;
     if (m.pp <= 0) { this.flashMsg('No PP left for that move!'); return false; }
-    this.subSelection = idx;
+    this.subSelection = (locked ? moves.indexOf(locked) : idx);
     this.phase = 'fight';
     this.queueTurn(m);
     return true;
@@ -333,6 +351,10 @@
       return;
     }
     const foeMove = pickFoeMove(this.foe, this.me);
+    // Choice Band lock (idea #1): commit to the move both sides chose
+    // for the remainder of the battle.
+    this._lockChoiceBand(this.me, myMove);
+    this._lockChoiceBand(this.foe, foeMove);
     const myPriority = (window.PR_DATA.MOVES[myMove.id].priority || 0);
     const foePriority = (window.PR_DATA.MOVES[foeMove.id].priority || 0);
     const meSpeed = effectiveSpeed(this.me);
@@ -376,6 +398,13 @@
     if (foe.chargingMove) {
       const fm = foe.moves.find(mv => mv.id === foe.chargingMove);
       if (fm) return fm;
+    }
+    // Choice Band (idea #1): a holder is committed to the first move
+    // they used this battle. Falls through if the locked move has no
+    // PP left, letting the AI pick something else (matches mainline).
+    if (foe.lockedMoveId) {
+      const lm = foe.moves.find(mv => mv.id === foe.lockedMoveId && mv.pp > 0);
+      if (lm) return lm;
     }
     const usable = foe.moves.filter(m => m.pp > 0);
     const pool = usable.length ? usable : foe.moves;
@@ -604,6 +633,18 @@
         this.queue(defender.nickname + ' endured the hit with Sturdy!');
       }
     }
+    // Friendship endure (idea #31). A creature with friendship >= 220
+    // braces through one would-be KO per battle, regardless of HP,
+    // capped at one save per side. Sits after the sash/sturdy check
+    // so they don't double-save.
+    if (totalDmg >= defender.hp && (defender.friendship | 0) >= 220) {
+      const defWho = (defender === this.me) ? 'me' : 'foe';
+      if (this._bondUsed && !this._bondUsed[defWho]) {
+        this._bondUsed[defWho] = true;
+        totalDmg = defender.hp - 1;
+        this.queue(defender.nickname + ' braced through your bond!');
+      }
+    }
     defender.hp = Math.max(0, defender.hp - totalDmg);
     // Trigger move animation on the defender's side. Per-move VFX is
     // delegated to PR_MOVE_FX (js/move_effects.js); duration depends on
@@ -712,6 +753,18 @@
 
   // Player-side recharge turn (idea #4): forfeit the player's action,
   // foe still acts. Mirrors how voluntary-swap surrenders the turn.
+  // Choice Band lock helpers (idea #1).
+  Battle.prototype._lockChoiceBand = function(mon, move) {
+    if (!mon || !move || mon.lockedMoveId) return;
+    const I = window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+    const it = mon.held && I && I[mon.held];
+    if (it && it.choiceBand) mon.lockedMoveId = move.id;
+  };
+  Battle.prototype._choiceLockedMove = function(mon) {
+    if (!mon || !mon.lockedMoveId) return null;
+    return mon.moves.find(mv => mv.id === mon.lockedMoveId && mv.pp > 0) || null;
+  };
+
   Battle.prototype._rechargeTurn = function() {
     this.queue(this.me.nickname + ' must recharge!');
     this.me.mustRecharge = false;
@@ -1182,6 +1235,8 @@
     const forced = this.forcedSwap || free;
     this.forcedSwap = false;
     this._freeSwap = false;
+    // Choice Band lock (idea #1) clears when the holder leaves play.
+    if (this.me) this.me.lockedMoveId = null;
     // The player only ever swaps in their own creatures - reclaim the
     // active slot for the player side (matters in tag battles).
     this.meOwner = 'player';
@@ -1356,6 +1411,12 @@
           window.PR_ITEMS.add(this.state, 'shinycharm', 1);
           this.queue('The PROFESSOR mailed a SHINY CHARM!');
         }
+      }
+      // Heal Ball (idea #46): caught creature emerges fully restored.
+      if (def && def.healOnCatch) {
+        this.foe.hp = this.foe.stats.hp;
+        this.foe.status = null;
+        for (const mv of (this.foe.moves || [])) mv.pp = mv.ppMax;
       }
       this.queue('Gotcha! ' + this.foe.nickname + ' was caught!');
       if (this.state.party.length < 6) {

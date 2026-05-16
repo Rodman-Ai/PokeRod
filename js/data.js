@@ -1119,6 +1119,10 @@ function calcDamage(attacker, defender, move, isCrit) {
     if (dHeld && dHeld.eviolite && CREATURES[defender.species].evolves) item *= 1 / 1.5;
     const aHeld = attacker.held && I[attacker.held];
     if (aHeld && aHeld.expertBelt && eff > 1) item *= 1.2;
+    // Choice Band (idea #1): +50% physical damage; lock-into-one-move
+    // enforcement happens in battle.js. The mult here only applies to
+    // physical moves, matching the mainline restriction.
+    if (aHeld && aHeld.choiceBand && move.kind === 'physical') item *= (aHeld.choiceMult || 1.5);
   }
   const base = (((2*attacker.level/5 + 2) * move.power * (A/Math.max(1,D))) / 50) + 2;
   return { dmg: Math.max(1, Math.floor(base * stab * eff * crit * rand * weather * held * friend * ability * item)), eff, stab, crit:isCrit };

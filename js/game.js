@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.58';
-  const BUILD = '2026.05.15-200';
+  const VERSION = 'v0.55.59';
+  const BUILD = '2026.05.15-201';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -75,6 +75,13 @@
     const t = pickOverworldTrack();
     if (window.PR_MUSIC.current && window.PR_MUSIC.current() === t) return;
     window.PR_MUSIC.play(t);
+    // Ambient pad (idea #33): layer a faint biome drone under the
+    // overworld track. Skipped for interiors.
+    if (window.PR_MUSIC.ambient) {
+      const m = state.world && state.world.currentMap && state.world.currentMap();
+      const biome = (m && !m.interior) ? biomeOf(m) : null;
+      window.PR_MUSIC.ambient(biome);
+    }
   }
 
   const KONAMI_SEQUENCE = [
@@ -287,9 +294,18 @@
     const prevNg = (prev.flags && (prev.flags.ngPlusCount | 0)) || 0;
     state.activeSlot = slot;
     window.PR_SAVE.clear(slot);
+    // NG+ keepsake (idea #37): one bonus key item per NG+ tier carries
+    // over into the fresh bag, so each loop feels like a meaningful
+    // graduation. Picks compound: tier 1 = lucky_egg, tier 2 adds
+    // shiny_charm if owned, tier 3 adds bicycle pre-equipped.
+    const ngTier = prevNg + 1;
+    const startingBag = { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1, bicycle:1 };
+    if (ngTier >= 1) startingBag.lucky_egg = 1;
+    if (ngTier >= 2 && prev.player && prev.player.bag && prev.player.bag.shinycharm) startingBag.shinycharm = 1;
+    if (ngTier >= 3) startingBag.masters_pendant = (startingBag.masters_pendant || 0) + 1;
     state.player = { name:(prev.player && prev.player.name) || 'YOU',
                      map:'rodport', x:6, y:11, dir:'down', money:500, balls:5, steps:0,
-                     bag: { rodball:5, potion:3, antidote:1, oranberry:1, old_rod:1, bicycle:1 },
+                     bag: startingBag,
                      equipment: { trinket: null },
                      stats: keepStats,
                      achievements: keepAchv };
@@ -297,7 +313,10 @@
     state.flags = {
       starterChosen: false,
       beatChampion: false,   // earned again next time
-      ngPlusCount: prevNg + 1
+      ngPlusCount: ngTier,
+      // Preserve the daily-bonus marker so the player doesn't get a
+      // freebie immediately after the reset.
+      lastDailyDate: (prev.flags && prev.flags.lastDailyDate) || null
     };
     state.defeatedTrainers = new Set();
     state.dex = { seen: new Set(keepDexSeen), caught: new Set(keepDexCaught) };
@@ -881,6 +900,109 @@
   // and a level scaling +1 per round won. Party is auto-healed
   // between rounds. Winning the full streak pays a money reward and
   // updates the best-streak record. Losing ends the run early.
+  // Apricorn craft flow (idea #46). NPC declares `craft:true` and the
+  // overworld interaction routes here. Player picks a ball, spends N
+  // apricorns. Reuses the existing choice-dialog plumbing.
+  const CRAFT_BALLS = [
+    { id:'heal_ball',   label:'HEAL BALL' },
+    { id:'net_ball',    label:'NET BALL' },
+    { id:'timer_ball',  label:'TIMER BALL' },
+    { id:'luxury_ball', label:'LUXURY BALL' }
+  ];
+  function openCraftFlow(npc) {
+    const intro = (npc.craft && npc.craft.greeting) ||
+      ['I turn APRICORNS into special balls.', 'Tough work, but the colour matters.'];
+    const cost = (npc.craft && npc.craft.cost) || 3;
+    openDialog(intro.concat(['Each ball needs ' + cost + ' APRICORNS.']), () => {
+      const have = (state.player.bag && state.player.bag.apricorn) || 0;
+      if (have < cost) {
+        openDialog(['You need ' + cost + ' APRICORNS.', 'Come back with a few.']);
+        return;
+      }
+      state.dialog = {
+        choice: {
+          prompt: 'Craft which ball?',
+          options: CRAFT_BALLS.map(b => b.label).concat(['Cancel']),
+          cursor: 0,
+          onPick: (idx) => _craftPick(idx, npc, cost)
+        }
+      };
+      state.mode = 'choice';
+    });
+  }
+  function _craftPick(idx, npc, cost) {
+    state.dialog = null;
+    if (idx >= CRAFT_BALLS.length) { state.mode = 'overworld'; return; }
+    const target = CRAFT_BALLS[idx];
+    const have = (state.player.bag && state.player.bag.apricorn) || 0;
+    if (have < cost) { state.mode = 'overworld'; return; }
+    window.PR_ITEMS.take(state, 'apricorn', cost);
+    window.PR_ITEMS.add(state, target.id, 1);
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    openDialog(['Crafted one ' + target.label + '!', 'Use it well.']);
+  }
+
+  // Berry farming lite (idea #14). One shared patch keyed off
+  // state.flags.berryPatch. Player can plant a berry from their bag;
+  // after ~300 steps it ripens into 2 of the planted berry on harvest.
+  const BERRY_GROW_STEPS = 300;
+  const PLANTABLE_BERRIES = ['oranberry','sitrusberry','pechaberry'];
+  function openBerryPatchFlow(npc) {
+    state.flags = state.flags || {};
+    const patch = state.flags.berryPatch || null;
+    const stepsNow = (state.player && state.player.steps) || 0;
+    if (!patch) {
+      // Plant: pick which berry the player wants to sow.
+      const owned = PLANTABLE_BERRIES
+        .filter(id => (state.player.bag && state.player.bag[id]) > 0)
+        .map(id => ({ id, name:window.PR_ITEMS.ITEMS[id].name }));
+      if (!owned.length) {
+        openDialog(["You don't have any berries to plant.","Bring an ORAN, SITRUS or PECHA berry."]);
+        return;
+      }
+      openDialog(['The patch is empty. Plant which berry?'], () => {
+        state.dialog = {
+          choice: {
+            prompt: 'Plant which berry?',
+            options: owned.map(b => b.name).concat(['Cancel']),
+            cursor: 0,
+            onPick: (idx) => _berryPlant(idx, owned)
+          }
+        };
+        state.mode = 'choice';
+      });
+      return;
+    }
+    const elapsed = stepsNow - (patch.plantedAt | 0);
+    if (elapsed < BERRY_GROW_STEPS) {
+      const left = BERRY_GROW_STEPS - elapsed;
+      openDialog(['The ' + (window.PR_ITEMS.ITEMS[patch.berry].name) + ' is still sprouting.',
+                  'About ' + left + ' steps to ripen.']);
+      return;
+    }
+    // Ripe: hand out 2x the planted berry.
+    const def = window.PR_ITEMS.ITEMS[patch.berry];
+    window.PR_ITEMS.add(state, patch.berry, 2);
+    state.flags.berryPatch = null;
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    openDialog(['Ripe! Harvested 2 ' + def.name + '.','The patch is empty again.']);
+  }
+  function _berryPlant(idx, owned) {
+    state.dialog = null;
+    if (idx >= owned.length) { state.mode = 'overworld'; return; }
+    const pick = owned[idx];
+    window.PR_ITEMS.take(state, pick.id, 1);
+    state.flags.berryPatch = {
+      berry: pick.id,
+      plantedAt: (state.player && state.player.steps) || 0
+    };
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    openDialog(['Planted one ' + pick.name + '.','Come back after a long walk.']);
+  }
+
   function openTowerFlow(npc) {
     const flags = state.flags || (state.flags = {});
     if (npc.tower && npc.tower.requireChampion && !flags.beatChampion) {
@@ -918,6 +1040,16 @@
     state.mode = 'overworld';
     _towerStartRound();
   }
+  // Battle Tower trainer-class rotation (idea #41). Names cycle by
+  // round so the VS-banner reads varied across a streak.
+  const TOWER_CLASSES = [
+    'ACE TRAINER LIA',
+    'VETERAN OMI',
+    'CHALLENGER RIO',
+    'EXPERT BAYA',
+    'BLACK BELT KOJ',
+    'PSYCHIC NEM'
+  ];
   function _towerStartRound() {
     const t = state.flags && state.flags.towerActive;
     if (!t) return;
@@ -931,8 +1063,9 @@
     }
     const level = t.baseLevel + t.streak;
     const team = _towerBuildOpponent(level);
+    const cls = TOWER_CLASSES[t.streak % TOWER_CLASSES.length];
     const fakeNpc = {
-      name: 'TOWER RIVAL ' + (t.streak + 1) + '/' + t.target,
+      name: cls + ' (' + (t.streak + 1) + '/' + t.target + ')',
       trainer: {
         team: team,
         reward: 0,
@@ -959,6 +1092,12 @@
   function _towerOnWin() {
     const t = state.flags && state.flags.towerActive;
     if (!t) return false;
+    // Per-floor payout (idea #41): each cleared round drops some cash.
+    // Streak-clear bonus still pays the headline reward.
+    const floor = t.baseLevel + t.streak;
+    const perFloor = 200 * Math.max(1, floor);
+    addMoney(state, perFloor);
+    showFlash('Won $' + perFloor + '!');
     t.streak++;
     if (t.streak >= t.target) {
       // Streak cleared. Pay out, record best, exit tower.
@@ -1605,7 +1744,13 @@
         if (lead && window.PR_SFX.cry) window.PR_SFX.cry(lead[0]);
       }
       step = 'music-play';
-      if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
+      // Battle music variants (idea #23): champion = badge fights;
+      // trainer = any other NPC; wild encounters use the original.
+      if (window.PR_MUSIC) {
+        if (window.PR_MUSIC.stopAmbient) window.PR_MUSIC.stopAmbient();
+        const variant = (npc && npc.badge) ? 'battle_champion' : 'battle_trainer';
+        window.PR_MUSIC.play(variant);
+      }
       step = 'check-data';
       if (!window.PR_DATA || !window.PR_DATA.makeMon) throw new Error('PR_DATA missing');
       step = 'check-battle';
@@ -1649,7 +1794,10 @@
         }
       }
       step = 'music-play';
-      if (window.PR_MUSIC) window.PR_MUSIC.play('battle');
+      if (window.PR_MUSIC) {
+        if (window.PR_MUSIC.stopAmbient) window.PR_MUSIC.stopAmbient();
+        window.PR_MUSIC.play('battle');
+      }
       step = 'check-data';
       if (!window.PR_DATA || !window.PR_DATA.makeMon) throw new Error('PR_DATA missing');
       step = 'check-battle';
@@ -1763,6 +1911,14 @@
     }
     if (npc.tutor) {
       openTutorFlow(npc);
+      return;
+    }
+    if (npc.craft) {
+      openCraftFlow(npc);
+      return;
+    }
+    if (npc.berryPatch) {
+      openBerryPatchFlow(npc);
       return;
     }
     if (npc.tower) {

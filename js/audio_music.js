@@ -135,6 +135,57 @@
       drums: 'k s k s k s k s k s k s k s k s'.split(' ') };
   }
 
+  // Trainer battle (idea #23). Punchier tempo + a brighter lead octave
+  // than wild battle to telegraph "this is a person you're fighting".
+  function battleTrainerTrack() {
+    const bpm = 172, beat = 60 / bpm;
+    const lead = [
+      ['D6',0.5],['F6',0.5],['A6',0.5],['D6',0.5],
+      ['C6',0.5],['A5',0.5],['F5',1],
+      ['Bb5',0.5],['G5',0.5],['E5',0.5],['G5',0.5],
+      ['A5',2],
+      ['D6',0.5],['E6',0.5],['F6',0.5],['G6',0.5],
+      ['A6',0.5],['Bb6',0.5],['C7',1],
+      ['A6',0.5],['F6',0.5],['D6',0.5],['F6',0.5],
+      ['A5',2]
+    ];
+    const bass = [
+      ['D2',0.5],['D3',0.5],['D2',0.5],['D3',0.5],
+      ['D2',0.5],['D3',0.5],['D2',0.5],['D3',0.5],
+      ['Bb2',0.5],['Bb3',0.5],['Bb2',0.5],['Bb3',0.5],
+      ['A2',0.5],['A3',0.5],['A2',0.5],['A3',0.5],
+      ['D2',0.5],['D3',0.5],['D2',0.5],['D3',0.5],
+      ['F2',0.5],['F3',0.5],['F2',0.5],['F3',0.5],
+      ['G2',0.5],['G3',0.5],['Bb2',0.5],['Bb3',0.5],
+      ['A2',0.5],['A3',0.5],['A2',1.5]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k k s k k k s k k k s k k k s k'.split(' ') };
+  }
+
+  // Champion / badge battle (idea #23). Slower, more weight, a lower-
+  // octave lead. The "uh oh" track.
+  function battleChampionTrack() {
+    const bpm = 132, beat = 60 / bpm;
+    const lead = [
+      ['D4',1],  ['F4',1],  ['A4',1],  ['D5',1],
+      ['C5',1],  ['A4',1],  ['F4',2],
+      ['Bb4',1], ['G4',1],  ['E4',1],  ['G4',1],
+      ['A4',2],
+      ['D5',0.5],['E5',0.5],['F5',0.5],['G5',0.5],
+      ['A5',1], ['G5',1],   ['F5',2],
+      ['E5',1], ['D5',1],   ['D4',2]
+    ];
+    const bass = [
+      ['D1',1],['D2',1],['D1',1],['D2',1],
+      ['Bb1',1],['Bb2',1],['A1',1],['A2',1],
+      ['D1',1],['D2',1],['F1',1],['F2',1],
+      ['G1',1],['Bb1',1],['A1',2]
+    ];
+    return { bpm, beat, bars: 16, lead, bass,
+      drums: 'k . k . s . k . k . k . s . k k'.split(' ') };
+  }
+
   // ---- Biome tracks ---------------------------------------------------
 
   function caveTrack() {
@@ -415,7 +466,7 @@
 
   const TRACKS = {
     title: titleTrack, town: townTrack, route: routeTrack,
-    battle: battleTrack, victory: victoryTrack,
+    battle: battleTrack, battle_trainer: battleTrainerTrack, battle_champion: battleChampionTrack, victory: victoryTrack,
     cave: caveTrack, beach: beachTrack, desert: desertTrack,
     snowland: snowlandTrack, mountain: mountainTrack,
     rain_mus: rainMusTrack, thunder_mus: thunderMusTrack, fog_mus: fogMusTrack,
@@ -513,7 +564,37 @@
     activeTrack = null;
   }
 
+  // Ambient soundscape (idea #33). One sustained drone per biome,
+  // scheduled separately from the main music loop so it can outlive
+  // a track change. Cheap: 1 long-decay triangle every ~8 seconds.
+  let ambientTimer = null;
+  let ambientBiome = null;
+  const AMBIENT_NOTES = {
+    forest: 'E2', cave: 'A1', beach: 'D2', desert: 'G2',
+    snow: 'B1', mountain: 'F2', town: 'C3', grass: 'D2', interior: null
+  };
+  function _ambientTick() {
+    const A = _t();
+    if (!A || !A.ctx) return;
+    const note = AMBIENT_NOTES[ambientBiome];
+    if (!note) return;
+    A.tone(A.noteHz(note), A.ctx.currentTime, 4.0,
+      { type:'triangle', gain:0.06, dest:A.musicGain });
+  }
+  function ambient(biome) {
+    if (biome === ambientBiome) return;
+    ambientBiome = biome;
+    if (ambientTimer) { clearInterval(ambientTimer); ambientTimer = null; }
+    if (!biome || !AMBIENT_NOTES[biome]) return;
+    _ambientTick();
+    ambientTimer = setInterval(_ambientTick, 7600);
+  }
+  function stopAmbient() {
+    ambientBiome = null;
+    if (ambientTimer) { clearInterval(ambientTimer); ambientTimer = null; }
+  }
+
   function current() { return activeTrack; }
 
-  window.PR_MUSIC = { play, stop, current };
+  window.PR_MUSIC = { play, stop, current, ambient, stopAmbient };
 })();
