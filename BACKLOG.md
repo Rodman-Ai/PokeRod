@@ -1,9 +1,10 @@
 # PokeRod Backlog
 
-A prioritised list of 50 candidate features, drawn from a survey of mainline
-Pokémon, modern indie creature collectors, fan ROM hacks, and casual mobile
-games — plus a few PokeRod-specific creative ideas. Use this as the
-default ground-truth queue when picking the next thing to build.
+A prioritised list of candidate features, drawn from a survey of mainline
+Pokémon (through Scarlet/Violet + Legends Arceus), modern indie creature
+collectors, fan ROM hacks, mobile companion apps, and PokeRod-specific
+creative ideas. Use this as the default ground-truth queue when picking
+the next thing to build.
 
 ## How items are ranked
 
@@ -19,131 +20,192 @@ ties broken by category coherence (group items that share infrastructure so
 one PR sets up the next). Re-rank by recomputing `value`; if the project's
 direction changes, update the impact column rather than fudging the order.
 
-The bottom 5 (ranks 47–50) are huge multi-PR projects; treat them as
-roadmap items, not sprint candidates. **Battle abilities** (rank 47) is
-high-impact but touches every move/creature path — start with a small
-RFC commit before implementation.
+The bottom rows are multi-PR roadmap projects; treat them as planning
+fodder, not sprint candidates. Tag any item rated 5/5 with **roadmap** in
+the note column so it can't get accidentally pulled into a single-day
+sprint.
 
 ## Competitor analysis
 
-**Mainline Pokémon (Gen 1 → Scarlet/Violet)** — the design baseline.
-Things present there but not in PokeRod: held items per creature,
-Abilities, multi-battles (doubles/triples), TMs / move tutors, daycare +
-breeding + eggs, EV/IV transparency, weather *modifying battle damage*
-(sunny → +50% FIRE), terrain effects, mega/Z/Tera gimmicks,
-contest/showcase mini-games, Battle Frontier-style postgame, town map
-item with player pin, bicycle fast travel, fly waypoints, repels with
-HUD timer, mass release, dex with location + footprint pages,
-multiplayer trade, shiny variants.
+**Mainline Pokémon (Gen 1 → Scarlet/Violet, plus Legends Arceus).** The
+design baseline. Things present there but **not yet in PokeRod**: the
+**Terastal one-battle type-swap gimmick** (S/V) — PokeRod has a Power
+Gem stat-surge but not a type-swap; **sandwich/picnic encounter buffs**
+(S/V) — PokeRod has cooking but the food doesn't bias encounters;
+**5-star raid battles** with a single boss and multi-mon player side;
+**open-world co-op routes** (S/V); **mass outbreaks of one species** on
+a route with daily refresh (Legends Arceus); **agile / strong move
+styles** that re-deliver the same move with different action speed
+(Arceus); **alpha-size variants** with +stats (Arceus); **overworld
+no-battle capture** for shy / weak mons (Arceus); **auto-battle**
+where a party member fights ambient mons while you explore (Arceus).
+What PokeRod is **past** the mainline baseline on: a true type-chart
+reference page in-game (mainline still doesn't ship one), in-game
+ability-judge IV potential rollup, a daily-bonus calendar with rotating
+items, a CHAIN-style shiny-hunt that telegraphs in the HUD.
 
-**Modern indie creature collectors (Cassette Beasts, Temtem, Coromon,
-Nexomon, Monster Sanctuary)** — these add: creature **fusion** (Cassette
-Beasts), **co-op campaign** (Temtem), **per-creature skill trees**
-(Monster Sanctuary), **party potential rating + perfect IV display**
-(Coromon), **arena ladder + daily goals** (Nexomon), **simultaneous
-on-the-overworld attacks** (Cassette Beasts), **death-perma + nuzlocke
-baked in** (Temtem), **affection/friendship that drives battle bonuses**
-(most), **postgame raid bosses** (Monster Sanctuary).
+**Modern indie creature collectors (Cassette Beasts + Multiplayer DLC,
+TemTem 1.7, Coromon 1.4, Nexomon, Monster Sanctuary).** These add:
+**creature fusion** (Cassette Beasts — still the highlight feature);
+**deep co-op campaign** (TemTem); **per-creature skill trees**
+(Monster Sanctuary); **party potential rating + perfect IV display**
+(Coromon — PokeRod now has a lite version via the IV-judge overlay);
+**death-perma / nuzlocke baked in** (TemTem); **affection that drives
+battle bonuses** (PokeRod ships a friendship damage bump + bond-endure
+already); **postgame raid bosses** (Monster Sanctuary). The highest
+remaining bar from this bucket is **per-creature skill trees** and
+**fusion** — both genuinely 5/5 cost.
 
-**ROM hacks (Renegade Platinum, Radical Red, Unbound, Inclement
-Emerald)** — fan-made enhancement layer: **difficulty toggles**
-(easy/normal/hard/nuzlocke), **level caps tied to badges**, **EV/IV
-editor in NPC**, **move relearner / deleter**, **mid-game move tutors**,
-**debug menu**, **search-by-type in PC box**, **fast-forward toggle**,
-**set-mode battles** (no free switch), **modern QoL** (turbo, auto-run,
-repel re-prompt).
+**Palworld (2024).** New entrant worth its own row: creature-collector
+that bolts on **mountable / rideable creatures** (replaces surf and fly
+with mounting your own party), **base-building** (creature-decorated
+plots with crafting), and **breeding-as-core-mechanic** (egg-cycle is
+how you progress, not a side activity). PokeRod could pull the mounts
+idea cheaply; base-building maps onto the existing wardrobe + cooking
+infra; breeding is the same expensive item as Pokémon daycare.
 
-**Mobile / casual (Pokémon GO, Hatchi, Pou, Coral Island)** — daily
-engagement: **daily login bonuses**, **timed events / festivals**,
-**photo mode with stickers**, **achievement / trophy room**, **friend
-codes / spectator mode**, **bestiary completion percentages with
-rewards**, **avatar customisation** (clothes, hat, hair, skin),
-**birthday creature variants**, **random daily encounter forecast**.
+**ROM hacks (Renegade Platinum, Radical Red recent updates, Reborn,
+Unbound, Inclement Emerald, Crystal Clear).** Fan-made enhancement
+layer: **difficulty toggles** (PokeRod ships easy / normal / hard; the
+nuzlocke variant is still open), **level caps tied to badges**,
+**EV/IV editor in an NPC**, **move relearner + deleter** (PokeRod has
+both), **mid-game move tutors**, **debug menu** (PokeRod ships a
+Konami-gated cheat menu), **search-by-type in PC box** (PokeRod has
+sort, not search), **fast-forward toggle**, **set-mode battles** (now
+shipped), **modern QoL** (turbo, auto-run shipped, repel re-prompt).
+**Crystal Clear** introduced open-world non-linear progression — PokeRod
+is linear, this is the biggest "feel different" knob still on the table.
 
-## Already shipped (as of v0.55.2 / build #144)
+**Mobile / casual companion apps (Pokémon Sleep, Pokémon GO, Pokémon
+Unite, Hatchi, Pou, Coral Island).** Daily-routine engagement:
+**Pokémon Sleep** turns hours-asleep into in-app collection — PokeRod's
+daily-bonus chip is a good seed for a real event calendar;
+**Pokémon GO** weekly events / community days; **avatar customisation**
+(clothes, hat, hair); **Pokémon-Amie / camp affection mini-games**;
+**bestiary completion percentages with milestone gifts** (PokeRod ships
+this at 20/40/77); **birthday creature variants**; **postcard / friend
+code share** (a stripped-down trade); **photo mode with stickers**
+(PokeRod has photo mode — sticker pass is still open). The runway here
+is: layer a real **event calendar** + cosmetic / affection systems on
+top of the daily-bonus skeleton that already exists.
 
+## Already shipped (as of v0.55.60 / build #204)
+
+**World & overworld**
 - Tile-based overworld with follow camera, day/night cycle, animated
-  water, ambient creatures, biome particles, **8 weather kinds** (rain
-  / sleet / snow / hail / thunder / hurricane / overcast / fog) across
-  **30 named presets** (drizzle, monsoon, lake-effect, whiteout,
-  sea-fog, smog, etc.). Tornado retired as a weather kind; its funnel
-  render lives on as a battle move effect.
-- Turn-based battles, 18-type chart, status effects, stat stages,
-  priority, **per-type + per-move VFX (18 types + 107 signature
-  overrides - every move except `splash` has a unique animation)**,
-  critical-hit pulse on DS.
-- 77 hand-pixeled creatures across **5 graphics eras** (GB Red, GB
+  water, ambient creatures, biome particles, **8 weather kinds** across
+  **30 named presets**, **2 hidden grottos** (Mossy Grotto + Snowmelt
+  Hollow), **64 maps including 3 themed zones**, **circular world map + fast
+  travel**, **bicycle**, **hold-B to run**, **fishing + surfing**,
+  **roaming legendary**, **photo mode**, hidden-item pickups, **rain
+  puddle ripples** on water, **tall-grass rustle encounter telegraph**,
+  per-biome ambient drone audio layer.
+- **NPC day/night schedules** (6 NPCs flip presence dawn/dusk), 12
+  named story characters with home tiles + 4-phase dialog, **50
+  walk-up cutscenes** across 8 chains.
+
+**Battle depth**
+- Turn-based engine: 18-type chart, 6 status effects, weather-modifying
+  damage, stat stages, priority moves, **per-type + per-move VFX (107
+  signature animations)**, critical-hit pulse, **hit-pause freeze-frame
+  on super-effective hits**, **screens (Reflect / Light Screen) + entry
+  hazards (Spikes / Stealth Rock)**, **charge + recharge moves** (Solar
+  Beam, Sky Attack, Hyper Beam), **weather-setting moves** (Rain Dance
+  / Storm Call / Hailstorm), **high-crit moves + Focus Energy
+  crit-stage table**, **recoil + drain moves** (Take Down, Giga Drain,
+  Drain Punch), **switch-in matchup preview** (RISK/WALL/GOOD), **tag
+  battles** (light AI-ally doubles), **set-mode toggle**, **Choice
+  Band lock-into-move** + 6 other held-gear pieces, **Power Gem**
+  one-shot stat surge.
+- **11 named abilities** assigned to most species via a side table,
+  **20 hidden-ability variants** rolled at encounter (1/8 wild odds),
+  **friendship endure** at 220+, **VS-trainer banner intro**, three
+  battle-music variants (wild / trainer / champion), louder cry for the
+  roaming legendary, **scrollback log** of the last 3 battles.
+
+**Creatures**
+- **77 hand-pixeled species** across **5 graphics eras** (GB Red, GB
   Pocket, GBC Yellow, GBA FireRed, DS Diamond), with era-toned UI
-  overlays on the two monochrome eras.
-- Ambient wildlife - chickens, ducks, swans, sparrows and crows
-  pace, paddle, perch and fly on every outdoor map.
-- 5 ball types, hidden items, **fishing minigame** (A=fish, B=surf),
-  trinket equipment, badges, **6-page profile** (trainer, battles,
-  journey, dex, story, gear).
-- Story: **12 named characters** with home tiles + state-aware dialog (4
-  phases × first/second/third/idle), **50 walk-up cutscene encounters**,
-  8 chains, branching choice prompts.
-- Quests: **54 quests** (42 NPC-given via offer/turn-in, 12
-  auto-milestone), 7 categories (fetch / catch / find / talk / battle /
-  visit / milestone), detail view on A.
-- Mobile touch UI, multiple save slots, PC box storage, party reorder
-  via swap-pattern, NPC trap-escape swap-past.
-- Procedural Web Audio music + SFX (no asset files).
+  overlays on the monochrome eras.
+- **25 natures** with ±10% stat curves, **shiny variants** with charm
+  doubling, **8 creature marks + titles**, **5 evolution stones**
+  (Fire / Thunder / Ice / Leaf / Moon), **friendship evolutions**
+  (Pugpaw / Breezlet / Mindrop), **IV judge overlay + potential rating**
+  (LEGENDARY / EXCEPTIONAL / DECENT / ROUGH).
+
+**Catch & encounter**
+- 8 ball types + **4 apricorn-crafted balls** (HEAL / NET / TIMER /
+  LUXURY) crafted by BALL-MAKER YORI in Crestrock, **3 type-bait
+  lures** (BUG / WATER / FIRE), **shiny charm** at full Dex,
+  **catch-combo chain** with HUD chip + shiny mult, **daily-featured
+  species** with 3× spawn boost, time-gated encounters, weather-gated
+  encounters, badge-widened rare-mon weights.
+
+**Items & progression**
+- 75-item bag (balls, heals, status cures, berries, trinkets, held
+  gear, lures, **5 reusable TMs**, evolution stones, apricorn, repels,
+  bicycle, rods, key items). Held-item passive effects across 7 pieces
+  (Leftovers, Focus Sash, Eviolite, Quick Claw, Wide Lens, Expert Belt,
+  Choice Band, Power Gem). Move tutor + move re-learner NPCs.
+- **NewGame+** with cumulative tier-keepsakes (Lucky Egg, Shiny Charm,
+  Master's Pendant), **Battle Tower** with trainer-class roster +
+  per-floor cash reward, **trainer rematches** at +3 levels / ×1.5
+  reward after a 100-step cooldown, **dex milestone rewards** at 20 /
+  40 / 77 caught, daily login bonus rotation, **achievements + trophy
+  room**, full PC box with sort cycle + mass release.
+
+**UI / UX**
+- Retro pixel-art top-screen title with d-pad navigation, DS dual-
+  screen layout, **pause menu pages** for MAP / DEX / TYPES (full
+  18-type chart) / COVER (party offensive coverage) / LOG (battle
+  scrollback) / BAG / PARTY / PROFILE / BOX / QUEST / ERA / SETTINGS /
+  PHOTO / SAVE / LOAD, **menu cursor memory** across visits, **Konami
+  cheat menu** (3 charged rows), **overworld quick-heal hotkey** (H),
+  **berry farming** patch, **wardrobe NPC** stub, settings (text speed
+  / difficulty / battle-style / dayNight / colour-blind / reduced
+  motion / DS perspective toggles).
+
+**Audio**
+- Procedural Web Audio music + SFX (15 named tracks + 3 battle
+  variants), per-biome ambient drone layer, **per-species cries** with
+  loud variant for the roaming legendary.
 
 ## Candidate features (catalog)
 
 | # | Feature | Impact | Cost | Cat | Source |
 |---|---|---|---|---|---|
-| 1 | **Held items per creature** — single slot, items confer passive effects (Lucky Egg → +50% XP, Oran Berry → auto-heal at 25%, Choice Band → +ATK but lock move). Reuse existing trinket-style logic. | 5 | 2 | Battle | Pokémon |
-| 2 | **Battle text speed setting** + **Press A to skip dialog** — toggle in settings; A in-battle fast-forwards animations. Single biggest feel-good QoL. | 5 | 1 | QoL | ROM hacks |
-| 3 | **Weather affects battle damage** — sunny boosts FIRE +50%, rain boosts WATER +50%, snow halves accuracy of FIRE, sandstorm chips non-ROCK/STEEL/GROUND. Reuse PR_WEATHER. | 5 | 2 | Battle | Pokémon |
-| 4 | **Effectiveness preview on move-select** — show "STRONG" / "WEAK" / "—" tag next to each of the 4 moves in the battle menu, computed from foe types. | 4 | 1 | Battle | ROM hacks |
-| 5 | **Encounter rate by weather + time** — rain spawns more WATER, night spawns GHOST/DARK, sun spawns FIRE/GROUND. Hooks PR_WEATHER + existing day/night. | 4 | 1 | Catch | Pokémon |
-| 6 | **Move re-learner NPC** — visit a tutor to bring back any move the creature could have learned by level. | 4 | 1 | Manage | ROM hacks |
-| 7 | **Town map item** — Select opens a region map with current location pin + visited towns marked. | 5 | 2 | Overworld | Pokémon |
-| 8 | **Fast travel via Fly to visited towns** — late-game key item; opens town map and warps you to any visited PokeRod Center. | 5 | 2 | Overworld | Pokémon |
-| 9 | **Achievement / trophy room** — 30 trackable achievements (catch starter line, beat all gyms with one type, walk 10000 steps, etc.) with a trophy-shelf UI. | 4 | 2 | Meta | Mobile |
-| 10 | **Daily login + daily quest** — calendar slot rewards (potion → great ball → daily revive); a single "Daily Quest" rotates through fetch/catch/battle. | 4 | 2 | Story | Mobile |
-| 11 | **PC box search + filter + sort** — filter by type, level, caught-when, sort by name/level/dex#. | 4 | 2 | Manage | ROM hacks |
-| 12 | **Mass release from PC** — multi-select with confirm. Pairs with #11. | 3 | 1 | Manage | ROM hacks |
-| 13 | **Nicknames on catch** — opt-in dialog after a successful catch; falls back to species name. | 3 | 1 | Manage | Pokémon |
-| 14 | **Berry farming** — pick a berry tile, plant, water with rod, harvest in N steps. Already have berries. | 4 | 3 | Overworld | Pokémon |
-| 15 | **Difficulty modes** — Easy (less XP needed), Normal, Hard (trainers level-scaled +3), Nuzlocke (perma-faint, one catch per zone). Settings toggle. | 5 | 3 | Meta | ROM hacks |
-| 16 | **Shiny variants** — 1/4096 alt palette per species, marked in dex with a star, +1 friendship. Adds sparkle particle on encounter. | 4 | 2 | Catch | Pokémon |
-| 17 | **Battle abilities** — one passive ability per species (Blaze: +50% FIRE damage <1/3 HP, Levitate: immune to GROUND, Static: 30% paralyse on contact). 18 abilities to start. | 5 | 4 | Battle | Pokémon |
-| 18 | **Photo mode** — pause world, frame a shot with brackets + zoom, save to gallery (localStorage data URL). View gallery from menu. | 4 | 3 | Visual | Mobile |
-| 19 | **Bicycle** — key item halves move animation duration on outdoor maps; B+dir toggles. | 4 | 2 | Overworld | Pokémon |
-| 20 | **NPC schedules (day/night)** — some NPCs walk into / out of buildings at dusk; dialog tags. Hooks existing day/night counter. | 4 | 3 | Overworld | Indie |
-| 21 | **Avatar customisation** — pick body palette + hat + outfit at game start, change at the wardrobe in your room. Reuse `npcPalette`. | 4 | 3 | Visual | Mobile |
-| 22 | **Hidden grottos** — small 8×8 single-encounter rooms behind hard-to-reach tiles; weekly rotating species. Adds 6 grottos to the world. | 4 | 3 | Catch | Pokémon |
-| 23 | **Music per biome / per battle type** — wild battle / trainer battle / gym battle / final-rival have distinct themes. Currently shares the battle theme. | 4 | 3 | Visual | Pokémon |
-| 24 | **Random daily creature** — one species' encounter rate triples for a 24-hour calendar slot, marked on the dex. | 3 | 1 | Catch | Mobile |
-| 25 | **Repel item + HUD timer** — uses 100 steps that suppress wild encounters below a level threshold. | 4 | 2 | QoL | Pokémon |
-| 26 | **Set-mode battles toggle** — disables free switching when the foe faints (asks before sending out next). Settings checkbox. | 3 | 1 | Battle | ROM hacks |
-| 27 | **Doubles battles (2v2)** — your front two vs. their front two, single-target moves pick a side. Limit to a few flagged trainers. | 5 | 5 | Battle | Pokémon |
-| 28 | **Move tutors** — small set of unique moves (e.g. Hyper Beam, Earthquake) taught at NPCs in exchange for badges or items. | 4 | 2 | Manage | Pokémon |
-| 29 | **TM items** — 30 one-use TMs that teach a specific move to any compatible creature. | 4 | 3 | Manage | Pokémon |
-| 30 | **EV / IV transparency** — judge NPC tells you "exceptional in ATK", later a hidden-stats overlay in the party page. | 3 | 2 | Manage | ROM hacks |
-| 31 | **Friendship / affection mechanic** — value rises with battles + walking; high friendship enables Return move + auto-survive a fatal hit once. Display in party detail. | 4 | 3 | Battle | Pokémon |
-| 32 | **Battle backgrounds vary by terrain** — different platform art when battling on grass vs. cave vs. snow vs. water. Already have biome data. | 4 | 2 | Visual | Pokémon |
-| 33 | **Ambient soundscapes** — overworld ambient track per biome (forest birds, cave drips, beach waves) layered under the music. | 4 | 3 | Visual | Indie |
-| 34 | **Battle ball-throw animation** — curved arc with sparkle, ball wobbles 0-3 times before catch outcome. Hooks battle FX system. | 4 | 2 | Visual | Pokémon |
-| 35 | **Mid-battle item use** — open bag from the battle menu (already accessible); throw potion plays a sparkle on the active mon. | 3 | 2 | Battle | Pokémon |
-| 36 | **Random encounter rebalancer** — encounter pool widens slightly with badges (so post-game routes still surprise). | 3 | 1 | Catch | Indie |
-| 37 | **NewGame+** — finish the league → save flag → new run keeps dex / play time / cosmetic, resets bag/party/badges, trainer levels +5. | 4 | 3 | Meta | ROM hacks |
-| 38 | **Battle replay / log viewer** — last 5 battles' turn-by-turn log accessible from menu. | 3 | 2 | QoL | Indie |
-| 39 | **Cooking / curry from berries** — combine 3 berries into a meal that grants temporary stat boost or heals at center. | 3 | 3 | Overworld | Pokémon |
-| 40 | **Daycare + simple breeding** — drop two compatible creatures, walk N steps, return for an egg that hatches into a baby of one parent's species. No IV/move inheritance to start. | 5 | 5 | Manage | Pokémon |
-| 41 | **Postgame Battle Tower** — 5/10/15-streak modes with rental teams against scaling trainers. Reuses existing battle code. | 4 | 4 | Meta | Pokémon |
-| 42 | **Type-coverage party advisor** — bottom screen shows a 18-type grid of your party's coverage (which types you hit super-effective). | 4 | 2 | Manage | Indie |
-| 43 | **Encounter shake — tall grass rustle** — grass tile gently shakes when a wild creature is about to spawn within 3 steps. | 3 | 2 | Visual | Pokémon |
-| 44 | **Cry on encounter / sendout** — already have cries; add a louder version for legendary / boss creatures. | 2 | 1 | Visual | Pokémon |
-| 45 | **Konami unlock for cheat menu** — already have Konami; expand to a small cheat menu (level up, heal, money, teleport). | 3 | 2 | QoL | Konami already exists |
-| 46 | **Apricorn / craftable balls** — gather coloured apricorns from trees, NPC crafts them into 5 special balls (Friend Ball, Heavy Ball, etc.). | 4 | 3 | Catch | Pokémon |
-| 47 | **Roaming legendary** — one rare, level-50 creature wanders the map; encounter chance 1/40 on certain routes. Catch is tough; runs every turn. | 4 | 3 | Catch | Pokémon |
-| 48 | **Creature fusion (Cassette Beasts style)** — combine two party members into a one-battle fused form (composite sprite, mixed type, mixed moves). | 5 | 5 | Battle | Cassette Beasts |
-| 49 | **Local trade via QR / share-code** — export party member as a base64 string; other player imports. Browser-only, no server. | 4 | 4 | Meta | Pokémon |
-| 50 | **Per-creature skill tree** — earn skill points on level-up; spend to unlock minor passives (e.g. +5 ATK, +1 priority on Move 1). | 5 | 5 | Battle | Monster Sanctuary |
+| 1 | **Terastal-style type-swap** — once-per-battle change the holder of a Tera Crystal to a chosen single type, including STAB on that type for the rest of the battle. Reuses Power Gem's "one-shot per battle" pattern. | 4 | 3 | Battle | Pokémon S/V |
+| 2 | **Sandwich / picnic buffs** — extend cooking so a finished dish optionally applies a 30-step encounter bias (boost shiny odds / boost a chosen type's spawn rate) instead of just healing. | 3 | 2 | Catch | Pokémon S/V |
+| 3 | **5-star raid battle** — single boss with shielded HP bars and a multi-mon player side (lead + your bench takes simultaneous swings). Reuses tag-battle ally infra. | 4 | 4 | Battle | Pokémon S/V |
+| 4 | **Push hidden-item count to ~25** — seed apricorns / berries / one-off potions across more maps using the existing `hiddenItems` dict. Pure data-only drop. | 3 | 1 | Overworld | Pokémon S/V |
+| 5 | **Mass outbreaks** — once per real-time day, one species' icon appears on the world map and its spawn rate triples on the marked route for 24 hours. Hooks the existing daily-featured-species hash + the world-map chevron infra. | 4 | 3 | Catch | Pokémon Arceus |
+| 6 | **Agile / strong move-style toggle** — each move can be fired in 1 of 2 styles: AGILE (less dmg, +priority next turn) or STRONG (more dmg, no action next turn). Single battle-engine knob, no new moves needed. | 3 | 3 | Battle | Pokémon Arceus |
+| 7 | **Alpha-size variants** — 1/30 wild encounters render larger and roll with +1 stat-stage in ATK + SPA. Marks the catch with a new `ALPHA` mark. | 3 | 2 | Catch | Pokémon Arceus |
+| 8 | **Overworld no-battle catch** — for low-level wild mons, throwing a ball from the overworld captures without entering the battle scene. Adds a back-throw animation to the existing ball arc. | 4 | 4 | Catch | Pokémon Arceus |
+| 9 | **Auto-battle in overworld** — second party member visibly walks behind player and brawls ambient creatures for XP while the player explores. | 3 | 4 | Battle | Pokémon Arceus |
+| 10 | **Mountable creatures** — replace surf + bicycle with mounting a compatible party member. Sprite swap + speed knob; reuses on-bike logic. | 4 | 4 | Overworld | Palworld |
+| 11 | **Base-building lite** — extend wardrobe NPC into a single-screen plot where the player drops + arranges existing decoration tiles (lamps, plants, rugs). | 3 | 3 | Manage | Palworld |
+| 12 | **Real-time event calendar** — weekly themed event (XP+50% / shiny+200% / berry harvest +2× / catch-rate +25%) driven by the existing date hash. HUD chip + dex-detail tag. | 3 | 2 | Meta | Mobile / GO |
+| 13 | **Personality / affection mini-game** — between-battle Pokémon-Amie-style camp with feed / play / pet inputs; raises friendship faster + cosmetic ribbon. | 3 | 2 | Manage | Mobile / S/V |
+| 14 | **Trainer-card postcard share** — export the trainer + party + dex completion as a base64 share-code; importer applies it as a "spectator profile" in a single PC slot. | 3 | 3 | Meta | Mobile |
+| 15 | **Step-rewards milestone bag** — every 1000 player.steps drops a small reward (potion → great ball → repel rotation). Reuses the daily-bonus toast pipeline. | 3 | 1 | Meta | Mobile |
+| 16 | **Battle Frontier expansion** — Factory / Arena / Palace facilities next to the existing Tower, each with a unique rule (rental teams / judged scoring / random-AI). | 4 | 3 | Meta | PokeRod |
+| 17 | **Per-gym puzzle screens** — small in-gym single-screen puzzle (push-blocks / type-quiz / floor-switches) before the leader battle. | 4 | 3 | World | PokeRod |
+| 18 | **Catching contest event** — opt-in 5-minute timed round on a flagged route; score = sum of caught levels × type-rarity bonus; winner gets a tier ribbon. | 3 | 2 | Catch | PokeRod |
+| 19 | **Player-house decoration** — extends Aunt Lu's room + the wardrobe NPC into a small grid where the player places furniture / posters / a creature bed. | 3 | 2 | Manage | PokeRod |
+| 20 | **Move tutor expansion** — a second tutor NPC in a postgame town with rare-move offers (Earthquake / Stone Edge / Dragon Pulse) priced in achievements rather than money. | 3 | 1 | Manage | PokeRod |
+| 21 | **Underwater dive layer** — second map layer on water tiles via the existing Dive move (TM03 already in catalog). Doubles content on coast / lake maps. | 4 | 4 | Overworld | PokeRod |
+| 22 | **Field skill key-items** — Headbutt / Rock Smash / Cut as key items rather than moves, so they don't occupy a creature's slot. | 3 | 2 | Overworld | PokeRod |
+| 23 | **Apricorn outbreaks** — apricorn-tree decorations refresh daily; one tree per route has 1–2 free apricorns to harvest. | 2 | 1 | Catch | PokeRod |
+| 24 | **Postgame Elite-4 rematch chain** — sequential 4-trainer + champion fight at +10 levels post-NG+, no mid-heal. | 3 | 2 | Meta | ROM hacks |
+| 25 | **Level cap per badge** — Settings toggle: when ON, party members can't gain XP past `(badges + 1) × 12` until the next badge. Mirrors Drayano's rebalance toggle. | 3 | 1 | Meta | ROM hacks |
+| 26 | **PC box search + filter** — extends the existing sort cycle with a type-filter chip row + a 1-char fast-jump-to-letter cursor. | 3 | 2 | Manage | ROM hacks |
+| 27 | **Avatar customisation completion** — turns the wardrobe NPC stub into a real wardrobe: pick body palette + hat + outfit, persist on state.player.outfit. | 4 | 3 | Visual | Mobile |
+| 28 | **Local trade via QR / share-code** — base64-encode a party slot, paste-import elsewhere. Browser-only, no server. | 4 | 4 | Meta | Pokémon — *roadmap-adjacent* |
+| 29 | **Full doubles battles (2v2)** — the player's front two vs the foe's front two, single-target moves pick a side. Tag-battles already proved out the ally-AI plumbing. | 5 | 5 | Battle | Pokémon — *roadmap* |
+| 30 | **Daycare + simple breeding** — leave two compatible creatures, walk N steps, return for an egg that hatches into a baby of one parent's species. No IV/move inheritance to start. | 5 | 5 | Manage | Pokémon — *roadmap* |
+| 31 | **Per-creature skill tree** — earn skill points on level-up; spend to unlock minor passives (+5 ATK, +1 priority on move 1, +20% friendship gain). | 5 | 5 | Battle | Monster Sanctuary — *roadmap* |
+| 32 | **Creature fusion (Cassette Beasts style)** — combine two party members into a one-battle fused form (composite sprite, mixed type, mixed moves). | 5 | 5 | Battle | Cassette Beasts — *roadmap* |
 
 ## Ranked sprint queue
 
@@ -152,53 +214,35 @@ share infrastructure so one PR sets up scaffolding for the next.
 
 | Rank | Value | Imp/Cost | Feature | Note |
 |------|-------|----------|---------|------|
-| 1 | 9 | 5/1 | Battle text speed + skip | Ship first; ~1 day, biggest feel-good |
-| 2 | 8 | 4/1 | Effectiveness preview in battle menu | |
-| 3 | 8 | 4/1 | Encounter rate by weather + time | |
-| 4 | 8 | 4/1 | Move re-learner NPC | |
-| 5 | 8 | 5/2 | Held items per creature | |
-| 6 | 8 | 5/2 | Weather affects battle damage | Pairs with #3 + #5; ship as "battle weather PR" |
-| 7 | 8 | 5/2 | Town map item | |
-| 8 | 8 | 5/2 | Fast travel via Fly | Pairs with #7 |
-| 9 | 8 | 4/2 | Repel item + HUD timer | |
-| 10 | 7 | 3/1 | Nicknames on catch | |
-| 11 | 7 | 3/1 | Random daily creature | |
-| 12 | 7 | 3/1 | Set-mode battles toggle | |
-| 13 | 7 | 3/1 | Cry on encounter / sendout | |
-| 14 | 6 | 4/2 | Achievement / trophy room | |
-| 15 | 6 | 4/2 | Daily login + daily quest | Pairs with #14 (achievement infra) |
-| 16 | 6 | 4/2 | PC box search / filter / sort | |
-| 17 | 6 | 3/1 | Mass release from PC | Pairs with #16 |
-| 18 | 6 | 4/2 | Shiny variants | |
-| 19 | 6 | 4/2 | Battle backgrounds vary by terrain | |
-| 20 | 6 | 4/2 | Ball-throw curve animation | |
-| 21 | 6 | 4/2 | Type-coverage party advisor | |
-| 22 | 6 | 4/2 | Bicycle (movement speed) | |
-| 23 | 6 | 4/2 | Move tutors | |
-| 24 | 5 | 3/1 | Encounter pool widens with badges | |
-| 25 | 5 | 3/2 | Mid-battle item-use animation | |
-| 26 | 5 | 3/2 | EV / IV transparency | |
-| 27 | 5 | 3/2 | Battle replay / log viewer | |
-| 28 | 5 | 3/2 | Konami unlock cheat menu | |
-| 29 | 5 | 4/3 | Berry farming | |
-| 30 | 5 | 4/3 | Photo mode with gallery | |
-| 31 | 5 | 4/3 | NPC day/night schedules | |
-| 32 | 5 | 4/3 | Avatar customisation | |
-| 33 | 5 | 4/3 | Hidden grottos | |
-| 34 | 5 | 4/3 | Music per biome / battle type | |
-| 35 | 5 | 4/3 | Ambient soundscapes | |
-| 36 | 5 | 4/3 | Friendship / affection mechanic | |
-| 37 | 5 | 4/3 | Apricorn / craftable balls | |
-| 38 | 5 | 4/3 | Roaming legendary | |
-| 39 | 5 | 4/3 | New Game+ | |
-| 40 | 5 | 5/3 | Difficulty modes (incl. nuzlocke) | |
-| 41 | 4 | 4/3 | TM items | |
-| 42 | 4 | 3/3 | Cooking / curry from berries | |
-| 43 | 4 | 2/1 | Louder cry for legendaries | |
-| 44 | 3 | 3/2 | Encounter shake — tall grass rustle | |
-| 45 | 4 | 4/4 | Postgame Battle Tower | |
-| 46 | 3 | 4/4 | Local trade via QR / share-code | |
-| 47 | 3 | 5/4 | **Battle abilities** | Largest design surface — write an RFC commit before implementation |
-| 48 | 1 | 5/5 | Doubles battles (2v2) | Multi-PR roadmap item |
-| 49 | 1 | 5/5 | Daycare + breeding (eggs) | Multi-PR roadmap item |
-| 50 | -1 | 5/5 | Creature fusion / per-creature skill tree | Multi-PR roadmap item |
+| 1 | 5 | 3/1 | #4 Push hidden-item count to ~25 | Pure data drop; ship first |
+| 2 | 5 | 3/1 | #15 Step-rewards milestone bag | Reuses daily-bonus toast pipe |
+| 3 | 5 | 3/1 | #20 Move tutor expansion | Reuses existing tutor flow |
+| 4 | 5 | 3/1 | #25 Level cap per badge | Single settings toggle |
+| 5 | 5 | 4/3 | #1 Terastal-style type-swap | Pairs with the existing Power Gem stat-surge |
+| 6 | 5 | 4/3 | #5 Mass outbreaks | Pairs with #4 + #12; reuses daily-species hash + world-map chevron |
+| 7 | 5 | 4/3 | #16 Battle Frontier expansion | Extends Battle Tower; pairs with #24 |
+| 8 | 5 | 4/3 | #17 Per-gym puzzle screens | World-content push; gym data already in place |
+| 9 | 4 | 3/2 | #2 Sandwich / picnic buffs | Extends cooking + encounter-pool filter chain |
+| 10 | 4 | 3/2 | #7 Alpha-size variants | Hooks into makeMon roll + MARKS table |
+| 11 | 4 | 3/2 | #12 Real-time event calendar | Pairs with #5 + #15 |
+| 12 | 4 | 3/2 | #13 Personality affection mini-game | Hooks friendship counter |
+| 13 | 4 | 3/2 | #18 Catching contest event | Reuses encounter + score loops |
+| 14 | 4 | 3/2 | #19 Player-house decoration | Reuses wardrobe NPC + decoration tile atlas |
+| 15 | 4 | 3/2 | #22 Field skill key-items | Reuses key-item bag pocket |
+| 16 | 4 | 3/2 | #24 Postgame Elite-4 rematch | Reuses battle / npcKey infra; pairs with #16 |
+| 17 | 4 | 3/2 | #26 PC box search + filter | Extends shipped sort |
+| 18 | 4 | 4/4 | #3 5-star raid battle | Reuses tag-battle ally + boss-HP UI |
+| 19 | 4 | 4/4 | #8 Overworld no-battle catch | Reuses ball-arc anim |
+| 20 | 4 | 4/4 | #10 Mountable creatures | Reuses bicycle speed knob; pair with surf |
+| 21 | 4 | 4/4 | #21 Underwater dive layer | Significant content; Dive already in TM catalog |
+| 22 | 5 | 4/3 | #27 Avatar customisation | Pairs with #19; wardrobe NPC stub already in player_house |
+| 23 | 4 | 4/4 | #28 Local trade via QR | Browser-only; depends on a save-export helper |
+| 24 | 3 | 3/3 | #6 Agile / strong move toggle | Battle-engine refactor; affects every move pick |
+| 25 | 3 | 3/3 | #11 Base-building lite | Pairs with #19; furniture atlas reuse |
+| 26 | 3 | 3/3 | #14 Trainer-card postcard share | Save-encoder helper; pairs with #28 |
+| 27 | 3 | 2/1 | #23 Apricorn outbreaks | Tiny; pairs with the existing craftsman loop |
+| 28 | 2 | 3/4 | #9 Auto-battle in overworld | Adds an overworld combat sim |
+| 29 | 5 | 5/5 | #29 Full doubles (2v2) | **roadmap** — multi-PR refactor of the battle scene |
+| 30 | 5 | 5/5 | #30 Daycare + breeding | **roadmap** — egg cycle is a new subsystem |
+| 31 | 5 | 5/5 | #31 Per-creature skill tree | **roadmap** — touches stats, level-up, save |
+| 32 | 5 | 5/5 | #32 Creature fusion | **roadmap** — composite sprite system |
