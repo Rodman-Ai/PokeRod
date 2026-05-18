@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.60';
-  const BUILD = '2026.05.15-202';
+  const VERSION = 'v0.55.61';
+  const BUILD = '2026.05.15-205';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -394,7 +394,7 @@
     }
     if (state.mode === 'title') updateTitle();
     else if (state.mode === 'intro') updateIntro(dt);
-    else if (state.mode === 'overworld') { maybeGrantDailyBonus(); maybeArmRematches(); state.world.update(dt); }
+    else if (state.mode === 'overworld') { maybeGrantDailyBonus(); maybeGrantStepReward(); maybeArmRematches(); state.world.update(dt); }
     else if (state.mode === 'battle') state.battle.update(dt);
     else if (state.mode === 'dialog') updateDialog();
     else if (state.mode === 'cutscene') updateCutscene(dt);
@@ -524,6 +524,36 @@
       window.PR_SFX && window.PR_SFX.play('confirm');
       window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
     } catch (_) { /* never block the overworld tick on a bonus issue */ }
+  }
+
+  // Step-reward milestone bag (brainstorm #15). Every 1000 steps the
+  // player gets a rotating gift via the same toast pipeline as the
+  // daily bonus. Flag persists last-grant step so reloads don't
+  // double-grant.
+  const STEP_REWARD_CYCLE = [
+    { id:'potion',     label:'POTION' },
+    { id:'greatball',  label:'GREAT BALL' },
+    { id:'repel',      label:'REPEL' },
+    { id:'revive',     label:'REVIVE' },
+    { id:'lucky_egg',  label:'LUCKY EGG' }
+  ];
+  const STEP_REWARD_INTERVAL = 1000;
+  function maybeGrantStepReward() {
+    try {
+      if (!state.player || !window.PR_ITEMS || !window.PR_ITEMS.add) return;
+      if (!state.flags) state.flags = {};
+      const steps = state.player.steps | 0;
+      const lastAt = state.flags.lastStepRewardAt | 0;
+      if (steps < lastAt + STEP_REWARD_INTERVAL) return;
+      const tier = Math.floor(steps / STEP_REWARD_INTERVAL);
+      const pick = STEP_REWARD_CYCLE[tier % STEP_REWARD_CYCLE.length];
+      if (!window.PR_ITEMS.ITEMS[pick.id]) return;
+      window.PR_ITEMS.add(state, pick.id, 1);
+      state.flags.lastStepRewardAt = tier * STEP_REWARD_INTERVAL;
+      showFlash('STEP REWARD: ' + pick.label);
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      window.PR_SAVE && window.PR_SAVE.save && window.PR_SAVE.save(state);
+    } catch (_) { /* never block the overworld tick */ }
   }
   state.showFlash = showFlash;
 
@@ -859,13 +889,25 @@
     const known = new Set((mon.moves || []).map(m => m.id));
     const seenInList = new Set();
     const candidates = [];
-    for (const entry of (sp.learnset || [])) {
-      const lv = entry[0], mvId = entry[1];
-      if (lv > mon.level) continue;
-      if (known.has(mvId)) continue;
-      if (seenInList.has(mvId)) continue;
-      seenInList.add(mvId);
-      candidates.push({ lv, mvId });
+    // Rare-move tutor (brainstorm #20): if npc.tutor.whitelist is set,
+    // surface ONLY those move IDs regardless of the mon's learnset.
+    const wl = npc && npc.tutor && npc.tutor.whitelist;
+    if (wl && wl.length) {
+      for (const mvId of wl) {
+        if (known.has(mvId)) continue;
+        if (!window.PR_DATA.MOVES[mvId]) continue;
+        seenInList.add(mvId);
+        candidates.push({ lv: 0, mvId });
+      }
+    } else {
+      for (const entry of (sp.learnset || [])) {
+        const lv = entry[0], mvId = entry[1];
+        if (lv > mon.level) continue;
+        if (known.has(mvId)) continue;
+        if (seenInList.has(mvId)) continue;
+        seenInList.add(mvId);
+        candidates.push({ lv, mvId });
+      }
     }
     if (!candidates.length) {
       openDialog([mon.nickname + ' has nothing left to relearn.']);
@@ -1042,6 +1084,76 @@
     openDialog(['Planted one ' + pick.name + '.','Come back after a long walk.']);
   }
 
+  // Per-gym puzzle (brainstorm #17). A 3-question type-effectiveness
+  // quiz; each gym gates on a single puzzle key. Wrong answer applies
+  // a 30-step cooldown via state.flags.gymPuzzleCooldownAt.
+  const GYM_PUZZLES = {
+    wave: [
+      { q:"WAVE asks: what hits WATER hardest?", options:['FIRE','ELECTRIC','ROCK','GRASS'], correct:1 },
+      { q:"...and what does WATER hit hard?",   options:['FIRE','GRASS','STEEL','BUG'],     correct:0 },
+      { q:"What soaks a WATER move?",           options:['FIRE','GRASS','WATER','GROUND'],  correct:2 }
+    ]
+  };
+  function openGymPuzzle(npc, key) {
+    const puzzle = GYM_PUZZLES[key];
+    if (!puzzle || !puzzle.length) {
+      // No puzzle defined - auto-pass so the leader battle proceeds.
+      state.flags.gymPuzzleSolved[key] = true;
+      return;
+    }
+    state.gymQuiz = { npc, key, step: 0 };
+    openDialog([npc.name + ': "Answer me three questions first."'], () => {
+      _gymQuizStep();
+    });
+  }
+  function _gymQuizStep() {
+    const q = state.gymQuiz;
+    if (!q) { state.mode = 'overworld'; return; }
+    const puzzle = GYM_PUZZLES[q.key];
+    const cur = puzzle[q.step];
+    state.dialog = {
+      choice: {
+        prompt: cur.q,
+        options: cur.options.concat(['Forget it.']),
+        cursor: 0,
+        onPick: (idx) => _gymQuizAnswer(idx)
+      }
+    };
+    state.mode = 'choice';
+  }
+  function _gymQuizAnswer(idx) {
+    state.dialog = null;
+    const q = state.gymQuiz;
+    if (!q) { state.mode = 'overworld'; return; }
+    const puzzle = GYM_PUZZLES[q.key];
+    const cur = puzzle[q.step];
+    if (idx === cur.options.length) {
+      // Cancel
+      state.gymQuiz = null;
+      state.mode = 'overworld';
+      return;
+    }
+    if (idx !== cur.correct) {
+      const flags = state.flags || (state.flags = {});
+      flags.gymPuzzleCooldownAt = flags.gymPuzzleCooldownAt || {};
+      flags.gymPuzzleCooldownAt[q.key] = (state.player.steps | 0) + 30;
+      state.gymQuiz = null;
+      openDialog(['Wrong. Walk it off (30 steps) and come back.']);
+      return;
+    }
+    q.step++;
+    if (q.step >= puzzle.length) {
+      const flags = state.flags || (state.flags = {});
+      flags.gymPuzzleSolved = flags.gymPuzzleSolved || {};
+      flags.gymPuzzleSolved[q.key] = true;
+      state.gymQuiz = null;
+      openDialog(['Perfect.', 'Now we battle. Talk to me again.']);
+      if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+      return;
+    }
+    openDialog(['Correct. Next question.'], () => { _gymQuizStep(); });
+  }
+
   function openTowerFlow(npc) {
     const flags = state.flags || (state.flags = {});
     if (npc.tower && npc.tower.requireChampion && !flags.beatChampion) {
@@ -1057,8 +1169,8 @@
     openDialog(greet, () => {
       state.dialog = {
         choice: {
-          prompt: 'Pick a streak.',
-          options: ['5 wins ($2,500)', '10 wins ($7,500)', '15 wins ($20,000)', 'Cancel'],
+          prompt: 'Which challenge?',
+          options: ['TOWER: 5 wins ($2,500)', 'TOWER: 10 wins ($7,500)', 'TOWER: 15 wins ($20,000)', 'ARENA: 6 wins, no heal ($12,000)', 'Cancel'],
           cursor: 0,
           onPick: (idx) => _towerStartStreak(idx, npc)
         }
@@ -1068,14 +1180,19 @@
   }
   function _towerStartStreak(idx, npc) {
     state.dialog = null;
-    if (idx === 3) { state.mode = 'overworld'; return; }
-    const targets = [5, 10, 15];
-    const rewards = [2500, 7500, 20000];
-    const target = targets[idx];
-    const reward = rewards[idx];
+    // Streak menu: 0-2 = TOWER tiers, 3 = ARENA (brainstorm #16), 4 = cancel.
+    if (idx === 4) { state.mode = 'overworld'; return; }
+    const presets = [
+      { facility:'tower', target: 5,  reward: 2500 },
+      { facility:'tower', target:10,  reward: 7500 },
+      { facility:'tower', target:15,  reward:20000 },
+      { facility:'arena', target: 6,  reward:12000 }
+    ];
+    const p = presets[idx];
+    if (!p) { state.mode = 'overworld'; return; }
     const baseLevel = (npc.tower && npc.tower.baseLevel) || 40;
     state.flags = state.flags || {};
-    state.flags.towerActive = { target, streak: 0, baseLevel, reward };
+    state.flags.towerActive = { facility: p.facility, target: p.target, streak: 0, baseLevel, reward: p.reward };
     state.mode = 'overworld';
     _towerStartRound();
   }
@@ -1092,19 +1209,22 @@
   function _towerStartRound() {
     const t = state.flags && state.flags.towerActive;
     if (!t) return;
-    // Auto-heal the player's party between rounds. Items can't be
-    // used inside a tower battle so this is the only restore.
-    for (const m of state.party) {
-      if (!m) continue;
-      m.hp = m.stats.hp;
-      m.status = null;
-      for (const mv of m.moves) mv.pp = mv.ppMax;
+    // Tower auto-heals the party between rounds; Arena (brainstorm
+    // #16) does NOT - HP/PP/status carry over so the streak is real.
+    if (t.facility !== 'arena') {
+      for (const m of state.party) {
+        if (!m) continue;
+        m.hp = m.stats.hp;
+        m.status = null;
+        for (const mv of m.moves) mv.pp = mv.ppMax;
+      }
     }
     const level = t.baseLevel + t.streak;
     const team = _towerBuildOpponent(level);
     const cls = TOWER_CLASSES[t.streak % TOWER_CLASSES.length];
+    const fLabel = t.facility === 'arena' ? 'ARENA' : 'TOWER';
     const fakeNpc = {
-      name: cls + ' (' + (t.streak + 1) + '/' + t.target + ')',
+      name: fLabel + ' ' + cls.split(' ')[0] + ' (' + (t.streak + 1) + '/' + t.target + ')',
       trainer: {
         team: team,
         reward: 0,
@@ -1227,11 +1347,33 @@
   // greeting }.
   function openChefFlow(npc) {
     const c = npc.chef || {};
+    const greet = c.greeting ||
+      (npc.dialog && npc.dialog.length ? [npc.dialog[0]] : ['Bring me ingredients.']);
+    // Multi-recipe chef (brainstorm #2 sandwiches). If chef.recipes is
+    // set, offer a picker of all listed recipes. Falls back to the
+    // original single-recipe path otherwise.
+    const recipes = (c.recipes && c.recipes.length) ? c.recipes : null;
+    if (recipes) {
+      openDialog(greet, () => {
+        state.dialog = {
+          choice: {
+            prompt: 'Which dish?',
+            options: recipes.map(r => {
+              const inDef = window.PR_ITEMS.ITEMS[r.recipe];
+              const outDef = window.PR_ITEMS.ITEMS[r.output];
+              return (outDef ? outDef.name : r.output) + ' (' + r.cost + ' ' + (inDef ? inDef.name : r.recipe) + ')';
+            }).concat(['Cancel']),
+            cursor: 0,
+            onPick: (idx) => _chefPick(idx, recipes)
+          }
+        };
+        state.mode = 'choice';
+      });
+      return;
+    }
     const recipe = c.recipe || 'oranberry';
     const cost = (c.cost | 0) || 3;
     const output = c.output || 'stew';
-    const greet = c.greeting ||
-      (npc.dialog && npc.dialog.length ? [npc.dialog[0]] : ['Bring me ingredients.']);
     const recipeDef = (window.PR_ITEMS && window.PR_ITEMS.ITEMS[recipe]) || null;
     const outDef = (window.PR_ITEMS && window.PR_ITEMS.ITEMS[output]) || null;
     const recipeName = recipeDef ? recipeDef.name : recipe.toUpperCase();
@@ -1265,6 +1407,24 @@
       };
       state.mode = 'choice';
     });
+  }
+  function _chefPick(idx, recipes) {
+    state.dialog = null;
+    if (idx >= recipes.length) { state.mode = 'overworld'; return; }
+    const r = recipes[idx];
+    const have = (state.player.bag && state.player.bag[r.recipe]) || 0;
+    if (have < r.cost) {
+      const inDef = window.PR_ITEMS.ITEMS[r.recipe];
+      openDialog(["You need " + r.cost + ' ' + (inDef ? inDef.name : r.recipe) + '.']);
+      return;
+    }
+    window.PR_ITEMS.take(state, r.recipe, r.cost);
+    window.PR_ITEMS.add(state, r.output, 1);
+    window.PR_SFX && window.PR_SFX.play('confirm');
+    const outDef = window.PR_ITEMS.ITEMS[r.output];
+    showFlash('Got 1 ' + (outDef ? outDef.name : r.output) + '!');
+    if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+    state.mode = 'overworld';
   }
 
   // Branching choice render: prompt + 2-4 options. The dialog box itself
@@ -1308,6 +1468,7 @@
     startFishing,
     showFlash,
     currentPhase: currentPhaseName,
+    currentOutbreak,
     // Title-screen actions for the interactive DS bottom-screen panel.
     // Mirror the top-screen DOM buttons (game.js:178-179) exactly,
     // including the audio-unlock step + the NG+ prompt.
@@ -1750,7 +1911,63 @@
       }
     }
     if (!list) list = map.encounters || [];
-    return applyLureBias(widenByBadges(filterEncountersByWeather(filterEncountersByTime(list))));
+    return applySandwichBias(applyOutbreakBias(applyLureBias(widenByBadges(filterEncountersByWeather(filterEncountersByTime(list)))))) ;
+  }
+
+  // Sandwich-buff encounter bias (brainstorm #2). Active type sandwich
+  // multiplies matching-type entries; rare sandwich multiplies
+  // weight<=2 entries. Shiny sandwich is handled separately at spawn.
+  function applySandwichBias(list) {
+    if (!list || !list.length) return list;
+    const sb = state.player && state.player.sandwichBuff;
+    if (!sb) return list;
+    const steps = (state.player.steps | 0);
+    if (steps >= (sb.expiresAt | 0)) return list;
+    if (sb.kind !== 'type' && sb.kind !== 'rare') return list;
+    const mult = sb.mult || 2;
+    const D = window.PR_DATA && window.PR_DATA.CREATURES;
+    return list.map((e) => {
+      if (!e) return e;
+      if (sb.kind === 'rare' && (e.weight | 0) <= 2) {
+        return Object.assign({}, e, { weight: Math.max(1, Math.round((e.weight || 1) * mult)) });
+      }
+      if (sb.kind === 'type' && D && D[e.species] && D[e.species].types &&
+          D[e.species].types.indexOf(sb.type) !== -1) {
+        return Object.assign({}, e, { weight: Math.max(1, Math.round((e.weight || 1) * mult)) });
+      }
+      return e;
+    });
+  }
+
+  // Mass outbreaks (brainstorm #5). Daily-rotating (species, map) pair
+  // computed from the date hash. When the player is on the outbreak's
+  // map, that species' weight quadruples in the encounter pool.
+  const OUTBREAK_ROUTES = [
+    { map:'route1',     species:'nibblet' },
+    { map:'route2',     species:'cinderpup' },
+    { map:'route3',     species:'crawlbug' },
+    { map:'woodfall',   species:'fernsprout' },
+    { map:'pebblewood', species:'dewfae' },
+    { map:'crestrock',  species:'frostnip' },
+    { map:'frostmere',  species:'frostpup' },
+    { map:'mountain',   species:'crysthorn' },
+    { map:'glimcavern', species:'geistmite' },
+    { map:'brindale',   species:'flitwing' }
+  ];
+  function currentOutbreak() {
+    const dayNum = Math.floor(Date.now() / 86400000);
+    return OUTBREAK_ROUTES[dayNum % OUTBREAK_ROUTES.length];
+  }
+  function applyOutbreakBias(list) {
+    if (!list || !list.length) return list;
+    const ob = currentOutbreak();
+    if (!ob) return list;
+    const m = state.world && state.world.currentMap && state.world.currentMap();
+    if (!m || m.id !== ob.map) return list;
+    return list.map((e) => {
+      if (!e || e.species !== ob.species) return e;
+      return Object.assign({}, e, { weight: Math.max(1, Math.round((e.weight || 1) * 4)) });
+    });
   }
 
   // Bait lure bias (brainstorm #30). When state.player.lureType is set,
@@ -1883,7 +2100,14 @@
       if (combo && combo.species === species && combo.count > 0) {
         comboMult = 1 + Math.min(4, Math.floor(combo.count / 5));
       }
-      const shinyMult = charmMult * comboMult;
+      // Sandwich shiny buff (brainstorm #2): active shiny sandwich
+      // doubles odds for the buff window.
+      let sandwichShinyMult = 1;
+      const sb = state.player.sandwichBuff;
+      if (sb && sb.kind === 'shiny' && (state.player.steps | 0) < (sb.expiresAt | 0)) {
+        sandwichShinyMult = sb.mult || 2;
+      }
+      const shinyMult = charmMult * comboMult * sandwichShinyMult;
       const wild = window.PR_DATA.makeMon(species, level, { shinyMult });
       step = 'construct-battle';
       state.battle = new window.PR_BATTLE.Battle(state, { wild });
@@ -2118,6 +2342,25 @@
         }
         openDialog(npc.trainer.defeat || ['You already beat me!']);
         return;
+      }
+      // Per-gym puzzle (brainstorm #17): if the leader has a puzzle
+      // tag and it isn't solved, run the quiz first. Solving sets a
+      // flag and the leader battle proceeds the next time.
+      if (npc.gymPuzzle) {
+        const flags = state.flags = state.flags || {};
+        flags.gymPuzzleSolved = flags.gymPuzzleSolved || {};
+        const puzzleKey = npc.gymPuzzle;
+        const cool = (flags.gymPuzzleCooldownAt && flags.gymPuzzleCooldownAt[puzzleKey]) | 0;
+        const steps = (state.player.steps | 0);
+        if (!flags.gymPuzzleSolved[puzzleKey]) {
+          if (cool && steps < cool) {
+            const left = cool - steps;
+            openDialog(['Take ' + left + ' more steps and clear your head.', 'Then try again.']);
+            return;
+          }
+          openGymPuzzle(npc, puzzleKey);
+          return;
+        }
       }
       // Gym requirement gating.
       if (npc.gym && npc.gymRequirement) {
@@ -2829,6 +3072,7 @@
     textSpeed: 'normal', // slow | normal | fast
     difficulty: 'normal', // easy | normal | hard
     battleStyle: 'set',  // set | shift - shift lets you free-swap after a foe KO
+    levelCap: false,     // brainstorm #25: cap XP gain at (badges+1)*12
     reducedMotion: false,
     colorblind: false,
     dayNightCycle: true,
@@ -2923,6 +3167,7 @@
     { key:'textSpeed',     label:'TEXT SPEED',     type:'enum', steps:TEXT_SPEED_STEPS },
     { key:'difficulty',    label:'DIFFICULTY',     type:'enum', steps:DIFFICULTY_STEPS },
     { key:'battleStyle',   label:'BATTLE STYLE',   type:'enum', steps:BATTLE_STYLE_STEPS },
+    { key:'levelCap',      label:'LEVEL CAP',      type:'bool' },
     { key:'reducedMotion', label:'REDUCED MOTION', type:'bool' },
     { key:'colorblind',    label:'COLOR-BLIND',    type:'bool' },
     { key:'dayNightCycle', label:'DAY/NIGHT',      type:'bool' },
@@ -3472,6 +3717,24 @@
       if (def.kind === 'repel') {
         state.player.repelSteps = (state.player.repelSteps || 0) + (def.steps || 100);
         state.player.repelKind = def.id;
+        window.PR_ITEMS.take(state, it.id, 1);
+        window.PR_SFX && window.PR_SFX.play('confirm');
+        showFlash(def.name + ' active!');
+        state.bagView = null;
+        state.mode = 'overworld';
+        if (window.PR_SAVE && window.PR_SAVE.save) window.PR_SAVE.save(state);
+        return;
+      }
+      // Sandwich buff (brainstorm #2): apply a 60-step encounter buff.
+      // Replaces any active sandwich (only one slot at a time).
+      if (def.kind === 'sandwich') {
+        const steps = (state.player.steps | 0);
+        state.player.sandwichBuff = {
+          kind: def.buff,
+          type: def.buffType || null,
+          mult: def.buffMult || 2,
+          expiresAt: steps + (def.buffSteps || 60)
+        };
         window.PR_ITEMS.take(state, it.id, 1);
         window.PR_SFX && window.PR_SFX.play('confirm');
         showFlash(def.name + ' active!');
@@ -4742,6 +5005,16 @@
         window.PR_UI.drawText(ctx, tag, x + 8, y + h - 25,
           active.status === 'ready' ? '#f0c020' : '#a8d8f0');
       }
+    }
+    // Mass outbreak marker (brainstorm #5): label the daily outbreak
+    // route + species at the top of the map so the player can hunt.
+    const ob = currentOutbreak();
+    if (ob) {
+      const obTag = 'OUTBREAK: ' + (ob.species || '').toUpperCase() + ' @ ' + (ob.map || '').toUpperCase();
+      const otw = Math.min(w - 12, window.PR_UI.textWidth(obTag) + 6);
+      ctx.fillStyle = 'rgba(20,12,4,0.78)';
+      ctx.fillRect(x + 6, y + h - 39, otw, 10);
+      window.PR_UI.drawText(ctx, obTag, x + 8, y + h - 38, '#f0c860');
     }
 
     const sel = WORLD_NODES[state.map.idx];

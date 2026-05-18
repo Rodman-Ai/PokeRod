@@ -93,6 +93,28 @@
       fill:'#1a0204', border:'#d88820', text:'#f0d8a0'
     });
   }
+  // Sandwich-buff chip (brainstorm #2): active food buff with steps
+  // remaining. Mirrors the lure chip slot.
+  function drawSandwichChip(ctx, viewW, buff, stepsLeft) {
+    const labelKind = buff.kind === 'type' ? (buff.type || 'TYPE') :
+                      buff.kind === 'shiny' ? 'SHINY' : 'RARE';
+    const text = labelKind + ' SAND ' + stepsLeft;
+    const w = Math.max(18, window.PR_UI.textWidth(text) + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 18, text, {
+      fill:'#1a0204', border:'#d8a830', text:'#fff8c8'
+    });
+  }
+  // Mass-outbreak chip (brainstorm #5): top-center notice when the
+  // player is on today's outbreak route.
+  function drawOutbreakChip(ctx, viewW, species) {
+    const text = 'OUTBREAK ' + (species || '').toUpperCase().slice(0, 8);
+    const w = Math.max(18, window.PR_UI.textWidth(text) + 8);
+    const x = (viewW - w) / 2 | 0;
+    window.PR_UI.chip(ctx, x, 32, text, {
+      fill:'#1a0204', border:'#f0c020', text:'#f0e088'
+    });
+  }
   // Catch-combo chip (idea #6): shows the current chain length while
   // it's non-zero, so the player can see their shiny-hunt streak.
   function drawComboChip(ctx, viewW, combo) {
@@ -3222,10 +3244,18 @@
     // permanent clutter. Drawn after the clock so it appears below.
     if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, this.player.repelSteps);
     if ((this.player.lureSteps | 0) > 0) drawLureChip(ctx, VIEW_W, this.player.lureType, this.player.lureSteps);
+    const sb = this.player.sandwichBuff;
+    if (sb && (sb.expiresAt | 0) > (this.player.steps | 0)) {
+      drawSandwichChip(ctx, VIEW_W, sb, (sb.expiresAt | 0) - (this.player.steps | 0));
+    }
     if (this.player.onBike) drawBikeChip(ctx, VIEW_W);
     else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) drawRunChip(ctx, VIEW_W);
     const combo = this.player.catchCombo;
     if (combo && combo.count > 0) drawComboChip(ctx, VIEW_W, combo);
+    // Outbreak chip (brainstorm #5): only when standing on today's
+    // outbreak map.
+    const ob = window.PR_GAME && window.PR_GAME.currentOutbreak && window.PR_GAME.currentOutbreak();
+    if (ob && cur && cur.id === ob.map) drawOutbreakChip(ctx, VIEW_W, ob.species);
 
     // Map name banner on entry.
     if (this.justEntered) {

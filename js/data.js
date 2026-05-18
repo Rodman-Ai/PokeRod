@@ -143,7 +143,8 @@ const MARKS = {
   sparker:     { name:'Sparker',     title:'the Chain Spark', desc:'Caught mid-chain.' },
   rookie:      { name:'Rookie',      title:'the Rookie',      desc:'Caught at a tender level.' },
   veteran:     { name:'Veteran',     title:'the Veteran',     desc:'Caught at a hardy level.' },
-  shimmer:     { name:'Shimmer',     title:'the Shimmer',     desc:'Caught while shiny.' }
+  shimmer:     { name:'Shimmer',     title:'the Shimmer',     desc:'Caught while shiny.' },
+  alpha:       { name:'Alpha',       title:'the Alpha',       desc:'Caught as a rare large Alpha.' }
 };
 function markOf(markId) { return markId && MARKS[markId] ? MARKS[markId] : null; }
 
@@ -993,6 +994,11 @@ function makeMon(speciesId, level, opts) {
   // if the species has a hidden variant. opts.hidden forces it.
   const hiddenAbility = !!(opts && opts.hidden) ||
     (HIDDEN_ABILITIES[speciesId] && Math.random() < 1/8);
+  // Alpha variant (brainstorm #7): 1/30 chance to spawn as an Alpha -
+  // larger sprite, +1 stat-stage in ATK + SPA at spawn, auto-marks.
+  const alpha = !!(opts && opts.alpha) || (Math.random() < 1/30);
+  const startStages = { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 };
+  if (alpha) { startStages.atk = 1; startStages.spa = 1; }
   return {
     species: speciesId,
     nickname: (opts && opts.nickname) || sp.name,
@@ -1006,8 +1012,9 @@ function makeMon(speciesId, level, opts) {
     status: null,
     sleepTurns: 0,
     confusionTurns: 0,
-    statStages: { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 },
+    statStages: startStages,
     hiddenAbility,
+    alpha,
     // Classic genre flex - 1/512 chance to roll shiny (PokeRod-tuned;
     // mainline is 1/4096 but we want the sparkle to actually show up
     // in a normal playthrough). opts.shiny can force it (story/debug).
@@ -1115,8 +1122,12 @@ function calcDamage(attacker, defender, move, isCrit) {
   }
   const A = move.kind === 'physical' ? attacker.stats.atk : attacker.stats.spa;
   const D = move.kind === 'physical' ? defender.stats.def : defender.stats.spd;
-  const stab = (CREATURES[attacker.species].types.includes(move.type)) ? 1.5 : 1;
-  const eff = effectiveness(move.type, CREATURES[defender.species].types);
+  // Terastal type-swap (brainstorm #1): a mon with teraType set
+  // collapses its effective types to [teraType] for STAB + defence.
+  const aTypes = attacker.teraType ? [attacker.teraType] : CREATURES[attacker.species].types;
+  const dTypes = defender.teraType ? [defender.teraType] : CREATURES[defender.species].types;
+  const stab = (aTypes.includes(move.type)) ? 1.5 : 1;
+  const eff = effectiveness(move.type, dTypes);
   // Type immunity short-circuit: 0 damage means 0 damage, not 1.
   if (eff === 0) return { dmg: 0, eff: 0, stab, crit: isCrit };
   const crit = isCrit ? 1.5 : 1;
