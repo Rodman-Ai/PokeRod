@@ -655,7 +655,7 @@ const MAPS = {
       'TTTT.TTT'
     ],
     npcs: [
-      { x:5, y:2, dir:'down', sprite:'npc_carver', name:'',
+      { x:5, y:2, dir:'down', sprite:'npc_artist', name:'',
         dialog:["Soft light. The grass barely moves.","Something curious lives here."] }
     ],
     signs: {},
@@ -663,7 +663,7 @@ const MAPS = {
       { species:'dreamilly', minL:7, maxL:10, weight:5 }
     ],
     doors: {
-      '4,7': { to:'route2', x:7, y:18 }
+      '4,7': { to:'route2', x:6, y:17 }
     }
   },
 
@@ -685,7 +685,7 @@ const MAPS = {
       { species:'shadefox', minL:13, maxL:16, weight:5 }
     ],
     doors: {
-      '4,7': { to:'crestrock', x:5, y:7 }
+      '4,7': { to:'crestrock', x:7, y:7 }
     }
   },
 
@@ -755,7 +755,7 @@ const MAPS = {
     },
     hiddenItems: {
       '12,9': 'apricorn',
-      '4,12':  'potion'
+      '7,10':  'potion'
     },
     encounters: [
       { species:'nibblet',     minL:2, maxL:4, weight:5 },
@@ -825,7 +825,7 @@ const MAPS = {
     },
     hiddenItems: {
       '15,12': 'apricorn',
-      '3,16':  'potion'
+      '6,11':  'potion'
     },
     doors: {
       '5,5':  { to:'pokecenter',   x:4, y:6 },
@@ -1005,11 +1005,11 @@ const MAPS = {
     // Hidden grotto (idea #22) - inconspicuous step in the south-west
     // tall-grass pocket transitions into a quiet mossy room.
     doors: {
-      '7,18': { to:'route2_grotto', x:4, y:6 }
+      '6,17': { to:'route2_grotto', x:4, y:6 }
     },
     hiddenItems: {
-      '20,6': 'apricorn',
-      '8,20':  'oranberry'
+      '20,5': 'apricorn',
+      '9,20':  'oranberry'
     },
     encounters: [
       { species:'flitwing',    minL:4, maxL:7, weight:4 },
@@ -1068,7 +1068,7 @@ const MAPS = {
     },
     hiddenItems: {
       '17,12': 'apricorn',
-      '4,15':  'oranberry'
+      '4,16':  'oranberry'
     },
     doors: {
       '5,5':  { to:'woodfall_center', x:4, y:6 },
@@ -1220,7 +1220,7 @@ const MAPS = {
       '13,6': { to:'hidden_grotto', x:3, y:6 }
     },
     hiddenItems: {
-      '5,11':  'apricorn',
+      '6,11':  'apricorn',
       '21,18': 'oranberry',
       '11,22': 'revive'
     },
@@ -1275,12 +1275,12 @@ const MAPS = {
       '10,12':{ to:'crestrock_gym',    x:4, y:7 },
       // Hidden grotto (idea #22) - a step into the side alley
       // transitions into a quiet snowmelt-fed hollow.
-      '5,7':  { to:'crestrock_grotto', x:4, y:7 }
+      '7,7':  { to:'crestrock_grotto', x:4, y:7 }
     },
     hiddenItems: {
-      '17,3':  'apricorn',
+      '15,0':  'apricorn',
       '3,15':  'rodball',
-      '15,15': 'potion'
+      '10,20': 'potion'
     },
     edges: {
       north: { y:0,  to:'pebblewood', tx:18, ty:26 },
@@ -1422,8 +1422,8 @@ const MAPS = {
       '29,6': { to:'glimcavern_b1', x:10, y:1 }
     },
     hiddenItems: {
-      '12,8':  'revive',
-      '24,13': 'apricorn'
+      '14,4':  'revive',
+      '23,12': 'apricorn'
     },
     edges: {
       north: { y:0,  to:'crestrock', tx:7, ty:6 },
@@ -1510,9 +1510,9 @@ const MAPS = {
       '3,8': "FROSTMERE TOWN - The lake never thaws."
     },
     hiddenItems: {
-      '17,3':  'apricorn',
-      '12,17': 'oranberry',
-      '5,21':  'potion'
+      '17,1':  'apricorn',
+      '10,15': 'oranberry',
+      '7,17':  'potion'
     },
     doors: {
       '5,5':  { to:'frostmere_center', x:4, y:6 },
@@ -2093,8 +2093,8 @@ desert: {
       { species:'clawmonk',  minL:16, maxL:20, weight:2 }
     ],
     hiddenItems: {
-      '6,8':   'revive',
-      '14,4':  'apricorn',
+      '5,12':  'revive',
+      '12,6':  'apricorn',
       '20,15': 'rodball'
     },
     edges: {
@@ -2378,7 +2378,7 @@ function applyWorldExpansion(MAPS) {
     ],
     decorations:[
       // LIGHTHOUSE LANDMARK at the east edge of the pier (3 tiles tall).
-      { x:36, y:21, key:'lighthouse_top' },
+      { x:35, y:20, key:'lighthouse_top' },
       { x:36, y:22, key:'lighthouse_tower' },
       { x:36, y:23, key:'lighthouse_base' },
       // Anchor + barrel cluster at the dock entrance.
@@ -2388,7 +2388,7 @@ function applyWorldExpansion(MAPS) {
       { x:30, y:11, key:'streetlamp_ornate_double' },
       // Lab plaza decor.
       { x:21, y:14, key:'planter_flowerbed_oval' },
-      { x:28, y:14, key:'planter_flowerbed_oval' },
+      { x:27, y:13, key:'planter_flowerbed_oval' },
       { x:22, y:16, key:'bench_park_brown' },
       { x:27, y:16, key:'bench_park_brown' },
       { x:24, y:14, key:'water_fountain_round' },
@@ -2649,7 +2649,7 @@ function applyWorldExpansion(MAPS) {
       { x:21, y:17, key:'ancient_oak_bot' },
       // Paper lanterns along the curved path.
       { x:14, y:14, key:'lamp_paper_lantern' },
-      { x:28, y:14, key:'lamp_paper_lantern' },
+      { x:28, y:13, key:'lamp_paper_lantern' },
       { x:18, y:21, key:'lamp_paper_lantern' },
       { x:26, y:21, key:'lamp_paper_lantern' },
       // Log benches near the oak.
@@ -2660,7 +2660,7 @@ function applyWorldExpansion(MAPS) {
       { x:23, y:19, key:'planter_zen_stone' },
       // Forest pots and lilies.
       { x:11, y:13, key:'pot_succulent_small' },
-      { x:31, y:13, key:'pot_succulent_small' },
+      { x:29, y:11, key:'pot_succulent_small' },
       { x:11, y:21, key:'pot_tall_lily' },
       { x:31, y:21, key:'pot_tall_lily' },
       // South-end log bench under the gym wall.
@@ -2794,7 +2794,7 @@ function applyWorldExpansion(MAPS) {
       { x:21, y:19, key:'pot_terracotta_red' },
       { x:23, y:19, key:'pot_terracotta_red' },
       // Industrial dumpster + bins near the workshop yard.
-      { x:30, y:14, key:'trash_dumpster' },
+      { x:31, y:13, key:'trash_dumpster' },
       { x:38, y:11, key:'trash_grey_lid' },
       // Raised wooden planters on the lower terrace.
       { x:14, y:21, key:'planter_raised_wood' },
@@ -2898,7 +2898,7 @@ function applyWorldExpansion(MAPS) {
         dialog:["My SCARF is older than half this town."] },
       { x:39, y:17, dir:'left',  sprite:'npc_baker',        name:'BAKER FYR', wander:{ range:1 }, dayOnly:true,
         dialog:["Cinnamon buns! Just out of the stove!"] },
-      { x:30, y:24, dir:'down',  sprite:'npc_carver',       name:'BALL-MAKER YORI', wander:{ range:1 },
+      { x:30, y:24, dir:'down',  sprite:'npc_artist',       name:'BALL-MAKER YORI', wander:{ range:1 },
         craft:{ cost:3, greeting:["Got APRICORNS?","I carve them into balls. Each ball needs three."] },
         dialog:["Bring me APRICORNS and I'll shape them."] },
       { x:33, y:24, dir:'left',  sprite:'npc_artist',       name:'MASTER TUTOR HENO', wander:{ range:1 },
@@ -2911,7 +2911,7 @@ function applyWorldExpansion(MAPS) {
       { x:28, y:25, key:'ice_sculpture' },
       // Paper lanterns lining the dry edges (not in the lake).
       { x:18, y:18, key:'lamp_paper_lantern' },
-      { x:18, y:27, key:'lamp_paper_lantern' },
+      { x:17, y:28, key:'lamp_paper_lantern' },
       // Lanterns at the inn plaza.
       { x:31, y:13, key:'lamp_paper_lantern' },
       { x:38, y:13, key:'lamp_paper_lantern' },
@@ -2928,13 +2928,13 @@ function applyWorldExpansion(MAPS) {
       { x:31, y:15, key:'pot_marble_white' },
       { x:38, y:15, key:'pot_marble_white' },
       // Lily pots at the south plaza corners.
-      { x:25, y:30, key:'pot_tall_lily' },
-      { x:31, y:30, key:'pot_tall_lily' },
+      { x:23, y:28, key:'pot_tall_lily' },
+      { x:31, y:29, key:'pot_tall_lily' },
       // Raised wooden planters along the gym plaza edge.
       { x:24, y:24, key:'planter_raised_wood' },
       { x:32, y:24, key:'planter_raised_wood' },
       // Bins.
-      { x:11, y:13, key:'trash_grey_lid' },
+      { x:10, y:12, key:'trash_grey_lid' },
       { x:38, y:11, key:'trash_grey_lid' }
     ],
     ambient:[
@@ -3067,7 +3067,7 @@ function applyWorldExpansion(MAPS) {
       { x:8,  y:17, key:'bench_picnic_red' },
       { x:23, y:18, key:'bench_picnic_red' },
       // Herb-box planters at building corners.
-      { x:13, y:5,  key:'planter_herb_box' },
+      { x:13, y:2,  key:'planter_herb_box' },
       { x:32, y:5,  key:'planter_herb_box' },
       // Ceramic pots in the upper plaza.
       { x:11, y:12, key:'pot_ceramic_blue' },
@@ -3075,8 +3075,8 @@ function applyWorldExpansion(MAPS) {
       // Raised wooden planters at fish market.
       { x:16, y:25, key:'planter_raised_wood' },
       // Bins.
-      { x:13, y:14, key:'trash_dumpster' },
-      { x:23, y:14, key:'trash_blue_recycle' },
+      { x:11, y:12, key:'trash_dumpster' },
+      { x:22, y:13, key:'trash_blue_recycle' },
       // Bus stop near the upper plaza.
       { x:9,  y:11, key:'bus_stop_sign' }
     ],
@@ -3227,7 +3227,7 @@ function applyWorldExpansion(MAPS) {
       { x:32, y:21, key:'planter_hedge_round' },
       // Bins.
       { x:11, y:14, key:'trash_grey_lid' },
-      { x:32, y:14, key:'trash_grey_lid' }
+      { x:31, y:13, key:'trash_grey_lid' }
     ],
     ambient:[
       { species:'emberkit', x:11, y:15, range:2 },

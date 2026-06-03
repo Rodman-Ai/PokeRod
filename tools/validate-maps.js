@@ -73,6 +73,26 @@ function isWalkable(map, x, y) {
   return !!props && (props.walk === true || props.walk === 'south' || props.edge);
 }
 
+// Tree-tile chars whose name is one of the canopy types. A decoration
+// landing on any of these reads as "stuck inside a tree" - that's the
+// concrete bug this validator now catches.
+const TREE_TILES = (function() {
+  const out = new Set();
+  for (const ch of Object.keys(TILE_PROPS)) {
+    const name = TILE_PROPS[ch] && TILE_PROPS[ch].name;
+    if (!name) continue;
+    if (name === 'tree' || name === 'oak' || name === 'palm' ||
+        name === 'cherry' || name === 'deadtree' || name === 'snowypine' ||
+        name === 'birch' || name === 'mushroomtree' || name === 'willow' ||
+        name === 'autumntree' || name === 'ancienttree') out.add(ch);
+  }
+  return out;
+})();
+function isOnTree(map, x, y) {
+  if (!inBounds(map, x, y)) return false;
+  return TREE_TILES.has(tileAt(map, x, y));
+}
+
 function validateEncounterList(mapId, label, list) {
   if (!Array.isArray(list)) return;
   for (const e of list) {
@@ -213,6 +233,30 @@ for (const [id, map] of Object.entries(MAPS)) {
       const itemId = map.hidden[key] && map.hidden[key].item;
       if (!itemId || !window.PR_ITEMS.ITEMS[itemId]) fail(`${id}: hidden item ${key} references unknown item ${itemId}`);
       anchors.push([x, y]);
+    }
+  }
+  // hiddenItems is the newer single-string pickup dict (drop 4): an
+  // 'x,y' key maps directly to an item id. Same checks as hidden.
+  if (map.hiddenItems) {
+    for (const key of Object.keys(map.hiddenItems)) {
+      const [x, y] = key.split(',').map(Number);
+      if (!inBounds(map, x, y)) fail(`${id}: hiddenItems ${key} out of bounds`);
+      else if (!isWalkable(map, x, y)) fail(`${id}: hiddenItems ${key} is not walkable`);
+      const itemId = map.hiddenItems[key];
+      if (!itemId || !window.PR_ITEMS.ITEMS[itemId]) fail(`${id}: hiddenItems ${key} references unknown item ${itemId}`);
+      anchors.push([x, y]);
+    }
+  }
+  // Decorations sitting on tree tiles read as "stuck inside the
+  // foliage" - the bug class that prompted this check.
+  if (map.decorations) {
+    for (const d of map.decorations) {
+      if (!d || typeof d.x !== 'number' || typeof d.y !== 'number') continue;
+      if (!inBounds(map, d.x, d.y)) {
+        fail(`${id}: decoration ${d.key || '?'} out of bounds at ${d.x},${d.y}`);
+      } else if (isOnTree(map, d.x, d.y)) {
+        fail(`${id}: decoration ${d.key || '?'} sits on a tree tile at ${d.x},${d.y}`);
+      }
     }
   }
   validateEncounterList(id, 'encounters', map.encounters);
