@@ -387,6 +387,13 @@
       kind:'held_gear', icon:'charm', color:'#a020a0', accent:'#f0c8ff',
       holdable:true, powerGem:true, price:6000
     },
+    tera_orb: {
+      id:'tera_orb', name:'TERA ORB',
+      desc:'Press T in FIGHT to swap the holder to a chosen type. Once per battle.',
+      detail:'A prismatic orb that locks the holder into a single chosen type for the rest of the battle. Stacks with Power Gem.',
+      kind:'held_gear', icon:'charm', color:'#3088c8', accent:'#fff8e0',
+      holdable:true, teraOrb:true, price:7500
+    },
     shinycharm: {
       id:'shinycharm', name:'SHINY CHARM',
       desc:'Doubles wild shiny odds. Granted at full Pokedex.',
@@ -469,6 +476,29 @@
       detail:'A reusable disc that imprints the HYPER BEAM move on any creature with a free slot.',
       kind:'tm', icon:'charm', color:'#c83838', accent:'#f0c020',
       teaches:'hyperbeam', tmNum:5, reusable:true, price:7000
+    },
+    // ---- Sandwich buffs (brainstorm #2) ----
+    // Use from bag to apply a temporary encounter / shiny buff.
+    shiny_sandwich: {
+      id:'shiny_sandwich', name:'SHINY SANDWICH',
+      desc:'Doubles shiny encounter odds for 60 steps.',
+      detail:'A glittery picnic sandwich. Eat in the field for a temporary shiny-luck boost.',
+      kind:'sandwich', icon:'bottle', color:'#d8a830', accent:'#fff8c8',
+      buff:'shiny', buffMult:2, buffSteps:60, price:1800
+    },
+    bug_sandwich: {
+      id:'bug_sandwich', name:'BUG SANDWICH',
+      desc:'Doubles BUG-type encounters for 60 steps.',
+      detail:'Crunchy herb wrap that bug-types love. Biases encounters toward BUGs.',
+      kind:'sandwich', icon:'bottle', color:'#88a838', accent:'#e8f0a0',
+      buff:'type', buffType:'BUG', buffMult:2, buffSteps:60, price:900
+    },
+    rare_sandwich: {
+      id:'rare_sandwich', name:'RARE SANDWICH',
+      desc:'Doubles rare-mon weights for 60 steps.',
+      detail:'A truffle-stuffed wrap. Weighted-low spawns get a serious bump.',
+      kind:'sandwich', icon:'bottle', color:'#984848', accent:'#f0c8a0',
+      buff:'rare', buffMult:2, buffSteps:60, price:2200
     },
     // ---- Bait lures (brainstorm #30) ----
     // Each biases the wild-encounter pool toward its tagged type for
@@ -830,7 +860,7 @@
     { tier:3, items:['sitrusberry','charcoal','mystic_water','miracle_seed','magnet','soft_sand','heavy_ball','dusk_ball','bait_bug','bait_water','bait_fire'] },
     { tier:4, items:['hyperpotion','revive','pechaberry','scholars_glasses','lucky_egg','focus_sash','friend_ball','wide_lens','firestone','thunderstone','icestone','leafstone','moonstone','apricorn'] },
     { tier:5, items:['ultraball','fullheal','leftovers','quick_claw','expert_belt','eviolite','choice_band','tm_thunderclap','tm_icebeam'] },
-    { tier:6, items:['maxpotion','masters_pendant','tm_solarbeam','tm_earthquake','power_gem'] },
+    { tier:6, items:['maxpotion','masters_pendant','tm_solarbeam','tm_earthquake','power_gem','tera_orb'] },
     { tier:7, items:['maxrevive','tm_hyperbeam'] }
   ];
 

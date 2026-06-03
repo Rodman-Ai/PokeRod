@@ -593,8 +593,15 @@ const MAPS = {
     npcs: [
       { x:5, y:2, dir:'down', sprite:'npc_mom', name:'MOM',
         dialog:["Don't forget to save before bed, dear!","Adventures are tiring - rest when you can."],
-        chef:{ recipe:'oranberry', cost:3, output:'stew',
-               greeting:["MOM is at the stove.","Bring 3 ORAN BERRIES and I'll make you STEW."] } },
+        chef:{
+          greeting:["MOM is at the stove.","I can make a few things if you have the right berries."],
+          recipes:[
+            { recipe:'oranberry',   cost:3, output:'stew'           },
+            { recipe:'oranberry',   cost:5, output:'shiny_sandwich' },
+            { recipe:'sitrusberry', cost:3, output:'bug_sandwich'   },
+            { recipe:'sitrusberry', cost:5, output:'rare_sandwich'  }
+          ]
+        } },
       { x:1, y:5, dir:'right', sprite:'npc_kid_girl', name:'NIECE LIA', wander:{ range:1 },
         dialog:["You have so many shoes! Are they all for hiking?"] },
       { x:5, y:5, dir:'left', sprite:'npc_old_woman', name:'AUNT LU', wander:{ range:1 },
@@ -816,6 +823,10 @@ const MAPS = {
     signs: {
       '3,12': "BRINDALE TOWN - Gateway to the highlands."
     },
+    hiddenItems: {
+      '15,12': 'apricorn',
+      '3,16':  'potion'
+    },
     doors: {
       '5,5':  { to:'pokecenter',   x:4, y:6 },
       '12,5': { to:'mart',         x:5, y:9 },
@@ -844,7 +855,7 @@ const MAPS = {
     ],
     npcs: [
       { x:4, y:4, dir:'down', sprite:'npc_old', name:'GYM LEADER WAVE',
-        gym:true, badge:'WAVE',
+        gym:true, badge:'WAVE', gymPuzzle:'wave',
         dialog:["I am WAVE, leader of the BRINDALE GYM.","Show me you are ready and we shall battle!"],
         trainer:{ team:[['mistfin',12],['aquapup',13]], reward:600,
                   defeat:["A fine showing! Take this WAVE BADGE."] } },
@@ -1055,6 +1066,10 @@ const MAPS = {
     signs: {
       '3,8': "WOODFALL VILLAGE - Where the woods begin."
     },
+    hiddenItems: {
+      '17,12': 'apricorn',
+      '4,15':  'oranberry'
+    },
     doors: {
       '5,5':  { to:'woodfall_center', x:4, y:6 },
       '12,5': { to:'woodfall_mart',   x:5, y:9 },
@@ -1204,6 +1219,11 @@ const MAPS = {
     doors: {
       '13,6': { to:'hidden_grotto', x:3, y:6 }
     },
+    hiddenItems: {
+      '5,11':  'apricorn',
+      '21,18': 'oranberry',
+      '11,22': 'revive'
+    },
     edges: {
       north: { y:0,  to:'woodfall',  tx:7, ty:16 },
       south: { y:27, to:'crestrock', tx:7, ty:1 }
@@ -1256,6 +1276,11 @@ const MAPS = {
       // Hidden grotto (idea #22) - a step into the side alley
       // transitions into a quiet snowmelt-fed hollow.
       '5,7':  { to:'crestrock_grotto', x:4, y:7 }
+    },
+    hiddenItems: {
+      '17,3':  'apricorn',
+      '3,15':  'rodball',
+      '15,15': 'potion'
     },
     edges: {
       north: { y:0,  to:'pebblewood', tx:18, ty:26 },
@@ -1396,6 +1421,10 @@ const MAPS = {
     doors: {
       '29,6': { to:'glimcavern_b1', x:10, y:1 }
     },
+    hiddenItems: {
+      '12,8':  'revive',
+      '24,13': 'apricorn'
+    },
     edges: {
       north: { y:0,  to:'crestrock', tx:7, ty:6 },
       south: { y:27, to:'frostmere', tx:7, ty:1 }
@@ -1479,6 +1508,11 @@ const MAPS = {
     ],
     signs: {
       '3,8': "FROSTMERE TOWN - The lake never thaws."
+    },
+    hiddenItems: {
+      '17,3':  'apricorn',
+      '12,17': 'oranberry',
+      '5,21':  'potion'
     },
     doors: {
       '5,5':  { to:'frostmere_center', x:4, y:6 },
@@ -2058,6 +2092,11 @@ desert: {
       { species:'draekit',   minL:18, maxL:22, weight:2 },
       { species:'clawmonk',  minL:16, maxL:20, weight:2 }
     ],
+    hiddenItems: {
+      '6,8':   'revive',
+      '14,4':  'apricorn',
+      '20,15': 'rodball'
+    },
     edges: {
       west: { x:0, to:'crestrock', tx:18, ty:15 }
     }
@@ -2861,7 +2900,11 @@ function applyWorldExpansion(MAPS) {
         dialog:["Cinnamon buns! Just out of the stove!"] },
       { x:30, y:24, dir:'down',  sprite:'npc_carver',       name:'BALL-MAKER YORI', wander:{ range:1 },
         craft:{ cost:3, greeting:["Got APRICORNS?","I carve them into balls. Each ball needs three."] },
-        dialog:["Bring me APRICORNS and I'll shape them."] }
+        dialog:["Bring me APRICORNS and I'll shape them."] },
+      { x:33, y:24, dir:'left',  sprite:'npc_artist',       name:'MASTER TUTOR HENO', wander:{ range:1 },
+        tutor:{ cost:1500, whitelist:['earthquake','stoneedge','dragonpulse','focusblast','hyperbeam'],
+                greeting:["I teach moves the wild forgets.","My catalogue is short - but it's mine."] },
+        dialog:["I deal in moves a creature would never learn on its own."] }
     ],
     decorations:[
       // ICE SCULPTURE landmark in the south plaza.

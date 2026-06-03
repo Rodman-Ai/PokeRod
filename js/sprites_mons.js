@@ -7,12 +7,19 @@
   function drawCreature(ctx, species, sx, sy, sizePx, isBack, subject) {
     if (!window.PR_ATLAS || !window.PR_ATLAS.isReady()) return;
     const shiny = !!(subject && subject.shiny);
+    // Alpha variant (brainstorm #7): render 1.15x larger, centred on
+    // the original sprite anchor so the bigger size reads as bulk
+    // rather than offset. Stacks with shiny tint.
+    const alpha = !!(subject && subject.alpha);
+    const drawSize = alpha ? Math.round(sizePx * 1.15) : sizePx;
+    const dx = sx - Math.round((drawSize - sizePx) / 2);
+    const dy = sy - Math.round((drawSize - sizePx) / 2);
     if (shiny) {
       ctx.save();
       ctx.filter = 'hue-rotate(140deg) saturate(1.35) brightness(1.05)';
     }
     const key = 'creature_' + species;
-    window.PR_ATLAS.drawKeyScaled(ctx, key, sx, sy, sizePx, sizePx);
+    window.PR_ATLAS.drawKeyScaled(ctx, key, dx, dy, drawSize, drawSize);
     if (shiny) ctx.restore();
   }
 

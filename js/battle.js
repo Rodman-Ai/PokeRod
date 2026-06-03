@@ -72,9 +72,9 @@
     // Choice Band lock (idea #1) is a per-battle commitment. Clear it
     // on every party + foe mon at construct so stale flags can't carry
     // across battles.
-    for (const m of (state.party || [])) if (m) m.lockedMoveId = null;
-    for (const m of (opts.trainer && opts.trainer.team) || []) if (m) m.lockedMoveId = null;
-    if (opts.wild) opts.wild.lockedMoveId = null;
+    for (const m of (state.party || [])) if (m) { m.lockedMoveId = null; m.teraType = null; }
+    for (const m of (opts.trainer && opts.trainer.team) || []) if (m) { m.lockedMoveId = null; m.teraType = null; }
+    if (opts.wild) { opts.wild.lockedMoveId = null; opts.wild.teraType = null; }
     // Friendship-endure (idea #31) bracket: per-side, once per battle.
     this._bondUsed = { me:false, foe:false };
     // Per-side field state - entry hazards & screens (idea #3). 'me' is
@@ -145,6 +145,7 @@
     } else {
       this.queue('A wild ' + this.foe.nickname + ' appeared!');
       if (this.foe.shiny) this.queue('It is shiny! What a rare find!');
+      if (this.foe.alpha) this.queue('An ALPHA stares you down!');
     }
     this.queue('Go, ' + this.me.nickname + '!');
     this.phase = 'message';
@@ -233,6 +234,7 @@
       }
       if (this.phase === 'fight')  return this.updateFight();
       if (this.phase === 'party')  return this.updateParty();
+      if (this.phase === 'terapick') return this.updateTeraPick();
       if (this.phase === 'turn')   return this.updateTurn(dt);
       if (this.phase === 'faint')  return this.updateFaint(dt);
       if (this.phase === 'won')    return this.updateOutcome();
@@ -285,10 +287,66 @@
     // Mega-style power surge (idea #19). Holders of a Power Gem can
     // trigger one ATK+1/SPA+1 boost per battle via the M hotkey.
     if (I.consumePressed('m')) this._tryPowerSurge();
+    // Terastal type-swap (brainstorm #1). T opens the picker.
+    if (I.consumePressed('t')) this._openTeraPick();
     if (I.consumePressed('z')) {
       const m = moves[this.subSelection];
       if (!m || m.pp <= 0) { this.flashMsg('No PP left for that move!'); return; }
       this.queueTurn(m);
+    }
+  };
+
+  // Terastal type-swap (brainstorm #1). Opens an 18-type picker as a
+  // sub-phase; on confirm the lead's effective types collapse to the
+  // chosen one for the rest of the battle.
+  Battle.prototype._openTeraPick = function() {
+    if (this._teraUsed) { this.flashMsg('Tera already locked.'); return; }
+    const ITEMS = window.PR_ITEMS && window.PR_ITEMS.ITEMS;
+    const it = this.me.held && ITEMS && ITEMS[this.me.held];
+    if (!it || !it.teraOrb) { this.flashMsg('Need a TERA ORB!'); return; }
+    this.phase = 'terapick';
+    this.teraPickIdx = 0;
+  };
+  Battle.prototype.updateTeraPick = function() {
+    const I = window.PR_INPUT;
+    const T = window.PR_DATA.TYPES;
+    if (I.consumePressed('ArrowRight') || I.consumePressed('ArrowDown')) {
+      this.teraPickIdx = (this.teraPickIdx + 1) % T.length;
+    }
+    if (I.consumePressed('ArrowLeft') || I.consumePressed('ArrowUp')) {
+      this.teraPickIdx = (this.teraPickIdx - 1 + T.length) % T.length;
+    }
+    if (I.consumePressed('x')) { this.phase = 'fight'; return; }
+    if (I.consumePressed('z') || I.consumePressed('Enter') || I.consumePressed('t')) {
+      const t = T[this.teraPickIdx];
+      this.me.teraType = t;
+      this._teraUsed = true;
+      window.PR_SFX && window.PR_SFX.play('confirm');
+      this.flashMsg(this.me.nickname + ' became ' + t + ' type!');
+    }
+  };
+  Battle.prototype.drawTeraPick = function(ctx) {
+    const D = window.PR_DATA;
+    const x = 6, y = VIEW_H - 56, w = VIEW_W - 12, h = 52;
+    window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
+    window.PR_UI.drawText(ctx, 'PICK TERA TYPE', x + 4, y + 4, '#202020');
+    window.PR_UI.drawText(ctx, 'A:LOCK B:CANCEL', x + w - 86, y + 4, '#806040');
+    const cols = 6, rows = 3;
+    const cellW = (w - 8) / cols, cellH = 12;
+    for (let i = 0; i < D.TYPES.length; i++) {
+      const t = D.TYPES[i];
+      const col = i % cols, row = (i / cols) | 0;
+      const cx = x + 4 + col * cellW;
+      const cy = y + 14 + row * cellH;
+      ctx.fillStyle = window.PR_UI.pf(D.TYPE_COLOR[t] || '#202020');
+      ctx.fillRect(cx, cy, cellW - 2, 10);
+      const sel = (i === this.teraPickIdx);
+      if (sel) {
+        ctx.fillStyle = window.PR_UI.pf('#f0c020');
+        ctx.fillRect(cx - 1, cy - 1, cellW, 1);
+        ctx.fillRect(cx - 1, cy + 10, cellW, 1);
+      }
+      window.PR_UI.drawText(ctx, t.slice(0, 4), cx + 2, cy + 1, '#fff');
     }
   };
 
@@ -737,6 +795,7 @@
   Battle.prototype._pickCatchMark = function() {
     if (!this.foe) return null;
     if (this.foe.shiny) return 'shimmer';
+    if (this.foe.alpha) return 'alpha';
     const W = window.PR_WEATHER && window.PR_WEATHER.currentKind && window.PR_WEATHER.currentKind();
     if (W === 'rain' || W === 'thunder' || W === 'hail' || W === 'hurricane') return 'stormcaught';
     const phase = (window.PR_GAME && window.PR_GAME.currentPhase && window.PR_GAME.currentPhase()) || null;
@@ -1499,6 +1558,13 @@
   // mons (party-wide XP / exp-share-on behaviour).
   Battle.prototype.applyXpToMon = function(mon, gain) {
     if (!mon || mon.level >= 100 || gain <= 0) return;
+    // Level cap (brainstorm #25): when ON, party can't grow past
+    // (badges + 1) * 12. Stops grinding through gym order.
+    if (this.state.settings && this.state.settings.levelCap) {
+      const badges = (this.state.player && this.state.player.badges) ? this.state.player.badges.length : 0;
+      const cap = (badges + 1) * 12;
+      if (mon.level >= cap) return;
+    }
     mon.xp += gain;
     // Friendship ticks up +1 per battle the mon participates in
     // (gain > 0 from this side already), capped at 255.
@@ -1715,6 +1781,8 @@
       this.drawFightMenu(ctx);
     } else if (this.phase === 'party') {
       this.drawPartyMenu(ctx);
+    } else if (this.phase === 'terapick') {
+      this.drawTeraPick(ctx);
     } else if (this.phase === 'learnmove') {
       this.drawLearnMove(ctx);
     }
