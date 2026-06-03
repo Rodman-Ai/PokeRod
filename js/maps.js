@@ -2389,8 +2389,8 @@ function applyWorldExpansion(MAPS) {
       // Lab plaza decor.
       { x:21, y:14, key:'planter_flowerbed_oval' },
       { x:28, y:14, key:'planter_flowerbed_oval' },
-      { x:21, y:17, key:'bench_park_brown' },
-      { x:28, y:17, key:'bench_park_brown' },
+      { x:22, y:16, key:'bench_park_brown' },
+      { x:27, y:16, key:'bench_park_brown' },
       { x:24, y:14, key:'water_fountain_round' },
       // Cottage-front pots - placed in the gaps between cottages
       // (not directly under walls) so they read as garden bouquets
@@ -2403,7 +2403,7 @@ function applyWorldExpansion(MAPS) {
       { x:28, y:22, key:'lamp_oil_brass' },
       { x:32, y:22, key:'lamp_oil_brass' },
       // Bench under the cottage row tree.
-      { x:18, y:13, key:'bench_marble_white' },
+      { x:16, y:11, key:'bench_marble_white' },
       // Dockyard trash + crate (we use trash_grey_lid as a crate stand-in).
       { x:14, y:23, key:'trash_grey_lid' },
       { x:27, y:23, key:'trash_blue_recycle' }
@@ -2528,8 +2528,8 @@ function applyWorldExpansion(MAPS) {
       { x:19, y:19, key:'bench_garden_iron' },
       { x:25, y:19, key:'bench_garden_iron' },
       // Marble benches along the cross diameter.
-      { x:11, y:18, key:'bench_marble_white' },
-      { x:31, y:18, key:'bench_marble_white' },
+      { x:10, y:17, key:'bench_marble_white' },
+      { x:30, y:17, key:'bench_marble_white' },
       // Topiary hedge planters.
       { x:14, y:11, key:'planter_hedge_round' },
       { x:28, y:11, key:'planter_hedge_round' },
@@ -2664,8 +2664,8 @@ function applyWorldExpansion(MAPS) {
       { x:11, y:21, key:'pot_tall_lily' },
       { x:31, y:21, key:'pot_tall_lily' },
       // South-end log bench under the gym wall.
-      { x:18, y:23, key:'bench_log' },
-      { x:26, y:23, key:'bench_log' },
+      { x:18, y:22, key:'bench_log' },
+      { x:25, y:22, key:'bench_log' },
       // Wicker bins.
       { x:8,  y:17, key:'trash_basket_wicker' },
       { x:34, y:17, key:'trash_basket_wicker' }
@@ -2781,10 +2781,10 @@ function applyWorldExpansion(MAPS) {
       { x:11, y:21, key:'streetlamp_ornate_double' },
       { x:31, y:21, key:'streetlamp_ornate_double' },
       // Stone benches around the meteor pedestal.
-      { x:19, y:18, key:'bench_stone_grey' },
-      { x:25, y:18, key:'bench_stone_grey' },
-      { x:19, y:14, key:'bench_stone_grey' },
-      { x:25, y:14, key:'bench_stone_grey' },
+      { x:18, y:17, key:'bench_stone_grey' },
+      { x:24, y:17, key:'bench_stone_grey' },
+      { x:18, y:14, key:'bench_stone_grey' },
+      { x:24, y:14, key:'bench_stone_grey' },
       // Zen stone planters at the upper terrace corners.
       { x:14, y:11, key:'planter_zen_stone' },
       { x:28, y:11, key:'planter_zen_stone' },
@@ -2916,11 +2916,11 @@ function applyWorldExpansion(MAPS) {
       { x:31, y:13, key:'lamp_paper_lantern' },
       { x:38, y:13, key:'lamp_paper_lantern' },
       // Log benches on the lake-circle path.
-      { x:17, y:14, key:'bench_log' },
+      { x:16, y:12, key:'bench_log' },
       { x:26, y:14, key:'bench_log' },
       // Marble benches around the gym plaza.
-      { x:25, y:25, key:'bench_marble_white' },
-      { x:31, y:25, key:'bench_marble_white' },
+      { x:24, y:24, key:'bench_marble_white' },
+      { x:30, y:24, key:'bench_marble_white' },
       // Zen planters at the entrances.
       { x:21, y:5,  key:'planter_zen_stone' },
       { x:23, y:5,  key:'planter_zen_stone' },
@@ -3061,10 +3061,10 @@ function applyWorldExpansion(MAPS) {
       { x:11, y:11, key:'streetlamp_ornate_double' },
       { x:21, y:11, key:'streetlamp_ornate_double' },
       // Pier-wood benches along east pier.
-      { x:32, y:21, key:'bench_pier_wood' },
-      { x:36, y:21, key:'bench_pier_wood' },
+      { x:31, y:20, key:'bench_pier_wood' },
+      { x:35, y:20, key:'bench_pier_wood' },
       // Picnic benches in the plaza junction (clear of the gym roof).
-      { x:9,  y:18, key:'bench_picnic_red' },
+      { x:8,  y:17, key:'bench_picnic_red' },
       { x:23, y:18, key:'bench_picnic_red' },
       // Herb-box planters at building corners.
       { x:13, y:5,  key:'planter_herb_box' },
@@ -3205,15 +3205,15 @@ function applyWorldExpansion(MAPS) {
       { x:7,  y:21, key:'streetlamp_ornate_double' },
       { x:36, y:21, key:'streetlamp_ornate_double' },
       // Marble benches at the ring midpoints.
-      { x:11, y:16, key:'bench_marble_white' },
-      { x:32, y:16, key:'bench_marble_white' },
-      { x:22, y:11, key:'bench_marble_white' },
+      { x:10, y:16, key:'bench_marble_white' },
+      { x:31, y:16, key:'bench_marble_white' },
+      { x:22, y:10, key:'bench_marble_white' },
       // Stone benches along the SW + SE diagonals (well clear of
       // the corner statues so the silhouettes don't overlap).
-      { x:14, y:13, key:'bench_stone_grey' },
-      { x:30, y:13, key:'bench_stone_grey' },
-      { x:14, y:19, key:'bench_stone_grey' },
-      { x:30, y:19, key:'bench_stone_grey' },
+      { x:12, y:11, key:'bench_stone_grey' },
+      { x:28, y:11, key:'bench_stone_grey' },
+      { x:12, y:21, key:'bench_stone_grey' },
+      { x:28, y:21, key:'bench_stone_grey' },
       // Zen + marble pots at the entrances.
       { x:21, y:5,  key:'planter_zen_stone' },
       { x:23, y:5,  key:'planter_zen_stone' },
