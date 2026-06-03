@@ -2901,7 +2901,7 @@ function applyWorldExpansion(MAPS) {
       { x:30, y:24, dir:'down',  sprite:'npc_artist',       name:'BALL-MAKER YORI', wander:{ range:1 },
         craft:{ cost:3, greeting:["Got APRICORNS?","I carve them into balls. Each ball needs three."] },
         dialog:["Bring me APRICORNS and I'll shape them."] },
-      { x:33, y:24, dir:'left',  sprite:'npc_artist',       name:'MASTER TUTOR HENO', wander:{ range:1 },
+      { x:33, y:22, dir:'left',  sprite:'npc_artist',       name:'MASTER TUTOR HENO', wander:{ range:1 },
         tutor:{ cost:1500, whitelist:['earthquake','stoneedge','dragonpulse','focusblast','hyperbeam'],
                 greeting:["I teach moves the wild forgets.","My catalogue is short - but it's mine."] },
         dialog:["I deal in moves a creature would never learn on its own."] }
@@ -3685,7 +3685,7 @@ function applyWorldExpansion(MAPS) {
     signs:{ '21,14':'SUNBLEACH DESERT - Oasis, ruins, and the Rodport loop.' },
     hidden:{ '18,26':{ item:'quickball', count:1 }, '29,29':{ item:'ultraball', count:1 } },
     npcs:[
-      movedNpc('desert', 0, 29, 20, 'down'),
+      movedNpc('desert', 0, 30, 19, 'down'),
       roadTrainer(28, 29, 'up', 'trainer_ruin_maniac', 'RUIN MANIAC SOL',
         ["The dunes spiral around old stones out here.","I dig up battles as often as relics."],
         [['stoneworm',33],['crysthorn',34],['mindrop',34]], 1880,

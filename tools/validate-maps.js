@@ -283,6 +283,11 @@ for (const [id, map] of Object.entries(MAPS)) {
   if (map.npcs) {
     for (const npc of map.npcs) {
       if (!inBounds(map, npc.x, npc.y)) fail(`${id}: npc ${npc.name || npc.sprite} out of bounds at ${npc.x},${npc.y}`);
+      // No NPC should ever be embedded in a tree canopy - shop/nurse
+      // NPCs legitimately stand on counter / healer tiles, but never
+      // on trees. (Walls aren't flagged here: a few NPCs are drawn
+      // flush against a wall tile by design.)
+      else if (isOnTree(map, npc.x, npc.y)) fail(`${id}: npc ${npc.name || npc.sprite} sits in a tree at ${npc.x},${npc.y}`);
       validateNpcSprite(id, npc);
       validateTrainerTeam(id, npc);
       if (npc.trainer && !npc.gym) {
