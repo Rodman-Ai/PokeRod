@@ -70,82 +70,45 @@
   // Small chip showing how many steps the current Repel still has
   // before it wears off. Anchored top-center so it doesn't fight the
   // top-left minimap or the top-right clock.
-  // Small "BIKE" chip top-center while the player is riding. Sits just
-  // below the repel timer's slot so they don't overlap.
-  function drawBikeChip(ctx, viewW) {
-    const text = 'BIKE';
+  // Status chips (repel / lure / sandwich / bike / run / chain /
+  // outbreak) all share the top-center column. Each helper takes the
+  // y-slot it should occupy; the render site stacks active chips
+  // downward so several at once never overdraw each other.
+  function drawStatusChip(ctx, viewW, y, text, border, textCol) {
     const textW = window.PR_UI.textWidth(text);
     const w = Math.max(18, textW + 8);
     const x = (viewW - w) / 2 | 0;
-    window.PR_UI.chip(ctx, x, 18, text, {
-      fill:'#1a0204', border:'#e84848', text:'#f0d8a0'
+    window.PR_UI.chip(ctx, x, y, text, {
+      fill:'#1a0204', border:border, text:textCol
     });
+  }
+  function drawBikeChip(ctx, viewW, y) {
+    drawStatusChip(ctx, viewW, y, 'BIKE', '#e84848', '#f0d8a0');
   }
   // RUN chip (idea #31): shown while the player is holding B to run.
-  // Stacks below the BIKE slot so the two never collide (running and
-  // biking are mutually exclusive anyway).
-  function drawRunChip(ctx, viewW) {
-    const text = 'RUN';
-    const textW = window.PR_UI.textWidth(text);
-    const w = Math.max(18, textW + 8);
-    const x = (viewW - w) / 2 | 0;
-    window.PR_UI.chip(ctx, x, 18, text, {
-      fill:'#1a0204', border:'#d88820', text:'#f0d8a0'
-    });
+  function drawRunChip(ctx, viewW, y) {
+    drawStatusChip(ctx, viewW, y, 'RUN', '#d88820', '#f0d8a0');
   }
-  // Sandwich-buff chip (brainstorm #2): active food buff with steps
-  // remaining. Mirrors the lure chip slot.
-  function drawSandwichChip(ctx, viewW, buff, stepsLeft) {
+  // Sandwich-buff chip (brainstorm #2): active food buff + steps left.
+  function drawSandwichChip(ctx, viewW, y, buff, stepsLeft) {
     const labelKind = buff.kind === 'type' ? (buff.type || 'TYPE') :
                       buff.kind === 'shiny' ? 'SHINY' : 'RARE';
-    const text = labelKind + ' SAND ' + stepsLeft;
-    const w = Math.max(18, window.PR_UI.textWidth(text) + 8);
-    const x = (viewW - w) / 2 | 0;
-    window.PR_UI.chip(ctx, x, 18, text, {
-      fill:'#1a0204', border:'#d8a830', text:'#fff8c8'
-    });
+    drawStatusChip(ctx, viewW, y, labelKind + ' SAND ' + stepsLeft, '#d8a830', '#fff8c8');
   }
-  // Mass-outbreak chip (brainstorm #5): top-center notice when the
-  // player is on today's outbreak route.
-  function drawOutbreakChip(ctx, viewW, species) {
-    const text = 'OUTBREAK ' + (species || '').toUpperCase().slice(0, 8);
-    const w = Math.max(18, window.PR_UI.textWidth(text) + 8);
-    const x = (viewW - w) / 2 | 0;
-    window.PR_UI.chip(ctx, x, 32, text, {
-      fill:'#1a0204', border:'#f0c020', text:'#f0e088'
-    });
+  // Mass-outbreak chip (brainstorm #5): shown on today's outbreak route.
+  function drawOutbreakChip(ctx, viewW, y, species) {
+    drawStatusChip(ctx, viewW, y, 'OUTBREAK ' + (species || '').toUpperCase().slice(0, 8), '#f0c020', '#f0e088');
   }
-  // Catch-combo chip (idea #6): shows the current chain length while
-  // it's non-zero, so the player can see their shiny-hunt streak.
-  function drawComboChip(ctx, viewW, combo) {
-    const text = 'CHAIN ' + combo.count;
-    const textW = window.PR_UI.textWidth(text);
-    const w = Math.max(18, textW + 8);
-    const x = (viewW - w) / 2 | 0;
-    window.PR_UI.chip(ctx, x, 32, text, {
-      fill:'#1a0204', border:'#88c860', text:'#a8f0a0'
-    });
+  // Catch-combo chip (idea #6): current chain length while non-zero.
+  function drawComboChip(ctx, viewW, y, combo) {
+    drawStatusChip(ctx, viewW, y, 'CHAIN ' + combo.count, '#88c860', '#a8f0a0');
   }
-  function drawRepelTimer(ctx, viewW, stepsRemaining) {
-    const text = 'REPEL ' + stepsRemaining;
-    const textW = window.PR_UI.textWidth(text);
-    const w = Math.max(18, textW + 8);
-    const x = (viewW - w) / 2 | 0;
-    window.PR_UI.chip(ctx, x, 4, text, {
-      fill:'#1a0204', border:'#d8b870', text:'#d8b870'
-    });
+  function drawRepelTimer(ctx, viewW, y, stepsRemaining) {
+    drawStatusChip(ctx, viewW, y, 'REPEL ' + stepsRemaining, '#d8b870', '#d8b870');
   }
-  // Bait lure chip (brainstorm #30): mirrors REPEL placement so the
-  // two share the top-center slot; lure stacks below the repel chip
-  // when both are active.
-  function drawLureChip(ctx, viewW, type, steps) {
-    const text = (type || '?').toUpperCase().slice(0, 4) + ' LURE ' + steps;
-    const textW = window.PR_UI.textWidth(text);
-    const w = Math.max(18, textW + 8);
-    const x = (viewW - w) / 2 | 0;
-    window.PR_UI.chip(ctx, x, 18, text, {
-      fill:'#1a0204', border:'#88c860', text:'#a8f0a0'
-    });
+  // Bait lure chip (brainstorm #30).
+  function drawLureChip(ctx, viewW, y, type, steps) {
+    drawStatusChip(ctx, viewW, y, (type || '?').toUpperCase().slice(0, 4) + ' LURE ' + steps, '#88c860', '#a8f0a0');
   }
   function drawWorldClock(ctx, viewW, steps) {
     const hm = clockHM(steps);
@@ -3239,23 +3202,25 @@
     // top-screen overlay to keep the world view clean.
     if (!tiltActive()) drawWorldClock(ctx, VIEW_W, this.player.steps || 0);
 
-    // Repel HUD timer (top-center). Shows step count remaining while
-    // a Repel is active. Hidden when expired so it doesn't add
-    // permanent clutter. Drawn after the clock so it appears below.
-    if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, this.player.repelSteps);
-    if ((this.player.lureSteps | 0) > 0) drawLureChip(ctx, VIEW_W, this.player.lureType, this.player.lureSteps);
+    // Status chips (top-center column). Every active chip stacks
+    // downward from y=4 so several at once never overdraw each other
+    // (repel + lure + sandwich + bike could all be live together).
+    let chipY = 4;
+    const nextChipY = () => { const y = chipY; chipY += 14; return y; };
+    if ((this.player.repelSteps | 0) > 0) drawRepelTimer(ctx, VIEW_W, nextChipY(), this.player.repelSteps);
+    if ((this.player.lureSteps | 0) > 0) drawLureChip(ctx, VIEW_W, nextChipY(), this.player.lureType, this.player.lureSteps);
     const sb = this.player.sandwichBuff;
     if (sb && (sb.expiresAt | 0) > (this.player.steps | 0)) {
-      drawSandwichChip(ctx, VIEW_W, sb, (sb.expiresAt | 0) - (this.player.steps | 0));
+      drawSandwichChip(ctx, VIEW_W, nextChipY(), sb, (sb.expiresAt | 0) - (this.player.steps | 0));
     }
-    if (this.player.onBike) drawBikeChip(ctx, VIEW_W);
-    else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) drawRunChip(ctx, VIEW_W);
+    if (this.player.onBike) drawBikeChip(ctx, VIEW_W, nextChipY());
+    else if (window.PR_INPUT && window.PR_INPUT.isDown && window.PR_INPUT.isDown('x')) drawRunChip(ctx, VIEW_W, nextChipY());
     const combo = this.player.catchCombo;
-    if (combo && combo.count > 0) drawComboChip(ctx, VIEW_W, combo);
+    if (combo && combo.count > 0) drawComboChip(ctx, VIEW_W, nextChipY(), combo);
     // Outbreak chip (brainstorm #5): only when standing on today's
     // outbreak map.
     const ob = window.PR_GAME && window.PR_GAME.currentOutbreak && window.PR_GAME.currentOutbreak();
-    if (ob && cur && cur.id === ob.map) drawOutbreakChip(ctx, VIEW_W, ob.species);
+    if (ob && cur && cur.id === ob.map) drawOutbreakChip(ctx, VIEW_W, nextChipY(), ob.species);
 
     // Map name banner on entry.
     if (this.justEntered) {

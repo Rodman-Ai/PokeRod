@@ -190,6 +190,27 @@
     // long drain on "fast" - the message gate at line 94 won't release
     // until hpAnim catches up, so this also makes battle dialog
     // perceptibly snappier overall.
+    // Corrupted-save bail-out: the constructor queues a "fleeing!"
+    // message when me/foe is missing. Everything below dereferences
+    // both combatants, so route straight to the message-advance path
+    // here - otherwise the throw would soft-lock the battle and the
+    // player could never tap through to the 'ran' exit.
+    if (!this.me || !this.foe) {
+      // Outcome phases exit first - otherwise the message-advance
+      // check below would eat the z-press updateOutcome needs.
+      if (this.phase === 'ran' || this.phase === 'won' ||
+          this.phase === 'lost' || this.phase === 'caught') {
+        return this.updateOutcome();
+      }
+      if (window.PR_INPUT.consumePressed('z') || window.PR_INPUT.consumePressed('Enter')) {
+        this.messages.shift();
+        if (!this.messages.length && this.afterMessages) {
+          const f = this.afterMessages; this.afterMessages = null; f();
+        }
+      }
+      return;
+    }
+
     const mult = textSpeedMult();
     const tickHp = (cur, target) => {
       if (cur < target) return Math.min(target, cur + 60*dt*mult);
@@ -330,7 +351,7 @@
     const x = 6, y = VIEW_H - 56, w = VIEW_W - 12, h = 52;
     window.PR_UI.box(ctx, x, y, w, h, '#fff', '#202020');
     window.PR_UI.drawText(ctx, 'PICK TERA TYPE', x + 4, y + 4, '#202020');
-    window.PR_UI.drawText(ctx, 'A:LOCK B:CANCEL', x + w - 86, y + 4, '#806040');
+    window.PR_UI.drawText(ctx, 'A:LOCK B:BACK', x + w - 84, y + 4, '#806040');
     const cols = 6, rows = 3;
     const cellW = (w - 8) / cols, cellH = 12;
     for (let i = 0; i < D.TYPES.length; i++) {
@@ -1678,6 +1699,18 @@
 
   // ----------- RENDERING -----------
   Battle.prototype.render = function(ctx) {
+    // Corrupted-save bail-out: with me/foe missing, just draw the
+    // "fleeing!" dialog on a plain field so update()'s escape path
+    // has something readable to advance through.
+    if (!this.me || !this.foe) {
+      ctx.fillStyle = window.PR_UI.pf('#a8c0e8');
+      ctx.fillRect(0, 0, VIEW_W, 90);
+      ctx.fillStyle = window.PR_UI.pf('#5cae4c');
+      ctx.fillRect(0, 90, VIEW_W, VIEW_H - 90);
+      const lines = window.PR_UI.wrap(this.currentMessage() || 'Fleeing...', 30);
+      window.PR_UI.drawDialog(ctx, lines.slice(0, 3), VIEW_W, VIEW_H, true);
+      return;
+    }
     let shakeX = 0;
     if (this.shakeTimer > 0) shakeX = (Math.sin(this.timer * 80) * 2) | 0;
 

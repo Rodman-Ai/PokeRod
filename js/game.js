@@ -3,8 +3,8 @@
 
 (function(){
   const VIEW_W = 240, VIEW_H = 160;
-  const VERSION = 'v0.55.61';
-  const BUILD = '2026.05.15-205';
+  const VERSION = 'v0.55.62';
+  const BUILD = '2026.05.15-207';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
@@ -2108,7 +2108,7 @@
         sandwichShinyMult = sb.mult || 2;
       }
       const shinyMult = charmMult * comboMult * sandwichShinyMult;
-      const wild = window.PR_DATA.makeMon(species, level, { shinyMult });
+      const wild = window.PR_DATA.makeMon(species, level, { shinyMult, wild: true });
       step = 'construct-battle';
       state.battle = new window.PR_BATTLE.Battle(state, { wild });
       step = 'set-mode';
@@ -3617,7 +3617,8 @@
     window.PR_UI.header(ctx, headerText, x + 4, y + 4, w - 8,
       { fill:'#1a0204', line:'#f0c020', text:'#f0c020' });
     const sortLabel = (v && v.sortBy) || 'caught';
-    window.PR_UI.drawText(ctx, 'B:BACK  R:' + sortLabel.toUpperCase().slice(0, 5), x + w - 96, y + 4, '#806040');
+    const sortText = 'B:BACK R:' + sortLabel.toUpperCase();
+    window.PR_UI.drawText(ctx, sortText, x + w - 6 - window.PR_UI.textWidth(sortText), y + 4, '#806040');
 
     // Two columns: BOX | PARTY
     const colW = (w - 16) / 2;
@@ -4167,6 +4168,17 @@
     const cellW = (w - 12) / cols;
     const cellH = 30;
     const top = y + 30;
+    // With no damage moves in the party at all (fresh save), every
+    // matchup is unknowable - show '-' across the board rather than
+    // a misleading wall of 0x "immune" tags.
+    let hasDamageMove = false;
+    for (const mon of state.party || []) {
+      for (const mv of (mon && mon.moves) || []) {
+        const m = D.MOVES[mv.id];
+        if (m && m.kind !== 'status' && (m.power | 0) > 0) { hasDamageMove = true; break; }
+      }
+      if (hasDamageMove) break;
+    }
     for (let i = 0; i < D.TYPES.length; i++) {
       const t = D.TYPES[i];
       const col = i % cols, row = (i / cols) | 0;
@@ -4178,17 +4190,17 @@
       const abbr = TYPE_ABBR[t] || t.slice(0, 3);
       window.PR_UI.drawText(ctx, abbr, cx + 2, cy + 2, '#fff');
       // Best mult tag below
-      const best = partyCoverageBest(t);
+      const best = hasDamageMove ? partyCoverageBest(t) : -1;
       let tag = '-', col2 = '#888888';
       if (best >= 4)      { tag = '4x'; col2 = '#208830'; }
       else if (best >= 2) { tag = '2x'; col2 = '#388838'; }
       else if (best > 1)  { tag = '+';  col2 = '#388838'; }
       else if (best === 0){ tag = '0x'; col2 = '#3088c8'; }
-      else if (best < 1)  { tag = '-';  col2 = '#a06030'; }
+      else if (best >= 0 && best < 1) { tag = '-'; col2 = '#a06030'; }
       window.PR_UI.drawText(ctx, tag, cx + 4, cy + 14, col2);
     }
-    // Footer hint.
-    window.PR_UI.drawText(ctx, 'GREEN = SUPER EFFECTIVE FROM YOUR PARTY', x + 6, y + h - 14, '#806040');
+    // Footer hint (must fit the 216px inner panel width).
+    window.PR_UI.drawText(ctx, 'GREEN = YOU HIT SUPER EFFECTIVE', x + 6, y + h - 14, '#806040');
   }
 
   // ---------- Battle log scrollback (idea #38) ----------
@@ -5873,6 +5885,22 @@
 
   // ---------- Battle end ----------
   function endBattle(outcome, battle) {
+    // Clear in-battle volatile state on every party member. Stat
+    // stages, confusion, charge/recharge locks, Choice locks, Tera
+    // types and crit stages are battle-scoped - without this reset a
+    // Growl debuff (or an alpha's spawn boost) would silently follow
+    // the team into every later fight. Persistent status (burn /
+    // poison / sleep) intentionally survives, matching the mainline.
+    for (const m of state.party || []) {
+      if (!m) continue;
+      m.statStages = { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 };
+      m.confusionTurns = 0;
+      m.chargingMove = null;
+      m.mustRecharge = false;
+      m.lockedMoveId = null;
+      m.teraType = null;
+      m.critStage = 0;
+    }
     // Battle Tower chains: every trainer battle marked with a
     // `_tower_*` npcKey is a tower round. Hook in before the
     // normal lost / won bookkeeping so the tower flow controls the

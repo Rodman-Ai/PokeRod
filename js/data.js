@@ -994,9 +994,12 @@ function makeMon(speciesId, level, opts) {
   // if the species has a hidden variant. opts.hidden forces it.
   const hiddenAbility = !!(opts && opts.hidden) ||
     (HIDDEN_ABILITIES[speciesId] && Math.random() < 1/8);
-  // Alpha variant (brainstorm #7): 1/30 chance to spawn as an Alpha -
-  // larger sprite, +1 stat-stage in ATK + SPA at spawn, auto-marks.
-  const alpha = !!(opts && opts.alpha) || (Math.random() < 1/30);
+  // Alpha variant (brainstorm #7): 1/30 chance on WILD encounters only
+  // (opts.wild from startBattleAgainstWild) - trainer teams, starters,
+  // gifts and tower rentals never roll alpha. Larger sprite, +1
+  // stat-stage in ATK + SPA at spawn, auto-marks on catch.
+  const alpha = !!(opts && opts.alpha) ||
+    (!!(opts && opts.wild) && Math.random() < 1/30);
   const startStages = { atk:0, def:0, spa:0, spd:0, spe:0, acc:0, eva:0 };
   if (alpha) { startStages.atk = 1; startStages.spa = 1; }
   return {
